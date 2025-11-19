@@ -1,0 +1,16 @@
+# 의존성
+node_modules
+dist
+build
+
+# 설정 파일
+.eslintrc.js
+.commitlintrc.ts
+vite.config.ts
+
+# 기타
+coverage
+*.log
+
+# Vite
+.vite
