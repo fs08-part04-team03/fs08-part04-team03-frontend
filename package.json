@@ -4,18 +4,24 @@
   "description": "프로젝트 설명",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
-    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md,css,scss}\"",
     "type-check": "tsc --noEmit",
     "prepare": "husky install"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@hookform/resolvers": "^5.2.2",
+    "@tanstack/react-query": "^5.90.10",
+    "next": "^16.0.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.66.1",
+    "zod": "^4.1.12",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
@@ -25,8 +31,8 @@
     "@types/react-dom": "^18.3.1",
     "@typescript-eslint/eslint-plugin": "^8.47.0",
     "@typescript-eslint/parser": "^8.47.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^8.0.0",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^8.57.1",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-typescript": "^4.4.4",
@@ -37,9 +43,10 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "husky": "^8.0.0",
     "lint-staged": "^15.0.0",
+    "postcss": "^8.5.6",
     "prettier": "^3.0.0",
-    "typescript": "^5.9.3",
-    "vite": "^6.0.5"
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
