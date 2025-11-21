@@ -1,5 +1,6 @@
 module.exports = {
   root: true,
+  ignorePatterns: ['.eslintrc.cjs', 'next.config.ts', 'postcss.config.mjs', 'tailwind.config.ts'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2021,
@@ -71,8 +72,8 @@ module.exports = {
           '**/*.test.tsx',
           '**/*.spec.ts',
           '**/*.spec.tsx',
-          '**/vite.config.ts',
-          '**/vitest.config.ts',
+          '**/next.config.ts',
+          '**/next.config.js',
         ],
       },
     ],
