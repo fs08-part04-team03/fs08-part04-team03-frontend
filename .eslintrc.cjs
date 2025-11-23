@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  ignorePatterns: ['.eslintrc.cjs', 'next.config.ts', 'postcss.config.mjs', 'tailwind.config.ts'],
+  ignorePatterns: ['.eslintrc.cjs', 'next.config.ts', 'postcss.config.mjs', 'tailwind.config.ts', 'vitest.config.ts'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2021,
@@ -11,15 +11,7 @@ module.exports = {
       jsx: true,
     },
   },
-  extends: [
-    'airbnb', // React를 포함한 Airbnb 스타일 가이드
-    'airbnb/hooks', // React Hooks 규칙
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    'prettier',
-  ],
+  extends: ['airbnb', 'airbnb/hooks', 'plugin:react/recommended', 'plugin:react-hooks/recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier', 'plugin:storybook/recommended'],
   plugins: ['@typescript-eslint', 'react', 'react-hooks', 'prettier'],
   rules: {
     'prettier/prettier': 'error',
