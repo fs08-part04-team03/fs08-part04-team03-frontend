@@ -3,63 +3,72 @@
 /* Suit 폰트 패밀리 */
 @font-face {
   font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Thin.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Thin.woff2')
+    format('woff2');
   font-weight: 100;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraLight.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraLight.woff2')
+    format('woff2');
   font-weight: 200;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Light.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Light.woff2')
+    format('woff2');
   font-weight: 300;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Regular.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Regular.woff2')
+    format('woff2');
   font-weight: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Medium.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Medium.woff2')
+    format('woff2');
   font-weight: 500;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-SemiBold.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-SemiBold.woff2')
+    format('woff2');
   font-weight: 600;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Bold.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Bold.woff2')
+    format('woff2');
   font-weight: 700;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraBold.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraBold.woff2')
+    format('woff2');
   font-weight: 800;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Heavy.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Heavy.woff2')
+    format('woff2');
   font-weight: 900;
   font-display: swap;
 }
@@ -121,6 +130,7 @@
   --size-80: 80px;
   --size-99: 99px;
   --size-100: 100px;
+  --size-130: 130px;
   --size-140: 140px;
   --size-152: 152px;
   --size-153: 153px;
@@ -146,7 +156,9 @@
   --size-472: 472px;
   --size-475: 475px;
   --size-480: 480px;
+  --size-496: 496px;
   --size-500: 500px;
+  --size-610: 610px;
   --size-512: 512px;
   --size-540: 540px;
   --size-636: 636px;
@@ -159,6 +171,128 @@
   --size-1352: 1352px;
   --size-1400: 1400px;
 
+  /* Width 토큰 (직접 px 값) */
+  --width-4: 4px;
+  --width-8: 8px;
+  --width-10: 10px;
+  --width-16: 16px;
+  --width-20: 20px;
+  --width-24: 24px;
+  --width-28: 28px;
+  --width-30: 30px;
+  --width-32: 32px;
+  --width-36: 36px;
+  --width-40: 40px;
+  --width-44: 44px;
+  --width-56: 56px;
+  --width-60: 60px;
+  --width-64: 64px;
+  --width-70: 70px;
+  --width-80: 80px;
+  --width-99: 99px;
+  --width-100: 100px;
+  --width-130: 130px;
+  --width-140: 140px;
+  --width-152: 152px;
+  --width-153: 153px;
+  --width-153-5: 153.5px;
+  --width-171: 171px;
+  --width-180: 180px;
+  --width-200: 200px;
+  --width-270: 270px;
+  --width-280: 280px;
+  --width-295: 295px;
+  --width-296: 296px;
+  --width-300: 300px;
+  --width-327: 327px;
+  --width-328: 328px;
+  --width-344: 344px;
+  --width-350: 350px;
+  --width-366: 366px;
+  --width-376: 376px;
+  --width-394: 394px;
+  --width-426: 426px;
+  --width-448: 448px;
+  --width-452: 452px;
+  --width-472: 472px;
+  --width-475: 475px;
+  --width-480: 480px;
+  --width-496: 496px;
+  --width-500: 500px;
+  --width-610: 610px;
+  --width-512: 512px;
+  --width-540: 540px;
+  --width-636: 636px;
+  --width-656: 656px;
+  --width-696: 696px;
+  --width-734: 734px;
+  --width-750: 750px;
+  --width-1052: 1052px;
+  --width-1152: 1152px;
+  --width-1352: 1352px;
+  --width-1400: 1400px;
+
+  /* Height 토큰 (직접 px 값) */
+  --height-4: 4px;
+  --height-8: 8px;
+  --height-10: 10px;
+  --height-16: 16px;
+  --height-20: 20px;
+  --height-24: 24px;
+  --height-28: 28px;
+  --height-30: 30px;
+  --height-32: 32px;
+  --height-36: 36px;
+  --height-40: 40px;
+  --height-44: 44px;
+  --height-56: 56px;
+  --height-60: 60px;
+  --height-64: 64px;
+  --height-70: 70px;
+  --height-80: 80px;
+  --height-99: 99px;
+  --height-100: 100px;
+  --height-130: 130px;
+  --height-140: 140px;
+  --height-152: 152px;
+  --height-153: 153px;
+  --height-153-5: 153.5px;
+  --height-171: 171px;
+  --height-180: 180px;
+  --height-200: 200px;
+  --height-270: 270px;
+  --height-280: 280px;
+  --height-295: 295px;
+  --height-296: 296px;
+  --height-300: 300px;
+  --height-327: 327px;
+  --height-328: 328px;
+  --height-344: 344px;
+  --height-350: 350px;
+  --height-366: 366px;
+  --height-376: 376px;
+  --height-394: 394px;
+  --height-426: 426px;
+  --height-448: 448px;
+  --height-452: 452px;
+  --height-472: 472px;
+  --height-475: 475px;
+  --height-480: 480px;
+  --height-496: 496px;
+  --height-500: 500px;
+  --height-610: 610px;
+  --height-512: 512px;
+  --height-540: 540px;
+  --height-636: 636px;
+  --height-656: 656px;
+  --height-696: 696px;
+  --height-734: 734px;
+  --height-750: 750px;
+  --height-1052: 1052px;
+  --height-1152: 1152px;
+  --height-1352: 1352px;
+  --height-1400: 1400px;
+
   /* 브레이크포인트 */
   --breakpoint-mobile: 0px;
   --breakpoint-tablet: 768px;
@@ -166,6 +300,7 @@
 
   /* Border Radius */
   --radius-default: 2px;
+  --radius-100: 100px;
 
   /* Font Size */
   --font-size-12: 12px;
@@ -177,6 +312,7 @@
   --font-size-24: 24px;
   --font-size-30: 30px;
   --font-size-32: 32px;
+  --font-size-44: 44px;
   --font-size-50: 50px;
 }
 
@@ -197,4 +333,3 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-weight: normal;
 }
-
