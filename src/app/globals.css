@@ -1,6 +1,189 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Suit 폰트 패밀리 */
+@font-face {
+  font-family: 'Suit';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suit';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraLight.woff2') format('woff2');
+  font-weight: 200;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suit';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suit';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suit';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suit';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suit';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suit';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suit';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Heavy.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+
+/* Tailwind CSS 4 @theme 블록 - 디자인 토큰 정의 */
+@theme {
+  /* Z-Index 레이어 토큰 */
+  --z-base: 1;
+  --z-header: 10;
+  --z-dropdown: 20;
+  --z-modal: 30;
+  --z-toast: 40;
+  --z-tooltip: 50;
+
+  /* Gray (Primary) 색상 팔레트 */
+  --color-gray-25: #fafafa;
+  --color-gray-50: #f5f5f5;
+  --color-gray-100: #e5e5e5;
+  --color-gray-200: #d1d1d1;
+  --color-gray-300: #b3b3b3;
+  --color-gray-400: #9e9e9e;
+  --color-gray-500: #878787;
+  --color-gray-600: #696969;
+  --color-gray-700: #555555;
+  --color-gray-800: #3a3a3a;
+  --color-gray-900: #2e2e2e;
+  --color-gray-950: #222222;
+
+  /* Secondary 색상 */
+  --color-secondary-100: #f2f6ff;
+  --color-secondary-500: #4c8ae1;
+
+  /* 기타 색상 */
+  --color-red: #e9655e;
+  --color-error-500: #f31d1d;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* 폰트 패밀리 - Suit를 기본으로 설정 */
+  --font-family-sans: 'Suit', sans-serif;
+
+  /* Spacing 토큰 (px 단위) - 매직 넘버 제거를 위해 모든 사이즈 등록 */
+  --size-4: 4px;
+  --size-8: 8px;
+  --size-10: 10px;
+  --size-16: 16px;
+  --size-20: 20px;
+  --size-24: 24px;
+  --size-28: 28px;
+  --size-30: 30px;
+  --size-32: 32px;
+  --size-36: 36px;
+  --size-40: 40px;
+  --size-44: 44px;
+  --size-56: 56px;
+  --size-60: 60px;
+  --size-64: 64px;
+  --size-70: 70px;
+  --size-80: 80px;
+  --size-99: 99px;
+  --size-100: 100px;
+  --size-140: 140px;
+  --size-152: 152px;
+  --size-153: 153px;
+  --size-153-5: 153.5px;
+  --size-171: 171px;
+  --size-180: 180px;
+  --size-200: 200px;
+  --size-270: 270px;
+  --size-280: 280px;
+  --size-295: 295px;
+  --size-296: 296px;
+  --size-300: 300px;
+  --size-327: 327px;
+  --size-328: 328px;
+  --size-344: 344px;
+  --size-350: 350px;
+  --size-366: 366px;
+  --size-376: 376px;
+  --size-394: 394px;
+  --size-426: 426px;
+  --size-448: 448px;
+  --size-452: 452px;
+  --size-472: 472px;
+  --size-475: 475px;
+  --size-480: 480px;
+  --size-500: 500px;
+  --size-512: 512px;
+  --size-540: 540px;
+  --size-636: 636px;
+  --size-656: 656px;
+  --size-696: 696px;
+  --size-734: 734px;
+  --size-750: 750px;
+  --size-1052: 1052px;
+  --size-1152: 1152px;
+  --size-1352: 1352px;
+  --size-1400: 1400px;
+
+  /* 브레이크포인트 */
+  --breakpoint-mobile: 0px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+
+  /* Border Radius */
+  --radius-default: 2px;
+
+  /* Font Size */
+  --font-size-12: 12px;
+  --font-size-13: 13px;
+  --font-size-14: 14px;
+  --font-size-16: 16px;
+  --font-size-18: 18px;
+  --font-size-20: 20px;
+  --font-size-24: 24px;
+  --font-size-30: 30px;
+  --font-size-32: 32px;
+  --font-size-50: 50px;
+}
+
+/* CSS 변수로도 사용 가능하도록 :root에 정의 */
+:root {
+  --font-family-base: var(--font-family-sans);
+}
 
 * {
   margin: 0;
@@ -9,10 +192,9 @@
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
-    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-family-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-weight: normal;
 }
 

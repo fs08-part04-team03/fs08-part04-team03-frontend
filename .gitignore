@@ -12,6 +12,7 @@ build/
 .next/
 out/
 *.log
+*.tsbuildinfo
 
 # IDE - VS Code
 .vscode/*
@@ -45,3 +46,4 @@ coverage/
 *.swp
 *.swo
 *~
+*.backup
