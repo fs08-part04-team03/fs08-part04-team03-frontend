@@ -15,7 +15,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const baseClass = clsx(
   'inline-flex items-center justify-center',
-  'border rounded-default',
+  'rounded-default',
   'font-bold',
   'transition-colors duration-150',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-500',
@@ -24,7 +24,7 @@ const baseClass = clsx(
 
 const variantClass: Record<ButtonVariant, string> = {
   primary: clsx('bg-gray-950 text-gray-50', 'hover:bg-gray-800', 'rounded-default'),
-  secondary: clsx('bg-gray-300 text-gray-900', 'hover:bg-gray-50'),
+  secondary: clsx('bg-gray-300 text-gray-900', 'border border-gray-400', 'hover:bg-gray-50'),
 };
 
 const inactiveClass = clsx('bg-gray-100 text-gray-300 border-gray-200', 'cursor-not-allowed');
