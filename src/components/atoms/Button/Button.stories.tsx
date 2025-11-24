@@ -65,10 +65,3 @@ export const Inactive: Story = {
     inactive: true,
   },
 };
-
-export const Disabled: Story = {
-  args: {
-    children: 'Disabled 버튼',
-    inactive: true,
-  },
-};
