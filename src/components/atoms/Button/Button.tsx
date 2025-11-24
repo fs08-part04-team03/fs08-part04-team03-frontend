@@ -56,19 +56,17 @@ const Button = ({
   <button
     type="button"
     id={id}
+    disabled={inactive}
     className={clsx(
       baseClass,
       inactive ? inactiveClass : variantClass[variant],
       sizeClass[size],
-      {
-        'cursor-not-allowed': inactive,
-      },
       className
     )}
     aria-label={ariaLabel}
-    onClick={inactive ? undefined : onClick}
-    onFocus={inactive ? undefined : onFocus}
-    onBlur={inactive ? undefined : onBlur}
+    onClick={onClick}
+    onFocus={onFocus}
+    onBlur={onBlur}
   >
     <span>{children}</span>
     {rightIcon}

@@ -17,9 +17,6 @@ const meta = {
     inactive: {
       control: 'boolean',
     },
-    disabled: {
-      control: 'boolean',
-    },
     rightIcon: {
       control: false,
     },
@@ -72,6 +69,6 @@ export const Inactive: Story = {
 export const Disabled: Story = {
   args: {
     children: 'Disabled 버튼',
-    disabled: true,
+    inactive: true,
   },
 };
