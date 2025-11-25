@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import Button from './Button';
+import Button, { MoreButton, SignupButton } from './Button';
 
 const meta = {
   title: 'Atoms/Button',
@@ -8,11 +8,25 @@ const meta = {
   argTypes: {
     variant: {
       control: 'radio',
-      options: ['primary', 'secondary'],
+      options: ['primary', 'secondary', 'signup'],
     },
     size: {
       control: 'radio',
-      options: ['xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'signup'],
+      options: [
+        '5xs',
+        '4xs',
+        '3xs',
+        '2xs',
+        'xs',
+        'sm',
+        'base',
+        'md',
+        'lg',
+        'xl',
+        '2xl',
+        '3xl',
+        'signup',
+      ],
     },
     inactive: {
       control: 'boolean',
@@ -43,10 +57,18 @@ export const Secondary: Story = {
     size: 'md',
   },
 };
+export const More: Story = {
+  args: {
+    children: '더보기',
+    variant: 'secondary',
+    size: 'md',
+  },
+};
+
 export const Signup: Story = {
   args: {
     children: 'Signup 버튼',
-    variant: 'primary',
+    variant: 'signup',
     size: 'signup',
   },
 };
@@ -63,5 +85,45 @@ export const Inactive: Story = {
   args: {
     children: 'Inactive 버튼',
     inactive: true,
+  },
+};
+
+// MoreButton 컴포넌트 스토리
+export const MoreButtonStory: Story = {
+  render: (args) => (
+    <MoreButton
+      size={args.size}
+      inactive={args.inactive}
+      className={args.className}
+      onClick={args.onClick}
+      onFocus={args.onFocus}
+      onBlur={args.onBlur}
+      id={args.id}
+      aria-label={args['aria-label']}
+    />
+  ),
+  args: {
+    size: 'md',
+  },
+};
+
+// SignupButton 컴포넌트 스토리
+export const SignupButtonStory: Story = {
+  render: (args) => (
+    <SignupButton
+      inactive={args.inactive}
+      rightIcon={args.rightIcon}
+      className={args.className}
+      onClick={args.onClick}
+      onFocus={args.onFocus}
+      onBlur={args.onBlur}
+      id={args.id}
+      aria-label={args['aria-label']}
+    >
+      {args.children}
+    </SignupButton>
+  ),
+  args: {
+    children: '상품등록',
   },
 };
