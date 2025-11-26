@@ -64,6 +64,7 @@ const config: Config = {
         8: 'var(--size-8)',
         10: 'var(--size-10)',
         16: 'var(--size-16)',
+        17: 'var(--size-17)',
         20: 'var(--size-20)',
         24: 'var(--size-24)',
         28: 'var(--size-28)',
@@ -97,9 +98,12 @@ const config: Config = {
         295: 'var(--size-295)',
         296: 'var(--size-296)',
         300: 'var(--size-300)',
+        '303.667': 'var(--size-303-667)',
+        304: 'var(--size-304)',
         327: 'var(--size-327)',
         328: 'var(--size-328)',
         344: 'var(--size-344)',
+        345: 'var(--size-345)',
         350: 'var(--size-350)',
         366: 'var(--size-366)',
         376: 'var(--size-376)',
@@ -129,6 +133,7 @@ const config: Config = {
       // Border Radius 토큰
       borderRadius: {
         DEFAULT: 'var(--radius-default)',
+        6: '6px',
         100: '100px',
       },
       // Font Size 토큰
@@ -144,6 +149,10 @@ const config: Config = {
         32: 'var(--font-size-32)',
         44: 'var(--font-size-44)',
         50: 'var(--font-size-50)',
+      },
+      // 글자 간격(letter-spacing) 커스텀 토큰
+      letterSpacing: {
+        '-0.4': '-0.4px',
       },
     },
   },
