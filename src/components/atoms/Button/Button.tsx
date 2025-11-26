@@ -6,7 +6,8 @@ import { clsx } from '@/utils/clsx';
 type ButtonVariant = 'primary' | 'secondary' | 'signup';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
+export interface ButtonProps
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'disabled'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
@@ -53,20 +54,7 @@ const Button = ({
   rightIcon,
   children,
   className,
-  onClick,
-  onFocus,
-  onBlur,
-  onMouseEnter,
-  onMouseLeave,
-  onKeyDown,
-  onKeyUp,
-  id,
-  style,
-  tabIndex,
-  role,
-  'aria-label': ariaLabel,
-  'aria-describedby': ariaDescribedBy,
-  'aria-labelledby': ariaLabelledBy,
+  ...rest
 }: ButtonProps) => {
   // signup variant는 자체 스타일을 가짐
   const isSignup = variant === 'signup';
@@ -74,7 +62,6 @@ const Button = ({
   return (
     <button
       type="button"
-      id={id}
       disabled={inactive}
       className={clsx(
         baseClass,
@@ -84,19 +71,8 @@ const Button = ({
         fullWidth && 'w-full',
         className
       )}
-      onClick={onClick}
-      onFocus={onFocus}
-      onBlur={onBlur}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onKeyDown={onKeyDown}
-      onKeyUp={onKeyUp}
-      style={style}
-      tabIndex={tabIndex}
-      role={role}
-      aria-label={ariaLabel}
-      aria-describedby={ariaDescribedBy}
-      aria-labelledby={ariaLabelledBy}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...rest}
     >
       <span>{children}</span>
       {rightIcon}
