@@ -44,7 +44,7 @@ export const Large: Story = {
 export const CustomSrc: Story = {
   args: {
     size: 'md',
-    src: '/logo/logo.svg',
+    src: '/logo/custom-logo.svg',
     alt: 'Custom Logo',
   },
 };
