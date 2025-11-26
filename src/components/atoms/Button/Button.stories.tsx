@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import Button, { MoreButton, SignupButton } from './Button';
+import Image from 'next/image';
+import Button, { SignupButton } from './Button';
 
 const meta = {
   title: 'Atoms/Button',
@@ -12,14 +13,13 @@ const meta = {
     },
     size: {
       control: 'radio',
-      options: ['5xs', '4xs', '3xs', '2xs', 'xs', 'sm', 'base', 'md', 'lg', 'xl', '2xl', '3xl'],
+      options: ['sm', 'md', 'lg'],
+    },
+    fullWidth: {
+      control: 'boolean',
     },
     inactive: {
       control: 'boolean',
-    },
-    type: {
-      control: 'radio',
-      options: ['button', 'submit', 'reset'],
     },
     rightIcon: {
       control: false,
@@ -32,6 +32,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+// Variants
 export const Primary: Story = {
   args: {
     children: 'Primary 버튼',
@@ -47,13 +48,6 @@ export const Secondary: Story = {
     size: 'md',
   },
 };
-export const More: Story = {
-  args: {
-    children: '더보기',
-    variant: 'secondary',
-    size: 'md',
-  },
-};
 
 export const Signup: Story = {
   args: {
@@ -62,18 +56,37 @@ export const Signup: Story = {
   },
 };
 
-export const WithRightIcon: Story = {
+// Sizes
+export const Small: Story = {
   args: {
-    children: '아이콘 포함',
-    // extra 의존성 안 타려고 간단한 텍스트 아이콘만 사용
-    rightIcon: <span className="text-base">★</span>,
+    children: 'Small 버튼',
+    size: 'sm',
+    variant: 'primary',
   },
 };
 
+export const Medium: Story = {
+  args: {
+    children: 'Medium 버튼',
+    size: 'md',
+    variant: 'primary',
+  },
+};
+
+export const Large: Story = {
+  args: {
+    children: 'Large 버튼',
+    size: 'lg',
+    variant: 'primary',
+  },
+};
+
+// States
 export const Inactive: Story = {
   args: {
     children: 'Inactive 버튼',
     inactive: true,
+    variant: 'primary',
   },
 };
 
@@ -85,58 +98,31 @@ export const InactiveSecondary: Story = {
   },
 };
 
-export const SubmitButton: Story = {
+export const WithRightIcon: Story = {
   args: {
-    children: 'Submit 버튼',
-    type: 'submit',
+    children: '아이콘 포함',
+    rightIcon: <span className="text-base">★</span>,
     variant: 'primary',
   },
 };
 
-export const ResetButton: Story = {
+export const FullWidth: Story = {
   args: {
-    children: 'Reset 버튼',
-    type: 'reset',
-    variant: 'secondary',
+    children: 'Full Width 버튼',
+    fullWidth: true,
+    variant: 'primary',
   },
 };
 
-// MoreButton 컴포넌트 스토리
-export const MoreButtonStory: Story = {
-  render: (args) => (
-    <MoreButton
-      size={args.size}
-      inactive={args.inactive}
-      className={args.className}
-      onClick={args.onClick}
-      onFocus={args.onFocus}
-      onBlur={args.onBlur}
-      id={args.id}
-      aria-label={args['aria-label']}
-    />
-  ),
-  args: {
-    size: 'md',
-  },
-};
-
-// SignupButton 컴포넌트 스토리
-export const SignupButtonStory: Story = {
-  render: (args) => (
+// Special Buttons
+export const SignupButtonExample: Story = {
+  render: () => (
     <SignupButton
-      inactive={args.inactive}
-      rightIcon={args.rightIcon}
-      className={args.className}
-      onClick={args.onClick}
-      onFocus={args.onFocus}
-      onBlur={args.onBlur}
-      id={args.id}
-      aria-label={args['aria-label']}
+      rightIcon={
+        <Image src="/icons/arrow-right-up.svg" alt="" width={16} height={16} className="shrink-0" />
+      }
     >
-      {args.children}
+      Signup Now
     </SignupButton>
   ),
-  args: {
-    children: '상품등록',
-  },
 };
