@@ -103,7 +103,7 @@ const Button = ({
 
 export default Button;
 
-// 더보기 버튼 (variant='more' 고정)
+// 더보기 버튼 (variant='secondary' 고정)
 export const MoreButton = ({
   size = 'md',
   inactive,
