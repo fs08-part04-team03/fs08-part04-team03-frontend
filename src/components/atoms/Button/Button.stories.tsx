@@ -12,24 +12,14 @@ const meta = {
     },
     size: {
       control: 'radio',
-      options: [
-        '5xs',
-        '4xs',
-        '3xs',
-        '2xs',
-        'xs',
-        'sm',
-        'base',
-        'md',
-        'lg',
-        'xl',
-        '2xl',
-        '3xl',
-        'signup',
-      ],
+      options: ['5xs', '4xs', '3xs', '2xs', 'xs', 'sm', 'base', 'md', 'lg', 'xl', '2xl', '3xl'],
     },
     inactive: {
       control: 'boolean',
+    },
+    type: {
+      control: 'radio',
+      options: ['button', 'submit', 'reset'],
     },
     rightIcon: {
       control: false,
@@ -69,7 +59,6 @@ export const Signup: Story = {
   args: {
     children: 'Signup 버튼',
     variant: 'signup',
-    size: 'signup',
   },
 };
 
@@ -85,6 +74,30 @@ export const Inactive: Story = {
   args: {
     children: 'Inactive 버튼',
     inactive: true,
+  },
+};
+
+export const InactiveSecondary: Story = {
+  args: {
+    children: 'Inactive Secondary 버튼',
+    variant: 'secondary',
+    inactive: true,
+  },
+};
+
+export const SubmitButton: Story = {
+  args: {
+    children: 'Submit 버튼',
+    type: 'submit',
+    variant: 'primary',
+  },
+};
+
+export const ResetButton: Story = {
+  args: {
+    children: 'Reset 버튼',
+    type: 'reset',
+    variant: 'secondary',
   },
 };
 

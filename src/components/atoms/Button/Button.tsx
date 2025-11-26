@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable react/button-has-type */
 import { type ButtonHTMLAttributes, type ReactNode } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
@@ -17,14 +18,15 @@ type ButtonSize =
   | 'lg'
   | 'xl'
   | '2xl'
-  | '3xl'
-  | 'signup';
+  | '3xl';
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'disabled'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   inactive?: boolean;
   rightIcon?: ReactNode;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 const baseClass = clsx(
@@ -43,11 +45,12 @@ const variantClass: Record<ButtonVariant, string> = {
     'hover:bg-gray-25',
     'rounded-default'
   ),
-  signup: clsx('bg-black text-white', 'hover:bg-gray-800'),
+  signup: clsx('bg-black text-white', 'hover:bg-gray-800', 'w-130 h-44 text-16 rounded-100'),
 };
 
 const inactiveClass = clsx(
-  'bg-gray-100 text-gray-300 border-gray-200',
+  'bg-gray-100 text-gray-300',
+  'border border-gray-200',
   'cursor-not-allowed',
   'rounded-default'
 );
@@ -65,7 +68,6 @@ const sizeClass: Record<ButtonSize, string> = {
   '2xl': clsx('w-610 h-64 text-16'),
   '3xl': clsx('w-1180 h-64 text-16'),
   base: clsx('w-300 h-64 text-16'),
-  signup: clsx('w-130 h-44 text-16 rounded-100'),
 };
 
 const Button = ({
@@ -73,33 +75,57 @@ const Button = ({
   size = 'lg',
   inactive,
   rightIcon,
-  children,
   className,
+  children,
+  type = 'button',
+  id,
+  'aria-label': ariaLabel,
   onClick,
   onFocus,
   onBlur,
-  id,
-  'aria-label': ariaLabel,
-}: ButtonProps) => (
-  <button
-    type="button"
-    id={id}
-    disabled={inactive}
-    className={clsx(
-      baseClass,
-      inactive ? inactiveClass : variantClass[variant],
-      sizeClass[size],
-      className
-    )}
-    aria-label={ariaLabel}
-    onClick={onClick}
-    onFocus={onFocus}
-    onBlur={onBlur}
-  >
-    <span>{children}</span>
-    {rightIcon}
-  </button>
-);
+  onMouseEnter,
+  onMouseLeave,
+  onKeyDown,
+  onKeyUp,
+  style,
+  tabIndex,
+  role,
+  'aria-describedby': ariaDescribedBy,
+  'aria-labelledby': ariaLabelledBy,
+}: ButtonProps) => {
+  // signup variant는 자체적으로 크기를 포함하므로 size를 무시
+  const shouldApplySize = variant !== 'signup';
+
+  return (
+    <button
+      type={type}
+      id={id}
+      disabled={inactive}
+      className={clsx(
+        baseClass,
+        inactive ? inactiveClass : variantClass[variant],
+        shouldApplySize && sizeClass[size],
+        className
+      )}
+      aria-label={ariaLabel}
+      aria-describedby={ariaDescribedBy}
+      aria-labelledby={ariaLabelledBy}
+      onClick={onClick}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onKeyDown={onKeyDown}
+      onKeyUp={onKeyUp}
+      style={style}
+      tabIndex={tabIndex}
+      role={role}
+    >
+      <span>{children}</span>
+      {rightIcon}
+    </button>
+  );
+};
 
 export default Button;
 
@@ -132,7 +158,7 @@ export const MoreButton = ({
   </Button>
 );
 
-// 상품등록 버튼 (variant='signup', size='signup' 고정)
+// 상품등록 버튼 (variant='signup' 고정, size는 variant에 포함됨)
 export const SignupButton = ({
   inactive,
   rightIcon,
@@ -146,7 +172,6 @@ export const SignupButton = ({
 }: Omit<ButtonProps, 'variant' | 'size'>) => (
   <Button
     variant="signup"
-    size="signup"
     inactive={inactive}
     rightIcon={rightIcon}
     className={className}
