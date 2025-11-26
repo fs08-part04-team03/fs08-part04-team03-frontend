@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 
 # Environment variables
 .env
@@ -10,7 +9,10 @@ package-lock.json
 # Build outputs
 dist/
 build/
+.next/
+out/
 *.log
+*.tsbuildinfo
 
 # IDE - VS Code
 .vscode/*
@@ -44,3 +46,7 @@ coverage/
 *.swp
 *.swo
 *~
+*.backup
+
+*storybook.log
+storybook-static
