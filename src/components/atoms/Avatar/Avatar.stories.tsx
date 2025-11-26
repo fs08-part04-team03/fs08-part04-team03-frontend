@@ -40,14 +40,6 @@ export const Size32: Story = {
   },
 };
 
-export const WithImage: Story = {
-  args: {
-    size: 32,
-    src: '/images/avatar-default.svg',
-    alt: 'User Avatar',
-  },
-};
-
 export const DefaultIcon: Story = {
   args: {
     size: 32,
@@ -78,10 +70,18 @@ export const Clickable: Story = {
   },
 };
 
+export const WithImage: Story = {
+  args: {
+    size: 32,
+    src: '/images/test-profile-image.jpg',
+    alt: 'User Avatar',
+  },
+};
+
 export const Size24WithImage: Story = {
   args: {
     size: 24,
-    src: '/images/avatar-default.svg',
+    src: '/images/test-profile-image.jpg',
     alt: 'User Avatar',
   },
 };
@@ -89,7 +89,7 @@ export const Size24WithImage: Story = {
 export const Size32WithImage: Story = {
   args: {
     size: 32,
-    src: '/images/avatar-default.svg',
+    src: '/images/test-profile-image.jpg',
     alt: 'User Avatar',
   },
 };
