@@ -29,12 +29,12 @@ type Story = StoryObj<typeof meta>;
 // Basic Examples
 export const LongText: Story = {
   args: {
-    content: '',
-    children: <Button variant="primary">버튼</Button>,
+    content: '이것은 매우 긴 툴팁 텍스트입니다. 여러 줄에 걸쳐 표시될 수 있습니다.',
+    children: <Button variant="secondary">텍스트 툴팁</Button>,
   },
-  render: () => (
-    <Tooltip content="이것은 매우 긴 툴팁 텍스트입니다. 여러 줄에 걸쳐 표시될 수 있습니다.">
-      <Button variant="secondary">텍스트 툴팁</Button>
+  render: (args) => (
+    <Tooltip content={args.content} disabled={args.disabled} className={args.className}>
+      {args.children}
     </Tooltip>
   ),
 };

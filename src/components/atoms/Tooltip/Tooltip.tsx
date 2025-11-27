@@ -5,6 +5,7 @@ import {
   type ReactElement,
   type ReactNode,
   useState,
+  useId,
 } from 'react';
 import clsx from 'clsx';
 
@@ -13,10 +14,13 @@ export type TooltipProps = {
   children: ReactElement;
   disabled?: boolean;
   className?: string;
+  id?: string;
 };
 
-export const Tooltip = ({ content, children, disabled, className }: TooltipProps) => {
+export const Tooltip = ({ content, children, disabled, className, id }: TooltipProps) => {
   const [open, setOpen] = useState(false);
+  const generatedId = useId();
+  const tooltipId = id || generatedId;
 
   if (!isValidElement(children) || Children.count(children) !== 1) {
     if (process.env.NODE_ENV !== 'production') {
@@ -54,7 +58,7 @@ export const Tooltip = ({ content, children, disabled, className }: TooltipProps
       if (!disabled) setOpen(false);
       originalOnBlur?.(event);
     },
-    'aria-describedby': open ? 'tooltip' : undefined,
+    'aria-describedby': open ? tooltipId : undefined,
   } as typeof originalProps);
 
   return (
@@ -66,17 +70,16 @@ export const Tooltip = ({ content, children, disabled, className }: TooltipProps
           className="pointer-events-none absolute left-[16%] top-full z-tooltip ml-30"
           style={{ marginTop: '-15px' }}
           role="tooltip"
-          id="tooltip"
+          id={tooltipId}
         >
           <div
             className={clsx(
               // 툴팁 박스 스타일
               'relative rounded-default w-270 h-105 text-12 leading-normal',
               'bg-gray-950 text-white shadow-lg',
-              'px-24 py-24',
+              'p-24',
               className
             )}
-            style={{ padding: '24px' }}
           >
             {content}
           </div>
