@@ -9,9 +9,10 @@ const config: Config = {
 
   theme: {
     extend: {
-      // 기본 폰트를 Suit로 설정
+      // 기본 폰트를 Suit로 설정 (Next.js localFont에서 생성된 CSS 변수 사용)
       fontFamily: {
-        sans: ['Suit', 'sans-serif'],
+        sans: ['var(--font-suit)', 'sans-serif'],
+        SUIT: ['var(--font-suit)', 'sans-serif'], // font-SUIT 클래스 대응
       },
       // 브레이크포인트 커스터마이징
       screens: {
@@ -61,8 +62,11 @@ const config: Config = {
       // 사이즈 토큰 - spacing만 정의하면 width, height, padding, margin 등에서 모두 사용 가능
       spacing: {
         4: 'var(--size-4)',
+        6: 'var(--size-6)',
         8: 'var(--size-8)',
         10: 'var(--size-10)',
+        14: 'var(--size-14)',
+        15: 'var(--size-15)',
         16: 'var(--size-16)',
         17: 'var(--size-17)',
         20: 'var(--size-20)',
@@ -83,12 +87,14 @@ const config: Config = {
         97: 'var(--size-97)',
         100: 'var(--size-100)',
         105: 'var(--size-105)',
+        110: 'var(--size-110)',
         130: 'var(--size-130)',
         140: 'var(--size-140)',
         152: 'var(--size-152)',
         153: 'var(--size-153)',
         '153.5': 'var(--size-153-5)',
         171: 'var(--size-171)',
+        179: 'var(--size-179)',
         180: 'var(--size-180)',
         200: 'var(--size-200)',
         216: 'var(--size-216)',
@@ -116,9 +122,9 @@ const config: Config = {
         480: 'var(--size-480)',
         496: 'var(--size-496)',
         500: 'var(--size-500)',
-        610: 'var(--size-610)',
         512: 'var(--size-512)',
         540: 'var(--size-540)',
+        610: 'var(--size-610)',
         636: 'var(--size-636)',
         656: 'var(--size-656)',
         696: 'var(--size-696)',
@@ -133,24 +139,11 @@ const config: Config = {
       // Border Radius 토큰
       borderRadius: {
         DEFAULT: 'var(--radius-default)',
+        default: 'var(--radius-default)', // rounded-default 클래스 대응
         6: '6px',
         100: '100px',
       },
-      // Font Size 토큰
-      fontSize: {
-        12: 'var(--font-size-12)',
-        13: 'var(--font-size-13)',
-        14: 'var(--font-size-14)',
-        16: 'var(--font-size-16)',
-        18: 'var(--font-size-18)',
-        20: 'var(--font-size-20)',
-        24: 'var(--font-size-24)',
-        30: 'var(--font-size-30)',
-        32: 'var(--font-size-32)',
-        44: 'var(--font-size-44)',
-        50: 'var(--font-size-50)',
-      },
-      // 글자 간격(letter-spacing) 커스텀 토큰
+
       letterSpacing: {
         '-0.4': '-0.4px',
       },
