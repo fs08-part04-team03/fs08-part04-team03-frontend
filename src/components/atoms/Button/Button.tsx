@@ -67,7 +67,7 @@ const Button = ({
         baseClass,
         inactive ? inactiveClass : variantClass[variant],
         !isSignup && sizeClass[size],
-        isSignup && 'w-160 h-44 text-16 px-20 rounded-100',
+        isSignup && 'w-160 h-44 text-50 px-20 rounded-100',
         fullWidth && 'w-full',
         className
       )}
