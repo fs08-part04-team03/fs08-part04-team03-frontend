@@ -13,6 +13,7 @@ build/
 out/
 *.log
 *.tsbuildinfo
+next-env.d.ts
 
 # IDE - VS Code
 .vscode/*
