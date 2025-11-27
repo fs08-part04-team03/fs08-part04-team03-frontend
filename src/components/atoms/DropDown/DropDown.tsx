@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { clsx } from '@/utils/clsx';
 
-interface Option {
+export interface Option {
   key: string;
   label: string;
 }
@@ -13,26 +13,54 @@ export type SelectVariant = 'small' | 'medium' | 'large';
 export interface DropDownProps {
   items: Option[];
   placeholder?: string;
-  className?: string;
   variant?: SelectVariant;
   disabled?: boolean;
+  buttonClassName?: string; // 버튼 스타일 오버라이드
+  dropdownClassName?: string; // 드롭다운 리스트 스타일 오버라이드
+  optionClassName?: string; // 옵션 항목 스타일 오버라이드
 }
 
 const DropDown: React.FC<DropDownProps> = ({
   items,
-  placeholder = '선택해 주세요',
-  className = '',
+  placeholder = '선택',
   variant,
   disabled = false,
+  buttonClassName = '',
+  dropdownClassName = '',
+  optionClassName = '',
 }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Option | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleOpen = () => !disabled && setOpen((prev) => !prev);
   const handleSelect = (item: Option) => {
     setSelected(item);
     setOpen(false);
   };
+
+  // 🔹 외부 클릭 + Escape 키 처리
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
 
   const appliedVariant: SelectVariant = variant ?? 'small';
 
@@ -48,7 +76,7 @@ const DropDown: React.FC<DropDownProps> = ({
     large: 'text-gray-950',
   };
 
-  const fontClasses = 'font-SUIT font-normal text-16 tracking--0.4';
+  const fontClasses = 'font-sans font-normal text-16 tracking--0.4';
 
   const optionHeightClasses = {
     small: 'h-44',
@@ -57,16 +85,19 @@ const DropDown: React.FC<DropDownProps> = ({
   };
 
   return (
-    <div className={clsx('relative inline-block', className)}>
+    <div ref={dropdownRef} className="relative inline-block">
       {/* 선택 박스 */}
       <button
         type="button"
         onClick={toggleOpen}
         disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         className={clsx(
           'border border-gray-300 rounded-8 bg-white flex items-center justify-between px-12',
           sizeClasses[appliedVariant],
-          disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+          disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
+          buttonClassName // ← 버튼 스타일 오버라이드
         )}
       >
         <span className={clsx(fontClasses, textColorClasses[appliedVariant])}>
@@ -83,35 +114,32 @@ const DropDown: React.FC<DropDownProps> = ({
       {/* 옵션 드롭다운 */}
       {open && (
         <ul
+          role="listbox"
+          aria-label={placeholder}
           className={clsx(
-            'absolute left-0 mt-4 w-full bg-white border border-gray-300 shadow-lg rounded-8 z-dropdown max-h-200 overflow-y-auto'
+            'absolute left-0 mt-4 w-full bg-white border border-gray-300 shadow-lg rounded-8 z-dropdown max-h-200 overflow-y-auto scrollbar-none',
+            dropdownClassName // ← 드롭다운 리스트 오버라이드
           )}
-          style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
         >
-          <style>{`
-            ul::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-
           {items.map((item) => (
             <li
               key={item.key}
               role="option"
-              tabIndex={0}
               aria-selected={selected?.key === item.key}
               onClick={() => handleSelect(item)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') handleSelect(item);
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleSelect(item);
+                }
               }}
               className={clsx(
                 'flex items-center px-12 cursor-pointer hover:bg-gray-100',
                 fontClasses,
                 textColorClasses[appliedVariant],
-                optionHeightClasses[appliedVariant]
+                optionHeightClasses[appliedVariant],
+                selected?.key === item.key && 'bg-gray-50',
+                optionClassName // ← 옵션 항목 오버라이드
               )}
             >
               {item.label}
