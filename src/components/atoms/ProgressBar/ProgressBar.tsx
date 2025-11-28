@@ -11,16 +11,23 @@ export interface ProgressBarProps {
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ value, currentBudget, lastBudget }) => {
   const clampedValue = Math.max(0, Math.min(100, value));
-  const diff = currentBudget - lastBudget; // 양수면 "더 사용", 음수면 "덜 사용"
+  const diff = currentBudget - lastBudget; // 양수면 "덜 사용", 음수면 "더 사용"
 
   // 중첩 삼항 연산 제거
   let diffText = '';
-  if (diff > 0) diffText = ' 더 사용했어요';
-  else if (diff < 0) diffText = ' 덜 사용했어요';
+  if (diff > 0) diffText = ' 덜 사용했어요';
+  else if (diff < 0) diffText = ' 더 사용했어요';
   else diffText = ' 동일하게 사용했어요';
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      // 추가로 필요하면 여기에 키보드 동작 처리 가능
+    }
+  };
+
   return (
-    <div className="relative group w-fit">
+    <div className="relative group w-fit" tabIndex={0} role="button" onKeyDown={handleKeyDown}>
       {/* ProgressBar 본체 */}
       <div
         className="flex items-center justify-between w-345 desktop:w-345 tablet:w-179 mobile:w-116 h-17 tablet:h-17 mobile:h-15"
@@ -51,15 +58,16 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ value, currentBudget, lastBud
         </span>
       </div>
 
-      {/* Hover Tooltip Box */}
+      {/* Hover & Focus Tooltip Box */}
       <div
         className={clsx(
           'absolute left-0 mt-8',
-          'hidden group-hover:flex',
+          'hidden group-hover:flex group-focus-within:flex',
           'flex-col justify-center items-center text-center gap-8',
           'w-260 h-130 p-24 rounded-4 bg-gray-950',
           'text-white'
         )}
+        role="tooltip"
       >
         {/* 1줄 */}
         <p className="text-16 font-extrabold tracking-tight">
