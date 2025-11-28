@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import Checkbox, { CheckboxProps } from './Checkbox';
@@ -11,6 +13,7 @@ const meta: Meta<typeof Checkbox> = {
     disabled: { control: 'boolean' },
     onChange: { action: 'changed' },
     className: { control: 'text' },
+    'aria-label': { control: 'text', description: '접근성을 위한 라벨' },
   },
 };
 
@@ -26,6 +29,7 @@ export const Default: Story = {
         checked={checked}
         disabled={args.disabled}
         className={args.className}
+        aria-label={args['aria-label']}
         onChange={(newState) => {
           setChecked(newState);
           args.onChange?.(newState);
@@ -33,7 +37,7 @@ export const Default: Story = {
       />
     );
   },
-  args: { checked: false, disabled: false },
+  args: { checked: false, disabled: false, 'aria-label': '기본 체크박스' },
 };
 
 // 체크된 상태
@@ -45,6 +49,7 @@ export const Checked: Story = {
         checked={checked}
         disabled={args.disabled}
         className={args.className}
+        aria-label={args['aria-label']}
         onChange={(newState) => {
           setChecked(newState);
           args.onChange?.(newState);
@@ -52,5 +57,5 @@ export const Checked: Story = {
       />
     );
   },
-  args: { checked: true, disabled: false },
+  args: { checked: true, disabled: false, 'aria-label': '체크된 체크박스' },
 };
