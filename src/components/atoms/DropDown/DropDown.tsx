@@ -126,6 +126,7 @@ const DropDown: React.FC<DropDownProps> = ({
               key={item.key}
               role="option"
               aria-selected={selected?.key === item.key}
+              tabIndex={0}
               onClick={() => handleSelect(item)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
