@@ -10,17 +10,14 @@ const meta: Meta<typeof ProgressBar> = {
     value: {
       control: { type: 'range', min: 0, max: 100, step: 1 },
       description: 'Progress value (0~100)',
-      defaultValue: 50,
     },
     currentBudget: {
       control: { type: 'number' },
       description: '이번 달 남은 예산',
-      defaultValue: 1500000,
     },
     lastBudget: {
       control: { type: 'number' },
       description: '지난 달 남은 예산',
-      defaultValue: 1200000,
     },
   },
 };
@@ -86,5 +83,13 @@ export const Dynamic: Story = {
     value: 25,
     currentBudget: 1000000,
     lastBudget: 900000,
+  },
+};
+
+export const SameBudget: Story = {
+  args: {
+    value: 60,
+    currentBudget: 1000000,
+    lastBudget: 1000000,
   },
 };
