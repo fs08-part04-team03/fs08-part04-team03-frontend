@@ -10,9 +10,6 @@ const meta = {
     content: {
       control: 'text',
     },
-    disabled: {
-      control: 'boolean',
-    },
     className: {
       control: 'text',
     },
@@ -26,45 +23,65 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-// Basic Examples
-export const LongText: Story = {
+// Default Example
+export const Default: Story = {
   args: {
-    content: '이것은 매우 긴 툴팁 텍스트입니다. 여러 줄에 걸쳐 표시될 수 있습니다.',
-    children: <Button variant="secondary">텍스트 툴팁</Button>,
+    content: '툴팁 내용',
+    children: <Button variant="primary">호버하세요</Button>,
   },
   render: (args) => (
-    <Tooltip content={args.content} disabled={args.disabled} className={args.className}>
-      {args.children}
-    </Tooltip>
+    <div className="flex justify-center items-center min-h-200">
+      <Tooltip content={args.content} className={args.className}>
+        {args.children}
+      </Tooltip>
+    </div>
   ),
 };
 
-// States
-export const Disabled: Story = {
+// Long Text Example
+export const LongText: Story = {
   args: {
-    content: '',
-    children: <Button variant="primary">버튼</Button>,
-    disabled: true,
+    content: '이것은 매우 긴 툴팁 텍스트입니다. 여러 줄에 걸쳐 표시될 수 있습니다.',
+    children: <Button variant="secondary">긴 텍스트 툴팁</Button>,
   },
-  render: () => (
-    <Tooltip content="이 툴팁은 비활성화되어 있습니다" disabled>
-      <Button variant="primary" inactive>
-        비활성화된 버튼
-      </Button>
-    </Tooltip>
+  render: (args) => (
+    <div className="flex justify-center items-center min-h-200">
+      <Tooltip content={args.content}>{args.children}</Tooltip>
+    </div>
+  ),
+};
+
+// Multiple Lines Example
+export const MultipleLines: Story = {
+  args: {
+    content: (
+      <>
+        <p className="text-16 font-extrabold tracking-tight">첫 번째 줄</p>
+        <p className="text-14 font-normal tracking--0.35">두 번째 줄</p>
+        <p className="text-14 font-normal tracking--0.35">세 번째 줄</p>
+      </>
+    ),
+    children: <Button variant="primary">여러 줄 툴팁</Button>,
+  },
+  render: (args) => (
+    <div className="flex justify-center items-center min-h-200">
+      <Tooltip content={args.content}>{args.children}</Tooltip>
+    </div>
   ),
 };
 
 // Custom Styling
 export const CustomClassName: Story = {
   args: {
-    content: '',
-    children: <Button variant="secondary">버튼</Button>,
-    className: 'bg-blue-500 text-white',
+    content: '커스텀 스타일 툴팁',
+    children: <Button variant="secondary">커스텀 스타일</Button>,
+    className: 'bg-secondary-500 text-white',
   },
-  render: () => (
-    <Tooltip content="커스텀 스타일 툴팁" className="bg-blue-500 text-white">
-      <Button variant="secondary">커스텀 스타일</Button>
-    </Tooltip>
+  render: (args) => (
+    <div className="flex justify-center items-center min-h-200">
+      <Tooltip content={args.content} className={args.className}>
+        {args.children}
+      </Tooltip>
+    </div>
   ),
 };
