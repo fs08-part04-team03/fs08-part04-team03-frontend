@@ -67,7 +67,10 @@ const ItemMenu: React.FC = () => {
           className="flex justify-center items-center h-45 text-16 font-suit font-normal text-gray-950 cursor-pointer"
           onClick={handleItemClick}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') handleItemClick();
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleItemClick();
+            }
           }}
         >
           상품 수정
@@ -79,7 +82,10 @@ const ItemMenu: React.FC = () => {
           className="flex justify-center items-center h-45 text-16 font-suit font-normal text-gray-950 cursor-pointer"
           onClick={handleItemClick}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') handleItemClick();
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleItemClick();
+            }
           }}
         >
           상품 삭제
