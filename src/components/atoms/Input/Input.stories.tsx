@@ -46,7 +46,7 @@ export const WithValue: Story = {
   },
 };
 
-export const Error: Story = {
+export const WithError: Story = {
   args: {
     placeholder: '비밀번호',
     defaultValue: '비밀번호를 입력해주세요',

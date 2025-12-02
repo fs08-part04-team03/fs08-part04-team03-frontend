@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { clsx } from '@/utils/clsx';
 import Button from '@/components/atoms/Button/Button';
@@ -40,6 +40,8 @@ type InternalHeaderProps = Pick<
 interface QuantitySelectorProps {
   quantityOptions: Option[];
   onQuantityChange?: (option: Option) => void;
+  value?: number;
+  defaultValue?: number;
   min?: number;
   max?: number;
 }
@@ -47,20 +49,29 @@ interface QuantitySelectorProps {
 const QuantitySelector: React.FC<QuantitySelectorProps> = ({
   quantityOptions,
   onQuantityChange,
+  value,
+  defaultValue,
   min = 1,
   max = 999,
 }) => {
-  const [quantity, setQuantity] = useState<number | null>(null);
+  const [quantity, setQuantity] = useState<number | null>(defaultValue ?? null);
+
+  // Sync with external value changes
+  useEffect(() => {
+    if (value !== undefined) {
+      setQuantity(value);
+    }
+  }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
+    const inputValue = e.target.value;
 
-    if (value === '') {
+    if (inputValue === '') {
       setQuantity(null);
       return;
     }
 
-    const parsed = Number(value);
+    const parsed = Number(inputValue);
     if (Number.isNaN(parsed)) {
       return;
     }
@@ -79,12 +90,15 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
     onQuantityChange?.(matchedOption);
   };
 
+  // Use controlled value if provided, otherwise use internal state
+  const displayValue = value !== undefined ? value : quantity;
+
   return (
     <input
       type="number"
       min={min}
       max={max}
-      value={quantity ?? ''}
+      value={displayValue ?? ''}
       onChange={handleInputChange}
       placeholder="수량"
       className={clsx(
