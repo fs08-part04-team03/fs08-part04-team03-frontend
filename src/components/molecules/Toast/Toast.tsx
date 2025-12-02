@@ -24,7 +24,7 @@ const CloseButton = ({ onClose }: { onClose?: () => void }) => {
       onClick={onClose}
       className="bg-white hover:bg-white cursor-pointer ml-2"
     >
-      <div className="relative w-[var(--icon-24)] h-[var(--icon-24)]">
+      <div className="relative w-24 h-24">
         <Image src="/icons/close-circle.svg" alt="close" fill />
       </div>
     </IconButton>
@@ -138,7 +138,7 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
       )}
     >
       {/* 아이콘 */}
-      <div className="flex-shrink-0 w-[var(--icon-24)] h-[var(--icon-24)] relative">
+      <div className="flex-shrink-0 w-24 h-24 relative">
         <Image src={iconSrc} alt="toast-icon" fill />
       </div>
 
