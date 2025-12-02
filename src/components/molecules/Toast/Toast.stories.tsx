@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Toast } from './Toast';
 
 const meta: Meta<typeof Toast> = {
-  title: 'Components/Toast',
+  title: 'molecules/Toast',
   component: Toast,
   argTypes: {
     variant: {
