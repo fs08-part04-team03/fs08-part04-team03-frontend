@@ -32,7 +32,7 @@ export const Default: Story = {
   },
 };
 
-export const Error: Story = {
+export const ErrorState: Story = {
   args: {
     placeholder: '비밀번호를 입력하세요',
     error: true,
