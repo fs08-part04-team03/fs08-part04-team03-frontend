@@ -1,5 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import ProductDetailHeader from './ProductDetailHeader';
+import ProductDetailHeader, {
+  MobileProductDetailHeader,
+  DesktopTabletProductDetailHeader,
+} from './ProductDetailHeader';
 
 const meta = {
   title: 'Molecules/ProductDetailHeader',
@@ -30,6 +33,10 @@ const meta = {
       action: 'menu-clicked',
       description: '케밥 메뉴 클릭 시 호출되는 콜백 함수',
     },
+    onAddToCart: {
+      action: 'add-to-cart',
+      description: '장바구니 담기 버튼 클릭 시 호출되는 콜백 함수',
+    },
     className: {
       control: 'text',
       description: '추가 CSS 클래스',
@@ -41,7 +48,35 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Desktop: Story = {
+export const Default: Story = {
+  render: ({
+    productName,
+    purchaseCount,
+    price,
+    quantityOptions,
+    onQuantityChange,
+    onMenuClick,
+    onAddToCart,
+  }) => (
+    <div
+      style={{
+        width: '100%',
+        maxWidth: '1280px',
+        margin: '0 auto',
+        padding: '16px',
+      }}
+    >
+      <DesktopTabletProductDetailHeader
+        productName={productName}
+        purchaseCount={purchaseCount}
+        price={price}
+        quantityOptions={quantityOptions}
+        onQuantityChange={onQuantityChange}
+        onMenuClick={onMenuClick}
+        onAddToCart={onAddToCart}
+      />
+    </div>
+  ),
   args: {
     productName: '프리미엄 무선 이어폰',
     purchaseCount: 42,
@@ -63,24 +98,26 @@ export const Mobile: Story = {
     quantityOptions,
     onQuantityChange,
     onMenuClick,
-    className,
+    onAddToCart,
   }) => (
     <div
       style={{
         width: '375px',
-        maxWidth: '100%',
+        minWidth: '375px',
+        maxWidth: '375px',
         margin: '0 auto',
         padding: '16px',
+        boxSizing: 'border-box',
       }}
     >
-      <ProductDetailHeader
+      <MobileProductDetailHeader
         productName={productName}
         purchaseCount={purchaseCount}
         price={price}
         quantityOptions={quantityOptions}
         onQuantityChange={onQuantityChange}
         onMenuClick={onMenuClick}
-        className={className}
+        onAddToCart={onAddToCart}
       />
     </div>
   ),
@@ -92,6 +129,15 @@ export const Mobile: Story = {
   parameters: {
     viewport: {
       defaultViewport: 'mobile',
+      viewports: {
+        mobile: {
+          name: 'Mobile',
+          styles: {
+            width: '375px',
+            height: '667px',
+          },
+        },
+      },
     },
     layout: 'padded',
   },

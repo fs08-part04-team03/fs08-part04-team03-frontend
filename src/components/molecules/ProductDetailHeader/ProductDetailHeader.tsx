@@ -14,6 +14,7 @@ export interface ProductDetailHeaderProps {
   quantityOptions?: Option[];
   onQuantityChange?: (option: Option) => void;
   onMenuClick?: () => void;
+  onAddToCart?: () => void;
   className?: string;
 }
 
@@ -27,7 +28,13 @@ export const DEFAULT_QUANTITY_OPTIONS: Option[] = [
 
 type InternalHeaderProps = Pick<
   ProductDetailHeaderProps,
-  'productName' | 'purchaseCount' | 'price' | 'quantityOptions' | 'onQuantityChange' | 'onMenuClick'
+  | 'productName'
+  | 'purchaseCount'
+  | 'price'
+  | 'quantityOptions'
+  | 'onQuantityChange'
+  | 'onMenuClick'
+  | 'onAddToCart'
 >;
 
 interface QuantitySelectorProps {
@@ -92,13 +99,14 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
   );
 };
 
-const DesktopTabletProductDetailHeader: React.FC<InternalHeaderProps> = ({
+export const DesktopTabletProductDetailHeader: React.FC<InternalHeaderProps> = ({
   productName,
   purchaseCount,
   price,
   quantityOptions = DEFAULT_QUANTITY_OPTIONS,
   onQuantityChange,
   onMenuClick,
+  onAddToCart,
 }) => (
   <div className="hidden tablet:flex">
     <div className="flex w-full flex-col gap-8">
@@ -124,20 +132,21 @@ const DesktopTabletProductDetailHeader: React.FC<InternalHeaderProps> = ({
           </IconButton>
         </div>
       </div>
-      <Button variant="primary" size="lg" fullWidth className="mt-32">
+      <Button variant="primary" size="lg" fullWidth className="mt-32" onClick={onAddToCart}>
         장바구니 담기
       </Button>
     </div>
   </div>
 );
 
-const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
+export const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
   productName,
   purchaseCount,
   price,
   quantityOptions = DEFAULT_QUANTITY_OPTIONS,
   onQuantityChange,
   onMenuClick,
+  onAddToCart,
 }) => (
   <div className="flex tablet:hidden w-full">
     <div className="flex w-full flex-col gap-8">
@@ -160,7 +169,7 @@ const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
           </IconButton>
         </div>
       </div>
-      <Button variant="primary" size="lg" fullWidth className="mt-32">
+      <Button variant="primary" size="lg" fullWidth className="mt-32" onClick={onAddToCart}>
         장바구니 담기
       </Button>
     </div>
@@ -174,6 +183,7 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
   quantityOptions = DEFAULT_QUANTITY_OPTIONS,
   onQuantityChange,
   onMenuClick,
+  onAddToCart,
   className = '',
 }) => (
   <div className={clsx('flex flex-col gap-8', className)}>
@@ -184,6 +194,7 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
       quantityOptions={quantityOptions}
       onQuantityChange={onQuantityChange}
       onMenuClick={onMenuClick}
+      onAddToCart={onAddToCart}
     />
     <DesktopTabletProductDetailHeader
       productName={productName}
@@ -192,6 +203,7 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
       quantityOptions={quantityOptions}
       onQuantityChange={onQuantityChange}
       onMenuClick={onMenuClick}
+      onAddToCart={onAddToCart}
     />
   </div>
 );
