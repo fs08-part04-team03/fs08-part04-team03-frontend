@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Button from '@/components/atoms/Button/Button';
 
 interface PaginationBlockProps {
@@ -44,6 +45,8 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
         md:w-696
         xl:w-1304
       "
+      role="navigation"
+      aria-label="페이지네이션"
     >
       {/* page info */}
       <div className="text-gray-primary-500 text-16 font-normal tracking-tight font-suit">
@@ -57,10 +60,12 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
           variant="secondary"
           size="sm"
           onClick={handlePrev}
+          inactive={isPrevEnd}
+          aria-label="이전 페이지로 이동"
           className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer"
         >
           <div className="flex items-center gap-6">
-            <img
+            <Image
               src="/icons/arrow-left.svg"
               alt=""
               className={`w-24 h-24 ${isPrevEnd ? 'opacity-50' : ''}`}
@@ -76,13 +81,15 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
           variant="secondary"
           size="sm"
           onClick={handleNext}
+          inactive={isNextEnd}
+          aria-label="다음 페이지로 이동"
           className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer"
         >
           <div className="flex items-center gap-6">
             <span className={`${isNextEnd ? 'text-gray-500' : 'text-gray-primary-950'} text-16`}>
               Next
             </span>
-            <img
+            <Image
               src="/icons/arrow-right.svg"
               alt=""
               className={`w-24 h-24 ${isNextEnd ? 'opacity-50' : ''}`}
