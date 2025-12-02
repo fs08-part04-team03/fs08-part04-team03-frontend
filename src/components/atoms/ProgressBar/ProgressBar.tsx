@@ -63,24 +63,24 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ value, currentBudget, lastBud
         className={clsx(
           'absolute left-0 mt-8',
           'hidden group-hover:flex group-focus-within:flex',
-          'flex-col justify-center items-center text-center gap-8',
+          'flex-col justify-center items-start text-center gap-8',
           'w-260 h-130 p-24 rounded-4 bg-gray-950',
           'text-white'
         )}
         role="tooltip"
       >
         {/* 1줄 */}
-        <p className="text-16 font-extrabold tracking-tight">
+        <p className="text-14 font-extrabold tracking-tight">
           이번 달 남은 예산: {currentBudget.toLocaleString()}원
         </p>
 
         {/* 2줄 */}
-        <p className="text-14 font-normal tracking--0.35">
+        <p className="text-12 font-normal tracking--0.35">
           지난 달 남은 예산: {lastBudget.toLocaleString()}원
         </p>
 
         {/* 3줄 */}
-        <p className="text-14 font-normal tracking--0.35">
+        <p className="text-12 font-normal tracking--0.35">
           지난 달 보다 {Math.abs(diff).toLocaleString()}원{diffText}
         </p>
       </div>

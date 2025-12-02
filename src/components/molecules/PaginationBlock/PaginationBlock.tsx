@@ -1,0 +1,104 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Button from '@/components/atoms/Button/Button';
+
+interface PaginationBlockProps {
+  current: number;
+  total: number;
+  onPrev?: (newPage: number) => void;
+  onNext?: (newPage: number) => void;
+}
+
+const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPrev, onNext }) => {
+  const [page, setPage] = useState(current);
+
+  useEffect(() => {
+    setPage(current);
+  }, [current]);
+
+  const handlePrev = () => {
+    if (page > 1) {
+      const newPage = page - 1;
+      setPage(newPage);
+      onPrev?.(newPage);
+    }
+  };
+
+  const handleNext = () => {
+    if (page < total) {
+      const newPage = page + 1;
+      setPage(newPage);
+      onNext?.(newPage);
+    }
+  };
+
+  const isPrevEnd = page === 1;
+  const isNextEnd = page === total;
+
+  return (
+    <div
+      className="
+        flex items-center justify-between h-40
+        w-327
+        md:w-696
+        xl:w-1304
+      "
+      role="navigation"
+      aria-label="페이지네이션"
+    >
+      {/* page info */}
+      <div className="text-gray-primary-500 text-16 font-normal tracking-tight font-suit">
+        {page} of {total}
+      </div>
+
+      {/* Prev / Next Buttons */}
+      <div className="flex items-center gap-30">
+        {/* Prev (< Prev) */}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handlePrev}
+          inactive={isPrevEnd}
+          aria-label="이전 페이지로 이동"
+          className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer"
+        >
+          <div className="flex items-center gap-6">
+            <Image
+              src="/icons/arrow-left.svg"
+              alt=""
+              className={`w-24 h-24 ${isPrevEnd ? 'opacity-50' : ''}`}
+            />
+            <span className={`${isPrevEnd ? 'text-gray-500' : 'text-gray-primary-500'} text-16`}>
+              Prev
+            </span>
+          </div>
+        </Button>
+
+        {/* Next (Next >) */}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleNext}
+          inactive={isNextEnd}
+          aria-label="다음 페이지로 이동"
+          className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer"
+        >
+          <div className="flex items-center gap-6">
+            <span className={`${isNextEnd ? 'text-gray-500' : 'text-gray-primary-950'} text-16`}>
+              Next
+            </span>
+            <Image
+              src="/icons/arrow-right.svg"
+              alt=""
+              className={`w-24 h-24 ${isNextEnd ? 'opacity-50' : ''}`}
+            />
+          </div>
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default PaginationBlock;
