@@ -25,7 +25,7 @@ const Breadcrumb = ({ items, className }: BreadcrumbProps) => (
               <Link
                 href={item.href}
                 className={clsx(
-                  'text-14 font-normal',
+                  'text-14 tablet:text-16 font-normal',
                   'text-gray-400 hover:text-gray-600',
                   'transition-colors'
                 )}
@@ -34,7 +34,10 @@ const Breadcrumb = ({ items, className }: BreadcrumbProps) => (
               </Link>
             ) : (
               <span
-                className={clsx('text-14 font-normal', isLast ? 'text-gray-900' : 'text-gray-200')}
+                className={clsx(
+                  'text-14 tablet:text-16 font-normal',
+                  isLast ? 'text-gray-900' : 'text-gray-200'
+                )}
                 aria-current={isLast ? 'page' : undefined}
               >
                 {item.label}
