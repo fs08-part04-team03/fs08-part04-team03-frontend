@@ -2,6 +2,7 @@
 
 import { useId } from 'react';
 import { clsx } from '@/utils/clsx';
+import Image from 'next/image';
 
 export interface CheckboxProps {
   checked: boolean;
@@ -18,7 +19,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
   className = '',
   'aria-label': ariaLabel,
 }) => {
-  const id = useId(); // React가 자동으로 고유 ID 생성
+  const id = useId();
 
   const toggle = () => {
     if (disabled) return;
@@ -48,10 +49,11 @@ const Checkbox: React.FC<CheckboxProps> = ({
       <span
         className={clsx(
           'absolute w-16 h-16 flex items-center justify-center transition-transform duration-200 ease-linear',
+          'relative', // 🔥 next/image fill()을 위해 추가됨
           checked ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
         )}
       >
-        <img src="/icons/check.svg" alt="check" className="w-full h-full" />
+        <Image src="/icons/check.svg" alt="check" fill />
       </span>
     </label>
   );
