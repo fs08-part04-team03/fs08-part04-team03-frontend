@@ -65,11 +65,9 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
           className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer"
         >
           <div className="flex items-center gap-6">
-            <Image
-              src="/icons/arrow-left.svg"
-              alt=""
-              className={`w-24 h-24 ${isPrevEnd ? 'opacity-50' : ''}`}
-            />
+            <div className={`relative w-24 h-24 ${isPrevEnd ? 'opacity-50' : ''}`}>
+              <Image src="/icons/arrow-left.svg" alt="이전 페이지" fill />
+            </div>
             <span className={`${isPrevEnd ? 'text-gray-500' : 'text-gray-primary-500'} text-16`}>
               Prev
             </span>
@@ -89,11 +87,9 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
             <span className={`${isNextEnd ? 'text-gray-500' : 'text-gray-primary-950'} text-16`}>
               Next
             </span>
-            <Image
-              src="/icons/arrow-right.svg"
-              alt=""
-              className={`w-24 h-24 ${isNextEnd ? 'opacity-50' : ''}`}
-            />
+            <div className={`relative w-24 h-24 ${isNextEnd ? 'opacity-50' : ''}`}>
+              <Image src="/icons/arrow-right.svg" alt="다음 페이지" fill />
+            </div>
           </div>
         </Button>
       </div>
