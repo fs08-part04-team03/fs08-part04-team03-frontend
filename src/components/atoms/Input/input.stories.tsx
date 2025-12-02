@@ -6,15 +6,18 @@ const meta = {
   component: Input,
   tags: ['autodocs'],
   argTypes: {
-    variant: {
-      control: 'radio',
-      options: ['normal', 'typing', 'disable', 'completed', 'error'],
+    type: {
+      control: 'select',
+      options: ['text', 'password', 'email', 'number', 'tel', 'url'],
     },
-    showIcon: {
+    placeholder: {
+      control: 'text',
+    },
+    error: {
       control: 'boolean',
     },
-    icon: {
-      control: false,
+    disabled: {
+      control: 'boolean',
     },
   },
 } satisfies Meta<typeof Input>;
@@ -23,43 +26,16 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Normal: Story = {
+export const Default: Story = {
   args: {
-    variant: 'normal',
-    text: '비밀번호 입력',
+    placeholder: '입력하세요',
   },
 };
 
-export const Typing: Story = {
+export const ErrorState: Story = {
   args: {
-    variant: 'typing',
-    label: '비밀번호',
-    value: 'hongseungjeon',
+    placeholder: '비밀번호를 입력하세요',
+    error: true,
+    value: 'wrong password',
   },
 };
-
-export const Disable: Story = {
-  args: {
-    variant: 'disable',
-    label: '비밀번호',
-    value: '********',
-  },
-};
-
-export const Completed: Story = {
-  args: {
-    variant: 'completed',
-    label: '비밀번호',
-    value: '********',
-  },
-};
-
-export const Error: Story = {
-  args: {
-    variant: 'error',
-    label: '비밀번호',
-    value: 'hongseungjeon',
-    errorMessage: '비밀번호를 다시 확인해 주세요.',
-  },
-};
-
