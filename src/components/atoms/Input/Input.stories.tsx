@@ -42,6 +42,7 @@ export const Default: Story = {
 export const WithValue: Story = {
   args: {
     placeholder: '비밀번호를 입력해주세요',
+    defaultValue: 'mypassword123',
   },
 };
 
