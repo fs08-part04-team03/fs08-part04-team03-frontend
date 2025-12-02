@@ -22,7 +22,7 @@ const CloseButton = ({ onClose }: { onClose?: () => void }) => {
       variant="filled"
       size="sm"
       onClick={onClose}
-      className="bg-gray-700 hover:bg-white cursor-pointer ml-2"
+      className="bg-white hover:bg-white cursor-pointer ml-2"
     >
       <div className="relative w-[var(--icon-24)] h-[var(--icon-24)]">
         <Image src="/icons/close-circle.svg" alt="close" fill />
