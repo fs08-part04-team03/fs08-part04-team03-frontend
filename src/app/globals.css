@@ -54,6 +54,7 @@ body {
 
   /* Shadow Tokens */
   --shadow-toast: 0 10px 8px 0 rgba(0, 0, 0, 0.1);
+  --shadow-dropdown: 0 4px 8px rgba(0, 0, 0, 0.1);
 
   /* Blur Tokens */
   --blur-toast: 15px;
