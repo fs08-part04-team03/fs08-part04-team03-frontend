@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useState, type FormEvent, type KeyboardEvent, type InputHTMLAttributes } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
-import Input, { type InputProps } from '@/components/atoms/Input/Input';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 
-export interface SearchBarProps extends Omit<InputProps, 'onSearch'> {
+export interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onSearch'> {
   onSearch?: (query: string) => void;
+  defaultValue?: string;
 }
 
 const SearchBar = ({ onSearch, defaultValue = '', className, ...inputProps }: SearchBarProps) => {
@@ -34,12 +34,19 @@ const SearchBar = ({ onSearch, defaultValue = '', className, ...inputProps }: Se
             <Image src="/icons/search-icon.svg" alt="Search" width={24} height={24} />
           </IconButton>
         </div>
-        <Input
+        <input
+          type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="이름으로 검색하세요"
-          className="pl-50"
+          className={clsx(
+            'w-full h-56 pl-50 pr-16 border-b border-gray-300',
+            'font-sans font-normal text-16 tracking--0.4 text-gray-950',
+            'placeholder:text-gray-500',
+            'focus:outline-none focus:border-gray-500',
+            'bg-transparent'
+          )}
           // eslint-disable-next-line react/jsx-props-no-spreading
           {...inputProps}
         />
