@@ -19,6 +19,7 @@ const UseProfile = ({
 }: UseProfileProps) => (
   <Link
     href={profileHref}
+    aria-label={`View ${name}'s profile`}
     className={clsx(
       'hidden tablet:flex items-center gap-8 hover:opacity-80 transition-opacity',
       className
