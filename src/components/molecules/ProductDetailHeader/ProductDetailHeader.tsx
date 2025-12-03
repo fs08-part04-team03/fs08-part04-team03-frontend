@@ -70,15 +70,7 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
     const inputValue = e.target.value;
 
     if (inputValue === '') {
-      const fallback = min; // 보통 1
-      setQuantity(fallback);
-
-      const matchedOption = {
-        key: String(fallback),
-        label: `${fallback}개`,
-      };
-
-      onQuantityChange?.(matchedOption);
+      setQuantity(null);
       return;
     }
 
@@ -99,6 +91,17 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
     onQuantityChange?.(matchedOption);
   };
 
+  const handleBlur = () => {
+    if (quantity === null || quantity < min) {
+      const fallback = min;
+      setQuantity(fallback);
+      onQuantityChange?.({
+        key: String(fallback),
+        label: `${fallback}개`,
+      });
+    }
+  };
+
   const displayValue = value !== undefined ? value : quantity;
 
   return (
@@ -108,6 +111,7 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
       max={max}
       value={displayValue ?? ''}
       onChange={handleInputChange}
+      onBlur={handleBlur}
       placeholder="수량"
       className={clsx(
         'w-80 h-40 px-12 text-center border border-gray-300 rounded-8',
