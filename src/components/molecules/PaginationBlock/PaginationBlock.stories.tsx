@@ -4,6 +4,7 @@ import PaginationBlock from './PaginationBlock';
 const meta: Meta<typeof PaginationBlock> = {
   title: 'Molecules/PaginationBlock',
   component: PaginationBlock,
+  tags: ['autodocs'],
   parameters: {
     layout: 'centered',
   },
