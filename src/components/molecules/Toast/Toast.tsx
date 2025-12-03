@@ -138,8 +138,8 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
         'z-toast',
 
         /* --- 기기별 패딩 --- */
-        'px-24', // 기본 (mobile fallback)
-        'mobile:px-24', // 모바일 = 24px
+        'px-20', // 기본 (mobile fallback)
+        'mobile:px-20', // 모바일 = 20px
         'tablet:px-toast-32', // 태블릿 = 기존 32px
         'desktop:px-50', // 데스크탑 = 50px
 
