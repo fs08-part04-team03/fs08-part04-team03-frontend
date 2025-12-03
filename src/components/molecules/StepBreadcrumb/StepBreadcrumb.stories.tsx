@@ -28,7 +28,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const checkoutSteps = [{ label: ' Shopping Cart' }, { label: ' Order Confirmed' }];
+const checkoutSteps = [{ label: 'Shopping Cart' }, { label: 'Order Confirmed' }];
 
 export const Step1: Story = {
   args: {

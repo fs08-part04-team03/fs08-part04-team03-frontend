@@ -23,7 +23,6 @@ const StepBreadcrumb: React.FC<StepBreadcrumbProps> = ({ steps, currentStep, cla
     <nav
       aria-label="Checkout steps"
       className={clsx(
-        // 모바일: 세로, tablet 이상: 가로
         'flex flex-col gap-4',
         'tablet:flex-row tablet:items-center tablet:gap-20',
         className
@@ -35,7 +34,6 @@ const StepBreadcrumb: React.FC<StepBreadcrumbProps> = ({ steps, currentStep, cla
 
         return (
           <React.Fragment key={step.label}>
-            {/* tablet 이상에서만 보이는 > 구분자 */}
             {index > 0 && <span className="hidden tablet:inline text-gray-300">&gt;</span>}
 
             <span
@@ -47,7 +45,7 @@ const StepBreadcrumb: React.FC<StepBreadcrumbProps> = ({ steps, currentStep, cla
               )}
               aria-current={isActive ? 'step' : undefined}
             >
-              <span className="tabular-nums">{stepNumber}.</span>
+              <span className="tabular-nums pr-4 tablet:pr-6">{stepNumber}.</span>
               <span>{step.label}</span>
             </span>
           </React.Fragment>
