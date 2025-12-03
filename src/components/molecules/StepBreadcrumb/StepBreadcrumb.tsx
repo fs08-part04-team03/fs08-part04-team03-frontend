@@ -33,7 +33,8 @@ const StepBreadcrumb: React.FC<StepBreadcrumbProps> = ({ steps, currentStep, cla
         const isActive = stepNumber === safeCurrent;
 
         return (
-          <React.Fragment key={step.label}>
+          // eslint-disable-next-line react/no-array-index-key
+          <React.Fragment key={index}>
             {index > 0 && <span className="hidden tablet:inline text-gray-300">&gt;</span>}
 
             <span

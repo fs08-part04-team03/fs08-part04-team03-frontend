@@ -7,10 +7,11 @@ interface PriceTextProps {
   className?: string;
 }
 
-const PriceText: React.FC<PriceTextProps> = ({ value, className }) => (
-  <span className={clsx('font-bold text-gray-950', className)}>
-    {value.toLocaleString('ko-KR')}원
-  </span>
-);
+const PriceText: React.FC<PriceTextProps> = ({ value, className }) => {
+  const isValid = Number.isFinite(value) && value >= 0;
+  const displayText = isValid ? `${value.toLocaleString('ko-KR')}원` : '-';
+
+  return <span className={clsx('font-bold text-gray-950', className)}>{displayText}</span>;
+};
 
 export default PriceText;
