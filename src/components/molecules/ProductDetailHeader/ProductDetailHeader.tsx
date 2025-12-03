@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { clsx } from '@/utils/clsx';
 import Button from '@/components/atoms/Button/Button';
 import ItemMenu from '@/components/molecules/ItemMenu/ItemMenu';
-import ProductTitle from '@/components/molecules/ProductTitle/ProductTitle';
+import ProductTile from '@/components/molecules/ProductTile/ProductTile';
 
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 
@@ -134,7 +134,7 @@ export const DesktopTabletProductDetailHeader: React.FC<InternalHeaderProps> = (
   <div className="hidden tablet:flex">
     <div className="flex w-full flex-col gap-8">
       <div className="flex items-start justify-between">
-        <ProductTitle
+        <ProductTile
           variant="product"
           name={productName}
           price={price}
@@ -171,7 +171,7 @@ export const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
   <div className="flex tablet:hidden w-full">
     <div className="flex w-full flex-col gap-8">
       <div className="flex items-start justify-between gap-8">
-        <ProductTitle
+        <ProductTile
           variant="product"
           name={productName}
           price={price}
