@@ -65,7 +65,8 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ value, currentBudget, lastBud
           'hidden group-hover:flex group-focus-within:flex',
           'flex-col justify-center items-start text-center gap-8',
           'w-260 h-130 p-24 rounded-4 bg-gray-950',
-          'text-white'
+          'text-white',
+          'z-tooltip'
         )}
         role="tooltip"
       >

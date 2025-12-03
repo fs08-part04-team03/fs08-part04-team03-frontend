@@ -130,11 +130,23 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
 
   return (
     <div
+      role="status"
+      aria-live={variant === 'error' ? 'assertive' : 'polite'}
       className={clsx(
         'flex items-center text-white relative rounded-[var(--radius-default)] bg-[rgba(0,0,0,0.80)] shadow-[var(--shadow-toast)] backdrop-blur-[var(--blur-toast)]',
-        'px-toast-32',
         'gap-8',
-        'w-full min-h-[64px]'
+        'z-toast',
+
+        /* --- 기기별 패딩 --- */
+        'px-20', // 기본 (mobile fallback)
+        'mobile:px-20', // 모바일 = 20px
+        'tablet:px-toast-32', // 태블릿 = 기존 32px
+        'desktop:px-50', // 데스크탑 = 50px
+
+        /* --- 기기별 토스트 크기 적용 --- */
+        'desktop:w-1152 desktop:h-80',
+        'tablet:w-696 tablet:h-80',
+        'mobile:w-350 mobile:h-64'
       )}
     >
       {/* 아이콘 */}
