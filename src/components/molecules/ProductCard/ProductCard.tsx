@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
-import ProductTitle from '@/components/molecules/ProductTitle/ProductTitle';
+import ProductTile from '@/components/molecules/ProductTile/ProductTile';
 
 type ProductCardVariant = 'product' | 'order';
 
@@ -55,7 +55,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       {/* 텍스트 영역 */}
       <div className="flex flex-col flex-1 min-w-0 px-8 pt-8 pb-12 gap-2">
         {variant === 'product' ? (
-          <ProductTitle
+          <ProductTile
             variant="product"
             name={name}
             price={price}
@@ -63,7 +63,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
             size="md"
           />
         ) : (
-          <ProductTitle
+          <ProductTile
             variant="order"
             name={name}
             price={price}
