@@ -1,7 +1,7 @@
-import { useState, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { clsx } from '@/utils/clsx';
-import Image from 'next/image'; // 추가
+import Image from 'next/image';
 
 export type InputFieldType = 'text' | 'email' | 'password' | 'passwordConfirm' | 'businessNumber';
 
@@ -32,6 +32,13 @@ const InputField = ({
   const [internal, setInternal] = useState(value);
   const [visible, setVisible] = useState(false);
   const [touched, setTouched] = useState(false);
+
+  // --------------------
+  // value prop 변경 시 internal 동기화
+  // --------------------
+  useEffect(() => {
+    setInternal(value);
+  }, [value]);
 
   // input과 label 연결을 위한 id
   const inputId = `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
