@@ -6,6 +6,7 @@ import Image from 'next/image';
 export type InputFieldType = 'text' | 'email' | 'password' | 'passwordConfirm' | 'businessNumber';
 
 type Props = {
+  id?: string;
   label: string;
   placeholder: string;
   type?: InputFieldType;
@@ -16,10 +17,8 @@ type Props = {
   compareWith?: string;
 };
 
-// --------------------
-// 화살표 함수로 변경
-// --------------------
 const InputField = ({
+  id,
   label,
   placeholder,
   type = 'text',
@@ -33,15 +32,13 @@ const InputField = ({
   const [visible, setVisible] = useState(false);
   const [touched, setTouched] = useState(false);
 
-  // --------------------
   // value prop 변경 시 internal 동기화
-  // --------------------
   useEffect(() => {
     setInternal(value);
   }, [value]);
 
   // input과 label 연결을 위한 id
-  const inputId = `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
+  const inputId = id ?? `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
 
   const formatBusinessNumber = (v: string) => {
     const digits = v.replace(/\D/g, '').slice(0, 9);
@@ -97,9 +94,11 @@ const InputField = ({
   // --------------------
   // input type 결정
   // --------------------
-  let inputType = 'text';
+  let inputType: 'text' | 'password' | 'email' = 'text';
   if (type === 'password' || type === 'passwordConfirm') {
     inputType = visible ? 'text' : 'password';
+  } else if (type === 'email') {
+    inputType = 'email';
   }
 
   const showToggle = type === 'password' || type === 'passwordConfirm';
@@ -134,7 +133,6 @@ const InputField = ({
             onClick={() => setVisible((s) => !s)}
             className="cursor-pointer"
           >
-            {/* next/image 사용 */}
             <Image
               src={visible ? '/icons/eye.svg' : '/icons/eye-off.svg'}
               alt={visible ? '숨기기' : '보기'}
