@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
+import { IconButton } from '@/components/atoms/IconButton/IconButton';
 
 const ItemMenu: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -43,21 +44,17 @@ const ItemMenu: React.FC = () => {
   }
 
   return (
-    <div className="relative w-95 h-100">
-      <button
-        type="button"
-        ref={buttonRef}
-        onClick={() => setOpen(!open)}
-        className="flex w-24 h-24 justify-center items-center p-1 bg-transparent border-none cursor-pointer"
-      >
+    <div className="relative w-24 h-24">
+      <IconButton ref={buttonRef} onClick={() => setOpen(!open)} className="w-24 h-24 p-1">
         <Image src="/icons/ic-more.svg" alt="더보기" width={24} height={24} />
-      </button>
+      </IconButton>
 
       {/* Dropdown */}
       <div
         ref={dropdownRef}
         className={clsx(
-          'absolute top-0 right-full flex-col bg-white shadow-dropdown rounded overflow-hidden z-dropdown w-100',
+          'absolute top-0 flex-col bg-white shadow-dropdown rounded overflow-hidden z-dropdown w-100',
+          'right-full xl:left-full xl:right-auto',
           dropdownVisibilityClass
         )}
       >
