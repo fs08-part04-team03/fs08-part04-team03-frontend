@@ -130,6 +130,8 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
 
   return (
     <div
+      role="status"
+      aria-live={variant === 'error' ? 'assertive' : 'polite'}
       className={clsx(
         'flex items-center text-white relative rounded-[var(--radius-default)] bg-[rgba(0,0,0,0.80)] shadow-[var(--shadow-toast)] backdrop-blur-[var(--blur-toast)]',
         'gap-8',
