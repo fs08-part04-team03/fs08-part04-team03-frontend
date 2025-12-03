@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Button from '@/components/atoms/Button/Button';
+import { clsx } from '@/utils/clsx';
 
 interface PaginationBlockProps {
   current: number;
@@ -39,12 +40,7 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
 
   return (
     <div
-      className="
-        flex items-center justify-between h-40
-        w-327
-        md:w-696
-        xl:w-1304
-      "
+      className="flex items-center justify-between h-40 w-327 md:w-696 xl:w-1304"
       role="navigation"
       aria-label="페이지네이션"
     >
@@ -65,10 +61,15 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
           className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer"
         >
           <div className="flex items-center gap-6">
-            <div className={`relative w-24 h-24 ${isPrevEnd ? 'opacity-50' : ''}`}>
+            <div className={clsx('relative w-24 h-24', { 'opacity-50': isPrevEnd })}>
               <Image src="/icons/arrow-left.svg" alt="이전 페이지" fill />
             </div>
-            <span className={`${isPrevEnd ? 'text-gray-500' : 'text-gray-primary-500'} text-16`}>
+            <span
+              className={clsx('text-16', {
+                'text-gray-500': isPrevEnd,
+                'text-gray-primary-500': !isPrevEnd,
+              })}
+            >
               Prev
             </span>
           </div>
@@ -84,10 +85,15 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
           className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer"
         >
           <div className="flex items-center gap-6">
-            <span className={`${isNextEnd ? 'text-gray-500' : 'text-gray-primary-950'} text-16`}>
+            <span
+              className={clsx('text-16', {
+                'text-gray-500': isNextEnd,
+                'text-gray-950': !isNextEnd,
+              })}
+            >
               Next
             </span>
-            <div className={`relative w-24 h-24 ${isNextEnd ? 'opacity-50' : ''}`}>
+            <div className={clsx('relative w-24 h-24', { 'opacity-50': isNextEnd })}>
               <Image src="/icons/arrow-right.svg" alt="다음 페이지" fill />
             </div>
           </div>

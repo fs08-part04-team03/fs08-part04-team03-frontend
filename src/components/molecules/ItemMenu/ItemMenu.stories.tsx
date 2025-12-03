@@ -4,6 +4,7 @@ import ItemMenu from './ItemMenu';
 const meta: Meta<typeof ItemMenu> = {
   title: 'Molecules/ItemMenu',
   component: ItemMenu,
+  tags: ['autodocs'],
   parameters: {
     layout: 'centered',
   },
