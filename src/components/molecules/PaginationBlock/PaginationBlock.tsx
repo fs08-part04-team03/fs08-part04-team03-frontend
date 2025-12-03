@@ -88,7 +88,7 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
             <span
               className={clsx('text-16', {
                 'text-gray-500': isNextEnd,
-                'text-gray-primary-950': !isNextEnd,
+                'text-gray-950': !isNextEnd,
               })}
             >
               Next
