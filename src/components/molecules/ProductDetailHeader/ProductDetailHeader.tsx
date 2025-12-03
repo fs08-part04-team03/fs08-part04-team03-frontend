@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { clsx } from '@/utils/clsx';
 import Button from '@/components/atoms/Button/Button';
+import ItemMenu from '@/components/molecules/ItemMenu/ItemMenu';
+import ProductTitle from '@/components/molecules/ProductTitle/ProductTitle';
 
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 
@@ -35,7 +36,9 @@ type InternalHeaderProps = Pick<
   | 'onQuantityChange'
   | 'onMenuClick'
   | 'onAddToCart'
->;
+> & {
+  quantity: number;
+};
 
 interface QuantitySelectorProps {
   quantityOptions: Option[];
@@ -56,7 +59,7 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
 }) => {
   const [quantity, setQuantity] = useState<number | null>(defaultValue ?? null);
 
-  // Sync with external value changes
+  // Sync external value
   useEffect(() => {
     if (value !== undefined) {
       setQuantity(value);
@@ -67,14 +70,20 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
     const inputValue = e.target.value;
 
     if (inputValue === '') {
-      setQuantity(null);
+      const fallback = min; // 보통 1
+      setQuantity(fallback);
+
+      const matchedOption = {
+        key: String(fallback),
+        label: `${fallback}개`,
+      };
+
+      onQuantityChange?.(matchedOption);
       return;
     }
 
     const parsed = Number(inputValue);
-    if (Number.isNaN(parsed)) {
-      return;
-    }
+    if (Number.isNaN(parsed)) return;
 
     let next = parsed;
     if (next < min) next = min;
@@ -90,7 +99,6 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
     onQuantityChange?.(matchedOption);
   };
 
-  // Use controlled value if provided, otherwise use internal state
   const displayValue = value !== undefined ? value : quantity;
 
   return (
@@ -119,31 +127,28 @@ export const DesktopTabletProductDetailHeader: React.FC<InternalHeaderProps> = (
   price,
   quantityOptions = DEFAULT_QUANTITY_OPTIONS,
   onQuantityChange,
-  onMenuClick,
+  onMenuClick: _onMenuClick,
   onAddToCart,
+  quantity,
 }) => (
   <div className="hidden tablet:flex">
     <div className="flex w-full flex-col gap-8">
       <div className="flex items-start justify-between">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-8">
-            <h1 className="font-normal text-18 leading-26 tracking--0.45 text-gray-950">
-              {productName}
-            </h1>
-            <p className="font-bold text-14 leading-24 tracking--0.35 text-secondary-500">
-              {purchaseCount}회 구매
-            </p>
-          </div>
-          <div className="flex flex-col items-start font-bold text-18 leading-26 tracking--0.45 text-gray-950">
-            {price.toLocaleString('ko-KR')}원
-          </div>
-        </div>
+        <ProductTitle
+          variant="product"
+          name={productName}
+          price={price}
+          purchaseCount={purchaseCount}
+          size="md"
+        />
 
         <div className="flex items-start gap-8">
-          <QuantitySelector quantityOptions={quantityOptions} onQuantityChange={onQuantityChange} />
-          <IconButton variant="default" size="md" onClick={onMenuClick} aria-label="메뉴 열기">
-            <img src="/icons/kebab-vertical.svg" alt="메뉴" className="w-24 h-24" />
-          </IconButton>
+          <QuantitySelector
+            quantityOptions={quantityOptions}
+            onQuantityChange={onQuantityChange}
+            value={quantity}
+          />
+          <ItemMenu />
         </div>
       </div>
       <Button variant="primary" size="lg" fullWidth className="mt-32" onClick={onAddToCart}>
@@ -159,30 +164,31 @@ export const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
   price,
   quantityOptions = DEFAULT_QUANTITY_OPTIONS,
   onQuantityChange,
-  onMenuClick,
+  onMenuClick: _onMenuClick,
   onAddToCart,
+  quantity,
 }) => (
   <div className="flex tablet:hidden w-full">
     <div className="flex w-full flex-col gap-8">
       <div className="flex items-start justify-between gap-8">
-        <div className="flex flex-col gap-2 flex-1 min-w-0">
-          <h1 className="font-normal text-16 leading-24 tracking--0.4 text-gray-950">
-            {productName}
-          </h1>
-          <p className="font-bold text-12 leading-18 tracking--0.3 text-secondary-500">
-            {purchaseCount}회 구매
-          </p>
-          <p className="font-bold text-16 leading-24 tracking--0.4 text-gray-950">
-            {price.toLocaleString('ko-KR')}원
-          </p>
-        </div>
+        <ProductTitle
+          variant="product"
+          name={productName}
+          price={price}
+          purchaseCount={purchaseCount}
+          size="md"
+        />
+
         <div className="flex items-start gap-8 shrink-0">
-          <QuantitySelector quantityOptions={quantityOptions} onQuantityChange={onQuantityChange} />
-          <IconButton variant="default" size="md" onClick={onMenuClick} aria-label="메뉴 열기">
-            <img src="/icons/kebab-vertical.svg" alt="메뉴" className="w-24 h-24" />
-          </IconButton>
+          <QuantitySelector
+            quantityOptions={quantityOptions}
+            onQuantityChange={onQuantityChange}
+            value={quantity}
+          />
+          <ItemMenu />
         </div>
       </div>
+
       <Button variant="primary" size="lg" fullWidth className="mt-32" onClick={onAddToCart}>
         장바구니 담기
       </Button>
@@ -199,27 +205,46 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
   onMenuClick,
   onAddToCart,
   className = '',
-}) => (
-  <div className={clsx('flex flex-col gap-8', className)}>
-    <MobileProductDetailHeader
-      productName={productName}
-      purchaseCount={purchaseCount}
-      price={price}
-      quantityOptions={quantityOptions}
-      onQuantityChange={onQuantityChange}
-      onMenuClick={onMenuClick}
-      onAddToCart={onAddToCart}
-    />
-    <DesktopTabletProductDetailHeader
-      productName={productName}
-      purchaseCount={purchaseCount}
-      price={price}
-      quantityOptions={quantityOptions}
-      onQuantityChange={onQuantityChange}
-      onMenuClick={onMenuClick}
-      onAddToCart={onAddToCart}
-    />
-  </div>
-);
+}) => {
+  // 수량 상태 관리
+  const [quantity, setQuantity] = useState(1);
+
+  // 수량 변경 핸들러
+  const handleQuantityChange = (option: Option) => {
+    const next = Number(option.key);
+    if (!Number.isNaN(next)) {
+      setQuantity(next);
+      onQuantityChange?.(option);
+    }
+  };
+
+  const totalPrice = price * quantity;
+
+  return (
+    <div className={clsx('flex flex-col gap-8', className)}>
+      <MobileProductDetailHeader
+        productName={productName}
+        purchaseCount={purchaseCount}
+        price={totalPrice}
+        quantityOptions={quantityOptions}
+        onQuantityChange={handleQuantityChange}
+        onMenuClick={onMenuClick}
+        onAddToCart={onAddToCart}
+        quantity={quantity}
+      />
+
+      <DesktopTabletProductDetailHeader
+        productName={productName}
+        purchaseCount={purchaseCount}
+        price={totalPrice}
+        quantityOptions={quantityOptions}
+        onQuantityChange={handleQuantityChange}
+        onMenuClick={onMenuClick}
+        onAddToCart={onAddToCart}
+        quantity={quantity}
+      />
+    </div>
+  );
+};
 
 export default ProductDetailHeader;
