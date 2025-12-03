@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import ProductDetailHeader, {
-  MobileProductDetailHeader,
-  DesktopTabletProductDetailHeader,
-} from './ProductDetailHeader';
+import ProductDetailHeader from './ProductDetailHeader';
 
 const meta = {
   title: 'Molecules/ProductDetailHeader',
   component: ProductDetailHeader,
   tags: ['autodocs'],
+  parameters: {
+    layout: 'padded',
+  },
   argTypes: {
     productName: {
       control: 'text',
@@ -19,7 +19,7 @@ const meta = {
     },
     price: {
       control: 'number',
-      description: '제품 가격',
+      description: '제품 단가 (1개 가격)',
     },
     quantityOptions: {
       control: 'object',
@@ -49,96 +49,17 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: ({
-    productName,
-    purchaseCount,
-    price,
-    quantityOptions,
-    onQuantityChange,
-    onMenuClick,
-    onAddToCart,
-  }) => (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: '1280px',
-        margin: '0 auto',
-        padding: '16px',
-      }}
-    >
-      <DesktopTabletProductDetailHeader
-        productName={productName}
-        purchaseCount={purchaseCount}
-        price={price}
-        quantityOptions={quantityOptions}
-        onQuantityChange={onQuantityChange}
-        onMenuClick={onMenuClick}
-        onAddToCart={onAddToCart}
-      />
-    </div>
-  ),
   args: {
-    productName: '프리미엄 무선 이어폰',
-    purchaseCount: 42,
-    price: 129000,
+    productName: '코카콜라',
+    purchaseCount: 29,
+    price: 2000,
   },
   parameters: {
-    viewport: {
-      defaultViewport: 'desktop',
-    },
-    layout: 'padded',
-  },
-};
-
-export const Mobile: Story = {
-  render: ({
-    productName,
-    purchaseCount,
-    price,
-    quantityOptions,
-    onQuantityChange,
-    onMenuClick,
-    onAddToCart,
-  }) => (
-    <div
-      style={{
-        width: '375px',
-        minWidth: '375px',
-        maxWidth: '375px',
-        margin: '0 auto',
-        padding: '16px',
-        boxSizing: 'border-box',
-      }}
-    >
-      <MobileProductDetailHeader
-        productName={productName}
-        purchaseCount={purchaseCount}
-        price={price}
-        quantityOptions={quantityOptions}
-        onQuantityChange={onQuantityChange}
-        onMenuClick={onMenuClick}
-        onAddToCart={onAddToCart}
-      />
-    </div>
-  ),
-  args: {
-    productName: '프리미엄 무선 이어폰',
-    purchaseCount: 42,
-    price: 129000,
-  },
-  parameters: {
-    viewport: {
-      defaultViewport: 'mobile',
-      viewports: {
-        mobile: {
-          name: 'Mobile',
-          styles: {
-            width: '375px',
-            height: '667px',
-          },
-        },
+    docs: {
+      description: {
+        story:
+          '모바일/태블릿과 데스크탑에서 자동으로 적절한 레이아웃을 보여줍니다. 수량 변경 시 총 금액이 자동으로 계산됩니다.',
       },
     },
-    layout: 'padded',
   },
 };
