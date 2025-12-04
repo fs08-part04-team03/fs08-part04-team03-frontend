@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { clsx } from '@/utils/clsx';
 import DropDown, { Option } from '@/components/atoms/DropDown/DropDown';
 import Button from '@/components/atoms/Button/Button';
@@ -30,6 +30,7 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Option | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<Option | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   const [errors, setErrors] = useState({
     name: '',
@@ -75,6 +76,16 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
     validate();
   }, [validate]);
 
+  // cleanup blob URL on unmount
+  useEffect(
+    () => () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    },
+    []
+  );
+
   // ✔ Hook 아래에 조건부 렌더링
   if (!open) return null;
 
@@ -109,6 +120,9 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
 
       {/* Modal */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
         className={clsx(
           'relative bg-white rounded-12 z-modal flex flex-col gap-30 items-center',
           'mobile:pt-2 mobile:pr-24 mobile:pb-24 mobile:pl-24',
@@ -116,7 +130,9 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
           'desktop:w-512 desktop:h-auto desktop:p-30'
         )}
       >
-        <h2 className="text-center text-18 font-bold">상품 등록</h2>
+        <h2 id="modal-title" className="text-center text-18 font-bold">
+          상품 등록
+        </h2>
 
         {/* 이미지 업로드 */}
         <div
@@ -132,7 +148,12 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (!file) return;
-              setPreview(URL.createObjectURL(file));
+              if (previewUrlRef.current) {
+                URL.revokeObjectURL(previewUrlRef.current);
+              }
+              const newUrl = URL.createObjectURL(file);
+              previewUrlRef.current = newUrl;
+              setPreview(newUrl);
             }}
           />
           {preview ? (
