@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
