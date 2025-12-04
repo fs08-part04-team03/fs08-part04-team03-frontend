@@ -125,54 +125,20 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
   );
 };
 
-export const DesktopTabletProductDetailHeader: React.FC<InternalHeaderProps> = ({
+const BaseProductDetailHeaderLayout: React.FC<
+  InternalHeaderProps & { wrapperClassName: string }
+> = ({
   productName,
   purchaseCount,
   price,
   quantityOptions = DEFAULT_QUANTITY_OPTIONS,
   onQuantityChange,
-  onMenuClick: _onMenuClick,
+  onMenuClick,
   onAddToCart,
   quantity,
+  wrapperClassName,
 }) => (
-  <div className="hidden tablet:flex">
-    <div className="flex w-full flex-col gap-8">
-      <div className="flex items-start justify-between">
-        <ProductTile
-          variant="product"
-          name={productName}
-          price={price}
-          purchaseCount={purchaseCount}
-          size="md"
-        />
-
-        <div className="flex items-start gap-8">
-          <QuantitySelector
-            quantityOptions={quantityOptions}
-            onQuantityChange={onQuantityChange}
-            value={quantity}
-          />
-          <ItemMenu />
-        </div>
-      </div>
-      <Button variant="primary" size="lg" fullWidth className="mt-32" onClick={onAddToCart}>
-        장바구니 담기
-      </Button>
-    </div>
-  </div>
-);
-
-export const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
-  productName,
-  purchaseCount,
-  price,
-  quantityOptions = DEFAULT_QUANTITY_OPTIONS,
-  onQuantityChange,
-  onMenuClick: _onMenuClick,
-  onAddToCart,
-  quantity,
-}) => (
-  <div className="flex tablet:hidden w-full">
+  <div className={wrapperClassName}>
     <div className="flex w-full flex-col gap-8">
       <div className="flex items-start justify-between gap-8">
         <ProductTile
@@ -184,12 +150,15 @@ export const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
         />
 
         <div className="flex items-start gap-8 shrink-0">
+          <p className="flex items-center justify-center text-14 leading-22 tracking--0.35 text-gray-950">
+            수량
+          </p>
           <QuantitySelector
             quantityOptions={quantityOptions}
             onQuantityChange={onQuantityChange}
             value={quantity}
           />
-          <ItemMenu />
+          <ItemMenu onClick={onMenuClick} />
         </div>
       </div>
 
@@ -198,6 +167,52 @@ export const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
       </Button>
     </div>
   </div>
+);
+
+export const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
+  productName,
+  purchaseCount,
+  price,
+  quantityOptions,
+  onQuantityChange,
+  onMenuClick,
+  onAddToCart,
+  quantity,
+}) => (
+  <BaseProductDetailHeaderLayout
+    productName={productName}
+    purchaseCount={purchaseCount}
+    price={price}
+    quantityOptions={quantityOptions}
+    onQuantityChange={onQuantityChange}
+    onMenuClick={onMenuClick}
+    onAddToCart={onAddToCart}
+    quantity={quantity}
+    wrapperClassName="flex tablet:hidden w-full"
+  />
+);
+
+export const DesktopTabletProductDetailHeader: React.FC<InternalHeaderProps> = ({
+  productName,
+  purchaseCount,
+  price,
+  quantityOptions,
+  onQuantityChange,
+  onMenuClick,
+  onAddToCart,
+  quantity,
+}) => (
+  <BaseProductDetailHeaderLayout
+    productName={productName}
+    purchaseCount={purchaseCount}
+    price={price}
+    quantityOptions={quantityOptions}
+    onQuantityChange={onQuantityChange}
+    onMenuClick={onMenuClick}
+    onAddToCart={onAddToCart}
+    quantity={quantity}
+    wrapperClassName="hidden tablet:flex w-full"
+  />
 );
 
 const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
