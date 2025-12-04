@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import UseProfile from './Useprofile';
+import UserProfile from './UserProfile';
 
 const meta = {
-  title: 'Molecules/UseProfile',
-  component: UseProfile,
+  title: 'Molecules/UserProfile',
+  component: UserProfile,
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -31,7 +31,7 @@ const meta = {
       description: '추가 CSS 클래스',
     },
   },
-} satisfies Meta<typeof UseProfile>;
+} satisfies Meta<typeof UserProfile>;
 
 export default meta;
 

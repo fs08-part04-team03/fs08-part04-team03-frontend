@@ -11,7 +11,6 @@ const config: Config = {
       tablet: '768px',
       desktop: '1024px',
     },
-    extend: {},
   },
 };
 
