@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import UseProfile from './Useprofile';
+import UseProfile from './UserProfile';
 
 const meta = {
   title: 'Molecules/UseProfile',
