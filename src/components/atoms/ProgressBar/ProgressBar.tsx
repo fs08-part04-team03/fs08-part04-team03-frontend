@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { clsx } from '@/utils/clsx';
 
 export interface ProgressBarProps {
