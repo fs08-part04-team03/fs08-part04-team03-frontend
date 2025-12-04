@@ -1,76 +1,44 @@
 @import 'tailwindcss';
 
-/* Suit 폰트 패밀리 */
-@font-face {
-  font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Thin.woff2')
-    format('woff2');
-  font-weight: 100;
-  font-display: swap;
+:root {
+  --font-family-base: var(--font-suit, 'Suit', sans-serif);
+  color: var(--color-gray-950, #2e2e2e);
+  background-color: var(--color-white, #ffffff);
+
+  /* Font Size CSS 변수 정의 - :root에 정의하여 전역에서 사용 가능 */
+  --font-size-10: 10px;
+  --font-size-12: 12px;
+  --font-size-13: 13px;
+  --font-size-14: 14px;
+  --font-size-16: 16px;
+  --font-size-18: 18px;
+  --font-size-20: 20px;
+  --font-size-24: 24px;
+  --font-size-30: 30px;
+  --font-size-32: 32px;
+  --font-size-44: 44px;
+  --font-size-50: 50px;
 }
 
-@font-face {
-  font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraLight.woff2')
-    format('woff2');
-  font-weight: 200;
-  font-display: swap;
+html {
+  font-family: var(--font-family-base);
+  /* font-size는 제거 - Tailwind 유틸리티 클래스가 우선 적용되도록 */
+  color: inherit;
+  background-color: inherit;
 }
 
-@font-face {
-  font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Light.woff2')
-    format('woff2');
-  font-weight: 300;
-  font-display: swap;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  /* margin: 0; padding: 0; 는 Preflight에 의해 처리됩니다. */
 }
 
-@font-face {
-  font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Regular.woff2')
-    format('woff2');
+body {
+  font-family: var(--font-family-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   font-weight: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Medium.woff2')
-    format('woff2');
-  font-weight: 500;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-SemiBold.woff2')
-    format('woff2');
-  font-weight: 600;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Bold.woff2')
-    format('woff2');
-  font-weight: 700;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraBold.woff2')
-    format('woff2');
-  font-weight: 800;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Suit';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Heavy.woff2')
-    format('woff2');
-  font-weight: 900;
-  font-display: swap;
 }
 
 /* Tailwind CSS 4 @theme 블록 - 디자인 토큰 정의 */
@@ -83,6 +51,15 @@
   --z-modal: 30;
   --z-toast: 40;
   --z-tooltip: 50;
+
+  /* Shadow Tokens */
+  --shadow-toast: 0 10px 8px 0 rgba(0, 0, 0, 0.1);
+  --shadow-dropdown: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  /* Blur Tokens */
+  --blur-toast: 15px;
+
+  --icon-24: 24px;
 
   /* Gray (Primary) 색상 팔레트 */
   --color-gray-25: #fafafa;
@@ -108,78 +85,162 @@
   --color-white: #ffffff;
   --color-black: #000000;
 
-  /* 폰트 패밀리 - Suit를 기본으로 설정 */
-  --font-family-sans: 'Suit', sans-serif;
-
   /* 기본 spacing 단위를 1px로 설정 (기본값: 0.25rem = 4px) */
   --spacing: 1px;
 
-  /* Spacing 토큰 (px 단위) - 매직 넘버 제거를 위해 모든 사이즈 등록 */
-  --size-4: 4px;
-  --size-8: 8px;
-  --size-10: 10px;
-  --size-16: 16px;
-  --size-20: 20px;
-  --size-24: 24px;
-  --size-28: 28px;
-  --size-30: 30px;
-  --size-32: 32px;
-  --size-36: 36px;
-  --size-40: 40px;
-  --size-44: 44px;
-  --size-56: 56px;
-  --size-60: 60px;
-  --size-64: 64px;
-  --size-70: 70px;
-  --size-80: 80px;
-  --size-88: 88px;
-  --size-99: 99px;
-  --size-97: 97px;
-  --size-100: 100px;
-  --size-105: 105px;
-  --size-130: 130px;
-  --size-140: 140px;
-  --size-152: 152px;
-  --size-153: 153px;
-  --size-153-5: 153.5px;
-  --size-171: 171px;
-  --size-180: 180px;
-  --size-200: 200px;
-  --size-216: 216px;
-  --size-225: 225px;
-  --size-270: 270px;
-  --size-280: 280px;
-  --size-295: 295px;
-  --size-296: 296px;
-  --size-300: 300px;
-  --size-327: 327px;
-  --size-328: 328px;
-  --size-344: 344px;
-  --size-350: 350px;
-  --size-366: 366px;
-  --size-376: 376px;
-  --size-394: 394px;
-  --size-426: 426px;
-  --size-448: 448px;
-  --size-452: 452px;
-  --size-472: 472px;
-  --size-475: 475px;
-  --size-480: 480px;
-  --size-496: 496px;
-  --size-500: 500px;
-  --size-610: 610px;
-  --size-512: 512px;
-  --size-540: 540px;
-  --size-636: 636px;
-  --size-656: 656px;
-  --size-696: 696px;
-  --size-734: 734px;
-  --size-750: 750px;
-  --size-1052: 1052px;
-  --size-1152: 1152px;
-  --size-1180: 1180px;
-  --size-1352: 1352px;
-  --size-1400: 1400px;
+  /* Spacing/Size 토큰 - Tailwind의 기본 spacing scale + 커스텀 */
+  --spacing-0: 0px;
+  --spacing-1: 1px;
+  --spacing-2: 2px;
+  --spacing-3: 3px;
+  --spacing-4: 4px;
+  --spacing-5: 5px;
+  --spacing-6: 6px;
+  --spacing-7: 7px;
+  --spacing-8: 8px;
+  --spacing-9: 9px;
+  --spacing-10: 10px;
+  --spacing-11: 11px;
+  --spacing-12: 12px;
+  --spacing-13: 13px;
+  --spacing-14: 14px;
+  --spacing-15: 15px;
+  --spacing-16: 16px;
+  --spacing-17: 17px;
+  --spacing-18: 18px;
+  --spacing-19: 19px;
+  --spacing-20: 20px;
+  --spacing-21: 21px;
+  --spacing-22: 22px;
+  --spacing-23: 23px;
+  --spacing-24: 24px;
+  --spacing-25: 25px;
+  --spacing-26: 26px;
+  --spacing-27: 27px;
+  --spacing-28: 28px;
+  --spacing-29: 29px;
+  --spacing-30: 30px;
+  --spacing-31: 31px;
+  --spacing-32: 32px;
+  --spacing-33: 33px;
+  --spacing-34: 34px;
+  --spacing-35: 35px;
+  --spacing-36: 36px;
+  --spacing-37: 37px;
+  --spacing-38: 38px;
+  --spacing-39: 39px;
+  --spacing-40: 40px;
+  --spacing-41: 41px;
+  --spacing-42: 42px;
+  --spacing-43: 43px;
+  --spacing-44: 44px;
+  --spacing-45: 45px;
+  --spacing-46: 46px;
+  --spacing-47: 47px;
+  --spacing-48: 48px;
+  --spacing-49: 49px;
+  --spacing-50: 50px;
+  --spacing-51: 51px;
+  --spacing-52: 52px;
+  --spacing-53: 53px;
+  --spacing-54: 54px;
+  --spacing-55: 55px;
+  --spacing-56: 56px;
+  --spacing-57: 57px;
+  --spacing-58: 58px;
+  --spacing-59: 59px;
+  --spacing-60: 60px;
+  --spacing-61: 61px;
+  --spacing-62: 62px;
+  --spacing-63: 63px;
+  --spacing-64: 64px;
+  --spacing-65: 65px;
+  --spacing-66: 66px;
+  --spacing-67: 67px;
+  --spacing-68: 68px;
+  --spacing-69: 69px;
+  --spacing-70: 70px;
+  --spacing-71: 71px;
+  --spacing-72: 72px;
+  --spacing-73: 73px;
+  --spacing-74: 74px;
+  --spacing-75: 75px;
+  --spacing-76: 76px;
+  --spacing-77: 77px;
+  --spacing-78: 78px;
+  --spacing-79: 79px;
+  --spacing-80: 80px;
+  --spacing-81: 81px;
+  --spacing-82: 82px;
+  --spacing-83: 83px;
+  --spacing-84: 84px;
+  --spacing-85: 85px;
+  --spacing-86: 86px;
+  --spacing-87: 87px;
+  --spacing-88: 88px;
+  --spacing-89: 89px;
+  --spacing-90: 90px;
+  --spacing-91: 91px;
+  --spacing-92: 92px;
+  --spacing-93: 93px;
+  --spacing-94: 94px;
+  --spacing-95: 95px;
+  --spacing-96: 96px;
+
+  /* 커스텀 spacing 값들 (96px 초과) */
+  --spacing-97: 97px;
+  --spacing-99: 99px;
+  --spacing-100: 100px;
+  --spacing-105: 105px;
+  --spacing-110: 110px;
+  --spacing-130: 130px;
+  --spacing-140: 140px;
+  --spacing-152: 152px;
+  --spacing-153: 153px;
+  --spacing-153\.5: 153.5px;
+  --spacing-160: 160px;
+  --spacing-171: 171px;
+  --spacing-179: 179px;
+  --spacing-180: 180px;
+  --spacing-200: 200px;
+  --spacing-216: 216px;
+  --spacing-225: 225px;
+  --spacing-270: 270px;
+  --spacing-280: 280px;
+  --spacing-295: 295px;
+  --spacing-296: 296px;
+  --spacing-300: 300px;
+  --spacing-303\.667: 303.667px;
+  --spacing-304: 304px;
+  --spacing-327: 327px;
+  --spacing-328: 328px;
+  --spacing-344: 344px;
+  --spacing-345: 345px;
+  --spacing-350: 350px;
+  --spacing-366: 366px;
+  --spacing-376: 376px;
+  --spacing-394: 394px;
+  --spacing-426: 426px;
+  --spacing-448: 448px;
+  --spacing-452: 452px;
+  --spacing-472: 472px;
+  --spacing-475: 475px;
+  --spacing-480: 480px;
+  --spacing-496: 496px;
+  --spacing-500: 500px;
+  --spacing-512: 512px;
+  --spacing-540: 540px;
+  --spacing-610: 610px;
+  --spacing-636: 636px;
+  --spacing-656: 656px;
+  --spacing-696: 696px;
+  --spacing-734: 734px;
+  --spacing-750: 750px;
+  --spacing-1052: 1052px;
+  --spacing-1152: 1152px;
+  --spacing-1180: 1180px;
+  --spacing-1352: 1352px;
+  --spacing-1400: 1400px;
 
   /* 브레이크포인트 */
   --breakpoint-mobile: 0px;
@@ -188,36 +249,68 @@
 
   /* Border Radius */
   --radius-default: 2px;
+  --radius-6: 6px;
   --radius-100: 100px;
 
-  /* Font Size */
-  --font-size-12: 12px;
-  --font-size-13: 13px;
-  --font-size-14: 14px;
-  --font-size-16: 16px;
-  --font-size-18: 18px;
-  --font-size-20: 20px;
-  --font-size-24: 24px;
-  --font-size-30: 30px;
-  --font-size-32: 32px;
-  --font-size-44: 44px;
-  --font-size-50: 50px;
+  /* Font Size 토큰 - Tailwind CSS 4 @theme에서 --text-* 형식으로 정의 */
+  --text-10: 10px;
+  --text-12: 12px;
+  --text-13: 13px;
+  --text-14: 14px;
+  --text-16: 16px;
+  --text-18: 18px;
+  --text-20: 20px;
+  --text-24: 24px;
+  --text-30: 30px;
+  --text-32: 32px;
+  --text-44: 44px;
+  --text-50: 50px;
+
+  --letter-spacing-tight: -0.4px;
+  --letter-spacing--0.35: -0.35px;
+  --letter-spacing--0.3: -0.3px;
 }
 
-/* CSS 변수로도 사용 가능하도록 :root에 정의 */
-:root {
-  --font-family-base: var(--font-family-sans);
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .px-toast-32 {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  /* .gap-8 {
+    gap: 8px;
+  }
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+.p-24 {
+  padding: 24px !important;
 }
-
-body {
-  font-family: var(--font-family-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-weight: normal;
+.mt-5 {
+  margin-top: 5px !important;
+}
+.gap-8 {
+  gap: 8px !important;
+}
+  .left-8 {
+    left: 8px !important;
+  } */
 }
