@@ -5,7 +5,11 @@ import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 
-const ItemMenu: React.FC = () => {
+interface ItemMenuProps {
+  onClick?: () => void;
+}
+
+const ItemMenu: React.FC<ItemMenuProps> = ({ onClick }) => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -33,6 +37,7 @@ const ItemMenu: React.FC = () => {
 
   const handleItemClick = () => {
     setOpen(false);
+    onClick?.();
   };
 
   // if/else로 드롭다운 표시 여부
