@@ -21,7 +21,7 @@ const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className={clsx('text-16 font-bold text-gray-950 tracking--0.4 mb-1')}
+            className={clsx('text-16 font-bold text-gray-950 tracking-tight mb-1')}
           >
             {label}
           </label>
@@ -33,7 +33,7 @@ const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
           className={clsx(
             'w-327 tablet:w-480 h-140',
             'px-12 py-8',
-            'text-16 tracking--0.4',
+            'text-16 tracking-tight',
             'font-sans font-normal text-gray-950',
             'border border-gray-300 rounded-default',
             'bg-transparent',
