@@ -18,6 +18,7 @@ export interface DropDownProps {
   buttonClassName?: string; // 버튼 스타일 오버라이드
   dropdownClassName?: string; // 드롭다운 리스트 스타일 오버라이드
   optionClassName?: string; // 옵션 항목 스타일 오버라이드
+  onSelect?: (item: Option) => void; // ← 새로 추가
 }
 
 const DropDown: React.FC<DropDownProps> = ({
@@ -28,15 +29,18 @@ const DropDown: React.FC<DropDownProps> = ({
   buttonClassName = '',
   dropdownClassName = '',
   optionClassName = '',
+  onSelect, // ← 추가
 }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Option | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleOpen = () => !disabled && setOpen((prev) => !prev);
+
   const handleSelect = (item: Option) => {
     setSelected(item);
     setOpen(false);
+    if (onSelect) onSelect(item); // ← 선택 시 부모에게 전달
   };
 
   // 🔹 외부 클릭 + Escape 키 처리
