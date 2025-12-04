@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type TextareaHTMLAttributes } from 'react';
+import { forwardRef, useId, type TextareaHTMLAttributes } from 'react';
 import { clsx } from '@/utils/clsx';
 
 export interface TextAreaFieldProps
@@ -13,7 +13,8 @@ export interface TextAreaFieldProps
 
 const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
   ({ label, placeholder, error = false, className, ...props }, ref) => {
-    const inputId = label ? `textarea-${label.replace(/\s+/g, '-').toLowerCase()}` : undefined;
+    const uniqueId = useId();
+    const inputId = label ? `textarea-${uniqueId}` : undefined;
 
     return (
       <div className={clsx('flex flex-col', className)}>
