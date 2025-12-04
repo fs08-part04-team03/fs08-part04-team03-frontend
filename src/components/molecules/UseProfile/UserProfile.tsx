@@ -4,19 +4,19 @@ import Link from 'next/link';
 import { Avatar } from '@/components/atoms/Avatar/Avatar';
 import { clsx } from '@/utils/clsx';
 
-export interface UseProfileProps {
+export interface UserProfileProps {
   name: string;
   avatarSrc?: string;
   profileHref?: string;
   className?: string;
 }
 
-const UseProfile = ({
+const UserProfile = ({
   name,
   avatarSrc,
   profileHref = '/me/profile',
   className,
-}: UseProfileProps) => (
+}: UserProfileProps) => (
   <Link
     href={profileHref}
     aria-label={`View ${name}'s profile`}
@@ -30,4 +30,4 @@ const UseProfile = ({
   </Link>
 );
 
-export default UseProfile;
+export default UserProfile;

@@ -241,6 +241,12 @@ body {
   --spacing-1180: 1180px;
   --spacing-1352: 1352px;
   --spacing-1400: 1400px;
+  --spacing-155: 155px;
+  --spacing-241: 241px;
+  --spacing-319: 319px;
+  --spacing-367: 367px;
+  --spacing-439: 439px;
+  --spacing-1304: 1304px;
 
   /* 브레이크포인트 */
   --breakpoint-mobile: 0px;
