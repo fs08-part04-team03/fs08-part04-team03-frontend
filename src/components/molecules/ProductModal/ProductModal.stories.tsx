@@ -2,8 +2,9 @@ import type { Meta, StoryObj } from '@storybook/nextjs';
 import ProductModal from './ProductModal';
 
 const meta: Meta<typeof ProductModal> = {
-  title: 'Molecules/ProductModal',
+  title: 'Molecules/Modal/ProductModal',
   component: ProductModal,
+  tags: ['autodocs'],
   parameters: {
     layout: 'centered',
   },
