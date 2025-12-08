@@ -23,7 +23,7 @@ export const ROUTE_PERMISSIONS: Record<string, UserRole> = {
  * 역할별 권한 레벨
  * - 숫자가 높을수록 더 높은 권한
  */
-const ROLE_LEVEL: Record<UserRole, number> = {
+export const ROLE_LEVEL: Record<UserRole, number> = {
   user: 1,
   manager: 2,
   admin: 3,

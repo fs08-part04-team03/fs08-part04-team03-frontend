@@ -2,32 +2,53 @@ import { type BreadcrumbItem } from '@/components/molecules/Breadcrumb/Breadcrum
 // eslint-disable-next-line import/no-unresolved
 import { BREADCRUMB_ITEMS } from '@/constants';
 
-export function generateHomeBreadcrumb(): BreadcrumbItem[] {
-  return [BREADCRUMB_ITEMS.HOME];
+export function generateHomeBreadcrumb(companyId: string): BreadcrumbItem[] {
+  return [{ label: BREADCRUMB_ITEMS.HOME.label, href: BREADCRUMB_ITEMS.HOME.href(companyId) }];
 }
 
-export function generateProductsBreadcrumb(): BreadcrumbItem[] {
-  return [BREADCRUMB_ITEMS.HOME, BREADCRUMB_ITEMS.PRODUCTS];
-}
-
-export function generateCartBreadcrumb(): BreadcrumbItem[] {
-  return [BREADCRUMB_ITEMS.HOME, BREADCRUMB_ITEMS.CART];
-}
-
-export function generatePurchaseRequestsBreadcrumb(): BreadcrumbItem[] {
-  return [BREADCRUMB_ITEMS.HOME, BREADCRUMB_ITEMS.PURCHASE_REQUESTS];
-}
-
-export function generatePurchaseRequestDetailBreadcrumb(requestId: string): BreadcrumbItem[] {
+export function generateProductsBreadcrumb(companyId: string): BreadcrumbItem[] {
   return [
-    BREADCRUMB_ITEMS.HOME,
-    BREADCRUMB_ITEMS.PURCHASE_REQUESTS,
+    { label: BREADCRUMB_ITEMS.HOME.label, href: BREADCRUMB_ITEMS.HOME.href(companyId) },
+    { label: BREADCRUMB_ITEMS.PRODUCTS.label, href: BREADCRUMB_ITEMS.PRODUCTS.href(companyId) },
+  ];
+}
+
+export function generateCartBreadcrumb(companyId: string): BreadcrumbItem[] {
+  return [
+    { label: BREADCRUMB_ITEMS.HOME.label, href: BREADCRUMB_ITEMS.HOME.href(companyId) },
+    { label: BREADCRUMB_ITEMS.CART.label, href: BREADCRUMB_ITEMS.CART.href(companyId) },
+  ];
+}
+
+export function generatePurchaseRequestsBreadcrumb(companyId: string): BreadcrumbItem[] {
+  return [
+    { label: BREADCRUMB_ITEMS.HOME.label, href: BREADCRUMB_ITEMS.HOME.href(companyId) },
+    {
+      label: BREADCRUMB_ITEMS.PURCHASE_REQUESTS.label,
+      href: BREADCRUMB_ITEMS.PURCHASE_REQUESTS.href(companyId),
+    },
+  ];
+}
+
+export function generatePurchaseRequestDetailBreadcrumb(
+  companyId: string,
+  requestId: string
+): BreadcrumbItem[] {
+  return [
+    { label: BREADCRUMB_ITEMS.HOME.label, href: BREADCRUMB_ITEMS.HOME.href(companyId) },
+    {
+      label: BREADCRUMB_ITEMS.PURCHASE_REQUESTS.label,
+      href: BREADCRUMB_ITEMS.PURCHASE_REQUESTS.href(companyId),
+    },
     { label: `Request #${requestId.slice(0, 8)}` },
   ];
 }
 
-export function generateMyPageBreadcrumb(username?: string): BreadcrumbItem[] {
-  const items: BreadcrumbItem[] = [BREADCRUMB_ITEMS.HOME, BREADCRUMB_ITEMS.MYPAGE];
+export function generateMyPageBreadcrumb(companyId: string, username?: string): BreadcrumbItem[] {
+  const items: BreadcrumbItem[] = [
+    { label: BREADCRUMB_ITEMS.HOME.label, href: BREADCRUMB_ITEMS.HOME.href(companyId) },
+    { label: BREADCRUMB_ITEMS.MYPAGE.label, href: BREADCRUMB_ITEMS.MYPAGE.href(companyId) },
+  ];
   if (username) {
     items.push({ label: username });
   }
