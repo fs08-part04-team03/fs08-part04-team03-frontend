@@ -7,7 +7,7 @@ export const PATHNAME = {
 
   // 회사 스코프
   COMPANY_ROOT: (companyId: string) => `/${companyId}`,
-  HOME: (companyId: string) => `/${companyId}`, // alias
+  HOME: (companyId: string) => `/${companyId}/products`,
 
   //  상품 리스트, 상품상세, 내상품등록내역
   PRODUCTS: (companyId: string) => `/${companyId}/products`,
@@ -37,7 +37,7 @@ export const PATHNAME = {
   MY_PURCHASE_REQUEST_DETAIL: (companyId: string, requestId: string) =>
     `/${companyId}/my/purchase-requests/${requestId}`,
 
-  //  관리자(manager)
+  //  관리자 (manager)
   MANAGER_REQUESTS: (companyId: string) => `/${companyId}/manager/requests`,
   MANAGER_REQUEST_DETAIL: (companyId: string, requestId: string) =>
     `/${companyId}/manager/requests/${requestId}`,
@@ -45,7 +45,7 @@ export const PATHNAME = {
   MANAGER_PURCHASE_HISTORY_DETAIL: (companyId: string, orderId: string) =>
     `/${companyId}/manager/purchase-history/${orderId}`,
 
-  //  최고관리자(admin)
+  //  최고관리자 (admin)
   ADMIN_ROOT: (companyId: string) => `/${companyId}/admin`,
   ADMIN_USERS: (companyId: string) => `/${companyId}/admin/users`,
   ADMIN_BUDGET: (companyId: string) => `/${companyId}/admin/budget`,
