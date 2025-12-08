@@ -10,13 +10,20 @@ import type { UserRole } from '@/constants/roles';
  *   예) '/[companyId]/admin', '/[companyId]/manager/requests'
  */
 export const ROUTE_PERMISSIONS: Record<string, UserRole> = {
+  // 최고관리자 (admin) 전용
   '/[companyId]/admin': 'admin',
   '/[companyId]/admin/users': 'admin',
   '/[companyId]/admin/budget': 'admin',
+
+  // 관리자 (manager) 전용
   '/[companyId]/manager': 'manager',
   '/[companyId]/manager/requests': 'manager',
   '/[companyId]/manager/purchase-history': 'manager',
+
+  // 사용자 (user) 이상
   '/[companyId]/purchase-request': 'user',
+  '/[companyId]/my/purchase-requests': 'user',
+  '/[companyId]/products/my': 'user',
 } as const;
 
 /**
