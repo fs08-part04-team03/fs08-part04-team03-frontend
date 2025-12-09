@@ -141,3 +141,11 @@ export function buildProductBreadcrumb(params: {
 
   return items;
 }
+
+export const PARENT_CATEGORY_OPTIONS = PARENT_CATEGORIES.map((parent) => ({
+  id: parent.key, // 'snack' | 'drink' | ...
+  label: parent.name, // '스낵' | '음료' | ...
+  parentId: parent.id, // 1, 2, 3...
+}));
+
+export type ParentCategoryOption = (typeof PARENT_CATEGORY_OPTIONS)[number];
