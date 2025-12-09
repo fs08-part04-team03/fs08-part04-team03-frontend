@@ -225,14 +225,16 @@ export const GNBUserActions: React.FC<GNBUserActionsProps> = ({
     </div>
 
     {/* 태블릿 (744px ~ 1199px) */}
-    <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
-      <GNBUserActionsTablet
-        companyId={companyId}
-        cartCount={cartCount}
-        userProfile={userProfile}
-        onMenuClick={onMenuClick}
-      />
-    </div>
+    {userProfile && (
+      <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
+        <GNBUserActionsTablet
+          companyId={companyId}
+          cartCount={cartCount}
+          userProfile={userProfile}
+          onMenuClick={onMenuClick}
+        />
+      </div>
+    )}
 
     {/* 데스크탑 (1200px ~) */}
     <div className={clsx('hidden desktop:flex', className)}>
