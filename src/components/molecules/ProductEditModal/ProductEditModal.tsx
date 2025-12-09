@@ -177,7 +177,7 @@ const ProductEditModal = ({
             />
           ) : (
             <Image
-              src="/icons/photo.icon.svg"
+              src="/icons/photo-icon.svg"
               alt="upload"
               width={30}
               height={30}
