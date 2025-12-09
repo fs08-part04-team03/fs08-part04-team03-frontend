@@ -18,6 +18,10 @@ const meta = {
       control: 'text',
       description: '사용자 이름',
     },
+    company: {
+      control: 'object',
+      description: '회사 정보',
+    },
     avatarSrc: {
       control: 'text',
       description: '아바타 이미지 URL',
@@ -41,6 +45,9 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     name: 'Name',
+    company: {
+      name: 'Company Name',
+    },
   },
   parameters: {
     docs: {
@@ -53,9 +60,12 @@ export const Default: Story = {
 };
 
 // 아바타 이미지 있음
-export const WithAvatar: Story = {
+export const WithProfileImage: Story = {
   args: {
     name: 'Name',
+    company: {
+      name: 'Company Name',
+    },
     avatarSrc: '/images/test-profile-image.jpg',
   },
   parameters: {
