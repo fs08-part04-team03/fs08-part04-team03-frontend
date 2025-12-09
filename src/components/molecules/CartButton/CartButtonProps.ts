@@ -2,7 +2,7 @@ export interface CartButtonProps {
   /** 회사 스코프 라우팅에 사용할 companyId */
   companyId: string;
 
-  /** 장바구니에 담긴 상품 개수 (0이면 숫자만 0으로 노출) */
+  /** 장바구니에 담긴 상품 개수 (0이면 뱃지는 숨기고, 레이블에만 0개를 표시) */
   count: number;
 
   /** 외부에서 추가 스타일 주입용 */
