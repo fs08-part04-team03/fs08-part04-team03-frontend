@@ -67,10 +67,9 @@ export const CartButton: React.FC<CartButtonProps> = ({
             className={clsx(
               'pointer-events-none',
               'absolute',
-              // 위치는 실제 아이콘 디자인에 맞게 필요시 조정
-              'top-9 left-5',
+              'top-9 left-4.5',
               'min-w-14 h-14',
-              'flex items-center justify-center',
+              'flex justify-center items-center',
               'text-11 font-bold text-gray-950'
             )}
           >
