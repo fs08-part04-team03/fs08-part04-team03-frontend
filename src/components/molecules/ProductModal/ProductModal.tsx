@@ -38,13 +38,20 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
     link: '',
   });
 
+  // touched 상태 추가
+  const [touched, setTouched] = useState({
+    name: false,
+    price: false,
+    link: false,
+  });
+
   // 가격 포맷
   const formatPrice = (value: string) => {
     const numeric = value.replace(/[^0-9]/g, '');
     return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  // 유효성 체크 (useCallback으로 deps 안정화)
+  // 유효성 체크
   const validate = useCallback(() => {
     const newErrors = { name: '', price: '', link: '' };
 
@@ -62,7 +69,7 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
     return !Object.values(newErrors).some((msg) => msg !== '');
   }, [productName, price, link]);
 
-  // ESC로 닫기 - 최상위 위치 유지
+  // ESC 닫기
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -86,12 +93,11 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
     []
   );
 
-  // ✔ Hook 아래에 조건부 렌더링
   if (!open) return null;
 
-  // submit
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setTouched({ name: true, price: true, link: true }); // submit 시 모두 touched
     if (!validate()) return;
     if (!preview || !selectedCategory || !selectedSubCategory) return;
     onSubmit();
@@ -198,9 +204,15 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
               placeholder="상품명을 입력해주세요"
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
-              className="w-full h-44 border-b border-gray-500 outline-none focus:border-gray-900 transition-colors"
+              onFocus={() => setTouched((prev) => ({ ...prev, name: true }))}
+              className={clsx(
+                'w-full h-44 border-b outline-none focus:border-gray-900 transition-colors',
+                touched.name && errors.name ? 'border-red-500' : 'border-gray-500'
+              )}
             />
-            {errors.name && <p className="text-red-500 text-12 mt-4">{errors.name}</p>}
+            {touched.name && errors.name && (
+              <p className="text-red-500 text-12 mt-4">{errors.name}</p>
+            )}
           </div>
 
           {/* 가격 */}
@@ -210,9 +222,15 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
               placeholder="가격을 입력해주세요"
               value={price}
               onChange={(e) => setPrice(formatPrice(e.target.value))}
-              className="w-full h-44 border-b border-gray-500 outline-none focus:border-gray-900 transition-colors"
+              onFocus={() => setTouched((prev) => ({ ...prev, price: true }))}
+              className={clsx(
+                'w-full h-44 border-b outline-none focus:border-gray-900 transition-colors',
+                touched.price && errors.price ? 'border-red-500' : 'border-gray-500'
+              )}
             />
-            {errors.price && <p className="text-red-500 text-12 mt-4">{errors.price}</p>}
+            {touched.price && errors.price && (
+              <p className="text-red-500 text-12 mt-4">{errors.price}</p>
+            )}
           </div>
 
           {/* 링크 */}
@@ -222,9 +240,15 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
               placeholder="제품 링크를 입력해주세요"
               value={link}
               onChange={(e) => setLink(e.target.value)}
-              className="w-full h-44 border-b border-gray-500 outline-none focus:border-gray-900 transition-colors"
+              onFocus={() => setTouched((prev) => ({ ...prev, link: true }))}
+              className={clsx(
+                'w-full h-44 border-b outline-none focus:border-gray-900 transition-colors',
+                touched.link && errors.link ? 'border-red-500' : 'border-gray-500'
+              )}
             />
-            {errors.link && <p className="text-red-500 text-12 mt-4">{errors.link}</p>}
+            {touched.link && errors.link && (
+              <p className="text-red-500 text-12 mt-4">{errors.link}</p>
+            )}
           </div>
 
           {/* 버튼 위 자동 여백 */}
