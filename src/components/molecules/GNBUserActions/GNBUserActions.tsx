@@ -37,7 +37,7 @@ export interface GNBUserActionsMobileProps extends GNBUserActionsBaseProps {
  */
 export interface GNBUserActionsTabletProps extends GNBUserActionsBaseProps {
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
-  userProfile: React.ReactNode;
+  userProfile?: React.ReactNode;
 
   /** 햄버거 메뉴 클릭 시 호출되는 콜백 */
   onMenuClick?: () => void;
@@ -49,7 +49,7 @@ export interface GNBUserActionsTabletProps extends GNBUserActionsBaseProps {
  */
 export interface GNBUserActionsDesktopProps extends GNBUserActionsBaseProps {
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
-  userProfile: React.ReactNode;
+  userProfile?: React.ReactNode;
 
   /** 로그아웃 클릭 시 호출되는 콜백 */
   onLogout?: () => void;
@@ -94,7 +94,7 @@ export const GNBUserActionsTablet: React.FC<GNBUserActionsTabletProps> = ({
     <CartButton companyId={companyId} count={cartCount} />
 
     {/* 유저 프로필 */}
-    <div className="flex items-center">{userProfile}</div>
+    {userProfile && <div className="flex items-center">{userProfile}</div>}
 
     {/* 햄버거 메뉴 */}
     {onMenuClick && (
@@ -143,26 +143,30 @@ export const GNBUserActionsDesktop: React.FC<GNBUserActionsDesktopProps> = ({
         href={wishlistHref}
         aria-label="찜목록"
         onClick={handleWishlistClick}
-        className="inline-flex items-center justify-center"
+        className={clsx(
+          'inline-flex items-center justify-center',
+          'w-32 h-32 rounded-full',
+          'bg-transparent text-gray-900 hover:bg-gray-100 active:bg-gray-200',
+          'transition-colors',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary'
+        )}
       >
-        <IconButton variant="default" size="md">
-          <img
-            src={wishlistIconSrc}
-            alt=""
-            className={clsx(
-              'w-24 h-24 transition-transform duration-300 ease-out',
-              isAnimating && 'scale-125'
-            )}
-            aria-hidden="true"
-          />
-        </IconButton>
+        <img
+          src={wishlistIconSrc}
+          alt=""
+          className={clsx(
+            'w-24 h-24 transition-transform duration-300 ease-out',
+            isAnimating && 'scale-125'
+          )}
+          aria-hidden="true"
+        />
       </Link>
 
       {/* 유저 프로필 */}
-      <div className="flex items-center">{userProfile}</div>
+      {userProfile && <div className="flex items-center">{userProfile}</div>}
 
       {/* 구분선 */}
-      <div className="w-px h-20 bg-gray-200" />
+      {userProfile && <div className="w-px h-20 bg-gray-200" />}
 
       {/* 로그아웃 버튼 */}
       {onLogout && (
@@ -237,13 +241,15 @@ export const GNBUserActions: React.FC<GNBUserActionsProps> = ({
     )}
 
     {/* 데스크탑 (1200px ~) */}
-    <div className={clsx('hidden desktop:flex', className)}>
-      <GNBUserActionsDesktop
-        companyId={companyId}
-        cartCount={cartCount}
-        userProfile={userProfile}
-        onLogout={onLogout}
-      />
-    </div>
+    {userProfile && (
+      <div className={clsx('hidden desktop:flex', className)}>
+        <GNBUserActionsDesktop
+          companyId={companyId}
+          cartCount={cartCount}
+          userProfile={userProfile}
+          onLogout={onLogout}
+        />
+      </div>
+    )}
   </>
 );
