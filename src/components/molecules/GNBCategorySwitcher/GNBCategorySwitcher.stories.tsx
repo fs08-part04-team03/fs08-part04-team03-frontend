@@ -36,7 +36,7 @@ export const Default: Story = {
 
     return (
       <div className="w-full h-600 bg-gray-50">
-        <header className="flex items-center justify-center h-56 border-b border-gray-200 bg-white">
+        <header className="flex items-center justify-center h-56 bg-white">
           <GNBCategorySwitcher
             categories={categories ?? CATEGORY_OPTIONS}
             activeCategoryId={activeCategoryId}
@@ -65,7 +65,7 @@ export const WithManyCategories: Story = {
 
     return (
       <div className="w-full h-600 bg-gray-50">
-        <header className="flex items-center justify-center h-56 border-b border-gray-200 bg-white">
+        <header className="flex items-center justify-center h-56 bg-white">
           <GNBCategorySwitcher
             categories={CATEGORY_OPTIONS}
             activeCategoryId={activeCategoryId}

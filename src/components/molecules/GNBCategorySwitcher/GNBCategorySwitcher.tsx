@@ -57,15 +57,16 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
   return (
     <>
       {/* GNB 상단 버튼 (모바일 전용) */}
-      <div className={clsx('relative flex items-center justify-center tablet:hidden', className)}>
+      <div className={clsx('relative flex items-center justify-start tablet:hidden', className)}>
         <button
           ref={triggerRef}
           type="button"
           className={clsx(
             'flex justify-center items-center gap-10',
             'px-8 py-4 rounded-999',
-            'text-16 font-medium text-gray-900',
-            'active:scale-[0.97] transition-transform'
+            'text-16 font-medium text-gray-950',
+            'active:scale-[0.97] transition-transform',
+            'ml-16'
           )}
           onClick={handleToggle}
           aria-haspopup="dialog"
@@ -74,81 +75,79 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
         >
           <span>{activeOption.label}</span>
           <img
-            src={isOpen ? '/icons/arrow-up.svg' : '/icons/arrow-down.svg'}
+            src="/icons/arrow-down.svg"
             alt=""
-            className="w-12 h-7 transition-opacity duration-150"
+            className={clsx('w-12 h-7 transition-transform duration-200', isOpen && 'rotate-180')}
             aria-hidden="true"
           />
         </button>
       </div>
 
       {/* 드롭다운 오버레이 */}
-      {isOpen && (
+      <div
+        className={clsx(
+          'fixed inset-0 z-tooltip tablet:hidden',
+          'transition-opacity duration-200',
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        )}
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest('[role="dialog"]') === null) {
+            setIsOpen(false);
+          }
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') setIsOpen(false);
+        }}
+        role="button"
+        tabIndex={-1}
+        aria-label="오버레이 닫기"
+      >
         <div
           className={clsx(
-            'fixed inset-0 z-dropdown tablet:hidden',
-            'transition-opacity duration-200',
-            'opacity-100 pointer-events-auto'
+            'absolute left-0 right-0 top-56',
+            'bg-white/95 backdrop-blur-sm',
+            'py-24',
+            'transform transition-transform duration-200 ease-out',
+            isOpen ? 'translate-y-0' : '-translate-y-full'
           )}
-          onClick={(event) => {
-            if ((event.target as HTMLElement).closest('[role="dialog"]') === null) {
-              setIsOpen(false);
-            }
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Escape') setIsOpen(false);
-          }}
-          role="button"
-          tabIndex={-1}
-          aria-label="오버레이 닫기"
+          role="dialog"
+          aria-modal="true"
+          aria-label="카테고리 선택"
         >
-          <div
-            className={clsx(
-              'absolute left-0 right-0 top-56',
-              'bg-white/95 backdrop-blur-sm',
-              'py-24',
-              'transform transition-transform duration-200 ease-out',
-              isOpen ? 'translate-y-0' : '-translate-y-full'
-            )}
-            role="dialog"
-            aria-modal="true"
-            aria-label="카테고리 선택"
-          >
-            <div className="px-24">
-              {/* 대분류 리스트만 표시 */}
-              <ul
-                className="flex flex-col gap-10 max-h-[60vh] overflow-y-auto"
-                role="listbox"
-                aria-label="카테고리 목록"
-              >
-                {categories.map((category) => {
-                  const isActive = category.id === effectiveCategoryId;
+          <div className="px-24">
+            {/* 대분류 리스트만 표시 */}
+            <ul
+              className="flex flex-col gap-10 max-h-[60vh] overflow-y-auto"
+              role="listbox"
+              aria-label="카테고리 목록"
+            >
+              {categories.map((category) => {
+                const isActive = category.id === effectiveCategoryId;
 
-                  return (
-                    <li key={category.id}>
-                      <button
-                        type="button"
-                        className={clsx(
-                          'w-full text-center text-16 py-5',
-                          'transition-colors',
-                          isActive
-                            ? 'font-semibold text-gray-950'
-                            : 'font-normal text-gray-400 hover:text-gray-800'
-                        )}
-                        role="option"
-                        aria-selected={isActive}
-                        onClick={() => handleSelect(category.id)}
-                      >
-                        {category.label}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+                return (
+                  <li key={category.id}>
+                    <button
+                      type="button"
+                      className={clsx(
+                        'w-full text-center text-16 py-5',
+                        'transition-colors',
+                        isActive
+                          ? 'font-semibold text-gray-950'
+                          : 'font-normal text-gray-400 hover:text-gray-800'
+                      )}
+                      role="option"
+                      aria-selected={isActive}
+                      onClick={() => handleSelect(category.id)}
+                    >
+                      {category.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 };
