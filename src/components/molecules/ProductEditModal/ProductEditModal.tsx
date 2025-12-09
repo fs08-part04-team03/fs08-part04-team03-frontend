@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import DropDown, { Option } from '@/components/atoms/DropDown/DropDown';
 import Button from '@/components/atoms/Button/Button';
+import InputField from '@/components/molecules/InputField/InputField';
 
 interface ProductEditModalProps {
   open: boolean;
@@ -122,7 +123,6 @@ const ProductEditModal = ({
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center">
-      {/* aria-label 추가 */}
       <button
         type="button"
         aria-label="모달 닫기"
@@ -177,7 +177,7 @@ const ProductEditModal = ({
             />
           ) : (
             <Image
-              src="/icons/photo.icon.svg"
+              src="/icons/photo-icon.svg"
               alt="upload"
               width={30}
               height={30}
@@ -187,6 +187,7 @@ const ProductEditModal = ({
         </div>
 
         <form className="w-full flex flex-col flex-1 gap-30" onSubmit={handleSubmit}>
+          {/* 드롭다운 */}
           <div className="flex gap-20 mb-6 tablet:mb-8 desktop:mb-8">
             <DropDown
               items={categories}
@@ -206,37 +207,41 @@ const ProductEditModal = ({
             />
           </div>
 
-          <div className="mb-6 tablet:mb-8 desktop:mb-8">
-            <input
-              type="text"
+          {/* 상품명 */}
+          <div className="w-full flex justify-center">
+            <InputField
+              label="상품명"
               placeholder="상품명을 입력해주세요"
               value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-              className="w-full h-44 border-b border-gray-500 outline-none focus:border-gray-900 transition-colors"
+              onChange={setProductName}
+              minLength={1}
+              maxLength={20}
             />
-            {errors.name && <p className="text-red-500 text-12 mt-4">{errors.name}</p>}
           </div>
 
-          <div className="mb-6 tablet:mb-8 desktop:mb-8">
-            <input
-              type="text"
+          {/* 가격 */}
+          <div className="w-full flex justify-center">
+            <InputField
+              label="가격"
               placeholder="가격을 입력해주세요"
               value={price}
-              onChange={(e) => setPrice(formatPrice(e.target.value))}
-              className="w-full h-44 border-b border-gray-500 outline-none focus:border-gray-900 transition-colors"
+              onChange={(v) => setPrice(formatPrice(v))}
+              type="text"
+              minLength={1}
+              maxLength={20}
             />
-            {errors.price && <p className="text-red-500 text-12 mt-4">{errors.price}</p>}
           </div>
 
-          <div className="mb-6 tablet:mb-8 desktop:mb-8">
-            <input
-              type="text"
+          {/* 제품 링크 */}
+          <div className="w-full flex justify-center">
+            <InputField
+              label="제품 링크"
               placeholder="제품 링크를 입력해주세요"
               value={link}
-              onChange={(e) => setLink(e.target.value)}
-              className="w-full h-44 border-b border-gray-500 outline-none focus:border-gray-900 transition-colors"
+              onChange={setLink}
+              type="text"
+              maxLength={50}
             />
-            {errors.link && <p className="text-red-500 text-12 mt-4">{errors.link}</p>}
           </div>
 
           <div className="flex-1" />
