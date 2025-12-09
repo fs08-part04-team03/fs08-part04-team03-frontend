@@ -15,6 +15,10 @@ const meta = {
     },
   },
   argTypes: {
+    userProfile: {
+      control: false,
+      description: 'GNB 우측에 표시할 유저 프로필 컴포넌트 (태블릿/데스크탑에서만 사용)',
+    },
     onLogout: {
       action: 'logout',
       description: '로그아웃 클릭 시 호출되는 콜백',
