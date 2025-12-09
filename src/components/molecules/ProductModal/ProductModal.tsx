@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import DropDown, { Option } from '@/components/atoms/DropDown/DropDown';
 import Button from '@/components/atoms/Button/Button';
@@ -163,16 +164,19 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
             }}
           />
           {preview ? (
-            <img
+            <Image
               src={preview}
               alt="preview"
-              className="max-w-full max-h-full object-contain pointer-events-none"
+              fill
+              className="object-contain pointer-events-none"
             />
           ) : (
-            <img
+            <Image
               src="/icons/photo.icon.svg"
               alt="upload"
-              className="w-30 h-30 opacity-60 pointer-events-none"
+              width={30}
+              height={30}
+              className="opacity-60 pointer-events-none"
             />
           )}
         </div>
