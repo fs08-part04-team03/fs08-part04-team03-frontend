@@ -141,3 +141,15 @@ export function buildProductBreadcrumb(params: {
 
   return items;
 }
+
+export type ParentCategoryOption = {
+  id: ParentCategoryKey;
+  label: string;
+  parentId: ParentCategoryId;
+};
+
+export const PARENT_CATEGORY_OPTIONS: ParentCategoryOption[] = PARENT_CATEGORIES.map((parent) => ({
+  id: parent.key,
+  label: parent.name,
+  parentId: parent.id,
+}));
