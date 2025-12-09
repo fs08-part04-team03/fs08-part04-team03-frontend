@@ -1,5 +1,3 @@
-// src/constants/navigation.ts
-
 import type { UserRole } from '@/constants/roles';
 import { ROUTES, type AppRouteKey } from '@/constants/routes';
 
@@ -61,4 +59,32 @@ export const isNavActive = (currentPath: string, targetHref: string): boolean =>
   const current = normalizeCurrent(currentPath);
 
   return current === target || current.startsWith(`${target}/`);
+};
+
+/**
+ * GNBCategorySwitcher 노출 여부
+ *
+ * - ProductListPage:        /[companyId]/products(/...)
+ * - ProductDetailPage:      /[companyId]/products/[productId]
+ * - MyPurchaseRequestList:  /[companyId]/purchase-request(/...)
+ * - MyPurchaseRequestDetail:/[companyId]/purchase-request/[id]
+ * - WishlistPage:           /[companyId]/wishlist
+ * - PurchaseHistoryPage:    /[companyId]/my/purchase-requests(/...)
+ */
+export const shouldShowCategorySwitcher = (currentPath: string): boolean => {
+  if (!currentPath) return false;
+
+  const segments = currentPath.split('/').filter(Boolean);
+  // segments[0] = companyId, segments[1] = 1차 섹션
+  if (segments.length < 2) return false;
+
+  const section = segments[1];
+  const subSection = segments[2];
+
+  if (section === 'products') return true;
+  if (section === 'purchase-request') return true;
+  if (section === 'wishlist') return true;
+  if (section === 'my' && subSection === 'purchase-requests') return true;
+
+  return false;
 };

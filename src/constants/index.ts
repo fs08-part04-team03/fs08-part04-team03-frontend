@@ -85,3 +85,24 @@ export type { UserRole } from './roles';
 export type { AppRouteKey } from './routes';
 export { ROUTES } from './routes';
 export { getGNBPrimaryNavConfig, isNavActive } from './navigation';
+
+// 카테고리 도메인 re-export
+export {
+  PARENT_CATEGORIES,
+  CHILD_CATEGORIES,
+  PARENT_CATEGORY_OPTIONS,
+  getParentById,
+  getParentByKey,
+  getChildById,
+  getChildrenByParentId,
+  buildProductBreadcrumb,
+} from '@/domains/category';
+export type {
+  ParentCategory,
+  ChildCategory,
+  ParentCategoryId,
+  ChildCategoryId,
+  ParentCategoryKey,
+  ChildCategoryKey,
+  ParentCategoryOption,
+} from '@/domains/category';

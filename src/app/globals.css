@@ -259,7 +259,10 @@ body {
   --radius-100: 100px;
 
   /* Font Size 토큰 - Tailwind CSS 4 @theme에서 --text-* 형식으로 정의 */
+  --text-8: 8px;
+  --text-9: 9px;
   --text-10: 10px;
+  --text-11: 11px;
   --text-12: 12px;
   --text-13: 13px;
   --text-14: 14px;
