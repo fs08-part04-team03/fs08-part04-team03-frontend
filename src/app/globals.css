@@ -84,6 +84,8 @@ body {
   --color-error-500: #f31d1d;
   --color-white: #ffffff;
   --color-black: #000000;
+  --color-black-100: #6b6b6b;
+  --color-black-400: #1f1f1f;
 
   /* 기본 spacing 단위를 1px로 설정 (기본값: 0.25rem = 4px) */
   --spacing: 1px;
