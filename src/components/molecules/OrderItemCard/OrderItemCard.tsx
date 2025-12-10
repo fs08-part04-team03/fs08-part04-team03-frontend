@@ -4,8 +4,11 @@ import React, { useState } from 'react';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
-import { QuantitySelector } from '@/components/molecules/QuantitySelector/QuantitySelector';
+import Checkbox from '@/components/atoms/Checkbox/Checkbox';
+import { NumberInput } from '@/components/molecules/NumberInput/NumberInput';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
+
+export type OrderItemCardVariant = 'default' | 'confirm';
 
 interface OrderItemCardBaseProps {
   name: string;
@@ -13,58 +16,48 @@ interface OrderItemCardBaseProps {
   quantity: number;
   totalPrice?: number;
   shippingCost?: number;
+  shippingLabelText?: string;
   imageSrc?: string;
-  imageAlt?: string;
+  checked?: boolean;
+  onCheckboxChange?: (checked: boolean) => void;
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
   className?: string;
 }
 
-interface OrderItemCardLayoutProps extends OrderItemCardBaseProps {
-  containerClassName?: string;
-  imageClassName?: string;
-  imageIconSize?: number;
-  nameClassName?: string;
-  unitPriceClassName?: string;
-  shippingLabelText?: string;
-  shippingCostClassName?: string;
-  quantityInputClassName?: string;
-  quantitySelectorSizeClassName?: string;
-  showTotalLabel?: boolean;
-  showTotalPrice?: boolean;
-  totalPriceClassName?: string;
-  buttonSizeClassName?: string;
-  buttonClassName?: string;
+export interface OrderItemCardProps extends OrderItemCardBaseProps {
+  variant?: OrderItemCardVariant;
 }
 
-const OrderItemCardBase: React.FC<OrderItemCardLayoutProps> = ({
+// Default Variant - 모바일
+interface OrderItemCardDefaultMobileProps {
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  shippingCost?: number;
+  shippingLabelText?: string;
+  imageSrc?: string;
+  checked?: boolean;
+  onCheckboxChange?: (checked: boolean) => void;
+  onQuantityChange?: (option: Option) => void;
+  onPurchaseClick?: () => void;
+  className?: string;
+}
+
+export const OrderItemCardDefaultMobile: React.FC<OrderItemCardDefaultMobileProps> = ({
   name,
   unitPrice,
   quantity: initialQuantity,
-  totalPrice,
   shippingCost = 0,
+  shippingLabelText = '택배',
   imageSrc,
-  imageAlt = name,
+  checked = false,
+  onCheckboxChange,
   onQuantityChange,
   onPurchaseClick,
   className,
-  containerClassName,
-  imageClassName,
-  imageIconSize = 20,
-  nameClassName,
-  unitPriceClassName,
-  shippingLabelText = '택배 배송비',
-  shippingCostClassName,
-  quantityInputClassName,
-  quantitySelectorSizeClassName,
-  showTotalLabel = true,
-  showTotalPrice = true,
-  totalPriceClassName,
-  buttonSizeClassName,
-  buttonClassName,
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
-  const displayTotalPrice = totalPrice ?? unitPrice * quantity;
 
   const handleQuantityChange = (option: Option) => {
     const newQuantity = Number(option.key);
@@ -77,68 +70,57 @@ const OrderItemCardBase: React.FC<OrderItemCardLayoutProps> = ({
   return (
     <div
       className={clsx(
-        'flex items-center justify-between w-full rounded-12 bg-white',
-        containerClassName,
+        'flex items-center justify-between w-full rounded-12 bg-white px-12 py-8 gap-8',
         className
       )}
     >
       <div className="flex items-center gap-12">
-        <div className={clsx('overflow-hidden rounded-8 bg-gray-50', imageClassName)}>
+        <Checkbox
+          checked={checked}
+          onChange={onCheckboxChange}
+          aria-label={`${name} 선택`}
+          className="shrink-0"
+        />
+        <div className="overflow-hidden rounded-8 bg-gray-50 w-85 h-85">
           {imageSrc ? (
-            <img src={imageSrc} alt={imageAlt} className="w-full h-full object-cover" />
+            <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-50">
               <img
                 src="/icons/photo-icon.svg"
                 alt=""
                 className="opacity-40"
-                width={imageIconSize}
-                height={imageIconSize}
+                width={20}
+                height={20}
               />
             </div>
           )}
         </div>
 
         <div className="flex flex-col gap-4">
-          <p className={clsx('text-black-400', nameClassName)}>{name}</p>
-          <PriceText value={unitPrice} className={clsx('text-black-400', unitPriceClassName)} />
+          <p className="text-black-100 text-14 leading-20">{name}</p>
+          <PriceText value={unitPrice} className="text-black-100 text-14 leading-20" />
           <div className="pt-13 flex items-center gap-4">
-            <span className={clsx('text-black-400', shippingCostClassName)}>
-              {shippingLabelText}
-            </span>
+            <span className="text-black-100 text-13 leading-20">{shippingLabelText}</span>
             <PriceText
               value={shippingCost}
-              className={clsx('text-black-400', shippingCostClassName)}
+              className="!font-normal !text-black-100 text-13 leading-20"
             />
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col items-end gap-8 shrink-0">
-        <QuantitySelector
-          variant="secondary"
-          onQuantityChange={handleQuantityChange}
-          value={quantity}
-          className={clsx(quantitySelectorSizeClassName, quantityInputClassName)}
-        />
-        {showTotalPrice && (
-          <div className="flex items-center gap-4">
-            {showTotalLabel && (
-              <span className={clsx('text-gray-900 font-semibold', totalPriceClassName)}>총</span>
-            )}
-            <PriceText
-              value={displayTotalPrice}
-              className={clsx('text-gray-900 font-semibold', totalPriceClassName)}
-            />
-          </div>
-        )}
-        {onPurchaseClick && (
-          <Button
+      <div className="flex flex-col items-end gap-8 shrink-0 justify-end">
+        <div className="w-72 flex justify-end">
+          <NumberInput
             variant="secondary"
-            size="sm"
-            onClick={onPurchaseClick}
-            className={clsx(buttonSizeClassName, buttonClassName)}
-          >
+            onQuantityChange={handleQuantityChange}
+            value={quantity}
+            className="h-40"
+          />
+        </div>
+        {onPurchaseClick && (
+          <Button variant="secondary" size="sm" onClick={onPurchaseClick} className="w-88 h-40">
             즉시 구매
           </Button>
         )}
@@ -147,136 +129,237 @@ const OrderItemCardBase: React.FC<OrderItemCardLayoutProps> = ({
   );
 };
 
-export type OrderItemCardMobileProps = OrderItemCardBaseProps;
+// Default Variant - 태블릿
+interface OrderItemCardDefaultTabletProps {
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice?: number;
+  shippingCost?: number;
+  shippingLabelText?: string;
+  imageSrc?: string;
+  checked?: boolean;
+  onCheckboxChange?: (checked: boolean) => void;
+  onQuantityChange?: (option: Option) => void;
+  onPurchaseClick?: () => void;
+  className?: string;
+}
 
-export const OrderItemCardMobile: React.FC<OrderItemCardMobileProps> = ({
+export const OrderItemCardDefaultTablet: React.FC<OrderItemCardDefaultTabletProps> = ({
   name,
   unitPrice,
-  quantity,
-  totalPrice,
-  shippingCost,
+  quantity: initialQuantity,
+  totalPrice: _totalPrice,
+  shippingCost = 0,
+  shippingLabelText = '택배 배송비',
   imageSrc,
-  imageAlt,
+  checked = false,
+  onCheckboxChange,
   onQuantityChange,
   onPurchaseClick,
   className,
-}) => (
-  <OrderItemCardBase
-    name={name}
-    unitPrice={unitPrice}
-    quantity={quantity}
-    totalPrice={totalPrice}
-    shippingCost={shippingCost}
-    imageSrc={imageSrc}
-    imageAlt={imageAlt}
-    onQuantityChange={onQuantityChange}
-    onPurchaseClick={onPurchaseClick}
-    className={className}
-    containerClassName="px-12 py-8 gap-8"
-    imageClassName="w-81 h-81"
-    imageIconSize={20}
-    nameClassName="text-14 leading-20"
-    unitPriceClassName="text-14 leading-20"
-    shippingLabelText="택배"
-    shippingCostClassName="text-13 leading-20"
-    showTotalLabel={false}
-    showTotalPrice={false}
-    totalPriceClassName="text-24 leading-32"
-    quantitySelectorSizeClassName="w-72 h-40"
-    buttonSizeClassName="w-88 h-40"
-  />
-);
+}) => {
+  const [quantity, setQuantity] = useState(initialQuantity);
+  const displayTotalPrice = unitPrice * quantity;
 
-export type OrderItemCardTabletProps = OrderItemCardBaseProps;
+  const handleQuantityChange = (option: Option) => {
+    const newQuantity = Number(option.key);
+    if (!Number.isNaN(newQuantity)) {
+      setQuantity(newQuantity);
+      onQuantityChange?.(option);
+    }
+  };
 
-export const OrderItemCardTablet: React.FC<OrderItemCardTabletProps> = ({
+  return (
+    <div
+      className={clsx(
+        'flex items-center justify-between w-full rounded-12 bg-white px-16 py-12 gap-12',
+        className
+      )}
+    >
+      <div className="flex items-center gap-12">
+        <Checkbox
+          checked={checked}
+          onChange={onCheckboxChange}
+          aria-label={`${name} 선택`}
+          className="shrink-0"
+        />
+        <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+          {imageSrc ? (
+            <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-50">
+              <img
+                src="/icons/photo-icon.svg"
+                alt=""
+                className="opacity-40"
+                width={24}
+                height={24}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <p className="text-black-100 text-16 leading-24">{name}</p>
+          <PriceText value={unitPrice} className="text-black-100 text-16 leading-24" />
+          <div className="pt-13 flex items-center gap-4 justify-end">
+            <span className="text-black-100 text-14 leading-20">{shippingLabelText}</span>
+            <PriceText
+              value={shippingCost}
+              className="!font-normal !text-black-100 text-14 leading-20"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-end justify-end gap-8 shrink-0">
+        <div className="w-99 flex justify-end">
+          <NumberInput
+            variant="secondary"
+            onQuantityChange={handleQuantityChange}
+            value={quantity}
+            className="h-44"
+          />
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-gray-900 font-semibold text-24 leading-32">총</span>
+          <PriceText
+            value={displayTotalPrice}
+            className="text-gray-900 font-semibold text-24 leading-32"
+          />
+        </div>
+        {onPurchaseClick && (
+          <Button variant="secondary" size="sm" onClick={onPurchaseClick} className="w-99 h-44">
+            즉시 구매
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Default Variant - 데스크탑
+interface OrderItemCardDefaultDesktopProps {
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice?: number;
+  shippingCost?: number;
+  shippingLabelText?: string;
+  imageSrc?: string;
+  checked?: boolean;
+  onCheckboxChange?: (checked: boolean) => void;
+  onQuantityChange?: (option: Option) => void;
+  onPurchaseClick?: () => void;
+  className?: string;
+}
+
+export const OrderItemCardDefaultDesktop: React.FC<OrderItemCardDefaultDesktopProps> = ({
   name,
   unitPrice,
-  quantity,
-  totalPrice,
-  shippingCost,
+  quantity: initialQuantity,
+  totalPrice: _totalPrice,
+  shippingCost = 0,
+  shippingLabelText = '택배 배송비',
   imageSrc,
-  imageAlt,
+  checked = false,
+  onCheckboxChange,
   onQuantityChange,
   onPurchaseClick,
   className,
-}) => (
-  <OrderItemCardBase
-    name={name}
-    unitPrice={unitPrice}
-    quantity={quantity}
-    totalPrice={totalPrice}
-    shippingCost={shippingCost}
-    imageSrc={imageSrc}
-    imageAlt={imageAlt}
-    onQuantityChange={onQuantityChange}
-    onPurchaseClick={onPurchaseClick}
-    className={className}
-    containerClassName="px-16 py-12 gap-12"
-    imageClassName="w-140 h-140"
-    imageIconSize={24}
-    nameClassName="text-16 leading-24"
-    unitPriceClassName="text-16 leading-24"
-    shippingLabelText="택배 배송비"
-    shippingCostClassName="text-14 leading-20"
-    totalPriceClassName="text-24 leading-32"
-    quantitySelectorSizeClassName="w-72 h-40"
-    buttonSizeClassName="w-99 h-44"
-  />
-);
+}) => {
+  const [quantity, setQuantity] = useState(initialQuantity);
+  const displayTotalPrice = unitPrice * quantity;
 
-export type OrderItemCardDesktopProps = OrderItemCardBaseProps;
+  const handleQuantityChange = (option: Option) => {
+    const newQuantity = Number(option.key);
+    if (!Number.isNaN(newQuantity)) {
+      setQuantity(newQuantity);
+      onQuantityChange?.(option);
+    }
+  };
 
-export const OrderItemCardDesktop: React.FC<OrderItemCardDesktopProps> = ({
+  return (
+    <div
+      className={clsx(
+        'flex items-center justify-between w-full rounded-12 bg-white px-20 py-16 gap-16',
+        className
+      )}
+    >
+      <div className="flex items-center gap-12">
+        <Checkbox
+          checked={checked}
+          onChange={onCheckboxChange}
+          aria-label={`${name} 선택`}
+          className="shrink-0"
+        />
+        <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+          {imageSrc ? (
+            <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-50">
+              <img
+                src="/icons/photo-icon.svg"
+                alt=""
+                className="opacity-40"
+                width={28}
+                height={28}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <p className="text-black-100 text-16 leading-24">{name}</p>
+          <PriceText value={unitPrice} className="text-black-100 text-16 leading-24" />
+          <div className="pt-13 flex items-center gap-4">
+            <span className="text-black-100 text-14 leading-20">{shippingLabelText}</span>
+            <PriceText
+              value={shippingCost}
+              className="!font-normal !text-black-100 text-14 leading-20"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-end gap-8 shrink-0 justify-end">
+        <div className="w-99">
+          <NumberInput
+            variant="secondary"
+            onQuantityChange={handleQuantityChange}
+            value={quantity}
+            className="w-full h-44"
+          />
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-gray-900 font-semibold text-24 leading-32">총</span>
+          <PriceText
+            value={displayTotalPrice}
+            className="text-gray-900 font-semibold text-24 leading-32"
+          />
+        </div>
+        {onPurchaseClick && (
+          <Button variant="secondary" size="sm" onClick={onPurchaseClick} className="w-99 h-44">
+            즉시 구매
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Default Variant 통합 컴포넌트
+const OrderItemCardDefault: React.FC<OrderItemCardBaseProps> = ({
   name,
   unitPrice,
   quantity,
   totalPrice,
   shippingCost,
+  shippingLabelText,
   imageSrc,
-  imageAlt,
-  onQuantityChange,
-  onPurchaseClick,
-  className,
-}) => (
-  <OrderItemCardBase
-    name={name}
-    unitPrice={unitPrice}
-    quantity={quantity}
-    totalPrice={totalPrice}
-    shippingCost={shippingCost}
-    imageSrc={imageSrc}
-    imageAlt={imageAlt}
-    onQuantityChange={onQuantityChange}
-    onPurchaseClick={onPurchaseClick}
-    className={className}
-    containerClassName="px-20 py-16 gap-16"
-    imageClassName="w-140 h-140"
-    imageIconSize={28}
-    nameClassName="text-16 leading-24"
-    unitPriceClassName="text-16 leading-24"
-    shippingLabelText="택배 배송비"
-    shippingCostClassName="text-14 leading-20"
-    totalPriceClassName="text-24 leading-32"
-    quantitySelectorSizeClassName="w-99 h-44"
-    buttonSizeClassName="w-99 h-44"
-  />
-);
-
-// Main OrderItemCard Component (통합 컴포넌트)
-export type OrderItemCardProps = OrderItemCardBaseProps;
-
-/**
- * OrderItemCard 이미지 140x140
- */
-export const OrderItemCard: React.FC<OrderItemCardProps> = ({
-  name,
-  unitPrice,
-  quantity,
-  totalPrice,
-  shippingCost,
-  imageSrc,
-  imageAlt,
+  checked,
+  onCheckboxChange,
   onQuantityChange,
   onPurchaseClick,
   className,
@@ -284,14 +367,15 @@ export const OrderItemCard: React.FC<OrderItemCardProps> = ({
   <>
     {/* 모바일 (~ 743px) */}
     <div className="tablet:hidden">
-      <OrderItemCardMobile
+      <OrderItemCardDefaultMobile
         name={name}
         unitPrice={unitPrice}
         quantity={quantity}
-        totalPrice={totalPrice}
         shippingCost={shippingCost}
+        shippingLabelText={shippingLabelText}
         imageSrc={imageSrc}
-        imageAlt={imageAlt}
+        checked={checked}
+        onCheckboxChange={onCheckboxChange}
         onQuantityChange={onQuantityChange}
         onPurchaseClick={onPurchaseClick}
         className={className}
@@ -299,15 +383,17 @@ export const OrderItemCard: React.FC<OrderItemCardProps> = ({
     </div>
 
     {/* 태블릿 (744px ~ 1199px) */}
-    <div className="hidden tablet:hidden desktop:hidden">
-      <OrderItemCardTablet
+    <div className="hidden tablet:flex desktop:hidden">
+      <OrderItemCardDefaultTablet
         name={name}
         unitPrice={unitPrice}
         quantity={quantity}
         totalPrice={totalPrice}
         shippingCost={shippingCost}
+        shippingLabelText={shippingLabelText}
         imageSrc={imageSrc}
-        imageAlt={imageAlt}
+        checked={checked}
+        onCheckboxChange={onCheckboxChange}
         onQuantityChange={onQuantityChange}
         onPurchaseClick={onPurchaseClick}
         className={className}
@@ -315,15 +401,17 @@ export const OrderItemCard: React.FC<OrderItemCardProps> = ({
     </div>
 
     {/* 데스크탑 (1200px ~) */}
-    <div className="hidden tablet:flex desktop:flex">
-      <OrderItemCardDesktop
+    <div className="hidden desktop:flex">
+      <OrderItemCardDefaultDesktop
         name={name}
         unitPrice={unitPrice}
         quantity={quantity}
         totalPrice={totalPrice}
         shippingCost={shippingCost}
+        shippingLabelText={shippingLabelText}
         imageSrc={imageSrc}
-        imageAlt={imageAlt}
+        checked={checked}
+        onCheckboxChange={onCheckboxChange}
         onQuantityChange={onQuantityChange}
         onPurchaseClick={onPurchaseClick}
         className={className}
@@ -331,5 +419,192 @@ export const OrderItemCard: React.FC<OrderItemCardProps> = ({
     </div>
   </>
 );
+
+// Confirm Variant: 이미지, 제목, 금액, 수량, 금액
+interface OrderItemCardConfirmProps {
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice?: number;
+  imageSrc?: string;
+  className?: string;
+}
+
+const OrderItemCardConfirm: React.FC<OrderItemCardConfirmProps> = ({
+  name,
+  unitPrice,
+  quantity,
+  totalPrice: _totalPrice,
+  imageSrc,
+  className,
+}) => {
+  const displayTotalPrice = unitPrice * quantity;
+
+  return (
+    <>
+      {/* 모바일 (~ 743px) */}
+      <div className={clsx('tablet:hidden', className)}>
+        <div className="flex items-center justify-between w-full rounded-12 bg-white px-12 py-8 gap-8">
+          <div className="flex items-center gap-12">
+            <div className="overflow-hidden rounded-8 bg-gray-50 w-85 h-85">
+              {imageSrc ? (
+                <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                  <img
+                    src="/icons/photo-icon.svg"
+                    alt=""
+                    className="opacity-40"
+                    width={20}
+                    height={20}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <p className="text-black-100 text-14 leading-20">{name}</p>
+              <PriceText value={unitPrice} className="text-black-100 text-14 leading-20" />
+              <div className="pt-14">
+                <span className="text-black-100 text-14 leading-20">수량 {quantity}개</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-8 shrink-0">
+            <PriceText
+              value={displayTotalPrice}
+              className="text-gray-900 font-semibold text-24 leading-32 text-right"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 태블릿 (744px ~ 1199px) */}
+      <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
+        <div className="flex items-center justify-between w-full rounded-12 bg-white px-16 py-12 gap-12">
+          <div className="flex items-center gap-12">
+            <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+              {imageSrc ? (
+                <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                  <img
+                    src="/icons/photo-icon.svg"
+                    alt=""
+                    className="opacity-40"
+                    width={24}
+                    height={24}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <p className="text-black-100 text-16 leading-24">{name}</p>
+              <PriceText value={unitPrice} className="text-black-100 text-16 leading-24" />
+              <div className="pt-30">
+                <span className="text-black-100 text-16 leading-24">수량 {quantity}개</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-8 shrink-0">
+            <PriceText
+              value={displayTotalPrice}
+              className="text-gray-900 font-semibold text-24 leading-32 text-right"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 데스크탑 (1200px ~) */}
+      <div className={clsx('hidden desktop:flex', className)}>
+        <div className="flex items-center justify-between w-full rounded-12 bg-white px-20 py-16 gap-16">
+          <div className="flex items-center gap-12">
+            <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+              {imageSrc ? (
+                <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                  <img
+                    src="/icons/photo-icon.svg"
+                    alt=""
+                    className="opacity-40"
+                    width={28}
+                    height={28}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <p className="text-black-100 text-16 leading-24">{name}</p>
+              <PriceText value={unitPrice} className="text-black-100 text-16 leading-24" />
+              <div className="pt-30">
+                <span className="text-black-100 text-16 leading-24">수량 {quantity}개</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-8 shrink-0">
+            <PriceText
+              value={displayTotalPrice}
+              className="text-gray-900 font-semibold text-24 leading-32 text-right"
+            />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+// Main OrderItemCard Component
+export const OrderItemCard: React.FC<OrderItemCardProps> = ({
+  variant = 'default',
+  name,
+  unitPrice,
+  quantity,
+  totalPrice,
+  shippingCost,
+  shippingLabelText,
+  imageSrc,
+  checked,
+  onCheckboxChange,
+  onQuantityChange,
+  onPurchaseClick,
+  className,
+}) => {
+  if (variant === 'confirm') {
+    return (
+      <OrderItemCardConfirm
+        name={name}
+        unitPrice={unitPrice}
+        quantity={quantity}
+        totalPrice={totalPrice}
+        imageSrc={imageSrc}
+        className={className}
+      />
+    );
+  }
+
+  // default variant는 checked와 onCheckboxChange가 필요
+  return (
+    <OrderItemCardDefault
+      name={name}
+      unitPrice={unitPrice}
+      quantity={quantity}
+      totalPrice={totalPrice}
+      shippingCost={shippingCost}
+      shippingLabelText={shippingLabelText}
+      imageSrc={imageSrc}
+      checked={checked ?? false}
+      onCheckboxChange={onCheckboxChange}
+      onQuantityChange={onQuantityChange}
+      onPurchaseClick={onPurchaseClick}
+      className={className}
+    />
+  );
+};
 
 export default OrderItemCard;
