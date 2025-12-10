@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import UserProfile from './UserProfile';
+import UserProfile, { UserProfileDefault } from './UserProfile';
 
 const meta = {
   title: 'Molecules/UserProfile',
@@ -30,6 +30,11 @@ const meta = {
       control: 'text',
       description: '프로필 페이지 링크 (기본값: /me/profile)',
     },
+    variant: {
+      control: 'select',
+      options: ['default', 'secondary'],
+      description: 'variant: default (모든 뷰포트 표시), secondary (모바일 숨김)',
+    },
     className: {
       control: 'text',
       description: '추가 CSS 클래스',
@@ -41,37 +46,107 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-// 기본 (아바타 없음, 태블릿/데스크탑에서만 표시)
-export const Default: Story = {
+// Secondary variant (모바일 숨김, 태블릿/데스크탑에서만 표시)
+export const Secondary: Story = {
   args: {
-    name: 'Name',
+    name: '홍길동',
     company: {
-      name: 'Company Name',
+      name: '스낵코리아',
     },
+    variant: 'secondary',
   },
   parameters: {
     docs: {
       description: {
         story:
-          '기본 프로필입니다. 아바타 이미지가 없을 때 기본 아이콘이 표시됩니다. 태블릿과 데스크탑에서만 보입니다.',
+          'Secondary variant입니다. 모바일에서는 숨겨지고, 태블릿과 데스크탑에서만 표시됩니다.',
       },
     },
   },
 };
 
-// 아바타 이미지 있음
-export const WithProfileImage: Story = {
+// Secondary variant with avatar
+export const SecondaryWithAvatar: Story = {
   args: {
-    name: 'Name',
+    name: '홍길동',
     company: {
-      name: 'Company Name',
+      name: '스낵코리아',
+    },
+    avatarSrc: '/images/test-profile-image.jpg',
+    variant: 'secondary',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Secondary variant에 아바타 이미지가 있는 프로필입니다. 모바일에서는 숨겨지고, 태블릿과 데스크탑에서만 표시됩니다.',
+      },
+    },
+  },
+};
+
+// Default variant (모든 뷰포트에서 동일하게 표시)
+export const Default: Story = {
+  args: {
+    name: '홍길동',
+    company: {
+      name: '스낵코리아',
+    },
+    variant: 'default',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Default variant입니다. 모든 뷰포트에서 동일하게 표시됩니다. 모바일에서도 아바타, 이름, 회사명이 모두 표시됩니다.',
+      },
+    },
+  },
+};
+
+// Default variant with avatar
+export const DefaultWithAvatar: Story = {
+  args: {
+    name: '홍길동',
+    company: {
+      name: '스낵코리아',
+    },
+    avatarSrc: '/images/test-profile-image.jpg',
+    variant: 'default',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Default variant에 아바타 이미지가 있는 프로필입니다. 모든 뷰포트에서 동일하게 표시됩니다.',
+      },
+    },
+  },
+};
+
+// UserProfileDefault: 모든 뷰포트에서 사용, 모바일에서도 아바타 표시
+export const DefaultVariant: StoryObj<typeof UserProfileDefault> = {
+  render: (args) => (
+    <UserProfileDefault
+      name={args.name}
+      company={args.company}
+      avatarSrc={args.avatarSrc}
+      profileHref={args.profileHref}
+      className={args.className}
+    />
+  ),
+  args: {
+    name: '홍길동',
+    company: {
+      name: '스낵코리아',
     },
     avatarSrc: '/images/test-profile-image.jpg',
   },
   parameters: {
     docs: {
       description: {
-        story: '아바타 이미지가 있는 프로필입니다. 태블릿과 데스크탑에서만 보입니다.',
+        story:
+          'UserProfileDefault 컴포넌트입니다. 모든 뷰포트에서 사용 가능하며, 모바일에서도 아바타가 표시됩니다. 태블릿/데스크탑에서는 이름과 회사명도 함께 표시됩니다.',
       },
     },
   },

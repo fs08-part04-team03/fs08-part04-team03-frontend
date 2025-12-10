@@ -33,22 +33,6 @@ const meta = {
       action: 'item-clicked',
       description: '네비게이션 메뉴 아이템 클릭 시 호출되는 콜백',
     },
-    onMenuClick: {
-      action: 'menu-clicked',
-      description: '햄버거 메뉴 버튼 클릭 시 호출되는 콜백 (모바일/태블릿)',
-    },
-    isMenuOpen: {
-      control: 'boolean',
-      description: '햄버거 메뉴가 열려있는지 여부',
-    },
-    menuControlsId: {
-      control: 'text',
-      description: '햄버거 메뉴가 제어하는 요소의 ID',
-    },
-    menuButtonClassName: {
-      control: 'text',
-      description: '모바일 햄버거 버튼에 적용할 추가 CSS 클래스',
-    },
     navClassName: {
       control: 'text',
       description: '데스크탑 네비게이션 메뉴에 적용할 추가 CSS 클래스',

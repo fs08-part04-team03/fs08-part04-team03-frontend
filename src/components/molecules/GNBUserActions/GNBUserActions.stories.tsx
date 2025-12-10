@@ -43,6 +43,7 @@ export const Default: Story = {
         name="홍길동"
         company={{ name: '스낵코리아' }}
         avatarSrc="/images/test-profile-image.jpg"
+        variant="secondary"
       />
     ),
   },
@@ -52,6 +53,8 @@ export const WithoutLogout: Story = {
   args: {
     companyId: 'company-1',
     cartCount: 5,
-    userProfile: <UserProfile name="김철수" company={{ name: '테크스타트업' }} />,
+    userProfile: (
+      <UserProfile name="김철수" company={{ name: '테크스타트업' }} variant="secondary" />
+    ),
   },
 };
