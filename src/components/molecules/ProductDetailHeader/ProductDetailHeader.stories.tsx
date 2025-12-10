@@ -21,10 +21,6 @@ const meta = {
       control: 'number',
       description: '제품 단가 (1개 가격)',
     },
-    quantityOptions: {
-      control: 'object',
-      description: '수량 선택 옵션',
-    },
     onQuantityChange: {
       action: 'quantity-changed',
       description: '수량 변경 시 호출되는 콜백 함수',
