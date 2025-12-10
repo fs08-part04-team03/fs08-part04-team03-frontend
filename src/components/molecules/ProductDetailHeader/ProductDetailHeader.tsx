@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { clsx } from '@/utils/clsx';
 import Button from '@/components/atoms/Button/Button';
 import ItemMenu from '@/components/molecules/ItemMenu/ItemMenu';
 import ProductTile from '@/components/molecules/ProductTile/ProductTile';
+import { NumberInput } from '@/components/molecules/NumberInput/NumberInput';
 
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 
@@ -12,117 +13,17 @@ export interface ProductDetailHeaderProps {
   productName: string;
   purchaseCount: number;
   price: number;
-  quantityOptions?: Option[];
   onQuantityChange?: (option: Option) => void;
   onMenuClick?: () => void;
   onAddToCart?: () => void;
   className?: string;
 }
 
-export const DEFAULT_QUANTITY_OPTIONS: Option[] = [
-  { key: '1', label: '1개' },
-  { key: '2', label: '2개' },
-  { key: '3', label: '3개' },
-  { key: '4', label: '4개' },
-  { key: '5', label: '5개' },
-];
-
 type InternalHeaderProps = Pick<
   ProductDetailHeaderProps,
-  | 'productName'
-  | 'purchaseCount'
-  | 'price'
-  | 'quantityOptions'
-  | 'onQuantityChange'
-  | 'onMenuClick'
-  | 'onAddToCart'
+  'productName' | 'purchaseCount' | 'price' | 'onQuantityChange' | 'onMenuClick' | 'onAddToCart'
 > & {
   quantity: number;
-};
-
-interface QuantitySelectorProps {
-  quantityOptions: Option[];
-  onQuantityChange?: (option: Option) => void;
-  value?: number;
-  defaultValue?: number;
-  min?: number;
-  max?: number;
-}
-
-const QuantitySelector: React.FC<QuantitySelectorProps> = ({
-  quantityOptions,
-  onQuantityChange,
-  value,
-  defaultValue,
-  min = 1,
-  max = 999,
-}) => {
-  const [quantity, setQuantity] = useState<number | null>(defaultValue ?? null);
-
-  // Sync external value
-  useEffect(() => {
-    if (value !== undefined) {
-      setQuantity(value);
-    }
-  }, [value]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-
-    if (inputValue === '') {
-      setQuantity(null);
-      return;
-    }
-
-    const parsed = Number(inputValue);
-    if (Number.isNaN(parsed)) return;
-
-    let next = parsed;
-    if (next < min) next = min;
-    if (next > max) next = max;
-
-    setQuantity(next);
-
-    const matchedOption = quantityOptions.find((opt) => Number(opt.key) === next) ?? {
-      key: String(next),
-      label: `${next}개`,
-    };
-
-    onQuantityChange?.(matchedOption);
-  };
-
-  const handleBlur = () => {
-    if (quantity === null || quantity < min) {
-      const fallback = min;
-      setQuantity(fallback);
-      onQuantityChange?.({
-        key: String(fallback),
-        label: `${fallback}개`,
-      });
-    }
-  };
-
-  const displayValue = value !== undefined ? value : quantity;
-
-  return (
-    <input
-      type="number"
-      min={min}
-      max={max}
-      value={displayValue ?? ''}
-      onChange={handleInputChange}
-      onBlur={handleBlur}
-      placeholder="수량"
-      className={clsx(
-        'w-80 h-40 px-12 text-center border border-gray-300 rounded-8',
-        'font-sans font-normal text-16 tracking--0.4 text-gray-950',
-        'focus:outline-none focus:border-gray-500',
-        'appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
-        'placeholder:text-gray-500'
-      )}
-      aria-label="수량 입력"
-    />
-  );
 };
 
 const BaseProductDetailHeaderLayout: React.FC<
@@ -131,7 +32,6 @@ const BaseProductDetailHeaderLayout: React.FC<
   productName,
   purchaseCount,
   price,
-  quantityOptions = DEFAULT_QUANTITY_OPTIONS,
   onQuantityChange,
   onMenuClick,
   onAddToCart,
@@ -150,11 +50,9 @@ const BaseProductDetailHeaderLayout: React.FC<
         />
 
         <div className="flex items-start gap-8 shrink-0">
-          <p className="flex items-center justify-center text-14 leading-22 tracking--0.35 text-gray-950">
-            수량
-          </p>
-          <QuantitySelector
-            quantityOptions={quantityOptions}
+          <NumberInput
+            variant="default"
+            label="수량"
             onQuantityChange={onQuantityChange}
             value={quantity}
           />
@@ -173,7 +71,6 @@ export const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
   productName,
   purchaseCount,
   price,
-  quantityOptions,
   onQuantityChange,
   onMenuClick,
   onAddToCart,
@@ -183,7 +80,6 @@ export const MobileProductDetailHeader: React.FC<InternalHeaderProps> = ({
     productName={productName}
     purchaseCount={purchaseCount}
     price={price}
-    quantityOptions={quantityOptions}
     onQuantityChange={onQuantityChange}
     onMenuClick={onMenuClick}
     onAddToCart={onAddToCart}
@@ -196,7 +92,6 @@ export const DesktopTabletProductDetailHeader: React.FC<InternalHeaderProps> = (
   productName,
   purchaseCount,
   price,
-  quantityOptions,
   onQuantityChange,
   onMenuClick,
   onAddToCart,
@@ -206,7 +101,6 @@ export const DesktopTabletProductDetailHeader: React.FC<InternalHeaderProps> = (
     productName={productName}
     purchaseCount={purchaseCount}
     price={price}
-    quantityOptions={quantityOptions}
     onQuantityChange={onQuantityChange}
     onMenuClick={onMenuClick}
     onAddToCart={onAddToCart}
@@ -219,7 +113,6 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
   productName,
   purchaseCount,
   price,
-  quantityOptions = DEFAULT_QUANTITY_OPTIONS,
   onQuantityChange,
   onMenuClick,
   onAddToCart,
@@ -245,7 +138,6 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
         productName={productName}
         purchaseCount={purchaseCount}
         price={totalPrice}
-        quantityOptions={quantityOptions}
         onQuantityChange={handleQuantityChange}
         onMenuClick={onMenuClick}
         onAddToCart={onAddToCart}
@@ -256,7 +148,6 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
         productName={productName}
         purchaseCount={purchaseCount}
         price={totalPrice}
-        quantityOptions={quantityOptions}
         onQuantityChange={handleQuantityChange}
         onMenuClick={onMenuClick}
         onAddToCart={onAddToCart}
