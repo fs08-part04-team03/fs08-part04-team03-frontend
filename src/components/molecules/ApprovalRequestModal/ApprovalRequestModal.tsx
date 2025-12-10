@@ -45,6 +45,7 @@ const ApprovalRequestModal = ({
   const [message, setMessage] = useState('');
   const [touched, setTouched] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const calculatedItems = items.map((item) => ({
     ...item,
@@ -67,29 +68,82 @@ const ApprovalRequestModal = ({
   const isScrollable = items.length >= 3;
   const isMessageValid = message.trim().length > 0;
 
+  /* Escape 버튼 닫기 */
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [open, onClose]);
+
+  /* autofocus 처리 */
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const modal = modalRef.current;
+    if (!modal) return undefined;
+
+    const firstAutofocus = modal.querySelector<HTMLElement>('[data-autofocus="true"]');
+    if (firstAutofocus) firstAutofocus.focus();
+
+    return undefined;
+  }, [open]);
+
+  /* Tab 키 포커스 트랩 */
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const modal = modalRef.current;
+    if (!modal) return undefined;
+
+    const focusableSelectors =
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const focusable = Array.from(modal.querySelectorAll<HTMLElement>(focusableSelectors));
+
+    if (focusable.length === 0) return undefined;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    const trap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        }
+      } else if (document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', trap);
+    return () => document.removeEventListener('keydown', trap);
+  }, [open]);
+
+  /* 메시지 리셋 */
   useEffect(() => {
     if (!open) {
       setMessage('');
       setTouched(false);
     }
+    return undefined;
   }, [open]);
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (open) document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
-  }, [open, onClose]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (isMessageValid) {
       onSubmit();
-    } else {
-      setTouched(true);
-      textAreaRef.current?.focus();
+      return;
     }
+    setTouched(true);
+    textAreaRef.current?.focus();
   };
 
   if (!open) return null;
@@ -104,13 +158,19 @@ const ApprovalRequestModal = ({
     <div
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onClose()}
       className="fixed inset-0 z-modal flex items-center justify-center"
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          if (document.activeElement?.tagName === 'TEXTAREA') return;
+          onClose();
+        }
+      }}
     >
       <div className="absolute inset-0 bg-black opacity-50" />
 
       <div
+        ref={modalRef}
         role="presentation"
         className={clsx(
           'relative bg-white flex flex-col z-10 w-375 h-920',
@@ -220,12 +280,13 @@ const ApprovalRequestModal = ({
               ref={textAreaRef}
               placeholder={placeholderText}
               value={message}
-              onFocus={() => setTouched(true)}
+              onBlur={() => setTouched(true)}
               onChange={(e) => {
                 if (e.target.value.length <= 50) setMessage(e.target.value);
               }}
               error={touched && !isMessageValid}
               label={undefined}
+              data-autofocus="true"
             />
 
             <div className="flex justify-between mt-1 text-14">
