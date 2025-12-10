@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
@@ -58,6 +58,10 @@ export const OrderItemCardDefaultMobile: React.FC<OrderItemCardDefaultMobileProp
   className,
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
+
+  useEffect(() => {
+    setQuantity(initialQuantity);
+  }, [initialQuantity]);
 
   const handleQuantityChange = (option: Option) => {
     const newQuantity = Number(option.key);
@@ -161,6 +165,10 @@ export const OrderItemCardDefaultTablet: React.FC<OrderItemCardDefaultTabletProp
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
   const displayTotalPrice = unitPrice * quantity;
+
+  useEffect(() => {
+    setQuantity(initialQuantity);
+  }, [initialQuantity]);
 
   const handleQuantityChange = (option: Option) => {
     const newQuantity = Number(option.key);
@@ -271,6 +279,10 @@ export const OrderItemCardDefaultDesktop: React.FC<OrderItemCardDefaultDesktopPr
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
   const displayTotalPrice = unitPrice * quantity;
+
+  useEffect(() => {
+    setQuantity(initialQuantity);
+  }, [initialQuantity]);
 
   const handleQuantityChange = (option: Option) => {
     const newQuantity = Number(option.key);

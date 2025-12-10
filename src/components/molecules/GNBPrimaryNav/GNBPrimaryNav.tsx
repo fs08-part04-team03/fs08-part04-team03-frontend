@@ -10,10 +10,10 @@ import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { type UserRole, type AppRouteKey, getGNBPrimaryNavConfig, isNavActive } from '@/constants';
 
 /**
- * Mobile 전용 Props
+ * Mobile/Tablet 공통 Props
  * - 햄버거 메뉴 버튼
  */
-export interface GNBPrimaryNavMobileProps {
+export interface GNBPrimaryNavToggleProps {
   /** 햄버거 메뉴 클릭 시 호출되는 콜백 */
   onMenuClick?: () => void;
 
@@ -29,25 +29,11 @@ export interface GNBPrimaryNavMobileProps {
   className?: string;
 }
 
-/**
- * Tablet 전용 Props
- * - 햄버거 메뉴 버튼
- */
-export interface GNBPrimaryNavTabletProps {
-  /** 햄버거 메뉴 클릭 시 호출되는 콜백 */
-  onMenuClick?: () => void;
+/** @deprecated GNBPrimaryNavToggleProps를 사용하세요 */
+export type GNBPrimaryNavMobileProps = GNBPrimaryNavToggleProps;
 
-  /** 햄버거 메뉴 열림 여부 (컨트롤 모드) */
-  isMenuOpen?: boolean;
-
-  /** 햄버거 메뉴가 제어하는 요소의 ID (a11y 용) */
-  menuControlsId?: string;
-
-  /** 햄버거 버튼 className */
-  menuButtonClassName?: string;
-
-  className?: string;
-}
+/** @deprecated GNBPrimaryNavToggleProps를 사용하세요 */
+export type GNBPrimaryNavTabletProps = GNBPrimaryNavToggleProps;
 
 /**
  * Desktop 전용 Props
@@ -70,7 +56,7 @@ export interface GNBPrimaryNavDesktopProps {
 }
 
 // Mobile Component
-export const GNBPrimaryNavMobile: React.FC<GNBPrimaryNavMobileProps> = ({
+export const GNBPrimaryNavMobile: React.FC<GNBPrimaryNavToggleProps> = ({
   onMenuClick,
   isMenuOpen,
   menuControlsId,
@@ -96,7 +82,7 @@ export const GNBPrimaryNavMobile: React.FC<GNBPrimaryNavMobileProps> = ({
 );
 
 // Tablet Component
-export const GNBPrimaryNavTablet: React.FC<GNBPrimaryNavTabletProps> = ({
+export const GNBPrimaryNavTablet: React.FC<GNBPrimaryNavToggleProps> = ({
   onMenuClick,
   isMenuOpen,
   menuControlsId,
@@ -182,9 +168,9 @@ export interface GNBPrimaryNavProps {
  * GNBPrimaryNav
  *
  * 반응형 GNB 상단 네비게이션 컴포넌트
- * - 모바일: 숨김
- * - 태블릿: 숨김
- * - 데스크탑: 네비게이션 링크들
+ * - 모바일 (~ 767px): 숨김
+ * - 태블릿 (768px ~ 1023px): 숨김
+ * - 데스크탑 (1024px ~): 네비게이션 링크들
  */
 const GNBPrimaryNav: React.FC<GNBPrimaryNavProps> = ({
   role,
@@ -194,7 +180,7 @@ const GNBPrimaryNav: React.FC<GNBPrimaryNavProps> = ({
   className,
 }) => (
   <>
-    {/* 데스크탑 (1200px ~) */}
+    {/* 데스크탑 (1024px ~) */}
     <div className={clsx('hidden desktop:flex', className)}>
       <GNBPrimaryNavDesktop
         role={role}
