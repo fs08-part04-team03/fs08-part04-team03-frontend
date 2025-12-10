@@ -5,7 +5,7 @@ import { clsx } from '@/utils/clsx';
 import Button from '@/components/atoms/Button/Button';
 import ItemMenu from '@/components/molecules/ItemMenu/ItemMenu';
 import ProductTile from '@/components/molecules/ProductTile/ProductTile';
-import { QuantitySelector } from '@/components/molecules/QuantitySelector/QuantitySelector';
+import { NumberInput } from '@/components/molecules/NumberInput/NumberInput';
 
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 
@@ -50,7 +50,7 @@ const BaseProductDetailHeaderLayout: React.FC<
         />
 
         <div className="flex items-start gap-8 shrink-0">
-          <QuantitySelector
+          <NumberInput
             variant="default"
             label="수량"
             onQuantityChange={onQuantityChange}
