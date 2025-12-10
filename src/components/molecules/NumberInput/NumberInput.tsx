@@ -142,7 +142,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
           <IconButton
             size="sm"
             variant="default"
-            disabled={max !== undefined && numericValue >= max}
+            disabled={numericValue >= max}
             onClick={handleIncrease}
             aria-label="값 증가"
             className={clsx('transition-transform active:scale-90 rounded-b-none -mb-1')}
@@ -152,7 +152,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
           <IconButton
             size="sm"
             variant="default"
-            disabled={min !== undefined && numericValue <= min}
+            disabled={numericValue <= min}
             onClick={handleDecrease}
             aria-label="값 감소"
             className={clsx('transition-transform active:scale-90 rounded-t-none -mt-1')}
