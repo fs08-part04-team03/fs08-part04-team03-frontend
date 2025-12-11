@@ -45,8 +45,8 @@ const RHFInputField = <T extends FieldValues>({
   placeholder,
   type = 'text',
   id,
-  minLength = 8,
-  maxLength = 30,
+  minLength,
+  maxLength,
   compareWith,
 }: RHFInputFieldProps<T>) => (
   <Controller
@@ -62,10 +62,6 @@ const RHFInputField = <T extends FieldValues>({
           value={field.value ?? ''}
           onChange={(value) => {
             field.onChange(value);
-            // React Hook Form의 validation을 트리거하기 위해 blur 이벤트도 호출
-            if (fieldState.isTouched) {
-              field.onBlur();
-            }
           }}
           minLength={minLength}
           maxLength={maxLength}
