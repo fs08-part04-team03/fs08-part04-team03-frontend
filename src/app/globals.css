@@ -282,6 +282,9 @@ body {
   --letter-spacing-tight: -0.4px;
   --letter-spacing--0.35: -0.35px;
   --letter-spacing--0.3: -0.3px;
+  --letter-spacing--0.6: -0.6px;
+
+  --leading-160: 160%;
 }
 
 @layer utilities {
@@ -292,6 +295,15 @@ body {
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+
+  .scrollbar-none textarea {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none textarea::-webkit-scrollbar {
+    display: none;
+  }
+
   .sr-only {
     position: absolute;
     width: 1px;
