@@ -110,7 +110,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
             </div>
 
             {/* 권한 */}
-            <div className="flex flex-col">
+            <div className="flex flex-col relative z-10">
               <span className="mb-2 text-16 font-bold text-gray-950">권한</span>
               <DropDown
                 items={roleOptions}
@@ -123,7 +123,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
 
           <div
             className={clsx(
-              'flex gap-20 justify-center mt-24 mobile:mb-24',
+              'flex gap-20 justify-center mt-24 mobile:mb-24 relative z-0',
               'tablet:justify-start desktop:justify-start'
             )}
           >
