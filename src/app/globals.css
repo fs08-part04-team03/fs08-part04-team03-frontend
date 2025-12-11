@@ -214,12 +214,15 @@ body {
   --spacing-300: 300px;
   --spacing-303\.667: 303.667px;
   --spacing-304: 304px;
+  --spacing-310: 310px;
   --spacing-327: 327px;
   --spacing-328: 328px;
+  --spacing-336: 336px;
   --spacing-344: 344px;
   --spacing-345: 345px;
   --spacing-350: 350px;
   --spacing-366: 366px;
+  --spacing-375: 375px;
   --spacing-376: 376px;
   --spacing-394: 394px;
   --spacing-426: 426px;
@@ -282,6 +285,8 @@ body {
   --letter-spacing-tight: -0.4px;
   --letter-spacing--0.35: -0.35px;
   --letter-spacing--0.3: -0.3px;
+  --letter-spacing--0.4: -0.4px;
+  --letter-spacing--0.45: -0.45px;
   --letter-spacing--0.6: -0.6px;
 
   --leading-160: 160%;
