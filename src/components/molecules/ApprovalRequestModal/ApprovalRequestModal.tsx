@@ -68,19 +68,19 @@ const ApprovalRequestModal = ({
   const isScrollable = items.length >= 3;
   const isMessageValid = message.trim().length > 0;
 
-  /* Escape 버튼 닫기 */
+  /* Escape 닫기 */
   useEffect(() => {
     if (!open) return undefined;
 
-    const handleEsc = (e: KeyboardEvent) => {
+    const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
 
-    document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
 
-  /* autofocus 처리 */
+  /* autofocus */
   useEffect(() => {
     if (!open) return undefined;
 
@@ -161,8 +161,8 @@ const ApprovalRequestModal = ({
       className="fixed inset-0 z-modal flex items-center justify-center"
       onClick={onClose}
       onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          if (document.activeElement?.tagName === 'TEXTAREA') return;
+        if (e.key === 'Escape') {
+          e.preventDefault();
           onClose();
         }
       }}
@@ -192,7 +192,12 @@ const ApprovalRequestModal = ({
           </header>
 
           <section className="flex flex-col gap-20 mb-20">
-            <UserProfile name={user.name} company={user.company} avatarSrc={user.avatarSrc} />
+            <UserProfile
+              variant="default"
+              name={user.name}
+              company={user.company}
+              avatarSrc={user.avatarSrc}
+            />
             <div className="flex gap-6 items-baseline">
               <span className="text-16 font-bold text-gray-950 tracking-tight">요청 품목</span>
               <span className="text-14 tablet:text-16 text-gray-950 tracking-tight">
@@ -223,7 +228,7 @@ const ApprovalRequestModal = ({
                     <div
                       className={clsx(
                         'text-right flex flex-col',
-                        'tablet:flex-row tablet:items-center tablet:gap-100'
+                        'tablet:flex-row tablet:items-center tablet:gap-90'
                       )}
                     >
                       <span className="text-13 tablet:text-16 text-gray-500 whitespace-nowrap">
@@ -280,13 +285,14 @@ const ApprovalRequestModal = ({
               ref={textAreaRef}
               placeholder={placeholderText}
               value={message}
+              onFocus={() => setTouched(true)}
               onBlur={() => setTouched(true)}
               onChange={(e) => {
                 if (e.target.value.length <= 50) setMessage(e.target.value);
               }}
               error={touched && !isMessageValid}
               label={undefined}
-              data-autofocus="true"
+              className="scrollbar-none"
             />
 
             <div className="flex justify-between mt-1 text-14">
