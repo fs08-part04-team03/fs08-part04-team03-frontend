@@ -289,6 +289,13 @@ body {
   --letter-spacing--0.45: -0.45px;
   --letter-spacing--0.6: -0.6px;
 
+  --tracking-tight: -0.4px;
+  --tracking--0.3: -0.3px;
+  --tracking--0.35: -0.35px;
+  --tracking--0.4: -0.4px;
+  --tracking--0.45: -0.45px;
+  --tracking--0.6: -0.6px;
+
   --leading-160: 160%;
 }
 
