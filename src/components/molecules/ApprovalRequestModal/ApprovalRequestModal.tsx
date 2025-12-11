@@ -160,11 +160,8 @@ const ApprovalRequestModal = ({
       tabIndex={0}
       className="fixed inset-0 z-modal flex items-center justify-center"
       onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          onClose();
-        }
+      onKeyDown={() => {
+        /* ESC 키는 document 레벨에서 처리됨 */
       }}
     >
       <div className="absolute inset-0 bg-black opacity-50" />
