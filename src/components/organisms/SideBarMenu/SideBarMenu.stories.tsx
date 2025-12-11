@@ -59,8 +59,8 @@ export const Default: Story = {
           }}
         >
           {children ?? (
-            <div className="flex flex-col justify-center item-center gap-16">
-              <nav className="flex flex-col justify-center item-center gap-12">
+            <div className="flex flex-col justify-center items-center gap-16">
+              <nav className="flex flex-col justify-center items-center gap-12">
                 <button
                   type="button"
                   className="text-16 text-gray-700 hover:text-gray-900 text-left"

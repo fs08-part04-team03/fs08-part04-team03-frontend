@@ -32,6 +32,18 @@ export const SideBarMenu: React.FC<SideBarMenuProps> = ({ open, onClose, childre
     };
   }, [open]);
 
+  // ESC 키로 닫기
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   return (
     <>
       {/* Overlay */}
