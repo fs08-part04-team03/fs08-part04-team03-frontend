@@ -1,4 +1,3 @@
-// atoms/PriceText/PriceText.tsx
 import React from 'react';
 import { clsx } from '@/utils/clsx';
 
