@@ -47,10 +47,8 @@ const ToastContent = ({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="font-suit font-bold text-20 leading-none tracking-[var(--letter-spacing--0.35)]">
-        남은 예산
-      </span>
-      <span className="font-suit font-bold text-20 leading-none tracking-[var(--letter-spacing--0.35)]">
+      <span className="font-suit font-bold text-20 leading-none tracking--0.35">남은 예산</span>
+      <span className="font-suit font-bold text-20 leading-none tracking--0.35">
         {formattedAmount}
       </span>
       <CloseButton onClose={onClose} />
@@ -62,9 +60,7 @@ const ToastContent = ({
  * Desktop Message
  * -------------------------------- */
 const DesktopMessage = ({ message }: { message: string }) => (
-  <span className="font-suit font-bold text-20 leading-none tracking-[var(--letter-spacing--0.35)]">
-    {message}
-  </span>
+  <span className="font-suit font-bold text-20 leading-none tracking--0.35">{message}</span>
 );
 
 /* --------------------------------
@@ -73,17 +69,13 @@ const DesktopMessage = ({ message }: { message: string }) => (
 const TabletMessage = ({ message, variant }: { message: string; variant: 'error' | 'success' }) => {
   if (variant === 'error') {
     return (
-      <span className="font-suit font-bold text-20 leading-none tracking-[var(--letter-spacing--0.35)]">
+      <span className="font-suit font-bold text-20 leading-none tracking--0.35">
         수량을 줄이거나 항목을 제거해주세요.
       </span>
     );
   }
 
-  return (
-    <span className="font-suit font-bold text-20 leading-none tracking-[var(--letter-spacing--0.35)]">
-      {message}
-    </span>
-  );
+  return <span className="font-suit font-bold text-20 leading-none tracking--0.35">{message}</span>;
 };
 
 /* --------------------------------
@@ -170,7 +162,7 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
 
         {/* Mobile */}
         <div className="mobile:flex tablet:hidden desktop:hidden justify-between items-center w-full">
-          <div className="flex flex-col font-suit font-bold text-14 leading-[160%] tracking-[var(--letter-spacing--0.35)]">
+          <div className="flex flex-col font-suit font-bold text-14 leading-160 tracking--0.35">
             <MobileMessage variant={variant} />
           </div>
           <CloseButton onClose={onClose} />
