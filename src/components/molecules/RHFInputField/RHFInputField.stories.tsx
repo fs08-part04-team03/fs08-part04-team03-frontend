@@ -2,6 +2,9 @@ import type { Meta, StoryObj } from '@storybook/nextjs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+
+import Button from '@/components/atoms/Button/Button';
+
 import RHFInputField from './RHFInputField';
 
 const meta: Meta<typeof RHFInputField> = {
@@ -316,7 +319,7 @@ export const FullForm: Story = {
 
       return (
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-20">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-20 w-327">
           <RHFInputField
             control={control}
             name="name"
@@ -361,12 +364,9 @@ export const FullForm: Story = {
             placeholder="사업자 번호를 입력해주세요."
             type="businessNumber"
           />
-          <button
-            type="submit"
-            className="px-16 py-12 bg-blue-500 text-white rounded-8 hover:bg-blue-600"
-          >
+          <Button type="submit" variant="primary" className="w-full">
             제출
-          </button>
+          </Button>
         </form>
       );
     };
