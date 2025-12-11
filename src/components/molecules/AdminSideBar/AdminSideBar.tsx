@@ -114,7 +114,7 @@ export const AdminSidebar = ({ companyId, role = 'user' }: AdminSidebarProps) =>
 
   return (
     <>
-      {/* 모바일 (~ 743px) */}
+      {/* 모바일 */}
       <aside className="flex flex-row gap-0 border-b border-gray-200 tablet:hidden">
         <AdminSidebarMenuItemMobile
           href={usersHref}
@@ -130,7 +130,7 @@ export const AdminSidebar = ({ companyId, role = 'user' }: AdminSidebarProps) =>
         />
       </aside>
 
-      {/* 태블릿 (744px ~ 1199px) */}
+      {/* 태블릿 */}
       <aside className="hidden tablet:flex desktop:hidden flex-row gap-0 border-b border-gray-200">
         <AdminSidebarMenuItemTablet
           href={usersHref}
@@ -146,7 +146,7 @@ export const AdminSidebar = ({ companyId, role = 'user' }: AdminSidebarProps) =>
         />
       </aside>
 
-      {/* 데스크톱 (1200px ~) */}
+      {/* 데스크톱 */}
       <aside className="hidden desktop:flex flex-col gap-4">
         <AdminSidebarMenuItemDesktop
           href={usersHref}

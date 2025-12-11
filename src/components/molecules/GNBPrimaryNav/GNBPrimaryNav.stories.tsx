@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import GNBPrimaryNav from './GNBPrimaryNav';
+import GNBPrimaryNav, { GNBPrimaryNavSidebar } from './GNBPrimaryNav';
 
 const meta = {
   title: 'Molecules/GNBPrimaryNav',
@@ -92,6 +92,117 @@ export const AdminRole: Story = {
     },
     viewport: {
       defaultViewport: 'desktop',
+    },
+  },
+};
+
+// ===== Sidebar 스토리 =====
+
+export const SidebarUser: StoryObj<typeof GNBPrimaryNavSidebar> = {
+  render: (args) => (
+    <div className="w-225 h-screen bg-white shadow-lg p-16">
+      <GNBPrimaryNavSidebar
+        role={args.role}
+        companyId={args.companyId}
+        activePath={args.activePath}
+        onItemClick={args.onItemClick}
+        onProfileClick={args.onProfileClick}
+        onLogout={args.onLogout}
+      />
+    </div>
+  ),
+  args: {
+    role: 'user',
+    companyId: 'company-1',
+    onLogout: () => {},
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '일반 사용자(user) 역할의 사이드바 메뉴입니다.',
+      },
+    },
+  },
+};
+
+export const SidebarManager: StoryObj<typeof GNBPrimaryNavSidebar> = {
+  render: (args) => (
+    <div className="w-225 h-screen bg-white shadow-lg p-16">
+      <GNBPrimaryNavSidebar
+        role={args.role}
+        companyId={args.companyId}
+        activePath={args.activePath}
+        onItemClick={args.onItemClick}
+        onProfileClick={args.onProfileClick}
+        onLogout={args.onLogout}
+      />
+    </div>
+  ),
+  args: {
+    role: 'manager',
+    companyId: 'company-1',
+    onLogout: () => {},
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '매니저(manager) 역할의 사이드바 메뉴입니다.',
+      },
+    },
+  },
+};
+
+export const SidebarAdmin: StoryObj<typeof GNBPrimaryNavSidebar> = {
+  render: (args) => (
+    <div className="w-225 h-screen bg-white shadow-lg p-16">
+      <GNBPrimaryNavSidebar
+        role={args.role}
+        companyId={args.companyId}
+        activePath={args.activePath}
+        onItemClick={args.onItemClick}
+        onProfileClick={args.onProfileClick}
+        onLogout={args.onLogout}
+      />
+    </div>
+  ),
+  args: {
+    role: 'admin',
+    companyId: 'company-1',
+    onLogout: () => {},
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '관리자(admin) 역할의 사이드바 메뉴입니다.',
+      },
+    },
+  },
+};
+
+export const SidebarWithoutLogout: StoryObj<typeof GNBPrimaryNavSidebar> = {
+  render: (args) => (
+    <div className="w-225 h-screen bg-white shadow-lg p-16">
+      <GNBPrimaryNavSidebar
+        role={args.role}
+        companyId={args.companyId}
+        activePath={args.activePath}
+        onItemClick={args.onItemClick}
+        onProfileClick={args.onProfileClick}
+        onLogout={args.onLogout}
+      />
+    </div>
+  ),
+  args: {
+    role: 'user',
+    companyId: 'company-1',
+    // onLogout이 없으면 로그아웃 버튼이 표시되지 않음
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '로그아웃 버튼이 없는 사이드바 메뉴입니다. onLogout prop이 없으면 로그아웃 버튼이 표시되지 않습니다.',
+      },
     },
   },
 };
