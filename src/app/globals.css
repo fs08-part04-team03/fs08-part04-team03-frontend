@@ -283,11 +283,11 @@ body {
   --text-50: 50px;
 
   --letter-spacing-tight: -0.4px;
-  --letter-spacing--0.35: -0.35px;
-  --letter-spacing--0.3: -0.3px;
-  --letter-spacing--0.4: -0.4px;
-  --letter-spacing--0.45: -0.45px;
-  --letter-spacing--0.6: -0.6px;
+  --letter-spacing-0.35: -0.35px;
+  --letter-spacing-0.3: -0.3px;
+  --letter-spacing-0.4: -0.4px;
+  --letter-spacing-0.45: -0.45px;
+  --letter-spacing-0.6: -0.6px;
 
   --tracking-tight: -0.4px;
   --tracking--0.3: -0.3px;
