@@ -62,11 +62,10 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
           ref={triggerRef}
           type="button"
           className={clsx(
-            'flex justify-center items-center gap-10',
+            'flex justify-end items-center gap-10',
             'px-8 py-4 rounded-999',
             'text-16 font-medium text-gray-950',
-            'active:scale-[0.97] transition-transform',
-            'ml-16'
+            'active:scale-[0.97] transition-transform'
           )}
           onClick={handleToggle}
           aria-haspopup="dialog"

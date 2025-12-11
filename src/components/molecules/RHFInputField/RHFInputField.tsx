@@ -68,7 +68,7 @@ const RHFInputField = <T extends FieldValues>({
           compareWith={compareWith}
         />
         {fieldState.error && (
-          <div className="text-14 text-error-500 font-normal tracking-[-0.35px] mt-4">
+          <div className="text-14 text-error-500 font-normal tracking--0.35 mt-4">
             {fieldState.error.message}
           </div>
         )}
