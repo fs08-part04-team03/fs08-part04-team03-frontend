@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { clsx } from '@/utils/clsx';
-import { type UserRole, type AppRouteKey, getGNBPrimaryNavConfig, isNavActive } from '@/constants';
+import { getGNBPrimaryNavConfig, isNavActive, PATHNAME } from '@/constants';
 
+import type { UserRole, AppRouteKey, GNBPrimaryNavItem } from '@/constants';
 /**
  * Desktop 전용 Props
  * - 네비게이션 링크들
@@ -14,6 +15,9 @@ import { type UserRole, type AppRouteKey, getGNBPrimaryNavConfig, isNavActive } 
 export interface GNBPrimaryNavDesktopProps {
   /** 사용자 역할 (user | manager | admin) */
   role: UserRole;
+
+  /** 회사 스코프 라우팅에 사용할 companyId */
+  companyId: string;
 
   /** 현재 활성 경로 (pathname 대신 사용 가능) */
   activePath?: string;
@@ -30,6 +34,7 @@ export interface GNBPrimaryNavDesktopProps {
 // Desktop Component
 export const GNBPrimaryNavDesktop: React.FC<GNBPrimaryNavDesktopProps> = ({
   role,
+  companyId,
   activePath,
   onItemClick,
   navClassName,
@@ -45,13 +50,14 @@ export const GNBPrimaryNavDesktop: React.FC<GNBPrimaryNavDesktopProps> = ({
       aria-label="주요 페이지"
       className={clsx('flex items-center gap-32', navClassName, className)}
     >
-      {items.map((item) => {
+      {items.map((item: GNBPrimaryNavItem) => {
+        const href = item.href.replace('[companyId]', companyId);
         const active = isNavActive(currentPath, item.href);
 
         return (
           <Link
             key={item.key}
-            href={item.href}
+            href={href}
             onClick={() => onItemClick?.(item.key)}
             aria-current={active ? 'page' : undefined}
             className={clsx(
@@ -71,6 +77,9 @@ export const GNBPrimaryNavDesktop: React.FC<GNBPrimaryNavDesktopProps> = ({
 export interface GNBPrimaryNavProps {
   /** 사용자 역할 (user | manager | admin) */
   role: UserRole;
+
+  /** 회사 스코프 라우팅에 사용할 companyId */
+  companyId: string;
 
   /** 현재 활성 경로 (pathname 대신 사용 가능) */
   activePath?: string;
@@ -92,6 +101,7 @@ export interface GNBPrimaryNavProps {
  */
 const GNBPrimaryNav: React.FC<GNBPrimaryNavProps> = ({
   role,
+  companyId,
   activePath,
   onItemClick,
   navClassName,
@@ -100,6 +110,7 @@ const GNBPrimaryNav: React.FC<GNBPrimaryNavProps> = ({
   <div className={clsx('hidden desktop:flex', className)}>
     <GNBPrimaryNavDesktop
       role={role}
+      companyId={companyId}
       activePath={activePath}
       onItemClick={onItemClick}
       navClassName={navClassName}
@@ -160,7 +171,7 @@ export const GNBPrimaryNavSidebar: React.FC<GNBPrimaryNavSidebarProps> = ({
   const currentPath = activePath ?? pathname ?? '';
 
   const items = getGNBPrimaryNavConfig(role);
-  const profileHref = `/${companyId}/profile`;
+  const profileHref = PATHNAME.PROFILE(companyId);
   const isProfileActive = isNavActive(currentPath, '/[companyId]/profile');
 
   return (
@@ -169,7 +180,7 @@ export const GNBPrimaryNavSidebar: React.FC<GNBPrimaryNavSidebarProps> = ({
       className={clsx('flex flex-col justify-center gap-36', navClassName, className)}
     >
       {/* 기본 네비게이션 아이템들 */}
-      {items.map((item) => {
+      {items.map((item: GNBPrimaryNavItem) => {
         const href = item.href.replace('[companyId]', companyId);
         const active = isNavActive(currentPath, item.href);
 

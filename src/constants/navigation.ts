@@ -27,16 +27,11 @@ export interface GNBPrimaryNavItem {
   href: string;
 }
 
-/** 역할별 메뉴 라우트 조회 */
-const getPrimaryNavItemsByRole = (role: UserRole): GNBPrimaryNavItem[] =>
-  ROLE_NAV_KEYS[role].map((key) => ROUTES[key]);
-
 /** GNB 메뉴 config 생성 */
 export const getGNBPrimaryNavConfig = (role: UserRole): GNBPrimaryNavItem[] =>
-  getPrimaryNavItemsByRole(role).map((route) => ({
-    key: route.key,
-    label: route.label,
-    href: route.href,
+  ROLE_NAV_KEYS[role].map((key) => ({
+    key,
+    ...ROUTES[key],
   }));
 
 /**
@@ -66,10 +61,10 @@ export const isNavActive = (currentPath: string, targetHref: string): boolean =>
  *
  * - ProductListPage:        /[companyId]/products(/...)
  * - ProductDetailPage:      /[companyId]/products/[productId]
- * - MyPurchaseRequestList:  /[companyId]/purchase-request(/...)
- * - MyPurchaseRequestDetail:/[companyId]/purchase-request/[id]
+ * - MyPurchaseRequestList:  /[companyId]/my
+ * - MyPurchaseRequestDetail:/[companyId]/my/purchase-request/[id]
  * - WishlistPage:           /[companyId]/wishlist
- * - PurchaseHistoryPage:    /[companyId]/my/purchase-requests(/...)
+ * - PurchaseRequestPage:    /[companyId]/purchase-request(/...)
  */
 export const shouldShowCategorySwitcher = (currentPath: string): boolean => {
   if (!currentPath) return false;
@@ -79,12 +74,11 @@ export const shouldShowCategorySwitcher = (currentPath: string): boolean => {
   if (segments.length < 2) return false;
 
   const section = segments[1];
-  const subSection = segments[2];
 
   if (section === 'products') return true;
   if (section === 'purchase-request') return true;
   if (section === 'wishlist') return true;
-  if (section === 'my' && subSection === 'purchase-requests') return true;
+  if (section === 'my') return true;
 
   return false;
 };

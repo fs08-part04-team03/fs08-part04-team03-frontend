@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useParams, usePathname } from 'next/navigation';
 
 import { clsx } from '@/utils/clsx';
 import type { UserRole, AppRouteKey, ParentCategoryKey, ParentCategoryOption } from '@/constants';
@@ -74,11 +74,30 @@ const GNB: React.FC<GNBProps> = ({
   className,
 }) => {
   const params = useParams();
+  const pathname = usePathname();
   const companyId = (params?.companyId as string) || '';
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // activePath가 없으면 pathname 사용
+  const currentActivePath = activePath ?? pathname ?? '';
+
   const hasCategories = categories.length > 0 && activeCategoryId && onCategoryChange;
+
+  // 데스크탑 뷰포트에서는 사이드바 자동 닫기
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    // 초기 로드 시에도 체크
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleMenuClick = () => {
     setIsSidebarOpen(true);
@@ -124,9 +143,9 @@ const GNB: React.FC<GNBProps> = ({
         {/* 데스크탑: PrimaryNav */}
         <GNBPrimaryNav
           role={role}
-          activePath={activePath}
+          companyId={companyId}
+          activePath={currentActivePath}
           onItemClick={onNavItemClick}
-          className="hidden desktop:flex"
         />
 
         {/* 모바일: CategorySwitcher */}
@@ -153,17 +172,19 @@ const GNB: React.FC<GNBProps> = ({
         />
       </div>
 
-      {/* SideBarMenu */}
-      <SideBarMenu open={isSidebarOpen} onClose={handleSidebarClose}>
-        <GNBPrimaryNavSidebar
-          role={role}
-          companyId={companyId}
-          activePath={activePath}
-          onItemClick={handleNavItemClick}
-          onProfileClick={handleProfileClick}
-          onLogout={onLogout ? handleSidebarLogout : undefined}
-        />
-      </SideBarMenu>
+      {/* SideBarMenu (모바일/태블릿 전용) */}
+      <div className="desktop:hidden">
+        <SideBarMenu open={isSidebarOpen} onClose={handleSidebarClose}>
+          <GNBPrimaryNavSidebar
+            role={role}
+            companyId={companyId}
+            activePath={currentActivePath}
+            onItemClick={handleNavItemClick}
+            onProfileClick={handleProfileClick}
+            onLogout={onLogout ? handleSidebarLogout : undefined}
+          />
+        </SideBarMenu>
+      </div>
     </header>
   );
 };
