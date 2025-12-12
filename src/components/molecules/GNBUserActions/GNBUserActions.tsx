@@ -223,33 +223,29 @@ export const GNBUserActions: React.FC<GNBUserActionsProps> = ({
   className,
 }) => (
   <>
-    {/* 모바일 (~ 743px) */}
+    {/* 모바일 */}
     <div className={clsx('tablet:hidden', className)}>
       <GNBUserActionsMobile companyId={companyId} cartCount={cartCount} onMenuClick={onMenuClick} />
     </div>
 
     {/* 태블릿 (744px ~ 1199px) */}
-    {userProfile && (
-      <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
-        <GNBUserActionsTablet
-          companyId={companyId}
-          cartCount={cartCount}
-          userProfile={userProfile}
-          onMenuClick={onMenuClick}
-        />
-      </div>
-    )}
+    <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
+      <GNBUserActionsTablet
+        companyId={companyId}
+        cartCount={cartCount}
+        userProfile={userProfile}
+        onMenuClick={onMenuClick}
+      />
+    </div>
 
-    {/* 데스크탑 (1200px ~) */}
-    {userProfile && (
-      <div className={clsx('hidden desktop:flex', className)}>
-        <GNBUserActionsDesktop
-          companyId={companyId}
-          cartCount={cartCount}
-          userProfile={userProfile}
-          onLogout={onLogout}
-        />
-      </div>
-    )}
+    {/* 데스크탑 */}
+    <div className={clsx('hidden desktop:flex', className)}>
+      <GNBUserActionsDesktop
+        companyId={companyId}
+        cartCount={cartCount}
+        userProfile={userProfile}
+        onLogout={onLogout}
+      />
+    </div>
   </>
 );
