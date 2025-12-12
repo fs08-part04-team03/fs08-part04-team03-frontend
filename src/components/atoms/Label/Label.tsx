@@ -15,7 +15,6 @@ const Label = forwardRef<HTMLLabelElement, LabelProps>(({ className, children, .
       'self-stretch',
       'text-gray-500',
       'text-12 font-normal leading-normal tracking-[-0.3px]',
-      'font-[var(--font-family-base)]',
       className
     )}
     style={{

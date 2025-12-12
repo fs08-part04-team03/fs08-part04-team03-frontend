@@ -22,7 +22,7 @@ export const ROUTE_PERMISSIONS: Record<string, UserRole> = {
 
   // 사용자 (user) 이상
   '/[companyId]/purchase-request': 'user',
-  '/[companyId]/my/purchase-requests': 'user',
+  '/[companyId]/my': 'user',
   '/[companyId]/products/my': 'user',
 } as const;
 
