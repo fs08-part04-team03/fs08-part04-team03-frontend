@@ -8,6 +8,7 @@ export interface LabelProps extends LabelHTMLAttributes<HTMLLabelElement> {
 }
 
 const Label = forwardRef<HTMLLabelElement, LabelProps>(({ className, children, ...props }, ref) => (
+  // eslint-disable-next-line jsx-a11y/label-has-associated-control
   <label
     ref={ref}
     className={clsx(
@@ -17,7 +18,11 @@ const Label = forwardRef<HTMLLabelElement, LabelProps>(({ className, children, .
       'font-[var(--font-family-base)]',
       className
     )}
-    style={{ color: 'var(--gray-primary-500, #878787)', fontFamily: 'SUIT, var(--font-family-base), sans-serif' }}
+    style={{
+      color: 'var(--gray-primary-500, #878787)',
+      fontFamily: 'SUIT, var(--font-family-base), sans-serif',
+    }}
+    // eslint-disable-next-line react/jsx-props-no-spreading
     {...props}
   >
     {children}
@@ -27,4 +32,3 @@ const Label = forwardRef<HTMLLabelElement, LabelProps>(({ className, children, .
 Label.displayName = 'Label';
 
 export default Label;
-
