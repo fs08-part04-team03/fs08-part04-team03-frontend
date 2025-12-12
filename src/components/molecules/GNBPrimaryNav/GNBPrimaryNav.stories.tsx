@@ -25,6 +25,10 @@ const meta = {
       options: ['user', 'manager', 'admin'],
       description: '사용자 역할',
     },
+    companyId: {
+      control: 'text',
+      description: '회사 스코프 라우팅에 사용할 companyId',
+    },
     activePath: {
       control: 'text',
       description: '현재 활성화된 경로 (선택사항)',
@@ -32,10 +36,6 @@ const meta = {
     onItemClick: {
       action: 'item-clicked',
       description: '네비게이션 메뉴 아이템 클릭 시 호출되는 콜백',
-    },
-    navClassName: {
-      control: 'text',
-      description: '데스크탑 네비게이션 메뉴에 적용할 추가 CSS 클래스',
     },
   },
 } satisfies Meta<typeof GNBPrimaryNav>;
@@ -48,6 +48,7 @@ type Story = StoryObj<typeof meta>;
 export const UserRole: Story = {
   args: {
     role: 'user',
+    companyId: 'company-1',
   },
   parameters: {
     docs: {
@@ -65,6 +66,7 @@ export const UserRole: Story = {
 export const ManagerRole: Story = {
   args: {
     role: 'manager',
+    companyId: 'company-1',
   },
   parameters: {
     docs: {
@@ -83,6 +85,7 @@ export const ManagerRole: Story = {
 export const AdminRole: Story = {
   args: {
     role: 'admin',
+    companyId: 'company-1',
   },
   parameters: {
     docs: {

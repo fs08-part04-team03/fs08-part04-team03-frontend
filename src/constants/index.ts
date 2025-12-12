@@ -31,11 +31,11 @@ export const PATHNAME = {
   //  주문 완료 (장바구니 구매 완료 - 관리자/최고관리자)
   ORDER_COMPLETED: (companyId: string) => `/${companyId}/order/completed`,
 
-  //  내구매요청내역, 구매요청관리, 구매요청관리상세
-  MY_PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/my/purchase-requests`,
-  PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/my/purchase-requests`, // alias
+  //  내구매요청내역, 구매요청내역상세
+  MY_PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/my`,
+  PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/my`, // alias
   MY_PURCHASE_REQUEST_DETAIL: (companyId: string, requestId: string) =>
-    `/${companyId}/my/purchase-requests/${requestId}`,
+    `/${companyId}/my/purchase-request/${requestId}`,
 
   //  관리자 (manager)
   MANAGER_REQUESTS: (companyId: string) => `/${companyId}/manager/requests`,
@@ -84,7 +84,7 @@ export const API = `${BASE_URL}/api/${API_VERSION}`;
 export type { UserRole } from './roles';
 export type { AppRouteKey } from './routes';
 export { ROUTES } from './routes';
-export { getGNBPrimaryNavConfig, isNavActive } from './navigation';
+export { getGNBPrimaryNavConfig, isNavActive, type GNBPrimaryNavItem } from './navigation';
 
 // 카테고리 도메인 re-export
 export {
