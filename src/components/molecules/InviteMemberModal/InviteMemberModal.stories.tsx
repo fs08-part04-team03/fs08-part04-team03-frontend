@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Option } from '@/components/atoms/DropDown/DropDown';
 import InviteMemberModal from './InviteMemberModal';
 
 const meta: Meta<typeof InviteMemberModal> = {
@@ -11,7 +12,8 @@ const meta: Meta<typeof InviteMemberModal> = {
   args: {
     open: true,
     onClose: () => alert('닫기 클릭'),
-    onSubmit: () => alert('초대하기 클릭'),
+    onSubmit: (role: Option, name: string, email: string) =>
+      alert(`초대하기 클릭\nRole: ${role?.label ?? ''}\nName: ${name}\nEmail: ${email}`),
   },
   argTypes: {
     open: {
