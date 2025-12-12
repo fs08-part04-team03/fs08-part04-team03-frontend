@@ -106,3 +106,7 @@ export type {
   ChildCategoryKey,
   ParentCategoryOption,
 } from '@/domains/category';
+
+// CategoryPanel용 카테고리 상수 re-export (breadcrumb과 동일하게 숫자 ID 사용)
+export { CATEGORY_SECTIONS, getCategoryLabelById, getSubCategoryLabelById } from './categories';
+export type { CategoryOption, CategorySection } from './categories';
