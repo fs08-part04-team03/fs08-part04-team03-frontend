@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import Image from 'next/image';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { Divider } from '@/components/atoms/Divider/Divider';
@@ -15,6 +15,7 @@ interface AccordionPanelProps {
 
 const AccordionPanel = ({ label, content, subContent, className }: AccordionPanelProps) => {
   const [open, setOpen] = useState(false);
+  const contentId = useId();
 
   const toggle = () => setOpen((prev) => !prev);
 
@@ -54,10 +55,20 @@ const AccordionPanel = ({ label, content, subContent, className }: AccordionPane
 
           <div className="flex-1" />
 
-          <IconButton variant="default" size="md" onClick={toggle} className="cursor-pointer">
+          {/* Accessible Toggle Button */}
+          <IconButton
+            variant="default"
+            size="md"
+            onClick={toggle}
+            aria-expanded={open}
+            aria-controls={contentId}
+            aria-label={`${label} ${open ? '접기' : '펼치기'}`}
+            className="cursor-pointer"
+          >
             <Image
               src={open ? '/icons/minus.svg' : '/icons/plus.svg'}
-              alt={open ? 'minus' : 'plus'}
+              alt=""
+              aria-hidden
               width={20}
               height={20}
             />
@@ -65,17 +76,19 @@ const AccordionPanel = ({ label, content, subContent, className }: AccordionPane
         </div>
 
         {/* Content */}
-        {open && (
-          <>
-            {/* Tablet 이상에서는 content + subContent 한 줄 */}
-            <div
-              className="
-                mt-6
-                tablet:flex tablet:flex-row tablet:items-center tablet:gap-6
-                desktop:flex desktop:flex-row desktop:items-center desktop:gap-6
-              "
-            >
-              {/* content */}
+        {open && (content || subContent) && (
+          <div
+            id={contentId}
+            role="region"
+            aria-labelledby={contentId}
+            className="
+              mt-6
+              tablet:flex tablet:flex-row tablet:items-center tablet:gap-6
+              desktop:flex desktop:flex-row desktop:items-center desktop:gap-6
+            "
+          >
+            {/* content */}
+            {content && (
               <div
                 className="
                   text-gray-600
@@ -87,8 +100,10 @@ const AccordionPanel = ({ label, content, subContent, className }: AccordionPane
               >
                 {content}
               </div>
+            )}
 
-              {/* subContent */}
+            {/* subContent */}
+            {subContent && (
               <div
                 className="
                   text-gray-400
@@ -103,8 +118,8 @@ const AccordionPanel = ({ label, content, subContent, className }: AccordionPane
               >
                 {subContent}
               </div>
-            </div>
-          </>
+            )}
+          </div>
         )}
       </div>
 
