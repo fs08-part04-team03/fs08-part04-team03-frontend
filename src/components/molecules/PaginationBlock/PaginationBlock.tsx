@@ -15,9 +15,15 @@ interface PaginationBlockProps {
 const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProps) => {
   const [page, setPage] = useState(current);
 
+  /**
+   * current/total 변화 시 항상 안전한 page 값으로 보정
+   * (필터로 total이 줄어드는 등 current > total 이 되는 경우 방지)
+   */
   useEffect(() => {
-    setPage(current);
-  }, [current]);
+    const safeTotal = Math.max(1, total);
+    const safeCurrent = Math.min(Math.max(1, current), safeTotal);
+    setPage(safeCurrent);
+  }, [current, total]);
 
   const handlePrev = () => {
     if (page > 1) {
@@ -53,6 +59,7 @@ const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProp
       <div className="flex items-center gap-30">
         {/* Prev */}
         <Button
+          type="button"
           variant="secondary"
           size="sm"
           onClick={handlePrev}
@@ -77,6 +84,7 @@ const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProp
 
         {/* Next */}
         <Button
+          type="button"
           variant="secondary"
           size="sm"
           onClick={handleNext}
