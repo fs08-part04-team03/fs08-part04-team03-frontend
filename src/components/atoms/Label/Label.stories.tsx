@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import Label from './Lavel';
+import Label from './Label';
 
 const meta = {
   title: 'Atoms/Label',
@@ -34,4 +34,3 @@ export const WithCustomClass: Story = {
     className: 'text-gray-700',
   },
 };
-
