@@ -20,7 +20,7 @@ type ModalAction = 'approve' | 'reject';
 interface ApprovalRequestModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (message: string) => void; // <-- 수정됨
   user: {
     name: string;
     company: { name: string };
@@ -136,10 +136,11 @@ const ApprovalRequestModal = ({
     return undefined;
   }, [open]);
 
+  /* Submit */
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (isMessageValid) {
-      onSubmit();
+      onSubmit(message); // <-- 수정됨
       return;
     }
     setTouched(true);
@@ -160,9 +161,7 @@ const ApprovalRequestModal = ({
       tabIndex={0}
       className="fixed inset-0 z-modal flex items-center justify-center"
       onClick={onClose}
-      onKeyDown={() => {
-        /* ESC 키는 document 레벨에서 처리됨 */
-      }}
+      onKeyDown={() => {}}
     >
       <div className="absolute inset-0 bg-black opacity-50" />
 
