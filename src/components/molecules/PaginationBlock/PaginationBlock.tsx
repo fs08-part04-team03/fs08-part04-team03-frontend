@@ -12,7 +12,7 @@ interface PaginationBlockProps {
   onNext?: (newPage: number) => void;
 }
 
-const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPrev, onNext }) => {
+const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProps) => {
   const [page, setPage] = useState(current);
 
   useEffect(() => {
@@ -44,14 +44,14 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
       role="navigation"
       aria-label="페이지네이션"
     >
-      {/* page info */}
+      {/* Page info */}
       <div className="text-gray-primary-500 text-16 font-normal tracking-tight font-suit">
         {page} of {total}
       </div>
 
       {/* Prev / Next Buttons */}
       <div className="flex items-center gap-30">
-        {/* Prev (< Prev) */}
+        {/* Prev */}
         <Button
           variant="secondary"
           size="sm"
@@ -75,7 +75,7 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
           </div>
         </Button>
 
-        {/* Next (Next >) */}
+        {/* Next */}
         <Button
           variant="secondary"
           size="sm"
