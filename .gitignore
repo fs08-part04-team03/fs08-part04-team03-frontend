@@ -43,6 +43,9 @@ Thumbs.db
 # Testing
 coverage/
 
+# Documentation
+docs/
+
 # Misc
 *.swp
 *.swo
