@@ -149,6 +149,8 @@ const CategoryPanelTablet: React.FC<TabletDesktopPanelProps> = ({
     if (sectionWithOption) setOpenSectionId(sectionWithOption.id);
   };
 
+  if (!sections?.length) return null;
+
   return (
     <section
       className={clsx(
@@ -240,7 +242,7 @@ const CategoryPanelTablet: React.FC<TabletDesktopPanelProps> = ({
 };
 
 const CategoryPanelDesktop: React.FC<TabletDesktopPanelProps> = ({
-  sections,
+  sections = [],
   selectedValue,
   onChange,
   className,
@@ -281,6 +283,8 @@ const CategoryPanelDesktop: React.FC<TabletDesktopPanelProps> = ({
     );
     if (sectionWithOption) setOpenSectionId(sectionWithOption.id);
   };
+
+  if (!sections.length) return null;
 
   return (
     <section className={clsx('hidden desktop:flex w-180 bg-white', 'flex flex-col', className)}>
