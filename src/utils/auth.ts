@@ -7,7 +7,7 @@ import type { UserRole } from '@/constants/roles';
  * - admin: 최고관리자만 접근 가능
  *
  * 이 객체의 key는 "정규화된 경로 패턴"입니다.
- *   예) '/[companyId]/admin', '/[companyId]/manager/requests'
+ *   예) '/[companyId]/admin', '/[companyId]/requests'
  */
 export const ROUTE_PERMISSIONS: Record<string, UserRole> = {
   // 최고관리자 (admin) 전용
@@ -15,14 +15,16 @@ export const ROUTE_PERMISSIONS: Record<string, UserRole> = {
   '/[companyId]/admin/users': 'admin',
   '/[companyId]/admin/budget': 'admin',
 
-  // 관리자 (manager) 전용
-  '/[companyId]/manager': 'manager',
-  '/[companyId]/manager/requests': 'manager',
-  '/[companyId]/manager/purchase-history': 'manager',
+  // 관리자 (manager) 이상 - 구매 요청 관리 및 구매 내역 확인
+  '/[companyId]/requests': 'manager',
+  '/[companyId]/requests/[requestId]': 'manager',
+  '/[companyId]/purchase-history': 'manager',
+  '/[companyId]/purchase-history/[orderId]': 'manager',
 
-  // 사용자 (user) 이상
+  // 사용자 (user) 이상 - 구매 요청 작성
   '/[companyId]/purchase-request': 'user',
   '/[companyId]/my': 'user',
+  '/[companyId]/my/purchase-requests/[requestId]': 'user',
   '/[companyId]/products/my': 'user',
 } as const;
 
@@ -53,7 +55,7 @@ export const extractCompanyId = (pathname: string): string | null => {
  * 경로 정규화 (companyId를 [companyId]로 변환)
  *
  * - 예: '/123/admin' → '/[companyId]/admin'
- * - 예: '/123/manager/requests' → '/[companyId]/manager/requests'
+ * - 예: '/123/requests' → '/[companyId]/requests'
  * - 세그먼트가 2개 이상인 경우에만 변환한다.
  *   (예: '/login', '/signup', '/invite' 등은 그대로 유지)
  */

@@ -30,6 +30,7 @@ const preview: Preview = {
           },
         },
       },
+      defaultViewport: 'mobile',
     },
     controls: {
       matchers: {

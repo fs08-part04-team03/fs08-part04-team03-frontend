@@ -1,4 +1,4 @@
-// src/domains/category/index.ts
+import type React from 'react';
 
 // 대분류
 export const PARENT_CATEGORIES = [
@@ -62,6 +62,7 @@ export const CHILD_CATEGORIES = [
   { id: 704, parentId: 7, key: 'supplies-hygiene', name: '위생용품' },
 ] as const;
 
+// 타입 정의
 export type ParentCategory = (typeof PARENT_CATEGORIES)[number];
 export type ChildCategory = (typeof CHILD_CATEGORIES)[number];
 
@@ -71,75 +72,27 @@ export type ChildCategoryId = ChildCategory['id'];
 export type ParentCategoryKey = ParentCategory['key'];
 export type ChildCategoryKey = ChildCategory['key'];
 
-const parentById = new Map<ParentCategoryId, ParentCategory>(
-  PARENT_CATEGORIES.map((c) => [c.id, c])
-);
-
-const parentByKey = new Map<ParentCategoryKey, ParentCategory>(
-  PARENT_CATEGORIES.map((c) => [c.key, c])
-);
-
-const childById = new Map<ChildCategoryId, ChildCategory>(CHILD_CATEGORIES.map((c) => [c.id, c]));
-
-const childrenByParentId = new Map<ParentCategoryId, ChildCategory[]>(
-  CHILD_CATEGORIES.reduce<Map<ParentCategoryId, ChildCategory[]>>((map, child) => {
-    const list = map.get(child.parentId) ?? [];
-    map.set(child.parentId, [...list, child]);
-    return map;
-  }, new Map<ParentCategoryId, ChildCategory[]>())
-);
-
-export function getParentById(id: number | null | undefined) {
-  if (id == null) return null;
-  return parentById.get(id as ParentCategoryId) ?? null;
-}
-
-export function getParentByKey(key: ParentCategoryKey) {
-  return parentByKey.get(key) ?? null;
-}
-
-export function getChildById(id: number | null | undefined) {
-  if (id == null) return null;
-  return childById.get(id as ChildCategoryId) ?? null;
-}
-
-export function getChildrenByParentId(parentId: number | null | undefined) {
-  if (parentId == null) return [];
-  return childrenByParentId.get(parentId as ParentCategoryId) ?? [];
-}
-
+// Breadcrumb 타입
 export type CategoryBreadcrumbItem = {
   label: string;
   href?: string;
 };
 
-export function buildParentPath(parent: ParentCategory) {
-  return `/products/${parent.key}`;
+// Panel 타입
+export interface CategoryOption {
+  value: number; // ChildCategory의 id (숫자)
+  label: string;
+  count?: number;
+  key?: string; // ChildCategory의 key (참조용)
 }
 
-export function buildChildPath(parent: ParentCategory, child: ChildCategory) {
-  return `/products/${parent.key}/${child.key}`;
-}
-
-export function buildProductBreadcrumb(params: {
-  categoryId?: number | null;
-}): CategoryBreadcrumbItem[] {
-  const { categoryId } = params;
-
-  const items: CategoryBreadcrumbItem[] = [];
-
-  const child = getChildById(categoryId ?? null);
-
-  if (child) {
-    const parent = getParentById(child.parentId);
-
-    if (parent) {
-      items.push({ label: parent.name, href: buildParentPath(parent) });
-      items.push({ label: child.name, href: buildChildPath(parent, child) });
-    }
-  }
-
-  return items;
+export interface CategorySection {
+  id: number; // ParentCategory의 id (숫자)
+  title: string;
+  key?: string; // ParentCategory의 key (참조용)
+  icon?: React.ReactNode;
+  description?: React.ReactNode;
+  options: CategoryOption[];
 }
 
 export type ParentCategoryOption = {
@@ -147,9 +100,3 @@ export type ParentCategoryOption = {
   label: string;
   parentId: ParentCategoryId;
 };
-
-export const PARENT_CATEGORY_OPTIONS: ParentCategoryOption[] = PARENT_CATEGORIES.map((parent) => ({
-  id: parent.key,
-  label: parent.name,
-  parentId: parent.id,
-}));
