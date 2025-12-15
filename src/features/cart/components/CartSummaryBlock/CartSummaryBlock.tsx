@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
 import Button from '@/components/atoms/Button/Button';
 import OrderItemCard from '@/components/molecules/OrderItemCard/OrderItemCard';
@@ -24,25 +24,26 @@ interface CartSummaryBlockProps {
 }
 
 const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSummaryBlockProps) => {
+  /** =====================
+   * 상태
+   ====================== */
   const [cartItems, setCartItems] = useState<OrderItem[]>(items);
   const [checkedIds, setCheckedIds] = useState<number[]>([]);
 
+  /** =====================
+   * 🔁 props → state 동기화
+   ====================== */
+  useEffect(() => {
+    setCartItems(items);
+
+    // items 변경 시, 더 이상 존재하지 않는 체크 id 제거
+    setCheckedIds((prev) => prev.filter((id) => items.some((item) => item.id === id)));
+  }, [items]);
+
+  /** =====================
+   * 파생 상태
+   ====================== */
   const allChecked = cartItems.length > 0 && checkedIds.length === cartItems.length;
-
-  const handleToggleAll = (checked: boolean) => {
-    setCheckedIds(checked ? cartItems.map((i) => i.id) : []);
-  };
-
-  const handleToggleItem = (id: number, checked: boolean) => {
-    setCheckedIds((prev) => (checked ? [...prev, id] : prev.filter((v) => v !== id)));
-  };
-
-  const handleQuantityChange = (id: number, option: Option) => {
-    const quantity = Number(option.key);
-    if (Number.isNaN(quantity)) return;
-
-    setCartItems((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)));
-  };
 
   const selectedItems = useMemo(
     () => cartItems.filter((item) => checkedIds.includes(item.id)),
@@ -61,8 +62,25 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
 
   const totalPrice = totalProductPrice + shippingFee;
   const remainBudget = budget - totalPrice;
-
   const isBudgetLackForSelected = remainBudget < 0;
+
+  /** =====================
+   * 핸들러
+   ====================== */
+  const handleToggleAll = (checked: boolean) => {
+    setCheckedIds(checked ? cartItems.map((i) => i.id) : []);
+  };
+
+  const handleToggleItem = (id: number, checked: boolean) => {
+    setCheckedIds((prev) => (checked ? [...prev, id] : prev.filter((v) => v !== id)));
+  };
+
+  const handleQuantityChange = (id: number, option: Option) => {
+    const quantity = Number(option.key);
+    if (Number.isNaN(quantity)) return;
+
+    setCartItems((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)));
+  };
 
   const handleDeleteSelected = () => {
     setCartItems((prev) => prev.filter((item) => !checkedIds.includes(item.id)));
@@ -70,6 +88,9 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
     setCheckedIds([]);
   };
 
+  /** =====================
+   * 렌더
+   ====================== */
   return (
     <div
       className="
@@ -117,7 +138,7 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
           </button>
         </div>
 
-        {/* 상품 리스트 */}
+        {/* 상품 리스트 (스크롤 영역) */}
         <div
           className="
             flex flex-col gap-12
