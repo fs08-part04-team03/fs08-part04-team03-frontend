@@ -64,7 +64,7 @@ const RHFInputField = <T extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
+      render={({ field, fieldState, formState }) => (
         <div className={clsx('flex flex-col w-327 tablet:w-480', className)}>
           {/* label */}
           <label htmlFor={inputId} className="text-12 text-gray-600 font-normal tracking--0.3 mb-1">
@@ -110,7 +110,9 @@ const RHFInputField = <T extends FieldValues>({
 
           {/* Error message */}
           <div className="min-h-20 text-12 text-error-500 font-normal tracking--0.35 mt-4">
-            {fieldState.error && fieldState.isTouched && fieldState.error.message}
+            {fieldState.error &&
+              (fieldState.isTouched || formState.isSubmitted) &&
+              fieldState.error.message}
           </div>
         </div>
       )}
