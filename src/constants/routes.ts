@@ -26,11 +26,11 @@ export const ROUTES: Record<AppRouteKey, AppRouteConfig> = {
   },
   'purchase-request-manage': {
     label: '구매 요청 관리',
-    href: '/[companyId]/manager/requests',
+    href: '/[companyId]/requests',
   },
   'purchase-history-check': {
     label: '구매 내역 확인',
-    href: '/[companyId]/manager/purchase-history',
+    href: '/[companyId]/purchase-history',
   },
   management: {
     label: '관리',
