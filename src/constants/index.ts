@@ -35,15 +35,27 @@ export const PATHNAME = {
   MY_PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/my`,
   PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/my`, // alias
   MY_PURCHASE_REQUEST_DETAIL: (companyId: string, requestId: string) =>
-    `/${companyId}/my/purchase-request/${requestId}`,
+    `/${companyId}/my/purchase-requests/${requestId}`,
 
-  //  관리자 (manager)
-  MANAGER_REQUESTS: (companyId: string) => `/${companyId}/manager/requests`,
+  //  관리자 (manager 이상) - 구매 요청 관리
+  REQUESTS: (companyId: string) => `/${companyId}/requests`,
+  REQUEST_DETAIL: (companyId: string, requestId: string) => `/${companyId}/requests/${requestId}`,
+  //  관리자 (manager 이상) - 구매 내역 확인
+  PURCHASE_HISTORY: (companyId: string) => `/${companyId}/purchase-history`,
+  PURCHASE_HISTORY_DETAIL: (companyId: string, orderId: string) =>
+    `/${companyId}/purchase-history/${orderId}`,
+
+  // Deprecated: MANAGER_* 키들은 제거 예정. 위의 일반 이름을 사용하세요.
+  /** @deprecated Use PATHNAME.REQUESTS instead */
+  MANAGER_REQUESTS: (companyId: string) => `/${companyId}/requests`,
+  /** @deprecated Use PATHNAME.REQUEST_DETAIL instead */
   MANAGER_REQUEST_DETAIL: (companyId: string, requestId: string) =>
-    `/${companyId}/manager/requests/${requestId}`,
-  MANAGER_PURCHASE_HISTORY: (companyId: string) => `/${companyId}/manager/purchase-history`,
+    `/${companyId}/requests/${requestId}`,
+  /** @deprecated Use PATHNAME.PURCHASE_HISTORY instead */
+  MANAGER_PURCHASE_HISTORY: (companyId: string) => `/${companyId}/purchase-history`,
+  /** @deprecated Use PATHNAME.PURCHASE_HISTORY_DETAIL instead */
   MANAGER_PURCHASE_HISTORY_DETAIL: (companyId: string, orderId: string) =>
-    `/${companyId}/manager/purchase-history/${orderId}`,
+    `/${companyId}/purchase-history/${orderId}`,
 
   //  최고관리자 (admin)
   ADMIN_ROOT: (companyId: string) => `/${companyId}/admin`,
@@ -86,17 +98,21 @@ export type { AppRouteKey } from './routes';
 export { ROUTES } from './routes';
 export { getGNBPrimaryNavConfig, isNavActive, type GNBPrimaryNavItem } from './navigation';
 
-// 카테고리 도메인 re-export
+// 카테고리 관련 상수 및 함수 re-export
+export { PARENT_CATEGORIES, CHILD_CATEGORIES } from './categories/categories.constants';
+
 export {
-  PARENT_CATEGORIES,
-  CHILD_CATEGORIES,
   PARENT_CATEGORY_OPTIONS,
   getParentById,
   getParentByKey,
   getChildById,
   getChildrenByParentId,
   buildProductBreadcrumb,
-} from '@/domains/category';
+  CATEGORY_SECTIONS,
+  getCategoryLabelById,
+  getSubCategoryLabelById,
+} from './categories/categories.utils';
+
 export type {
   ParentCategory,
   ChildCategory,
@@ -105,8 +121,7 @@ export type {
   ParentCategoryKey,
   ChildCategoryKey,
   ParentCategoryOption,
-} from '@/domains/category';
-
-// CategoryPanel용 카테고리 상수 re-export (breadcrumb과 동일하게 숫자 ID 사용)
-export { CATEGORY_SECTIONS, getCategoryLabelById, getSubCategoryLabelById } from './categories';
-export type { CategoryOption, CategorySection } from './categories';
+  CategoryOption,
+  CategorySection,
+  CategoryBreadcrumbItem,
+} from './categories/categories.constants';

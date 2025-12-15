@@ -62,7 +62,7 @@ export const isNavActive = (currentPath: string, targetHref: string): boolean =>
  * - ProductListPage:        /[companyId]/products(/...)
  * - ProductDetailPage:      /[companyId]/products/[productId]
  * - MyPurchaseRequestList:  /[companyId]/my
- * - MyPurchaseRequestDetail:/[companyId]/my/purchase-request/[id]
+ * - MyPurchaseRequestDetail:/[companyId]/my/purchase-requests/[id]
  * - WishlistPage:           /[companyId]/wishlist
  * - PurchaseRequestPage:    /[companyId]/purchase-request(/...)
  */
