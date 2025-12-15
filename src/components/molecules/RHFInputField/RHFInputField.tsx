@@ -1,13 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { Controller, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
-import Input from '@/components/atoms/Input/Input';
-import { IconButton } from '@/components/atoms/IconButton/IconButton';
-import Image from 'next/image';
-import { clsx } from '@/utils/clsx';
 
-export type RHFInputFieldType = 'text' | 'email' | 'password';
+import InputField, { type InputFieldType } from '@/components/molecules/InputField/InputField';
 
 export interface RHFInputFieldProps<T extends FieldValues> {
   /** React Hook Form의 control 객체 */
@@ -16,30 +11,46 @@ export interface RHFInputFieldProps<T extends FieldValues> {
   /** 필드 이름 (form의 필드 경로) */
   name: FieldPath<T>;
 
-  /** Input에 전달할 label */
+  /** InputField에 전달할 label */
   label: string;
 
-  /** Input에 전달할 placeholder */
+  /** InputField에 전달할 placeholder */
   placeholder: string;
 
-  /** Input 타입 */
-  type?: RHFInputFieldType;
+  /** InputField 타입 */
+  type?: InputFieldType;
 
-  /** Input에 전달할 id (선택사항) */
+  /** InputField에 전달할 id (선택사항) */
   id?: string;
 
-  /** Input에 전달할 className (선택사항) */
+  /** InputField에 전달할 minLength (선택사항) */
+  minLength?: number;
+
+  /** InputField에 전달할 maxLength (선택사항) */
+  maxLength?: number;
+
+  /** passwordConfirm 타입일 때 비교할 값 (선택사항) */
+  compareWith?: string;
+
+  /** InputField를 비활성화할지 여부 (선택사항) */
+  disabled?: boolean;
+
+  /** wrapper className (선택사항) */
   className?: string;
 
-  /** Input disabled 상태 (선택사항) */
-  disabled?: boolean;
+  /**
+   * 에러 영역 고정 줄 수 (기본 2줄)
+   * - 1: 한 줄 고정 (truncate)
+   * - 2: 두 줄 고정 (overflow-hidden)
+   */
+  errorLines?: 1 | 2;
 }
 
 /**
  * RHFInputField
  *
- * React Hook Form과 Zod를 사용하는 Input 래퍼 컴포넌트
- * Input을 React Hook Form의 Controller로 감싸서 사용
+ * React Hook Form과 Zod를 사용하는 InputField 래퍼 컴포넌트
+ * InputField를 React Hook Form의 Controller로 감싸서 사용
  */
 const RHFInputField = <T extends FieldValues>({
   control,
@@ -48,72 +59,41 @@ const RHFInputField = <T extends FieldValues>({
   placeholder,
   type = 'text',
   id,
+  minLength,
+  maxLength,
+  compareWith,
+  disabled,
   className,
-  disabled = false,
+  errorLines = 2,
 }: RHFInputFieldProps<T>) => {
-  const [visible, setVisible] = useState(false);
-  const inputId = id ?? `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
-  const isPassword = type === 'password';
-
-  let inputType: 'text' | 'email' | 'password' = type;
-  if (isPassword) {
-    inputType = visible ? 'text' : 'password';
-  }
+  const errorSlotClassName =
+    errorLines === 1
+      ? 'mt-4 h-32 text-14 leading-16 font-normal tracking--0.35 text-error-500 truncate'
+      : 'mt-4 h-32 text-14 leading-16 font-normal tracking--0.35 text-error-500 overflow-hidden';
 
   return (
     <Controller
       control={control}
       name={name}
-      render={({ field, fieldState, formState }) => (
-        <div className={clsx('flex flex-col w-327 tablet:w-480', className)}>
-          {/* label */}
-          <label htmlFor={inputId} className="text-12 text-gray-600 font-normal tracking--0.3 mb-1">
-            {label}
-          </label>
+      render={({ field, fieldState }) => (
+        <div className={className}>
+          <InputField
+            id={id}
+            label={label}
+            placeholder={placeholder}
+            type={type}
+            value={(field.value ?? '') as string}
+            onChange={(value) => field.onChange(value)}
+            onBlur={field.onBlur}
+            minLength={minLength}
+            maxLength={maxLength}
+            compareWith={compareWith}
+            disabled={disabled}
+          />
 
-          {/* Input with password toggle */}
-          <div className="relative flex items-center">
-            <Input
-              id={inputId}
-              ref={field.ref}
-              type={inputType}
-              placeholder={placeholder}
-              value={field.value ?? ''}
-              onChange={(e) => {
-                field.onChange(e.target.value);
-              }}
-              onBlur={field.onBlur}
-              error={!!fieldState.error}
-              className="w-full"
-              disabled={disabled}
-            />
-
-            {/* Password visibility toggle */}
-            {isPassword && (
-              <div className="absolute right-0">
-                <IconButton
-                  variant="default"
-                  size="sm"
-                  onClick={() => setVisible((s) => !s)}
-                  className="cursor-pointer"
-                  disabled={disabled}
-                >
-                  <Image
-                    src={visible ? '/icons/eye.svg' : '/icons/eye-off.svg'}
-                    alt={visible ? '숨기기' : '보기'}
-                    width={16}
-                    height={16}
-                  />
-                </IconButton>
-              </div>
-            )}
-          </div>
-
-          {/* Error message */}
-          <div className="min-h-20 text-12 text-error-500 font-normal tracking--0.35 mt-4">
-            {fieldState.error &&
-              (fieldState.isTouched || formState.isSubmitted) &&
-              fieldState.error.message}
+          {/* 에러 메시지 슬롯: 항상 동일 높이 */}
+          <div className={errorSlotClassName} aria-live="polite">
+            {fieldState.error?.message ?? '\u00A0'}
           </div>
         </div>
       )}
