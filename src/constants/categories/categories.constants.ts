@@ -1,3 +1,5 @@
+import type React from 'react';
+
 // 대분류
 export const PARENT_CATEGORIES = [
   { id: 1, key: 'snack', name: '스낵' },
