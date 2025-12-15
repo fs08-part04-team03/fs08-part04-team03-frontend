@@ -41,10 +41,10 @@ const InputField = ({
   const inputId = id ?? `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
 
   const formatBusinessNumber = (v: string) => {
-    const digits = v.replace(/\D/g, '').slice(0, 9);
+    const digits = v.replace(/\D/g, '').slice(0, 10);
     if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 9)}`;
+    if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 10)}`;
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -84,10 +84,10 @@ const InputField = ({
     isValid = false;
     errorMessage = '비밀번호가 일치하지 않습니다.';
   } else if (type === 'businessNumber') {
-    const bizRegex = /^\d{3}-\d{3}-\d{3}$/;
+    const bizRegex = /^\d{3}-\d{2}-\d{5}$/;
     if (!bizRegex.test(internal)) {
       isValid = false;
-      errorMessage = '사업자 번호는 123-456-789 형식입니다.';
+      errorMessage = '사업자 번호는 123-45-67890 형식입니다.';
     }
   }
 
@@ -119,7 +119,7 @@ const InputField = ({
           onFocus={() => setTouched(true)}
           onChange={handleChange}
           aria-invalid={!isValid}
-          maxLength={type === 'businessNumber' ? 12 : undefined}
+          maxLength={type === 'businessNumber' ? 13 : undefined}
           className={clsx(
             'flex-1 bg-transparent border-none outline-none',
             'font-suit text-16 font-normal tracking-tight text-gray-950'

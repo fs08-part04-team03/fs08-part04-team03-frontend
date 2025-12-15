@@ -21,7 +21,7 @@ export const signupSchema = z
     businessNumber: z
       .string()
       .min(1, '사업자 번호를 입력해주세요.')
-      .regex(/^\d{3}-\d{2}-\d{5}$/, '유효하지 않은 사업자 번호입니다. (예: 123-456-789)'),
+      .regex(/^\d{3}-\d{2}-\d{5}$/, '유효하지 않은 사업자 번호입니다. (예: 123-45-67890)'),
   })
   .refine(
     (data) => {
