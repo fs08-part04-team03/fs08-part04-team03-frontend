@@ -1,6 +1,7 @@
 'use client';
 
 import { Controller, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
+
 import InputField, { type InputFieldType } from '@/components/molecules/InputField/InputField';
 
 export interface RHFInputFieldProps<T extends FieldValues> {
@@ -30,6 +31,19 @@ export interface RHFInputFieldProps<T extends FieldValues> {
 
   /** passwordConfirm 타입일 때 비교할 값 (선택사항) */
   compareWith?: string;
+
+  /** InputField를 비활성화할지 여부 (선택사항) */
+  disabled?: boolean;
+
+  /** wrapper className (선택사항) */
+  className?: string;
+
+  /**
+   * 에러 영역 고정 줄 수 (기본 2줄)
+   * - 1: 한 줄 고정 (truncate)
+   * - 2: 두 줄 고정 (overflow-hidden)
+   */
+  errorLines?: 1 | 2;
 }
 
 /**
@@ -48,33 +62,43 @@ const RHFInputField = <T extends FieldValues>({
   minLength,
   maxLength,
   compareWith,
-}: RHFInputFieldProps<T>) => (
-  <Controller
-    control={control}
-    name={name}
-    render={({ field, fieldState }) => (
-      <div>
-        <InputField
-          id={id}
-          label={label}
-          placeholder={placeholder}
-          type={type}
-          value={field.value ?? ''}
-          onChange={(value) => {
-            field.onChange(value);
-          }}
-          minLength={minLength}
-          maxLength={maxLength}
-          compareWith={compareWith}
-        />
-        {fieldState.error && (
-          <div className="text-14 text-error-500 font-normal tracking--0.35 mt-4">
-            {fieldState.error.message}
+  disabled,
+  className,
+  errorLines = 2,
+}: RHFInputFieldProps<T>) => {
+  const errorSlotClassName =
+    errorLines === 1
+      ? 'mt-4 h-32 text-14 leading-16 font-normal tracking--0.35 text-error-500 truncate'
+      : 'mt-4 h-32 text-14 leading-16 font-normal tracking--0.35 text-error-500 overflow-hidden';
+
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field, fieldState }) => (
+        <div className={className}>
+          <InputField
+            id={id}
+            label={label}
+            placeholder={placeholder}
+            type={type}
+            value={(field.value ?? '') as string}
+            onChange={(value) => field.onChange(value)}
+            onBlur={field.onBlur}
+            minLength={minLength}
+            maxLength={maxLength}
+            compareWith={compareWith}
+            disabled={disabled}
+          />
+
+          {/* 에러 메시지 슬롯: 항상 동일 높이 */}
+          <div className={errorSlotClassName} aria-live="polite">
+            {fieldState.error?.message ?? '\u00A0'}
           </div>
-        )}
-      </div>
-    )}
-  />
-);
+        </div>
+      )}
+    />
+  );
+};
 
 export default RHFInputField;
