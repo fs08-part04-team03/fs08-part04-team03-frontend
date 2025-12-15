@@ -16,8 +16,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       type={type}
       placeholder={placeholder}
       className={clsx(
-        'text-16 tracking-[-0.4px]',
-        'h-56 px-1 py-2 bg-transparent',
+        'text-16 tracking--0.4',
+        'py-8 bg-transparent',
         'border-b',
         error ? 'border-error-500' : 'border-gray-600',
         'text-gray-950 placeholder:text-gray-500',
