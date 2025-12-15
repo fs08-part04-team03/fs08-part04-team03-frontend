@@ -96,6 +96,7 @@ const RHFInputField = <T extends FieldValues>({
                   size="sm"
                   onClick={() => setVisible((s) => !s)}
                   className="cursor-pointer"
+                  disabled={disabled}
                 >
                   <Image
                     src={visible ? '/icons/eye.svg' : '/icons/eye-off.svg'}

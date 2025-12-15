@@ -249,7 +249,7 @@ export const BusinessNumberField: Story = {
       const schema = z.object({
         businessNumber: z
           .string()
-          .regex(/^\d{3}-\d{2}-\d{5}$/, '사업자 번호는 123-45-6a7890 형식입니다.'),
+          .regex(/^\d{3}-\d{2}-\d{5}$/, '사업자 번호는 123-45-67890 형식입니다.'),
       });
 
       type FormData = z.infer<typeof schema>;
