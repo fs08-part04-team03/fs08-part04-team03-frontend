@@ -19,6 +19,7 @@ export interface DetailPageLayoutProps {
   };
   productDetailHeader: ProductDetailHeaderProps;
   accordionPanels?: Array<{
+    id?: string | number;
     label: string;
     content?: string;
     subContent?: string;
@@ -42,6 +43,7 @@ type InternalLayoutProps = {
   onAddToCart?: ProductDetailHeaderProps['onAddToCart'];
   headerClassName?: string;
   accordionPanels?: Array<{
+    id?: string | number;
     label: string;
     content?: string;
     subContent?: string;
@@ -108,9 +110,9 @@ const DetailPageLayoutMobile: React.FC<InternalLayoutProps> = ({
       {/* AccordionPanel들 */}
       {accordionPanels.length > 0 && (
         <div className="w-full flex flex-col justify-center">
-          {accordionPanels.map((panel) => (
+          {accordionPanels.map((panel, index) => (
             <AccordionPanel
-              key={panel.label}
+              key={panel.id ?? `${panel.label}-${index}`}
               label={panel.label}
               content={panel.content}
               subContent={panel.subContent}
@@ -184,9 +186,9 @@ const DetailPageLayoutTablet: React.FC<InternalLayoutProps> = ({
         {/* AccordionPanel들 */}
         {accordionPanels.length > 0 && (
           <div className="w-full flex flex-col">
-            {accordionPanels.map((panel) => (
+            {accordionPanels.map((panel, index) => (
               <AccordionPanel
-                key={panel.label}
+                key={panel.id ?? `${panel.label}-${index}`}
                 label={panel.label}
                 content={panel.content}
                 subContent={panel.subContent}
@@ -261,9 +263,9 @@ const DetailPageLayoutDesktop: React.FC<InternalLayoutProps> = ({
         {/* AccordionPanel들 */}
         {accordionPanels.length > 0 && (
           <div className="flex flex-col">
-            {accordionPanels.map((panel) => (
+            {accordionPanels.map((panel, index) => (
               <AccordionPanel
-                key={panel.label}
+                key={panel.id ?? `${panel.label}-${index}`}
                 label={panel.label}
                 content={panel.content}
                 subContent={panel.subContent}
