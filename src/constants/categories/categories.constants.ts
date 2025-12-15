@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 // 대분류
 export const PARENT_CATEGORIES = [
   { id: 1, key: 'snack', name: '스낵' },
@@ -88,8 +90,8 @@ export interface CategorySection {
   id: number; // ParentCategory의 id (숫자)
   title: string;
   key?: string; // ParentCategory의 key (참조용)
-  icon?: React.ReactNode;
-  description?: React.ReactNode;
+  icon?: ReactNode;
+  description?: ReactNode;
   options: CategoryOption[];
 }
 

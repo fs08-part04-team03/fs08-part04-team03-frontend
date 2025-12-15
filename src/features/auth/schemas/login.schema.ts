@@ -5,10 +5,9 @@ import { UserRole } from '@/constants/roles';
 export const userSchema = z.object({
   id: z.string().min(1, '사용자 ID가 필요합니다.'),
   email: z.string().min(1, '이메일이 필요합니다.').email('올바른 이메일 형식이 아닙니다.'),
-  role: z.enum(
-    ['user', 'manager', 'admin'],
-    '올바른 사용자 역할이 아닙니다.'
-  ) as z.ZodType<UserRole>,
+  role: z.enum(['user', 'manager', 'admin'], {
+    message: '이 페이지에 접근할 권한이 없습니다.',
+  }) as z.ZodType<UserRole>,
   companyId: z.string().min(1, '회사 ID가 필요합니다.'),
 });
 
