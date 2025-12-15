@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { RoleGuard } from '@/components/auth/RoleGuard';
+import { RoleGuard } from '@/components/guards/RoleGuard';
 
 const AdminLayout = ({ children }: { children: ReactNode }) => (
   <RoleGuard requiredRole="admin">
