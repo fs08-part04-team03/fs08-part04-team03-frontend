@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 // import { useRouter } from 'next/navigation'; // TODO: 3단계에서 활성화
 import { useForm, type Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,40 +26,49 @@ const LoginFormContent: React.FC<LoginFormContentProps> = ({
   onSubmit,
   handleSubmit,
   className,
-}) => (
-  <form
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    onSubmit={handleSubmit(onSubmit)}
-    className={className}
-    noValidate
-  >
-    <header className="mb-8">
-      <h1 className="text-20 font-bold text-black-400">로그인</h1>
-    </header>
+}) => {
+  // 서버 에러 슬롯: "항상 자리 확보"로 레이아웃 점프 제거
+  const serverErrorBoxClassName = useMemo(() => {
+    const base = 'rounded-8 px-12 text-14';
+    const visible = 'border border-error-200 bg-error-25 text-error-700';
+    const hidden = 'border border-transparent bg-transparent text-transparent';
+    return `${base} ${serverError ? visible : hidden}`;
+  }, [serverError]);
 
-    {serverError && (
-      <div className="rounded-8 border border-error-200 bg-error-25 px-12 py-8 text-14 text-error-700">
-        {serverError}
+  return (
+    <form
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      onSubmit={handleSubmit(onSubmit)}
+      className={className}
+      noValidate
+    >
+      <header className="mb-4">
+        <h1 className="text-20 font-bold text-black-400">로그인</h1>
+      </header>
+
+      {/* 서버 에러 영역: 항상 렌더링해서 점프 방지 */}
+      <div className={serverErrorBoxClassName} aria-live="polite">
+        {serverError ?? '\u00A0'}
       </div>
-    )}
 
-    {loginFields.map((field) => (
-      <RHFInputField
-        key={field.name}
-        control={control}
-        name={field.name}
-        label={field.label}
-        placeholder={field.placeholder}
-        type={field.type}
-        className="w-full"
-      />
-    ))}
+      {loginFields.map((field) => (
+        <RHFInputField
+          key={field.name}
+          control={control}
+          name={field.name}
+          label={field.label}
+          placeholder={field.placeholder}
+          type={field.type}
+          className="w-full"
+        />
+      ))}
 
-    <Button type="submit" variant="primary" className="mt-8" fullWidth inactive={!isValid}>
-      로그인
-    </Button>
-  </form>
-);
+      <Button type="submit" variant="primary" className="mt-8" fullWidth inactive={!isValid}>
+        로그인
+      </Button>
+    </form>
+  );
+};
 
 export const LoginFormMobile: React.FC = () => {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -98,7 +107,7 @@ export const LoginFormMobile: React.FC = () => {
       serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
-      className="flex w-327 flex-col gap-20 tablet:hidden"
+      className="flex w-327 flex-col tablet:hidden"
     />
   );
 };
@@ -140,7 +149,7 @@ export const LoginFormDefault: React.FC = () => {
       serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
-      className="hidden tablet:flex w-480 flex-col gap-20"
+      className="hidden tablet:flex w-480 flex-col"
     />
   );
 };
