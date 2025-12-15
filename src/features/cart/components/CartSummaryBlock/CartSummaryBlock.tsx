@@ -31,12 +31,10 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
   const [checkedIds, setCheckedIds] = useState<number[]>([]);
 
   /** =====================
-   * 🔁 props → state 동기화
+   * props → state 동기화
    ====================== */
   useEffect(() => {
     setCartItems(items);
-
-    // items 변경 시, 더 이상 존재하지 않는 체크 id 제거
     setCheckedIds((prev) => prev.filter((id) => items.some((item) => item.id === id)));
   }, [items]);
 
@@ -138,7 +136,7 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
           </button>
         </div>
 
-        {/* 상품 리스트 (스크롤 영역) */}
+        {/* 상품 리스트 */}
         <div
           className="
             flex flex-col gap-12
@@ -152,7 +150,7 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
             const isItemChecked = checkedIds.includes(item.id);
 
             const purchaseButtonLabel =
-              !isItemChecked || !isBudgetLackForSelected ? '즉시 구매' : '바로 요청';
+              isItemChecked && isBudgetLackForSelected ? '바로 요청' : '즉시 구매';
 
             return (
               <OrderItemCard
@@ -167,9 +165,8 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
                 onQuantityChange={(option) => handleQuantityChange(item.id, option)}
                 purchaseButtonLabel={purchaseButtonLabel}
                 onPurchaseClick={() => {
-                  if (isItemChecked && isBudgetLackForSelected) {
-                    onSubmit?.();
-                  }
+                  // 즉시 구매 / 바로 요청 모두 여기서 처리
+                  onSubmit?.();
                 }}
               />
             );
@@ -191,13 +188,7 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
       >
         {/* 금액 정보 */}
         <div className="flex flex-col gap-14 text-left">
-          <p
-            className="
-              font-bold text-gray-950
-              text-24 tablet:text-30
-              tracking--0.6
-            "
-          >
+          <p className="font-bold text-gray-950 text-24 tablet:text-30 tracking--0.6">
             총 주문금액 <PriceText value={totalPrice} />
           </p>
 
@@ -210,10 +201,9 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
           </p>
 
           <p
-            className={`
-              font-bold text-18 tracking--0.45
-              ${isBudgetLackForSelected ? 'text-red-500' : 'text-gray-700'}
-            `}
+            className={`font-bold text-18 tracking--0.45 ${
+              isBudgetLackForSelected ? 'text-red-500' : 'text-gray-700'
+            }`}
           >
             남은 예산 금액 <PriceText value={remainBudget} />
           </p>
@@ -223,20 +213,14 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
         <div className="flex flex-col items-center gap-16 tablet:gap-20">
           <Button
             variant="secondary"
-            className="
-              w-327 h-64 text-14 font-bold tracking--0.4 cursor-pointer
-              tablet:w-296 tablet:text-16
-            "
+            className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
           >
             계속 쇼핑하기
           </Button>
 
           <Button
             variant="primary"
-            className="
-              w-327 h-64 text-14 font-bold tracking--0.4 cursor-pointer
-              tablet:w-296 tablet:text-16
-            "
+            className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
             onClick={onSubmit}
             inactive={checkedIds.length === 0 || isBudgetLackForSelected}
           >
