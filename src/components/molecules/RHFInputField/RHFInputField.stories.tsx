@@ -278,7 +278,7 @@ export const BusinessNumberField: Story = {
   parameters: {
     docs: {
       description: {
-        story: '사업자 번호 입력 필드입니다. 자동으로 123-456-789 형식으로 포맷됩니다.',
+        story: '사업자 번호 입력 필드입니다. 자동으로 123-45-67890 형식으로 포맷됩니다.',
       },
     },
   },
@@ -297,7 +297,7 @@ export const FullForm: Story = {
           company: z.string().min(1, '회사명을 입력해주세요.'),
           businessNumber: z
             .string()
-            .regex(/^\d{3}-\d{3}-\d{3}$/, '사업자 번호는 123-456-789 형식입니다.'),
+            .regex(/^\d{3}-\d{2}-\d{5}$/, '사업자 번호는 123-45-67890 형식입니다.'),
         })
         .refine((data) => data.password === data.passwordConfirm, {
           message: '비밀번호가 일치하지 않습니다.',
