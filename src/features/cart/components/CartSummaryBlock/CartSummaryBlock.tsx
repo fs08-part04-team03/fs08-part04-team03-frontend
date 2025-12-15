@@ -20,10 +20,21 @@ interface CartSummaryBlockProps {
   items: OrderItem[];
   budget: number;
   onDeleteSelected?: (ids: number[]) => void;
-  onSubmit?: () => void;
+
+  /** 선택된 상품 전체 구매 요청 */
+  onSubmit?: (itemIds: number[]) => void;
+
+  /** 개별 상품 즉시 구매 / 요청 */
+  onItemPurchase?: (params: { itemId: number; action: 'BUY_NOW' | 'REQUEST' }) => void;
 }
 
-const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSummaryBlockProps) => {
+const CartSummaryBlock = ({
+  items,
+  budget,
+  onDeleteSelected,
+  onSubmit,
+  onItemPurchase,
+}: CartSummaryBlockProps) => {
   /** =====================
    * 상태
    ====================== */
@@ -90,35 +101,14 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
    * 렌더
    ====================== */
   return (
-    <div
-      className="
-        mx-auto
-        w-327
-        tablet:w-696
-        desktop:w-1150
-      "
-    >
+    <div className="mx-auto w-327 tablet:w-696 desktop:w-1150">
       {/* 카드 영역 */}
-      <div
-        className="
-          rounded-default
-          bg-white
-          shadow-[0_0_10px_0_rgba(0,0,0,0.12)]
-          overflow-hidden
-          flex flex-col
-        "
-      >
+      <div className="rounded-default bg-white shadow-[0_0_10px_0_rgba(0,0,0,0.12)] overflow-hidden flex flex-col">
         {/* 상단 전체 선택 */}
         <div className="flex items-center justify-between px-12 py-16 tablet:px-16 desktop:px-20 shrink-0">
           <div className="flex items-center gap-10">
             <Checkbox checked={allChecked} onChange={handleToggleAll} aria-label="전체 선택" />
-            <span
-              className="
-                text-black font-bold
-                text-16 tablet:text-18
-                tracking--0.4 tablet:tracking--0.45
-              "
-            >
+            <span className="text-black font-bold text-16 tablet:text-18 tracking--0.4 tablet:tracking--0.45">
               전체 선택 ({cartItems.length}개)
             </span>
           </div>
@@ -126,31 +116,18 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
           <button
             type="button"
             onClick={handleDeleteSelected}
-            className="
-              text-gray-600 underline
-              text-14 tablet:text-16
-              tracking--0.35 tablet:tracking--0.4
-            "
+            className="text-gray-600 underline text-14 tablet:text-16 tracking--0.35 tablet:tracking--0.4"
           >
             선택 삭제
           </button>
         </div>
 
         {/* 상품 리스트 */}
-        <div
-          className="
-            flex flex-col gap-12
-            overflow-y-auto
-            scrollbar-none
-            max-h-[60vh]
-            tablet:max-h-[70vh]
-          "
-        >
+        <div className="flex flex-col gap-12 overflow-y-auto scrollbar-none max-h-[60vh] tablet:max-h-[70vh]">
           {cartItems.map((item) => {
             const isItemChecked = checkedIds.includes(item.id);
-
-            const purchaseButtonLabel =
-              isItemChecked && isBudgetLackForSelected ? '바로 요청' : '즉시 구매';
+            const canRequest = isItemChecked && isBudgetLackForSelected;
+            const buttonLabel = canRequest ? '바로 요청' : '즉시 구매';
 
             return (
               <OrderItemCard
@@ -163,10 +140,15 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
                 checked={isItemChecked}
                 onCheckboxChange={(checked) => handleToggleItem(item.id, checked)}
                 onQuantityChange={(option) => handleQuantityChange(item.id, option)}
-                purchaseButtonLabel={purchaseButtonLabel}
+                /** ✅ 체크된 상품만 버튼 노출 */
+                purchaseButtonLabel={isItemChecked ? buttonLabel : undefined}
                 onPurchaseClick={() => {
-                  // 즉시 구매 / 바로 요청 모두 여기서 처리
-                  onSubmit?.();
+                  if (!isItemChecked) return;
+
+                  onItemPurchase?.({
+                    itemId: item.id,
+                    action: canRequest ? 'REQUEST' : 'BUY_NOW',
+                  });
                 }}
               />
             );
@@ -175,17 +157,7 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
       </div>
 
       {/* 하단 영역 */}
-      <div
-        className="
-          mt-40
-          flex flex-col
-          tablet:flex-row
-          tablet:justify-between
-          tablet:items-start
-          gap-40
-          tablet:mt-70
-        "
-      >
+      <div className="mt-40 flex flex-col tablet:flex-row tablet:justify-between tablet:items-start gap-40 tablet:mt-70">
         {/* 금액 정보 */}
         <div className="flex flex-col gap-14 text-left">
           <p className="font-bold text-gray-950 text-24 tablet:text-30 tracking--0.6">
@@ -221,8 +193,8 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
           <Button
             variant="primary"
             className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
-            onClick={onSubmit}
             inactive={checkedIds.length === 0 || isBudgetLackForSelected}
+            onClick={() => onSubmit?.(checkedIds)}
           >
             구매 요청
           </Button>
