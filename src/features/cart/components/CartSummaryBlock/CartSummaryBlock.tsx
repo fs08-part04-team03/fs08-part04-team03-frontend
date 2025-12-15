@@ -90,7 +90,7 @@ const CartSummaryBlock = ({ items, budget, onDeleteSelected, onSubmit }: CartSum
         "
       >
         {/* 상단 전체 선택 */}
-        <div className="flex items-center justify-between py-16 tablet:px-16 desktop:px-20 shrink-0">
+        <div className="flex items-center justify-between px-12 py-16 tablet:px-16 desktop:px-20 shrink-0">
           <div className="flex items-center gap-10">
             <Checkbox checked={allChecked} onChange={handleToggleAll} aria-label="전체 선택" />
             <span
