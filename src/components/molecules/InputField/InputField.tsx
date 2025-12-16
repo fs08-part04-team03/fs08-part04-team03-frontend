@@ -113,7 +113,7 @@ const InputField = ({
           onChange={handleChange}
           onBlur={onBlur}
           aria-invalid={!isValid}
-          maxLength={type === 'businessNumber' ? 13 : undefined}
+          maxLength={type === 'businessNumber' ? 12 : undefined}
           disabled={disabled}
           className={clsx(
             'flex-1 bg-transparent border-none outline-none',

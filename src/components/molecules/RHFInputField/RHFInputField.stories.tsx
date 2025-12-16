@@ -37,6 +37,7 @@ export const NameField: Story = {
 
       const { control } = useForm<FormData>({
         resolver: zodResolver(schema),
+        mode: 'onBlur',
         defaultValues: {
           name: '',
         },
@@ -52,6 +53,7 @@ export const NameField: Story = {
         />
       );
     };
+
     return <Wrapper />;
   },
   parameters: {
@@ -75,6 +77,7 @@ export const EmailField: Story = {
 
       const { control } = useForm<FormData>({
         resolver: zodResolver(schema),
+        mode: 'onBlur',
         defaultValues: {
           email: '',
         },
@@ -90,6 +93,7 @@ export const EmailField: Story = {
         />
       );
     };
+
     return <Wrapper />;
   },
   parameters: {
@@ -113,6 +117,7 @@ export const PasswordField: Story = {
 
       const { control } = useForm<FormData>({
         resolver: zodResolver(schema),
+        mode: 'onBlur',
         defaultValues: {
           password: '',
         },
@@ -125,10 +130,10 @@ export const PasswordField: Story = {
           label="비밀번호"
           placeholder="비밀번호를 입력해주세요."
           type="password"
-          minLength={8}
         />
       );
     };
+
     return <Wrapper />;
   },
   parameters: {
@@ -156,15 +161,14 @@ export const PasswordConfirmField: Story = {
 
       type FormData = z.infer<typeof schema>;
 
-      const { control, watch } = useForm<FormData>({
+      const { control } = useForm<FormData>({
         resolver: zodResolver(schema),
+        mode: 'onBlur',
         defaultValues: {
           password: '',
           passwordConfirm: '',
         },
       });
-
-      const password = watch('password');
 
       return (
         <div className="flex flex-col gap-20">
@@ -174,19 +178,19 @@ export const PasswordConfirmField: Story = {
             label="비밀번호"
             placeholder="비밀번호를 입력해주세요."
             type="password"
-            minLength={8}
+            // ✅ minLength 제거 (Zod로 검증)
           />
           <RHFInputField
             control={control}
             name="passwordConfirm"
             label="비밀번호 확인"
             placeholder="비밀번호를 한 번 더 입력해주세요."
-            type="passwordConfirm"
-            compareWith={password}
+            type="password"
           />
         </div>
       );
     };
+
     return <Wrapper />;
   },
   parameters: {
@@ -210,6 +214,7 @@ export const CompanyField: Story = {
 
       const { control } = useForm<FormData>({
         resolver: zodResolver(schema),
+        mode: 'onBlur',
         defaultValues: {
           company: '',
         },
@@ -225,6 +230,7 @@ export const CompanyField: Story = {
         />
       );
     };
+
     return <Wrapper />;
   },
   parameters: {
@@ -250,6 +256,7 @@ export const BusinessNumberField: Story = {
 
       const { control } = useForm<FormData>({
         resolver: zodResolver(schema),
+        mode: 'onBlur',
         defaultValues: {
           businessNumber: '',
         },
@@ -261,10 +268,11 @@ export const BusinessNumberField: Story = {
           name="businessNumber"
           label="사업자 번호"
           placeholder="사업자 번호를 입력해주세요."
-          type="businessNumber"
+          type="text"
         />
       );
     };
+
     return <Wrapper />;
   },
   parameters: {
@@ -298,8 +306,9 @@ export const FullForm: Story = {
 
       type FormData = z.infer<typeof schema>;
 
-      const { control, handleSubmit, watch } = useForm<FormData>({
+      const { control, handleSubmit } = useForm<FormData>({
         resolver: zodResolver(schema),
+        mode: 'onBlur',
         defaultValues: {
           name: '',
           email: '',
@@ -309,8 +318,6 @@ export const FullForm: Story = {
           businessNumber: '',
         },
       });
-
-      const password = watch('password');
 
       const onSubmit = (data: FormData) => {
         // eslint-disable-next-line no-console
@@ -340,15 +347,14 @@ export const FullForm: Story = {
             label="비밀번호"
             placeholder="비밀번호를 입력해주세요."
             type="password"
-            minLength={8}
+            // ✅ minLength 제거 (Zod로 검증)
           />
           <RHFInputField
             control={control}
             name="passwordConfirm"
             label="비밀번호 확인"
             placeholder="비밀번호를 한 번 더 입력해주세요."
-            type="passwordConfirm"
-            compareWith={password}
+            type="password"
           />
           <RHFInputField
             control={control}
@@ -362,7 +368,7 @@ export const FullForm: Story = {
             name="businessNumber"
             label="사업자 번호"
             placeholder="사업자 번호를 입력해주세요."
-            type="businessNumber"
+            type="text"
           />
           <Button type="submit" variant="primary" className="w-full">
             제출
@@ -370,6 +376,7 @@ export const FullForm: Story = {
         </form>
       );
     };
+
     return <Wrapper />;
   },
   parameters: {

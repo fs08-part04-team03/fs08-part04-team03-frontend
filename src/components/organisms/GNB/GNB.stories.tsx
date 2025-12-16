@@ -10,6 +10,9 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',
+    viewport: {
+      defaultViewport: 'desktop',
+    },
     nextjs: {
       appDirectory: true,
       navigation: {
@@ -21,6 +24,9 @@ const meta = {
       description: {
         component:
           '전역 네비게이션 바 컴포넌트입니다. Brand, PrimaryNav, CategorySwitcher, UserActions를 통합하여 반응형으로 동작합니다. 모바일/태블릿에서 햄버거 메뉴를 클릭하면 오른쪽에서 사이드바가 열립니다.',
+      },
+      canvas: {
+        withToolbar: true,
       },
     },
   },
@@ -58,6 +64,11 @@ export default meta;
 type Story = StoryObj<typeof GNB>;
 
 export const Default: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: 'desktop',
+    },
+  },
   render: ({ role, activeCategoryId: initialCategoryId, onCategoryChange, ...args }) => {
     const [activeCategoryId, setActiveCategoryId] = useState(initialCategoryId ?? 'drink');
 
@@ -113,4 +124,49 @@ export const Default: Story = {
     ),
     activeCategoryId: 'drink' as const,
   },
+};
+
+export const Mobile: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile',
+    },
+    docs: {
+      canvas: {
+        withToolbar: true,
+      },
+    },
+  },
+  render: Default.render,
+  args: Default.args,
+};
+
+export const Tablet: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: 'tablet',
+    },
+    docs: {
+      canvas: {
+        withToolbar: true,
+      },
+    },
+  },
+  render: Default.render,
+  args: Default.args,
+};
+
+export const Desktop: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: 'desktop',
+    },
+    docs: {
+      canvas: {
+        withToolbar: true,
+      },
+    },
+  },
+  render: Default.render,
+  args: Default.args,
 };

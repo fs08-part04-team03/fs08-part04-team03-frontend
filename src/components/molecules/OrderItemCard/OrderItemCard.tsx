@@ -22,6 +22,7 @@ interface OrderItemCardBaseProps {
   onCheckboxChange?: (checked: boolean) => void;
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
+  purchaseButtonLabel?: string;
   className?: string;
 }
 
@@ -41,6 +42,7 @@ interface OrderItemCardDefaultMobileProps {
   onCheckboxChange?: (checked: boolean) => void;
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
+  purchaseButtonLabel?: string;
   className?: string;
 }
 
@@ -55,6 +57,7 @@ export const OrderItemCardDefaultMobile: React.FC<OrderItemCardDefaultMobileProp
   onCheckboxChange,
   onQuantityChange,
   onPurchaseClick,
+  purchaseButtonLabel,
   className,
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
@@ -125,7 +128,7 @@ export const OrderItemCardDefaultMobile: React.FC<OrderItemCardDefaultMobileProp
         </div>
         {onPurchaseClick && (
           <Button variant="secondary" size="sm" onClick={onPurchaseClick} className="w-88 h-40">
-            즉시 구매
+            {purchaseButtonLabel ?? '즉시 구매'}
           </Button>
         )}
       </div>
@@ -146,6 +149,7 @@ interface OrderItemCardDefaultTabletProps {
   onCheckboxChange?: (checked: boolean) => void;
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
+  purchaseButtonLabel?: string;
   className?: string;
 }
 
@@ -161,6 +165,7 @@ export const OrderItemCardDefaultTablet: React.FC<OrderItemCardDefaultTabletProp
   onCheckboxChange,
   onQuantityChange,
   onPurchaseClick,
+  purchaseButtonLabel,
   className,
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
@@ -239,7 +244,7 @@ export const OrderItemCardDefaultTablet: React.FC<OrderItemCardDefaultTabletProp
         </div>
         {onPurchaseClick && (
           <Button variant="secondary" size="sm" onClick={onPurchaseClick} className="w-99 h-44">
-            즉시 구매
+            {purchaseButtonLabel ?? '즉시 구매'}
           </Button>
         )}
       </div>
@@ -260,6 +265,7 @@ interface OrderItemCardDefaultDesktopProps {
   onCheckboxChange?: (checked: boolean) => void;
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
+  purchaseButtonLabel?: string;
   className?: string;
 }
 
@@ -275,6 +281,7 @@ export const OrderItemCardDefaultDesktop: React.FC<OrderItemCardDefaultDesktopPr
   onCheckboxChange,
   onQuantityChange,
   onPurchaseClick,
+  purchaseButtonLabel,
   className,
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
@@ -353,7 +360,7 @@ export const OrderItemCardDefaultDesktop: React.FC<OrderItemCardDefaultDesktopPr
         </div>
         {onPurchaseClick && (
           <Button variant="secondary" size="sm" onClick={onPurchaseClick} className="w-99 h-44">
-            즉시 구매
+            {purchaseButtonLabel ?? '즉시 구매'}
           </Button>
         )}
       </div>
@@ -374,6 +381,7 @@ const OrderItemCardDefault: React.FC<OrderItemCardBaseProps> = ({
   onCheckboxChange,
   onQuantityChange,
   onPurchaseClick,
+  purchaseButtonLabel,
   className,
 }) => (
   <>
@@ -390,6 +398,7 @@ const OrderItemCardDefault: React.FC<OrderItemCardBaseProps> = ({
         onCheckboxChange={onCheckboxChange}
         onQuantityChange={onQuantityChange}
         onPurchaseClick={onPurchaseClick}
+        purchaseButtonLabel={purchaseButtonLabel}
         className={className}
       />
     </div>
@@ -408,6 +417,7 @@ const OrderItemCardDefault: React.FC<OrderItemCardBaseProps> = ({
         onCheckboxChange={onCheckboxChange}
         onQuantityChange={onQuantityChange}
         onPurchaseClick={onPurchaseClick}
+        purchaseButtonLabel={purchaseButtonLabel}
         className={className}
       />
     </div>
@@ -426,6 +436,7 @@ const OrderItemCardDefault: React.FC<OrderItemCardBaseProps> = ({
         onCheckboxChange={onCheckboxChange}
         onQuantityChange={onQuantityChange}
         onPurchaseClick={onPurchaseClick}
+        purchaseButtonLabel={purchaseButtonLabel}
         className={className}
       />
     </div>
@@ -585,6 +596,7 @@ export const OrderItemCard: React.FC<OrderItemCardProps> = ({
   onCheckboxChange,
   onQuantityChange,
   onPurchaseClick,
+  purchaseButtonLabel,
   className,
 }) => {
   if (variant === 'confirm') {
@@ -614,6 +626,7 @@ export const OrderItemCard: React.FC<OrderItemCardProps> = ({
       onCheckboxChange={onCheckboxChange}
       onQuantityChange={onQuantityChange}
       onPurchaseClick={onPurchaseClick}
+      purchaseButtonLabel={purchaseButtonLabel}
       className={className}
     />
   );
