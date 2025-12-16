@@ -58,16 +58,45 @@ function normalizeRole(role: string): 'user' | 'manager' | 'admin' {
  * 로그인 API 호출
  */
 export async function login(credentials: LoginInput): Promise<{ user: User; accessToken: string }> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      email: credentials.email,
-      password: credentials.password,
-    }),
-  });
+  // API URL 검증
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  if (!apiUrl) {
+    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
+  }
+
+  // 타임아웃 설정 (환경 변수 또는 기본값 10초)
+  const timeout = Number.parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000', 10);
+
+  // AbortController 생성 및 타임아웃 설정
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: credentials.email,
+        password: credentials.password,
+      }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    // 타임아웃 또는 중단 에러 처리
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+    }
+    throw error;
+  }
+
+  // 응답을 받은 후 타임아웃 타이머 정리
+  clearTimeout(timeoutId);
 
   // 응답이 JSON인지 확인
   const contentType = response.headers.get('content-type');
@@ -104,19 +133,48 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
 export async function signup(
   signupData: SignupRequest
 ): Promise<{ user: User; accessToken: string }> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/signup`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: signupData.name,
-      email: signupData.email,
-      password: signupData.password,
-      companyName: signupData.companyName,
-      businessNumber: signupData.businessNumber,
-    }),
-  });
+  // API URL 검증
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) {
+    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
+  }
+
+  // 타임아웃 설정 (환경 변수 또는 기본값 10초)
+  const timeout = Number.parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000', 10);
+
+  // AbortController 생성 및 타임아웃 설정
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}/api/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: signupData.name,
+        email: signupData.email,
+        password: signupData.password,
+        companyName: signupData.companyName,
+        businessNumber: signupData.businessNumber,
+      }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    // 타임아웃 또는 중단 에러 처리
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+    }
+    throw error;
+  }
+
+  // 응답을 받은 후 타임아웃 타이머 정리
+  clearTimeout(timeoutId);
 
   // 응답이 JSON인지 확인
   const contentType = response.headers.get('content-type');

@@ -15,9 +15,9 @@ interface SignupTemProps {
   control: Control<SignupInput>;
   isValid: boolean;
   serverError: string | null;
-  onSubmit: (values: SignupInput) => void;
+  onSubmit: (values: SignupInput) => void | Promise<void>;
   handleSubmit: (
-    onSubmit: (values: SignupInput) => void
+    onSubmit: (values: SignupInput) => void | Promise<void>
   ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
   title?: string;
   subtitle?: string;
@@ -49,8 +49,11 @@ const SignupTemContent: React.FC<SignupTemContentProps> = ({
 
   return (
     <form
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={(e) => {
+        e.preventDefault();
+        // eslint-disable-next-line no-void
+        void handleSubmit(onSubmit)(e);
+      }}
       className={className}
       noValidate
     >
