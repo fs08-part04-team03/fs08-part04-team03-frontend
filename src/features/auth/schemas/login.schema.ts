@@ -25,10 +25,10 @@ export const loginSchema = z
   })
   .refine(
     (data) => {
-      const hasLetter = /[A-Za-z]/.test(data.password);
+      const hasLowerCase = /[a-z]/.test(data.password);
       const hasNumber = /[0-9]/.test(data.password);
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.password);
-      return hasLetter && hasNumber && hasSpecialChar;
+      return hasLowerCase && hasNumber && hasSpecialChar;
     },
     {
       message: '유효하지 않은 비밀번호입니다.',
@@ -66,10 +66,10 @@ export const changePasswordSchema = z
   })
   .refine(
     (data) => {
-      const hasLetter = /[A-Za-z]/.test(data.newPassword);
+      const hasLowerCase = /[a-z]/.test(data.newPassword);
       const hasNumber = /[0-9]/.test(data.newPassword);
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.newPassword);
-      return hasLetter && hasNumber && hasSpecialChar;
+      return hasLowerCase && hasNumber && hasSpecialChar;
     },
     {
       message: '유효하지 않은 비밀번호입니다.',
@@ -107,10 +107,10 @@ export const resetPasswordSchema = z
   })
   .refine(
     (data) => {
-      const hasLetter = /[A-Za-z]/.test(data.newPassword);
+      const hasLowerCase = /[a-z]/.test(data.newPassword);
       const hasNumber = /[0-9]/.test(data.newPassword);
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.newPassword);
-      return hasLetter && hasNumber && hasSpecialChar;
+      return hasLowerCase && hasNumber && hasSpecialChar;
     },
     {
       message: '유효하지 않은 비밀번호입니다.',
