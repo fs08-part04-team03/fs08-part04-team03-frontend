@@ -127,6 +127,7 @@ const CartSummaryBlockOrg = ({
             const isChecked = checkedIds.includes(item.id);
             const showPurchaseButton = isChecked;
 
+            /** eslint 통과용: 중첩 삼항 제거 */
             let purchaseButtonLabel: string | undefined;
             if (role === 'user') {
               purchaseButtonLabel = '바로 요청';
@@ -134,9 +135,11 @@ const CartSummaryBlockOrg = ({
               purchaseButtonLabel = '즉시 구매';
             }
 
+            /** 🔴 핵심: user는 항상 비활성화 */
             const purchaseButtonDisabled =
-              role !== 'user' && showPurchaseButton && isBudgetExceeded;
+              role === 'user' || (showPurchaseButton && isBudgetExceeded);
 
+            /** 🔴 user는 클릭 자체 불가 */
             const handlePurchaseClick =
               role !== 'user' && showPurchaseButton && !isBudgetExceeded
                 ? () =>
