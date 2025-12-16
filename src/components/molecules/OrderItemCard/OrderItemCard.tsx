@@ -23,6 +23,7 @@ interface OrderItemCardBaseProps {
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
   purchaseButtonLabel?: string;
+  purchaseButtonDisabled?: boolean;
   className?: string;
 }
 
@@ -43,6 +44,7 @@ interface OrderItemCardDefaultMobileProps {
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
   purchaseButtonLabel?: string;
+  purchaseButtonDisabled?: boolean;
   className?: string;
 }
 
@@ -58,6 +60,7 @@ export const OrderItemCardDefaultMobile: React.FC<OrderItemCardDefaultMobileProp
   onQuantityChange,
   onPurchaseClick,
   purchaseButtonLabel,
+  purchaseButtonDisabled,
   className,
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
@@ -126,11 +129,16 @@ export const OrderItemCardDefaultMobile: React.FC<OrderItemCardDefaultMobileProp
             className="h-40"
           />
         </div>
-        {onPurchaseClick && (
-          <Button variant="secondary" size="sm" onClick={onPurchaseClick} className="w-88 h-40">
-            {purchaseButtonLabel ?? '즉시 구매'}
-          </Button>
-        )}
+
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onPurchaseClick}
+          inactive={purchaseButtonDisabled}
+          className="w-88 h-40 cursor-pointer"
+        >
+          {purchaseButtonLabel ?? '즉시 구매'}
+        </Button>
       </div>
     </div>
   );
@@ -150,6 +158,7 @@ interface OrderItemCardDefaultTabletProps {
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
   purchaseButtonLabel?: string;
+  purchaseButtonDisabled?: boolean;
   className?: string;
 }
 
@@ -166,6 +175,7 @@ export const OrderItemCardDefaultTablet: React.FC<OrderItemCardDefaultTabletProp
   onQuantityChange,
   onPurchaseClick,
   purchaseButtonLabel,
+  purchaseButtonDisabled,
   className,
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
@@ -242,11 +252,16 @@ export const OrderItemCardDefaultTablet: React.FC<OrderItemCardDefaultTabletProp
             className="text-gray-900 font-semibold text-24 leading-32"
           />
         </div>
-        {onPurchaseClick && (
-          <Button variant="secondary" size="sm" onClick={onPurchaseClick} className="w-99 h-44">
-            {purchaseButtonLabel ?? '즉시 구매'}
-          </Button>
-        )}
+
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onPurchaseClick}
+          inactive={purchaseButtonDisabled}
+          className="w-99 h-44 cursor-pointer"
+        >
+          {purchaseButtonLabel ?? '즉시 구매'}
+        </Button>
       </div>
     </div>
   );
@@ -266,6 +281,7 @@ interface OrderItemCardDefaultDesktopProps {
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
   purchaseButtonLabel?: string;
+  purchaseButtonDisabled?: boolean;
   className?: string;
 }
 
@@ -282,6 +298,7 @@ export const OrderItemCardDefaultDesktop: React.FC<OrderItemCardDefaultDesktopPr
   onQuantityChange,
   onPurchaseClick,
   purchaseButtonLabel,
+  purchaseButtonDisabled,
   className,
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
@@ -358,11 +375,16 @@ export const OrderItemCardDefaultDesktop: React.FC<OrderItemCardDefaultDesktopPr
             className="text-gray-900 font-semibold text-24 leading-32"
           />
         </div>
-        {onPurchaseClick && (
-          <Button variant="secondary" size="sm" onClick={onPurchaseClick} className="w-99 h-44">
-            {purchaseButtonLabel ?? '즉시 구매'}
-          </Button>
-        )}
+
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onPurchaseClick}
+          inactive={purchaseButtonDisabled}
+          className="w-99 h-44 cursor-pointer"
+        >
+          {purchaseButtonLabel ?? '즉시 구매'}
+        </Button>
       </div>
     </div>
   );
@@ -382,6 +404,7 @@ const OrderItemCardDefault: React.FC<OrderItemCardBaseProps> = ({
   onQuantityChange,
   onPurchaseClick,
   purchaseButtonLabel,
+  purchaseButtonDisabled,
   className,
 }) => (
   <>
@@ -399,6 +422,7 @@ const OrderItemCardDefault: React.FC<OrderItemCardBaseProps> = ({
         onQuantityChange={onQuantityChange}
         onPurchaseClick={onPurchaseClick}
         purchaseButtonLabel={purchaseButtonLabel}
+        purchaseButtonDisabled={purchaseButtonDisabled}
         className={className}
       />
     </div>
@@ -418,6 +442,7 @@ const OrderItemCardDefault: React.FC<OrderItemCardBaseProps> = ({
         onQuantityChange={onQuantityChange}
         onPurchaseClick={onPurchaseClick}
         purchaseButtonLabel={purchaseButtonLabel}
+        purchaseButtonDisabled={purchaseButtonDisabled}
         className={className}
       />
     </div>
@@ -437,6 +462,7 @@ const OrderItemCardDefault: React.FC<OrderItemCardBaseProps> = ({
         onQuantityChange={onQuantityChange}
         onPurchaseClick={onPurchaseClick}
         purchaseButtonLabel={purchaseButtonLabel}
+        purchaseButtonDisabled={purchaseButtonDisabled}
         className={className}
       />
     </div>
@@ -597,6 +623,7 @@ export const OrderItemCard: React.FC<OrderItemCardProps> = ({
   onQuantityChange,
   onPurchaseClick,
   purchaseButtonLabel,
+  purchaseButtonDisabled,
   className,
 }) => {
   if (variant === 'confirm') {
@@ -627,6 +654,7 @@ export const OrderItemCard: React.FC<OrderItemCardProps> = ({
       onQuantityChange={onQuantityChange}
       onPurchaseClick={onPurchaseClick}
       purchaseButtonLabel={purchaseButtonLabel}
+      purchaseButtonDisabled={purchaseButtonDisabled}
       className={className}
     />
   );
