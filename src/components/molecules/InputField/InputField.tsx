@@ -12,9 +12,11 @@ type Props = {
   type?: InputFieldType;
   value?: string;
   onChange?: (value: string) => void;
+  onBlur?: () => void;
   minLength?: number;
   maxLength?: number;
   compareWith?: string;
+  disabled?: boolean;
 };
 
 const InputField = ({
@@ -24,9 +26,11 @@ const InputField = ({
   type = 'text',
   value = '',
   onChange,
+  onBlur,
   minLength = 8,
   maxLength = 30,
   compareWith,
+  disabled,
 }: Props) => {
   const [internal, setInternal] = useState(value);
   const [visible, setVisible] = useState(false);
@@ -41,10 +45,10 @@ const InputField = ({
   const inputId = id ?? `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
 
   const formatBusinessNumber = (v: string) => {
-    const digits = v.replace(/\D/g, '').slice(0, 9);
+    const digits = v.replace(/\D/g, '').slice(0, 10);
     if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 9)}`;
+    if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 10)}`;
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -59,41 +63,30 @@ const InputField = ({
     setTouched(true);
   };
 
-  // --------------------
-  // Validation
-  // --------------------
+  // Validation (border 색상 변경을 위해만 사용, 에러 메시지는 RHFInputField에서 관리)
   let isValid = true;
-  let errorMessage = '';
 
   if (type !== 'businessNumber' && internal.length > maxLength) {
     isValid = false;
-    errorMessage = `${label}은(는) 최대 ${maxLength}자까지 가능합니다.`;
   } else if (type === 'text' && !internal.trim()) {
     isValid = false;
-    errorMessage = `${label}을 입력해주세요.`;
   } else if (type === 'email') {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(internal)) {
       isValid = false;
-      errorMessage = '유효한 이메일이 아닙니다.';
     }
   } else if (type === 'password' && internal.length < minLength) {
     isValid = false;
-    errorMessage = `비밀번호는 최소 ${minLength}자 이상이어야 합니다.`;
   } else if (type === 'passwordConfirm' && internal !== compareWith) {
     isValid = false;
-    errorMessage = '비밀번호가 일치하지 않습니다.';
   } else if (type === 'businessNumber') {
-    const bizRegex = /^\d{3}-\d{3}-\d{3}$/;
+    const bizRegex = /^\d{3}-\d{2}-\d{5}$/;
     if (!bizRegex.test(internal)) {
       isValid = false;
-      errorMessage = '사업자 번호는 123-456-789 형식입니다.';
     }
   }
 
-  // --------------------
   // input type 결정
-  // --------------------
   let inputType: 'text' | 'password' | 'email' = 'text';
   if (type === 'password' || type === 'passwordConfirm') {
     inputType = visible ? 'text' : 'password';
@@ -118,8 +111,10 @@ const InputField = ({
           value={internal}
           onFocus={() => setTouched(true)}
           onChange={handleChange}
+          onBlur={onBlur}
           aria-invalid={!isValid}
           maxLength={type === 'businessNumber' ? 12 : undefined}
+          disabled={disabled}
           className={clsx(
             'flex-1 bg-transparent border-none outline-none',
             'font-suit text-16 font-normal tracking-tight text-gray-950'
@@ -149,10 +144,6 @@ const InputField = ({
           touched && !isValid ? 'border-error-500' : 'border-gray-600'
         )}
       />
-
-      {touched && !isValid && (
-        <div className="text-14 text-error-500 font-normal tracking--0.35">{errorMessage}</div>
-      )}
     </div>
   );
 };

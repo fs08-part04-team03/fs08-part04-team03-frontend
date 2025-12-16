@@ -84,6 +84,8 @@ body {
   --color-error-500: #f31d1d;
   --color-white: #ffffff;
   --color-black: #000000;
+  --color-black-100: #6b6b6b;
+  --color-black-400: #1f1f1f;
 
   /* 기본 spacing 단위를 1px로 설정 (기본값: 0.25rem = 4px) */
   --spacing: 1px;
@@ -212,12 +214,15 @@ body {
   --spacing-300: 300px;
   --spacing-303\.667: 303.667px;
   --spacing-304: 304px;
+  --spacing-310: 310px;
   --spacing-327: 327px;
   --spacing-328: 328px;
+  --spacing-336: 336px;
   --spacing-344: 344px;
   --spacing-345: 345px;
   --spacing-350: 350px;
   --spacing-366: 366px;
+  --spacing-375: 375px;
   --spacing-376: 376px;
   --spacing-394: 394px;
   --spacing-426: 426px;
@@ -241,6 +246,12 @@ body {
   --spacing-1180: 1180px;
   --spacing-1352: 1352px;
   --spacing-1400: 1400px;
+  --spacing-155: 155px;
+  --spacing-241: 241px;
+  --spacing-319: 319px;
+  --spacing-367: 367px;
+  --spacing-439: 439px;
+  --spacing-1304: 1304px;
 
   /* 브레이크포인트 */
   --breakpoint-mobile: 0px;
@@ -250,13 +261,18 @@ body {
   /* Border Radius */
   --radius-default: 2px;
   --radius-6: 6px;
+  --radius-8: 8px;
   --radius-100: 100px;
 
   /* Font Size 토큰 - Tailwind CSS 4 @theme에서 --text-* 형식으로 정의 */
+  --text-8: 8px;
+  --text-9: 9px;
   --text-10: 10px;
+  --text-11: 11px;
   --text-12: 12px;
   --text-13: 13px;
   --text-14: 14px;
+  --text-15: 15px;
   --text-16: 16px;
   --text-18: 18px;
   --text-20: 20px;
@@ -267,8 +283,20 @@ body {
   --text-50: 50px;
 
   --letter-spacing-tight: -0.4px;
-  --letter-spacing--0.35: -0.35px;
-  --letter-spacing--0.3: -0.3px;
+  --letter-spacing-0.35: -0.35px;
+  --letter-spacing-0.3: -0.3px;
+  --letter-spacing-0.4: -0.4px;
+  --letter-spacing-0.45: -0.45px;
+  --letter-spacing-0.6: -0.6px;
+
+  --tracking-tight: -0.4px;
+  --tracking--0.3: -0.3px;
+  --tracking--0.35: -0.35px;
+  --tracking--0.4: -0.4px;
+  --tracking--0.45: -0.45px;
+  --tracking--0.6: -0.6px;
+
+  --leading-160: 160%;
 }
 
 @layer utilities {
@@ -279,6 +307,15 @@ body {
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+
+  .scrollbar-none textarea {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none textarea::-webkit-scrollbar {
+    display: none;
+  }
+
   .sr-only {
     position: absolute;
     width: 1px;

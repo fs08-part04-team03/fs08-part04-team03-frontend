@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
@@ -12,12 +12,18 @@ interface PaginationBlockProps {
   onNext?: (newPage: number) => void;
 }
 
-const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPrev, onNext }) => {
+const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProps) => {
   const [page, setPage] = useState(current);
 
+  /**
+   * current/total 변화 시 항상 안전한 page 값으로 보정
+   * (필터로 total이 줄어드는 등 current > total 이 되는 경우 방지)
+   */
   useEffect(() => {
-    setPage(current);
-  }, [current]);
+    const safeTotal = Math.max(1, total);
+    const safeCurrent = Math.min(Math.max(1, current), safeTotal);
+    setPage(safeCurrent);
+  }, [current, total]);
 
   const handlePrev = () => {
     if (page > 1) {
@@ -44,15 +50,16 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
       role="navigation"
       aria-label="페이지네이션"
     >
-      {/* page info */}
+      {/* Page info */}
       <div className="text-gray-primary-500 text-16 font-normal tracking-tight font-suit">
         {page} of {total}
       </div>
 
       {/* Prev / Next Buttons */}
       <div className="flex items-center gap-30">
-        {/* Prev (< Prev) */}
+        {/* Prev */}
         <Button
+          type="button"
           variant="secondary"
           size="sm"
           onClick={handlePrev}
@@ -75,8 +82,9 @@ const PaginationBlock: React.FC<PaginationBlockProps> = ({ current, total, onPre
           </div>
         </Button>
 
-        {/* Next (Next >) */}
+        {/* Next */}
         <Button
+          type="button"
           variant="secondary"
           size="sm"
           onClick={handleNext}
