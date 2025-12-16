@@ -1,7 +1,13 @@
-const InviteSignupPage = () => (
-  <div>
-    <p>InviteSignupPage-초대회원가입 페이지</p>
-  </div>
+import InviteSignup from '@/features/auth/section/InviteSignup';
+
+interface InviteSignupPageProps {
+  params: {
+    token: string;
+  };
+}
+
+const InviteSignupPage = ({ params }: InviteSignupPageProps) => (
+  <InviteSignup token={params.token} />
 );
 
 export default InviteSignupPage;

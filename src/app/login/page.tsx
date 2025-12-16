@@ -1,7 +1,5 @@
-const LoginPage = () => (
-  <div>
-    <p>LoginPage-로그인 페이지</p>
-  </div>
-);
+import Login from '@/features/auth/section/Login';
+
+const LoginPage = () => <Login />;
 
 export default LoginPage;
