@@ -135,30 +135,28 @@ export const SignupTemDesktop: React.FC<SignupTemProps> = ({
     <div className="mt-177">
       <Logo size="lg" />
     </div>
-    <div className="w-600 relative">
-      <div className="flex flex-col items-center justify-center w-480">
-        <div className="bg-white rounded-16 shadow-2xl p-48 relative">
-          <SignupTemContent
-            control={control}
-            isValid={isValid}
-            serverError={serverError}
-            onSubmit={onSubmit}
-            handleSubmit={handleSubmit}
-            title={title}
-            subtitle={subtitle}
-            submitButtonText={submitButtonText}
-            className="flex flex-col w-full tablet:w-480 desktop:w-480"
-          />
-          <p className="flex justify-center mt-24 text-14 text-gray-600">
-            이미 계정이 있으신가요?{' '}
-            <Link
-              href={PATHNAME.LOGIN}
-              className="underline font-bold text-gray-950 underline-offset-4"
-            >
-              로그인
-            </Link>
-          </p>
-        </div>
+    <div className="w-600 mx-auto">
+      <div className="bg-white rounded-16 shadow-2xl p-48">
+        <SignupTemContent
+          control={control}
+          isValid={isValid}
+          serverError={serverError}
+          onSubmit={onSubmit}
+          handleSubmit={handleSubmit}
+          title={title}
+          subtitle={subtitle}
+          submitButtonText={submitButtonText}
+          className="flex flex-col w-full tablet:w-480 desktop:w-480"
+        />
+        <p className="flex justify-center mt-24 text-14 text-gray-600">
+          이미 계정이 있으신가요?{' '}
+          <Link
+            href={PATHNAME.LOGIN}
+            className="underline font-bold text-gray-950 underline-offset-4"
+          >
+            로그인
+          </Link>
+        </p>
       </div>
     </div>
   </div>
