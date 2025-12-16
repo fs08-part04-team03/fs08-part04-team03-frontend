@@ -15,9 +15,11 @@ export interface DropDownProps {
   placeholder?: string;
   variant?: SelectVariant;
   disabled?: boolean;
-  buttonClassName?: string; // 버튼 스타일 오버라이드
-  dropdownClassName?: string; // 드롭다운 리스트 스타일 오버라이드
-  optionClassName?: string; // 옵션 항목 스타일 오버라이드
+  buttonClassName?: string;
+  dropdownClassName?: string;
+  optionClassName?: string;
+  onSelect?: (item: Option) => void;
+  selected?: Option; // ← 외부에서 선택된 값을 받는 prop
 }
 
 const DropDown: React.FC<DropDownProps> = ({
@@ -28,18 +30,27 @@ const DropDown: React.FC<DropDownProps> = ({
   buttonClassName = '',
   dropdownClassName = '',
   optionClassName = '',
+  onSelect,
+  selected: externalSelected, // ← 외부 selected
 }) => {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Option | null>(null);
+  const [selected, setSelected] = useState<Option | null>(externalSelected ?? null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleOpen = () => !disabled && setOpen((prev) => !prev);
+
   const handleSelect = (item: Option) => {
     setSelected(item);
     setOpen(false);
+    if (onSelect) onSelect(item);
   };
 
-  // 🔹 외부 클릭 + Escape 키 처리
+  // 외부 selected prop 변경 시 내부 상태 동기화
+  useEffect(() => {
+    setSelected(externalSelected ?? null);
+  }, [externalSelected]);
+
+  // 외부 클릭 + Escape 키 처리
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -97,7 +108,7 @@ const DropDown: React.FC<DropDownProps> = ({
           'border border-gray-300 rounded-8 bg-white flex items-center justify-between px-12',
           sizeClasses[appliedVariant],
           disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
-          buttonClassName // ← 버튼 스타일 오버라이드
+          buttonClassName
         )}
       >
         <span className={clsx(fontClasses, textColorClasses[appliedVariant])}>
@@ -118,7 +129,7 @@ const DropDown: React.FC<DropDownProps> = ({
           aria-label={placeholder}
           className={clsx(
             'absolute left-0 mt-4 w-full bg-white border border-gray-300 shadow-lg rounded-8 z-dropdown max-h-200 overflow-y-auto scrollbar-none',
-            dropdownClassName // ← 드롭다운 리스트 오버라이드
+            dropdownClassName
           )}
         >
           {items.map((item) => (
@@ -140,7 +151,7 @@ const DropDown: React.FC<DropDownProps> = ({
                 textColorClasses[appliedVariant],
                 optionHeightClasses[appliedVariant],
                 selected?.key === item.key && 'bg-gray-50',
-                optionClassName // ← 옵션 항목 오버라이드
+                optionClassName
               )}
             >
               {item.label}

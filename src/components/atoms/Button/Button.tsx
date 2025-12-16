@@ -6,8 +6,9 @@ import { clsx } from '@/utils/clsx';
 type ButtonVariant = 'primary' | 'secondary' | 'signup';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-export interface ButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'disabled'> {
+// ✨ type 허용: 'button' | 'submit' | 'reset'
+export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'disabled'> {
+  type?: 'button' | 'submit' | 'reset';
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
@@ -54,14 +55,15 @@ const Button = ({
   rightIcon,
   children,
   className,
+  type = 'button', // ✨ 기본 button
   ...rest
 }: ButtonProps) => {
-  // signup variant는 자체 스타일을 가짐
   const isSignup = variant === 'signup';
 
   return (
     <button
-      type="button"
+      // eslint-disable-next-line react/button-has-type
+      type={type}
       disabled={inactive}
       className={clsx(
         baseClass,
@@ -92,12 +94,16 @@ export const SignupButton = ({
   onFocus,
   onBlur,
   id,
+  type = 'button', // ✨ signup도 type 적용 가능
   'aria-label': ariaLabel,
+  fullWidth,
 }: Omit<ButtonProps, 'variant'>) => (
   <Button
+    type={type}
     variant="signup"
     inactive={inactive}
     rightIcon={rightIcon}
+    fullWidth={fullWidth}
     className={clsx('gap-4', className)}
     onClick={onClick}
     onFocus={onFocus}
