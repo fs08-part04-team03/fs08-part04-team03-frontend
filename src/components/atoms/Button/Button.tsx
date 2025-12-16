@@ -96,12 +96,14 @@ export const SignupButton = ({
   id,
   type = 'button', // ✨ signup도 type 적용 가능
   'aria-label': ariaLabel,
+  fullWidth,
 }: Omit<ButtonProps, 'variant'>) => (
   <Button
     type={type}
     variant="signup"
     inactive={inactive}
     rightIcon={rightIcon}
+    fullWidth={fullWidth}
     className={clsx('gap-4', className)}
     onClick={onClick}
     onFocus={onFocus}

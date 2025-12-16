@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { clsx } from '@/utils/clsx';
 
 export interface CategoryFilterOption {
-  value: number; // ChildCategory의 id (숫자) - breadcrumb과 동일하게
+  value: number; // ChildCategory id
   label: string;
   count?: number;
 }
 
 export interface CategoryPanelSection {
-  id: number; // ParentCategory의 id (숫자) - breadcrumb과 동일하게
+  id: number; // ParentCategory id
   title: string;
   icon?: React.ReactNode;
   description?: React.ReactNode;
@@ -19,20 +19,99 @@ export interface CategoryPanelSection {
 
 export interface CategoryPanelProps {
   sections: CategoryPanelSection[];
-  /** 현재 선택된 카테고리 (단일 선택) - ChildCategory의 id (숫자) */
+
+  /** (모바일) GNB에서 선택된 대분류(ParentCategory) id */
+  activeSectionId?: number | null;
+
+  /** 현재 선택된 카테고리 (단일 선택) - ChildCategory id */
   selectedValue?: number | null;
+
   /** 옵션 클릭 시 callback (토글 포함) */
   onChange?: (value: number | null) => void;
+
   className?: string;
 }
 
-export const CategoryPanel: React.FC<CategoryPanelProps> = ({
+type InternalPanelProps = CategoryPanelProps;
+
+type TabletDesktopPanelProps = Omit<CategoryPanelProps, 'activeSectionId'>;
+
+const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
+  sections,
+  activeSectionId,
+  selectedValue,
+  onChange,
+  className,
+}) => {
+  // 1) 우선순위: activeSectionId (GNB 선택) > selectedValue로 역추론 > fallback(first)
+  const activeSection = useMemo(() => {
+    if (!sections?.length) return null;
+
+    if (activeSectionId != null) {
+      return sections.find((s) => s.id === activeSectionId) ?? sections[0];
+    }
+
+    if (selectedValue != null) {
+      const found = sections.find((s) => s.options.some((o) => o.value === selectedValue));
+      if (found) return found;
+    }
+
+    return sections[0];
+  }, [sections, activeSectionId, selectedValue]);
+
+  const handleClickOption = (value: number) => {
+    if (!onChange) return;
+    onChange(selectedValue === value ? null : value);
+  };
+
+  if (!activeSection) return null;
+
+  return (
+    <section className={clsx('w-full bg-white tablet:hidden', 'flex flex-col', className)}>
+      {/* 소분류 Scrollable Tabs */}
+      <div
+        className={clsx(
+          'w-full overflow-x-auto border-b border-gray-200',
+          'scroll-smooth scrollbar-none'
+        )}
+        style={{
+          WebkitOverflowScrolling: 'touch', // iOS 터치 스크롤
+        }}
+      >
+        <div className={clsx('flex min-w-max px-16')}>
+          {activeSection.options.map((option) => {
+            const isActive = selectedValue === option.value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleClickOption(option.value)}
+                className={clsx(
+                  'px-16 py-14 whitespace-nowrap',
+                  'text-14 transition-colors duration-150',
+                  isActive
+                    ? 'text-gray-950 font-bold'
+                    : 'text-gray-500 font-normal hover:text-gray-700'
+                )}
+                aria-pressed={isActive}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const CategoryPanelTablet: React.FC<TabletDesktopPanelProps> = ({
   sections,
   selectedValue,
   onChange,
   className,
 }) => {
-  // 선택된 옵션이 있는 섹션 찾기
   const getSectionWithSelectedOption = () => {
     if (!selectedValue) return null;
     return sections.find((section) =>
@@ -40,20 +119,16 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({
     );
   };
 
-  // 초기 상태: 선택된 옵션이 있는 섹션이 열려있음
   const [openSectionId, setOpenSectionId] = useState<number | null>(
     getSectionWithSelectedOption()?.id ?? null
   );
 
-  // selectedValue가 변경될 때마다 선택된 섹션을 자동으로 열기
   useEffect(() => {
     if (!selectedValue) return;
     const foundSection = sections.find((s) =>
       s.options.some((option) => option.value === selectedValue)
     );
-    if (foundSection) {
-      setOpenSectionId(foundSection.id);
-    }
+    if (foundSection) setOpenSectionId(foundSection.id);
   }, [selectedValue, sections]);
 
   const handleToggleSection = (id: number) => {
@@ -63,38 +138,40 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({
   const handleClickOption = (value: number) => {
     if (!onChange) return;
     if (selectedValue === value) {
-      onChange(null); // 같은 값 클릭 시 해제
-    } else {
-      onChange(value);
-      // 선택된 옵션이 있는 섹션을 자동으로 열기
-      const sectionWithOption = sections.find((s) =>
-        s.options.some((option) => option.value === value)
-      );
-      if (sectionWithOption) {
-        setOpenSectionId(sectionWithOption.id);
-      }
+      onChange(null);
+      return;
     }
+    onChange(value);
+
+    const sectionWithOption = sections.find((s) =>
+      s.options.some((option) => option.value === value)
+    );
+    if (sectionWithOption) setOpenSectionId(sectionWithOption.id);
   };
 
+  if (!sections?.length) return null;
+
   return (
-    <section className={clsx('w-180 bg-white', 'flex flex-col', className)}>
+    <section
+      className={clsx(
+        'hidden tablet:flex desktop:hidden w-180 bg-white',
+        'flex flex-col',
+        className
+      )}
+    >
       {sections.map((section) => {
         const isOpen = openSectionId === section.id;
 
         return (
           <div key={section.id} className="flex flex-col">
-            {/* 카테고리 표시: 헤더 위 2px 구분선 - 대분류 클릭 시 바로 구분선 표시 */}
-            {/* 헤더 클릭 시 구분선도 함께 움직임 */}
             {isOpen && <div className="h-0.5 bg-gray-900" />}
 
-            {/* 헤더 버튼 */}
             <button
               type="button"
               onClick={() => handleToggleSection(section.id)}
               className={clsx(
                 'w-full p-14',
                 'flex items-center justify-between',
-                'hover:bg-transparent',
                 'transition-colors duration-150',
                 'text-left'
               )}
@@ -103,7 +180,6 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({
                 {section.title}
               </span>
 
-              {/* 열림/닫힘 화살표 */}
               <span
                 className={clsx(
                   'inline-flex items-center justify-center transform transition-transform duration-200 ease-out text-gray-400 shrink-0 ml-2',
@@ -141,12 +217,12 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({
                           onClick={() => handleClickOption(option.value)}
                           className={clsx(
                             'w-full text-left py-14 px-20',
-                            'text-16',
-                            'transition-colors duration-150',
+                            'text-16 transition-colors duration-150',
                             isActive
                               ? 'text-gray-950 font-normal'
                               : 'text-gray-500 font-normal hover:text-gray-700'
                           )}
+                          aria-pressed={isActive}
                         >
                           {option.label}
                         </button>
@@ -157,7 +233,6 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({
               </div>
             </div>
 
-            {/* 카테고리 표시 */}
             {isOpen && <div className="h-px bg-gray-100 mt-2" />}
           </div>
         );
@@ -165,3 +240,164 @@ export const CategoryPanel: React.FC<CategoryPanelProps> = ({
     </section>
   );
 };
+
+const CategoryPanelDesktop: React.FC<TabletDesktopPanelProps> = ({
+  sections = [],
+  selectedValue,
+  onChange,
+  className,
+}) => {
+  const getSectionWithSelectedOption = () => {
+    if (!selectedValue) return null;
+    return sections.find((section) =>
+      section.options.some((option) => option.value === selectedValue)
+    );
+  };
+
+  const [openSectionId, setOpenSectionId] = useState<number | null>(
+    getSectionWithSelectedOption()?.id ?? null
+  );
+
+  useEffect(() => {
+    if (!selectedValue) return;
+    const foundSection = sections.find((s) =>
+      s.options.some((option) => option.value === selectedValue)
+    );
+    if (foundSection) setOpenSectionId(foundSection.id);
+  }, [selectedValue, sections]);
+
+  const handleToggleSection = (id: number) => {
+    setOpenSectionId((prev) => (prev === id ? null : id));
+  };
+
+  const handleClickOption = (value: number) => {
+    if (!onChange) return;
+    if (selectedValue === value) {
+      onChange(null);
+      return;
+    }
+    onChange(value);
+
+    const sectionWithOption = sections.find((s) =>
+      s.options.some((option) => option.value === value)
+    );
+    if (sectionWithOption) setOpenSectionId(sectionWithOption.id);
+  };
+
+  if (!sections.length) return null;
+
+  return (
+    <section className={clsx('hidden desktop:flex w-180 bg-white', 'flex flex-col', className)}>
+      {sections.map((section) => {
+        const isOpen = openSectionId === section.id;
+
+        return (
+          <div key={section.id} className="flex flex-col">
+            {isOpen && <div className="h-0.5 bg-gray-900" />}
+
+            <button
+              type="button"
+              onClick={() => handleToggleSection(section.id)}
+              className={clsx(
+                'w-full p-14',
+                'flex items-center justify-between',
+                'transition-colors duration-150',
+                'text-left'
+              )}
+            >
+              <span className={clsx('text-16 text-gray-900', isOpen ? 'font-bold' : 'font-normal')}>
+                {section.title}
+              </span>
+
+              <span
+                className={clsx(
+                  'inline-flex items-center justify-center transform transition-transform duration-200 ease-out text-gray-400 shrink-0 ml-2',
+                  isOpen ? 'rotate-180' : 'rotate-0'
+                )}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path
+                    d="M6 9L12 15L18 9"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </button>
+
+            <div
+              className={clsx(
+                'overflow-hidden',
+                'transition-all duration-200 ease-out',
+                isOpen ? 'max-h-500 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'
+              )}
+            >
+              <div className="p-14">
+                <ul className="flex flex-col">
+                  {section.options.map((option) => {
+                    const isActive = selectedValue === option.value;
+
+                    return (
+                      <li key={option.value}>
+                        <button
+                          type="button"
+                          onClick={() => handleClickOption(option.value)}
+                          className={clsx(
+                            'w-full text-left py-14 px-20',
+                            'text-16 transition-colors duration-150',
+                            isActive
+                              ? 'text-gray-950 font-normal'
+                              : 'text-gray-500 font-normal hover:text-gray-700'
+                          )}
+                          aria-pressed={isActive}
+                        >
+                          {option.label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+
+            {isOpen && <div className="h-px bg-gray-100 mt-2" />}
+          </div>
+        );
+      })}
+    </section>
+  );
+};
+
+export const CategoryPanel: React.FC<CategoryPanelProps> = ({
+  sections,
+  activeSectionId,
+  selectedValue,
+  onChange,
+  className,
+}) => (
+  <>
+    <CategoryPanelMobile
+      sections={sections}
+      activeSectionId={activeSectionId}
+      selectedValue={selectedValue}
+      onChange={onChange}
+      className={className}
+    />
+
+    <CategoryPanelTablet
+      sections={sections}
+      selectedValue={selectedValue}
+      onChange={onChange}
+      className={className}
+    />
+
+    <CategoryPanelDesktop
+      sections={sections}
+      selectedValue={selectedValue}
+      onChange={onChange}
+      className={className}
+    />
+  </>
+);

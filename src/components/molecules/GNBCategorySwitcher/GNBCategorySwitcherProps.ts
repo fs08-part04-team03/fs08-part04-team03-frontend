@@ -6,7 +6,7 @@
  * 유저 도메인의 여러 페이지에서 재사용한다.
  */
 
-import type { ParentCategoryKey, ParentCategoryOption } from '@/constants'; // or '@/domains/category'
+import type { ParentCategoryKey, ParentCategoryOption } from '@/constants';
 
 /**
  * CategoryOption
