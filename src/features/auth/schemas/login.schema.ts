@@ -14,27 +14,12 @@ export const userSchema = z.object({
 export type User = z.infer<typeof userSchema>;
 
 // 로그인 요청 스키마
-export const loginSchema = z
-  .object({
-    email: z.string().min(1, '이메일을 입력해주세요.').email('유효하지 않은 이메일입니다.'),
-    password: z
-      .string()
-      .min(1, '비밀번호를 입력해주세요.')
-      .min(8, '비밀번호는 최소 8자 이상이어야 합니다.')
-      .max(30, '비밀번호는 최대 30자까지 입력 가능합니다.'),
-  })
-  .refine(
-    (data) => {
-      const hasLetter = /[A-Za-z]/.test(data.password);
-      const hasNumber = /[0-9]/.test(data.password);
-      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.password);
-      return hasLetter && hasNumber && hasSpecialChar;
-    },
-    {
-      message: '유효하지 않은 비밀번호입니다.',
-      path: ['password'],
-    }
-  );
+// 로그인은 기존 비밀번호를 입력하는 것이므로 형식 검증을 하지 않습니다.
+// 비밀번호 형식 검증은 회원가입, 비밀번호 변경, 비밀번호 재설정 시에만 수행됩니다.
+export const loginSchema = z.object({
+  email: z.string().min(1, '이메일을 입력해주세요.').email('유효하지 않은 이메일입니다.'),
+  password: z.string().min(1, '비밀번호를 입력해주세요.'),
+});
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
@@ -66,13 +51,13 @@ export const changePasswordSchema = z
   })
   .refine(
     (data) => {
-      const hasLetter = /[A-Za-z]/.test(data.newPassword);
+      const hasLowerCase = /[a-z]/.test(data.newPassword);
       const hasNumber = /[0-9]/.test(data.newPassword);
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.newPassword);
-      return hasLetter && hasNumber && hasSpecialChar;
+      return hasLowerCase && hasNumber && hasSpecialChar;
     },
     {
-      message: '유효하지 않은 비밀번호입니다.',
+      message: '비밀번호는 소문자, 숫자, 특수문자를 포함해야 합니다.',
       path: ['newPassword'],
     }
   )
@@ -107,13 +92,13 @@ export const resetPasswordSchema = z
   })
   .refine(
     (data) => {
-      const hasLetter = /[A-Za-z]/.test(data.newPassword);
+      const hasLowerCase = /[a-z]/.test(data.newPassword);
       const hasNumber = /[0-9]/.test(data.newPassword);
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.newPassword);
-      return hasLetter && hasNumber && hasSpecialChar;
+      return hasLowerCase && hasNumber && hasSpecialChar;
     },
     {
-      message: '유효하지 않은 비밀번호입니다.',
+      message: '비밀번호는 소문자, 숫자, 특수문자를 포함해야 합니다.',
       path: ['newPassword'],
     }
   )

@@ -1,7 +1,5 @@
-const SignupPage = () => (
-  <div>
-    <p>SignupPage - 회원가입(최초 관리자 생성)</p>
-  </div>
-);
+import Signup from '@/features/auth/section/Signup';
+
+const SignupPage = () => <Signup />;
 
 export default SignupPage;
