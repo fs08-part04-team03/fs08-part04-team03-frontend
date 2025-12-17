@@ -10,6 +10,7 @@ import type { LoginInput } from '@/features/auth/schemas/login.schema';
 import Logo from '@/components/atoms/Logo/Logo';
 import Link from 'next/link';
 import { PATHNAME } from '@/constants';
+import { useLoginForm } from '@/features/auth/components/LoginFormOrg/LoginFormOrg';
 
 interface LoginTemProps {
   control: Control<LoginInput>;
@@ -139,29 +140,27 @@ export const LoginTemDesktop: React.FC<LoginTemProps> = ({
   </div>
 );
 
-const LoginTem: React.FC<LoginTemProps> = ({
-  control,
-  isValid,
-  serverError,
-  onSubmit,
-  handleSubmit,
-}) => (
-  <>
-    <LoginTemMobile
-      control={control}
-      isValid={isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-    />
-    <LoginTemDesktop
-      control={control}
-      isValid={isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-    />
-  </>
-);
+const LoginTem: React.FC = () => {
+  const { control, handleSubmit, formState, serverError, onSubmit } = useLoginForm();
+
+  return (
+    <>
+      <LoginTemMobile
+        control={control}
+        isValid={formState.isValid}
+        serverError={serverError}
+        onSubmit={onSubmit}
+        handleSubmit={handleSubmit}
+      />
+      <LoginTemDesktop
+        control={control}
+        isValid={formState.isValid}
+        serverError={serverError}
+        onSubmit={onSubmit}
+        handleSubmit={handleSubmit}
+      />
+    </>
+  );
+};
 
 export default LoginTem;
