@@ -188,7 +188,6 @@ const CartSummaryBlockOrg = ({
           )}
         </div>
 
-        {/* ✅ 수정된 부분 */}
         <div
           className={`flex flex-col items-center gap-16 ${
             role === 'user' ? 'tablet:gap-20' : 'tablet:gap-34'
@@ -204,7 +203,7 @@ const CartSummaryBlockOrg = ({
           <Button
             variant="primary"
             className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
-            inactive={role !== 'admin' && (checkedIds.length === 0 || isBudgetExceeded)}
+            inactive={checkedIds.length === 0 && !(role === 'admin' && isBudgetExceeded)}
             onClick={
               role === 'admin' && isBudgetExceeded ? onGoBudgetManage : () => onSubmit?.(checkedIds)
             }
