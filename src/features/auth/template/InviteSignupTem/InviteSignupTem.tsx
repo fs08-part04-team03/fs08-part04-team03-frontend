@@ -124,7 +124,7 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemProps> = ({
       <Logo size="lg" />
     </div>
     <div className="w-600 relative">
-      <div className="bg-white rounded-16 shadow-2xl p-48 relative">
+      <div className=" flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
         <InviteSignupTemContent
           control={control}
           isValid={isValid}
@@ -134,7 +134,7 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemProps> = ({
           name={name}
           className="flex flex-col w-full tablet:w-480 desktop:w-480"
         />
-        <p className="flex justify-center mt-24 text-14 text-gray-600">
+        <p className="flex justify-center mt-24 text-14 text-gray-600 ">
           이미 계정이 있으신가요?{' '}
           <Link
             href={PATHNAME.LOGIN}

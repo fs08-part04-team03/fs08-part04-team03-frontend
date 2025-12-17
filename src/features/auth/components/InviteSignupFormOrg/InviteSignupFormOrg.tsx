@@ -38,12 +38,12 @@ const useInviteSignupForm = (email: string) => {
   return { ...form, serverError, setServerError, onSubmit };
 };
 
-interface InviteSignupFormProps {
+interface InviteSignupFormOrgProps {
   name: string;
   email: string;
 }
 
-const InviteSignupForm: React.FC<InviteSignupFormProps> = ({ name, email }) => {
+const InviteSignupFormOrg: React.FC<InviteSignupFormOrgProps> = ({ name, email }) => {
   const { control, handleSubmit, formState, serverError, onSubmit } = useInviteSignupForm(email);
 
   return (
@@ -58,4 +58,4 @@ const InviteSignupForm: React.FC<InviteSignupFormProps> = ({ name, email }) => {
   );
 };
 
-export default InviteSignupForm;
+export default InviteSignupFormOrg;

@@ -136,7 +136,7 @@ export const SignupTemDesktop: React.FC<SignupTemProps> = ({
       <Logo size="lg" />
     </div>
     <div className="w-600 mx-auto">
-      <div className="bg-white rounded-16 shadow-2xl p-48">
+      <div className=" flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
         <SignupTemContent
           control={control}
           isValid={isValid}

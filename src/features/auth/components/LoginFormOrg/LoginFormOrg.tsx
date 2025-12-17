@@ -7,19 +7,19 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import RHFInputField from '@/components/molecules/RHFInputField/RHFInputField';
 import Button from '@/components/atoms/Button/Button';
-import { signupSchema, type SignupInput } from '@/features/auth/schemas/signup.schema';
-import { signupFields } from '@/features/auth/formFields';
+import { loginSchema, type LoginInput } from '@/features/auth/schemas/login.schema';
+import { loginFields } from '@/features/auth/formFields';
 
-interface SignupFormContentProps {
-  control: Control<SignupInput>;
+interface LoginFormContentProps {
+  control: Control<LoginInput>;
   isValid: boolean;
   serverError: string | null;
-  onSubmit: (values: SignupInput) => void;
-  handleSubmit: ReturnType<typeof useForm<SignupInput>>['handleSubmit'];
+  onSubmit: (values: LoginInput) => void;
+  handleSubmit: ReturnType<typeof useForm<LoginInput>>['handleSubmit'];
   className?: string;
 }
 
-const SignupFormContent: React.FC<SignupFormContentProps> = ({
+const LoginFormContent: React.FC<LoginFormContentProps> = ({
   control,
   isValid,
   serverError,
@@ -43,7 +43,7 @@ const SignupFormContent: React.FC<SignupFormContentProps> = ({
       noValidate
     >
       <header className="mb-4">
-        <h1 className="text-20 font-bold text-black-400">회원가입</h1>
+        <h1 className="text-20 font-bold text-black-400">로그인</h1>
       </header>
 
       {/* 서버 에러 영역: 항상 렌더링해서 점프 방지 */}
@@ -51,7 +51,7 @@ const SignupFormContent: React.FC<SignupFormContentProps> = ({
         {serverError ?? '\u00A0'}
       </div>
 
-      {signupFields.map((field) => (
+      {loginFields.map((field) => (
         <RHFInputField
           key={field.name}
           control={control}
@@ -59,53 +59,49 @@ const SignupFormContent: React.FC<SignupFormContentProps> = ({
           label={field.label}
           placeholder={field.placeholder}
           type={field.type}
-          disabled={field.disabled}
+          className="w-full"
         />
       ))}
 
       <Button type="submit" variant="primary" className="mt-8" fullWidth inactive={!isValid}>
-        회원가입
+        로그인
       </Button>
     </form>
   );
 };
 
-export const SignupFormMobile: React.FC = () => {
+export const LoginFormMobile: React.FC = () => {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
     formState: { isValid },
-  } = useForm<SignupInput>({
-    resolver: zodResolver(signupSchema),
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
     mode: 'onTouched',
     defaultValues: {
-      name: '',
       email: '',
       password: '',
-      confirmPassword: '',
-      companyName: '',
-      businessNumber: '',
     },
   });
 
-  const onSubmit = (_values: SignupInput) => {
+  const onSubmit = (_values: LoginInput) => {
     setServerError(null);
 
-    // 3단계에서 만들 signup API 호출
+    // 3단계에서 만들 login API 호출
     // try {
-    //   const { accessToken, refreshToken, companyId } = await signup(_values);
+    //   const { accessToken, refreshToken, companyId } = await login(_values);
     //   localStorage.setItem('accessToken', accessToken);
     //   localStorage.setItem('refreshToken', refreshToken);
     //   router.push(`/${companyId}/products`);
     // } catch (error) {
-    //   setServerError('회원가입에 실패했습니다. 다시 시도해 주세요.');
+    //   setServerError('이메일 또는 비밀번호를 다시 확인해 주세요.');
     // }
   };
 
   return (
-    <SignupFormContent
+    <LoginFormContent
       control={control}
       isValid={isValid}
       serverError={serverError}
@@ -116,42 +112,38 @@ export const SignupFormMobile: React.FC = () => {
   );
 };
 
-export const SignupFormDefault: React.FC = () => {
+export const LoginFormDefault: React.FC = () => {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
     formState: { isValid },
-  } = useForm<SignupInput>({
-    resolver: zodResolver(signupSchema),
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
     mode: 'onTouched',
     defaultValues: {
-      name: '',
       email: '',
       password: '',
-      confirmPassword: '',
-      companyName: '',
-      businessNumber: '',
     },
   });
 
-  const onSubmit = (_values: SignupInput) => {
+  const onSubmit = (_values: LoginInput) => {
     setServerError(null);
 
-    // 3단계에서 만들 signup API 호출
+    // 3단계에서 만들 login API 호출
     // try {
-    //   const { accessToken, refreshToken, companyId } = await signup(_values);
+    //   const { accessToken, refreshToken, companyId } = await login(_values);
     //   localStorage.setItem('accessToken', accessToken);
     //   localStorage.setItem('refreshToken', refreshToken);
     //   router.push(`/${companyId}/products`);
     // } catch (error) {
-    //   setServerError('회원가입에 실패했습니다. 다시 시도해 주세요.');
+    //   setServerError('이메일 또는 비밀번호를 다시 확인해 주세요.');
     // }
   };
 
   return (
-    <SignupFormContent
+    <LoginFormContent
       control={control}
       isValid={isValid}
       serverError={serverError}
@@ -162,11 +154,11 @@ export const SignupFormDefault: React.FC = () => {
   );
 };
 
-const SignupForm: React.FC = () => (
+const LoginFormOrg: React.FC = () => (
   <>
-    <SignupFormMobile />
-    <SignupFormDefault />
+    <LoginFormMobile />
+    <LoginFormDefault />
   </>
 );
 
-export default SignupForm;
+export default LoginFormOrg;
