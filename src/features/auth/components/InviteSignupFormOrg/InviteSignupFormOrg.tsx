@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 // import { useRouter } from 'next/navigation'; // TODO: 3단계에서 활성화
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import InviteSignupTem from '@/features/auth/template/InviteSignupTem/InviteSignupTem';
 import { inviteSignupSchema, type InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 
-const useInviteSignupForm = (email: string) => {
+export const useInviteSignupForm = (email: string, _token: string) => {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm<InviteSignupInput>({
@@ -26,7 +25,10 @@ const useInviteSignupForm = (email: string) => {
 
     // 3단계에서 만들 inviteSignup API 호출
     // try {
-    //   const { accessToken, refreshToken, companyId } = await inviteSignup(_values);
+    //   const { accessToken, refreshToken, companyId } = await inviteSignup({
+    //     token: _token,
+    //     password: _values.password,
+    //   });
     //   localStorage.setItem('accessToken', accessToken);
     //   localStorage.setItem('refreshToken', refreshToken);
     //   router.push(`/${companyId}/products`);
@@ -37,25 +39,3 @@ const useInviteSignupForm = (email: string) => {
 
   return { ...form, serverError, setServerError, onSubmit };
 };
-
-interface InviteSignupFormProps {
-  name: string;
-  email: string;
-}
-
-const InviteSignupForm: React.FC<InviteSignupFormProps> = ({ name, email }) => {
-  const { control, handleSubmit, formState, serverError, onSubmit } = useInviteSignupForm(email);
-
-  return (
-    <InviteSignupTem
-      control={control}
-      isValid={formState.isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-      name={name}
-    />
-  );
-};
-
-export default InviteSignupForm;

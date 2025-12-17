@@ -10,14 +10,15 @@ import type { LoginInput } from '@/features/auth/schemas/login.schema';
 import Logo from '@/components/atoms/Logo/Logo';
 import Link from 'next/link';
 import { PATHNAME } from '@/constants';
+import { useLoginForm } from '@/features/auth/components/LoginFormOrg/LoginFormOrg';
 
 interface LoginTemProps {
   control: Control<LoginInput>;
   isValid: boolean;
   serverError: string | null;
-  onSubmit: (values: LoginInput) => void;
+  onSubmit: (values: LoginInput) => void | Promise<void>;
   handleSubmit: (
-    onSubmit: (values: LoginInput) => void
+    onSubmit: (values: LoginInput) => void | Promise<void>
   ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
 }
 
@@ -116,7 +117,7 @@ export const LoginTemDesktop: React.FC<LoginTemProps> = ({
       <Logo size="lg" />
     </div>
     <div className="w-600 relative">
-      <div className="bg-white rounded-16 shadow-2xl p-48 relative">
+      <div className=" flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
         <LoginTemContent
           control={control}
           isValid={isValid}
@@ -139,29 +140,27 @@ export const LoginTemDesktop: React.FC<LoginTemProps> = ({
   </div>
 );
 
-const LoginTem: React.FC<LoginTemProps> = ({
-  control,
-  isValid,
-  serverError,
-  onSubmit,
-  handleSubmit,
-}) => (
-  <>
-    <LoginTemMobile
-      control={control}
-      isValid={isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-    />
-    <LoginTemDesktop
-      control={control}
-      isValid={isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-    />
-  </>
-);
+const LoginTem: React.FC = () => {
+  const { control, handleSubmit, formState, serverError, onSubmit } = useLoginForm();
+
+  return (
+    <>
+      <LoginTemMobile
+        control={control}
+        isValid={formState.isValid}
+        serverError={serverError}
+        onSubmit={onSubmit}
+        handleSubmit={handleSubmit}
+      />
+      <LoginTemDesktop
+        control={control}
+        isValid={formState.isValid}
+        serverError={serverError}
+        onSubmit={onSubmit}
+        handleSubmit={handleSubmit}
+      />
+    </>
+  );
+};
 
 export default LoginTem;

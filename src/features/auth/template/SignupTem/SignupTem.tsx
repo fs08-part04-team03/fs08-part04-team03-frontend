@@ -10,8 +10,9 @@ import type { SignupInput } from '@/features/auth/schemas/signup.schema';
 import Logo from '@/components/atoms/Logo/Logo';
 import Link from 'next/link';
 import { PATHNAME } from '@/constants';
+import { useSignupForm } from '@/features/auth/components/SignupFormOrg/SignupFormOrg';
 
-interface SignupTemProps {
+interface SignupTemViewProps {
   control: Control<SignupInput>;
   isValid: boolean;
   serverError: string | null;
@@ -24,7 +25,7 @@ interface SignupTemProps {
   submitButtonText?: string;
 }
 
-interface SignupTemContentProps extends SignupTemProps {
+interface SignupTemContentProps extends SignupTemViewProps {
   className?: string;
 }
 
@@ -87,7 +88,7 @@ const SignupTemContent: React.FC<SignupTemContentProps> = ({
   );
 };
 
-export const SignupTemMobile: React.FC<SignupTemProps> = ({
+export const SignupTemMobile: React.FC<SignupTemViewProps> = ({
   control,
   isValid,
   serverError,
@@ -121,7 +122,7 @@ export const SignupTemMobile: React.FC<SignupTemProps> = ({
   </div>
 );
 
-export const SignupTemDesktop: React.FC<SignupTemProps> = ({
+export const SignupTemDesktop: React.FC<SignupTemViewProps> = ({
   control,
   isValid,
   serverError,
@@ -136,7 +137,7 @@ export const SignupTemDesktop: React.FC<SignupTemProps> = ({
       <Logo size="lg" />
     </div>
     <div className="w-600 mx-auto">
-      <div className="bg-white rounded-16 shadow-2xl p-48">
+      <div className=" flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
         <SignupTemContent
           control={control}
           isValid={isValid}
@@ -162,38 +163,41 @@ export const SignupTemDesktop: React.FC<SignupTemProps> = ({
   </div>
 );
 
-const SignupTem: React.FC<SignupTemProps> = ({
-  control,
-  isValid,
-  serverError,
-  onSubmit,
-  handleSubmit,
-  title,
-  subtitle,
-  submitButtonText,
-}) => (
-  <>
-    <SignupTemMobile
-      control={control}
-      isValid={isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-      title={title}
-      subtitle={subtitle}
-      submitButtonText={submitButtonText}
-    />
-    <SignupTemDesktop
-      control={control}
-      isValid={isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-      title={title}
-      subtitle={subtitle}
-      submitButtonText={submitButtonText}
-    />
-  </>
-);
+interface SignupTemProps {
+  title?: string;
+  subtitle?: string;
+  submitButtonText?: string;
+}
+
+const SignupTem: React.FC<SignupTemProps> = ({ title, subtitle, submitButtonText }) => {
+  const { control, handleSubmit, formState, serverError, onSubmit } = useSignupForm();
+
+  return (
+    <>
+      <SignupTemMobile
+        control={control}
+        isValid={formState.isValid}
+        serverError={serverError}
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        onSubmit={onSubmit as (values: SignupInput) => void | Promise<void>}
+        handleSubmit={handleSubmit}
+        title={title}
+        subtitle={subtitle}
+        submitButtonText={submitButtonText}
+      />
+      <SignupTemDesktop
+        control={control}
+        isValid={formState.isValid}
+        serverError={serverError}
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        onSubmit={onSubmit as (values: SignupInput) => void | Promise<void>}
+        handleSubmit={handleSubmit}
+        title={title}
+        subtitle={subtitle}
+        submitButtonText={submitButtonText}
+      />
+    </>
+  );
+};
 
 export default SignupTem;
