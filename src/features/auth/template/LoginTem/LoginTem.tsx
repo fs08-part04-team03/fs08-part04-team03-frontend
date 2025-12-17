@@ -16,9 +16,9 @@ interface LoginTemProps {
   control: Control<LoginInput>;
   isValid: boolean;
   serverError: string | null;
-  onSubmit: (values: LoginInput) => void;
+  onSubmit: (values: LoginInput) => void | Promise<void>;
   handleSubmit: (
-    onSubmit: (values: LoginInput) => void
+    onSubmit: (values: LoginInput) => void | Promise<void>
   ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
 }
 
