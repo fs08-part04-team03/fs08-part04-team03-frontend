@@ -23,30 +23,25 @@ export const useLoginForm = () => {
     },
   });
 
-  const onSubmit = (values: LoginInput) => {
+  const onSubmit = async (values: LoginInput): Promise<void> => {
     setServerError(null);
 
-    const handleLogin = async () => {
-      try {
-        const { user, accessToken } = await login({
-          email: values.email,
-          password: values.password,
-        });
+    try {
+      const { user, accessToken } = await login({
+        email: values.email,
+        password: values.password,
+      });
 
-        // 인증 정보 저장
-        setAuth({ user, accessToken });
+      // 인증 정보 저장
+      setAuth({ user, accessToken });
 
-        // 상품 리스트 페이지로 리다이렉트
-        router.push(`/${user.companyId}/products`);
-      } catch (error) {
-        setServerError(
-          error instanceof Error ? error.message : '이메일 또는 비밀번호가 올바르지 않습니다.'
-        );
-      }
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    handleLogin();
+      // 상품 리스트 페이지로 리다이렉트
+      router.push(`/${user.companyId}/products`);
+    } catch (error) {
+      setServerError(
+        error instanceof Error ? error.message : '이메일 또는 비밀번호가 올바르지 않습니다.'
+      );
+    }
   };
 
   return { ...form, serverError, setServerError, onSubmit };
