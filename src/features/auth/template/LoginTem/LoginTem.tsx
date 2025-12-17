@@ -116,7 +116,7 @@ export const LoginTemDesktop: React.FC<LoginTemProps> = ({
       <Logo size="lg" />
     </div>
     <div className="w-600 relative">
-      <div className="bg-white rounded-16 shadow-2xl p-48 relative">
+      <div className=" flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
         <LoginTemContent
           control={control}
           isValid={isValid}

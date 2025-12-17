@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import SignupForm from './SignupForm';
+import SignupFormOrg from './SignupFormOrg';
 
 const meta = {
-  title: 'Features/Auth/SignupForm',
-  component: SignupForm,
+  title: 'Features/Auth/SignupFormOrg',
+  component: SignupFormOrg,
   tags: ['autodocs'],
   parameters: {
     layout: 'centered',
@@ -20,11 +20,11 @@ const meta = {
       },
     },
   },
-} satisfies Meta<typeof SignupForm>;
+} satisfies Meta<typeof SignupFormOrg>;
 
 export default meta;
 
-type Story = StoryObj<typeof SignupForm>;
+type Story = StoryObj<typeof SignupFormOrg>;
 
 // 일반 회원가입 스토리 (최고가입자)
 export const Default: Story = {
