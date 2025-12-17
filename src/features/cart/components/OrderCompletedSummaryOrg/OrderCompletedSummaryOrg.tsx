@@ -14,8 +14,8 @@ export interface OrderCompletedItem {
   imageSrc?: string;
 }
 
-type Role = 'user' | 'manager' | 'admin';
-type UserType = 'default' | 'request';
+export type Role = 'user' | 'manager' | 'admin';
+export type UserType = 'default' | 'request';
 
 interface OrderCompletedSummaryOrgProps {
   role: Role;
@@ -50,7 +50,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
   const totalPrice = orderPrice + shippingFee;
 
   const isMessageValid = message.trim().length > 0;
-  const isSubmitDisabled = isUser && isRequestUser && !isMessageValid;
+  const isSubmitDisabled = isRequestUser && !isMessageValid;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -83,6 +83,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
         className="cursor-pointer w-155.5 h-64 tablet:w-338 desktop:w-300"
         type={isRequestUser ? 'submit' : 'button'}
         inactive={isSubmitDisabled}
+        onClick={!isRequestUser ? onGoOrderHistory : undefined}
       >
         {isRequestUser ? '구매 요청' : '구매내역 확인'}
       </Button>
