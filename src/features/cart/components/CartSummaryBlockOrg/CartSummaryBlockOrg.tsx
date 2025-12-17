@@ -127,7 +127,6 @@ const CartSummaryBlockOrg = ({
             const isChecked = checkedIds.includes(item.id);
             const showPurchaseButton = isChecked;
 
-            /** eslint 통과용: 중첩 삼항 제거 */
             let purchaseButtonLabel: string | undefined;
             if (role === 'user') {
               purchaseButtonLabel = '바로 요청';
@@ -135,11 +134,8 @@ const CartSummaryBlockOrg = ({
               purchaseButtonLabel = '즉시 구매';
             }
 
-            /** 🔴 핵심: user는 항상 비활성화 */
-            const purchaseButtonDisabled =
-              role === 'user' || (showPurchaseButton && isBudgetExceeded);
+            const purchaseButtonDisabled = role === 'user' || !isChecked || isBudgetExceeded;
 
-            /** 🔴 user는 클릭 자체 불가 */
             const handlePurchaseClick =
               role !== 'user' && showPurchaseButton && !isBudgetExceeded
                 ? () =>
@@ -192,7 +188,12 @@ const CartSummaryBlockOrg = ({
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-16 tablet:gap-20">
+        {/* ✅ 수정된 부분 */}
+        <div
+          className={`flex flex-col items-center gap-16 ${
+            role === 'user' ? 'tablet:gap-20' : 'tablet:gap-34'
+          }`}
+        >
           <Button
             variant="secondary"
             className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
