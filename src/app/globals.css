@@ -216,6 +216,7 @@ body {
   --spacing-303\.667: 303.667px;
   --spacing-304: 304px;
   --spacing-310: 310px;
+  --spacing-326\.5: 326.5px;
   --spacing-327: 327px;
   --spacing-328: 328px;
   --spacing-336: 336px;
@@ -297,6 +298,7 @@ body {
   --tracking--0.4: -0.4px;
   --tracking--0.45: -0.45px;
   --tracking--0.6: -0.6px;
+  --tracking--0.75: -0.75px;
 
   --leading-160: 160%;
 }
