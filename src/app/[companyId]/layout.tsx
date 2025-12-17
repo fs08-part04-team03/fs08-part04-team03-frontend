@@ -22,10 +22,11 @@ async function fetchCompanyById(companyId: string): Promise<Company> {
 export async function generateMetadata({
   params,
 }: {
-  params: { companyId: string };
+  params: Promise<{ companyId: string }>;
 }): Promise<Metadata> {
+  const { companyId } = await params;
   // 백엔드에서 회사 정보 가져오기
-  const company = await fetchCompanyById(params.companyId);
+  const company = await fetchCompanyById(companyId);
 
   return {
     title: `${company.name}의 SNACK - 회사 간식 구매 관리 솔루션`,

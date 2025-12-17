@@ -11,7 +11,7 @@ interface AuthHeaderProps {
 }
 
 const AuthHeader: React.FC<AuthHeaderProps> = ({ className }) => (
-  <header
+  <div
     className={clsx(
       'sticky top-0 z-header',
       'w-full h-56',
@@ -28,7 +28,7 @@ const AuthHeader: React.FC<AuthHeaderProps> = ({ className }) => (
 
     {/* 오른쪽: Auth User Actions */}
     <AuthUserActions />
-  </header>
+  </div>
 );
 
 export default AuthHeader;
