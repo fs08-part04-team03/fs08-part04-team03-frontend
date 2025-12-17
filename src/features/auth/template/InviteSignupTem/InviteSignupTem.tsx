@@ -10,8 +10,9 @@ import type { InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import Logo from '@/components/atoms/Logo/Logo';
 import Link from 'next/link';
 import { PATHNAME } from '@/constants';
+import { useInviteSignupForm } from '@/features/auth/components/InviteSignupFormOrg/InviteSignupFormOrg';
 
-interface InviteSignupTemProps {
+interface InviteSignupTemContentProps {
   control: Control<InviteSignupInput>;
   isValid: boolean;
   serverError: string | null;
@@ -20,10 +21,18 @@ interface InviteSignupTemProps {
     onSubmit: (values: InviteSignupInput) => void
   ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
   name: string;
+  className?: string;
 }
 
-interface InviteSignupTemContentProps extends InviteSignupTemProps {
-  className?: string;
+interface InviteSignupTemViewProps {
+  control: Control<InviteSignupInput>;
+  isValid: boolean;
+  serverError: string | null;
+  onSubmit: (values: InviteSignupInput) => void;
+  handleSubmit: (
+    onSubmit: (values: InviteSignupInput) => void
+  ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
+  name: string;
 }
 
 const InviteSignupTemContent: React.FC<InviteSignupTemContentProps> = ({
@@ -81,7 +90,7 @@ const InviteSignupTemContent: React.FC<InviteSignupTemContentProps> = ({
   );
 };
 
-export const InviteSignupTemMobile: React.FC<InviteSignupTemProps> = ({
+export const InviteSignupTemMobile: React.FC<InviteSignupTemViewProps> = ({
   control,
   isValid,
   serverError,
@@ -111,7 +120,7 @@ export const InviteSignupTemMobile: React.FC<InviteSignupTemProps> = ({
   </div>
 );
 
-export const InviteSignupTemDesktop: React.FC<InviteSignupTemProps> = ({
+export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
   control,
   isValid,
   serverError,
@@ -124,7 +133,7 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemProps> = ({
       <Logo size="lg" />
     </div>
     <div className="w-600 relative">
-      <div className="bg-white rounded-16 shadow-2xl p-48 relative">
+      <div className=" flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
         <InviteSignupTemContent
           control={control}
           isValid={isValid}
@@ -134,7 +143,7 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemProps> = ({
           name={name}
           className="flex flex-col w-full tablet:w-480 desktop:w-480"
         />
-        <p className="flex justify-center mt-24 text-14 text-gray-600">
+        <p className="flex justify-center mt-24 text-14 text-gray-600 ">
           이미 계정이 있으신가요?{' '}
           <Link
             href={PATHNAME.LOGIN}
@@ -148,32 +157,38 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemProps> = ({
   </div>
 );
 
-const InviteSignupTem: React.FC<InviteSignupTemProps> = ({
-  control,
-  isValid,
-  serverError,
-  onSubmit,
-  handleSubmit,
-  name,
-}) => (
-  <>
-    <InviteSignupTemMobile
-      control={control}
-      isValid={isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-      name={name}
-    />
-    <InviteSignupTemDesktop
-      control={control}
-      isValid={isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-      name={name}
-    />
-  </>
-);
+interface InviteSignupTemProps {
+  name: string;
+  email: string;
+  token: string;
+}
+
+const InviteSignupTem: React.FC<InviteSignupTemProps> = ({ name, email, token }) => {
+  const { control, handleSubmit, formState, serverError, onSubmit } = useInviteSignupForm(
+    email,
+    token
+  );
+
+  return (
+    <>
+      <InviteSignupTemMobile
+        control={control}
+        isValid={formState.isValid}
+        serverError={serverError}
+        onSubmit={onSubmit}
+        handleSubmit={handleSubmit}
+        name={name}
+      />
+      <InviteSignupTemDesktop
+        control={control}
+        isValid={formState.isValid}
+        serverError={serverError}
+        onSubmit={onSubmit}
+        handleSubmit={handleSubmit}
+        name={name}
+      />
+    </>
+  );
+};
 
 export default InviteSignupTem;
