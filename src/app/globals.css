@@ -86,9 +86,13 @@ body {
   --color-black: #000000;
   --color-black-100: #6b6b6b;
   --color-black-400: #1f1f1f;
-  --color-blue-100: #def3ff --color-blue-200: #00a2ff --color-red-100: #ffdede
-    --color-red-200: #ff8484 /* 기본 spacing 단위를 1px로 설정 (기본값: 0.25rem = 4px) */
-    --spacing: 1px;
+  --color-blue-100: #def3ff;
+  --color-blue-200: #00a2ff;
+  --color-red-100: #ffdede;
+  --color-red-200: #ff8484;
+
+  /* 기본 spacing 단위를 1px로 설정 (기본값: 0.25rem = 4px) */
+  --spacing: 1px;
 
   /* Spacing/Size 토큰 - Tailwind의 기본 spacing scale + 커스텀 */
   --spacing-0: 0px;
