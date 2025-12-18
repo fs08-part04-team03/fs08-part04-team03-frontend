@@ -45,6 +45,14 @@ interface SignupResponseData {
 }
 
 /**
+ * 초대 정보 응답 데이터 타입
+ */
+interface InviteInfoResponseData {
+  name: string;
+  email: string;
+}
+
+/**
  * 백엔드 role을 클라이언트 role로 변환
  */
 function normalizeRole(role: string): 'user' | 'manager' | 'admin' {
@@ -203,4 +211,97 @@ export async function signup(
     },
     accessToken: result.data.accessToken,
   };
+}
+
+/**
+ * 초대 정보 응답 데이터 타입
+ */
+interface InviteInfoResponseData {
+  name: string;
+  email: string;
+}
+
+/**
+ * 초대 정보 조회 API 호출
+ * @param inviteUrl - 초대 URL (예: "http://localhost:3000/invite?token=...")
+ */
+export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoResponseData> {
+  // API URL 검증
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) {
+    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
+  }
+
+  // 타임아웃 설정 (환경 변수 또는 기본값 10초)
+  const timeout = Number.parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000', 10);
+
+  // AbortController 생성 및 타임아웃 설정
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}/api/v1/auth/invitation/verifyUrl`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inviteUrl,
+      }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    // 타임아웃 또는 중단 에러 처리
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+    }
+    throw error;
+  }
+
+  // 응답을 받은 후 타임아웃 타이머 정리
+  clearTimeout(timeoutId);
+
+  // 응답 본문을 먼저 읽어서 확인
+  const responseText = await response.text();
+
+  // 응답이 JSON인지 확인
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    // 개발 환경에서만 상세 에러 로그
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('API 응답 형식 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+        body: responseText,
+      });
+    }
+    throw new Error('서버 응답 형식이 올바르지 않습니다.');
+  }
+
+  let result: ApiResponse<InviteInfoResponseData>;
+  try {
+    result = JSON.parse(responseText) as ApiResponse<InviteInfoResponseData>;
+  } catch (parseError) {
+    // 개발 환경에서만 상세 에러 로그
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('JSON 파싱 오류:', {
+        parseError,
+        responseText,
+      });
+    }
+    throw new Error('서버 응답을 파싱할 수 없습니다.');
+  }
+
+  if (!result.success || !response.ok) {
+    throw new Error(result.message || '초대 정보를 가져오는데 실패했습니다.');
+  }
+
+  return result.data;
 }
