@@ -1,4 +1,3 @@
-// app/[companyId]/layout.tsx
 import type { Metadata } from 'next';
 
 interface Company {
@@ -8,14 +7,21 @@ interface Company {
 // 회사 정보 fetch 함수
 async function fetchCompanyById(companyId: string): Promise<Company> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/companies/${companyId}`, {
-    cache: 'force-cache', // 캐싱 전략
+    next: { revalidate: 3600 },
   });
 
   if (!res.ok) {
+    if (res.status === 404) {
+      // eslint-disable-next-line no-console
+      console.warn(`Company ${companyId} not found, using fallback`);
+    } else {
+      // eslint-disable-next-line no-console
+      console.error(`Failed to fetch company ${companyId}: ${res.status} ${res.statusText}`);
+    }
     return { name: 'SNACK' }; // fallback
   }
 
-  return res.json() as Promise<Company>;
+  return (await res.json()) as Company;
 }
 
 // 동적 메타데이터 생성
