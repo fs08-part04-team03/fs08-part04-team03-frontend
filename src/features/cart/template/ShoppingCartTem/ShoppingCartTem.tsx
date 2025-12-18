@@ -61,7 +61,8 @@ const ShoppingCartTem = ({
           mt-60 tablet:mt-60 desktop:mt-80
           w-327
           tablet:w-696
-          desktop:w-1150
+          desktop:w-1200
+          desktop:px-25
         "
       >
         {/* ✅ StepBreadcrumb – 여백은 Template에서만 관리 */}
