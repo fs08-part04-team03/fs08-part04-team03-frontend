@@ -59,7 +59,7 @@ export const AllVariants: Story = {
       <div className="flex items-center gap-16">
         <span className="text-14 text-gray-700 w-80 font-medium">긴급 (urgent):</span>
         <StatusTag variant="urgent">긴급</StatusTag>
-        <span className="text-12 text-gray-500 ml-8">bg-red-100, text-red-200, urgent.svg</span>
+        <span className="text-12 text-gray-500 ml-8">bg-red-100, text-red, urgent.svg</span>
       </div>
       <div className="flex items-center gap-16">
         <span className="text-14 text-gray-700 w-80 font-medium">대기 (pending):</span>

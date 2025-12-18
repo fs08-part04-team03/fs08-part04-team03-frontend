@@ -3,7 +3,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import StatusTag, { type StatusTagVariant } from '@/components/atoms/StatusTag/StatusTag';
@@ -65,7 +65,7 @@ export interface PurchaseRequestItemListOrgProps {
 
 interface PurchaseRequestItemRowProps {
   item: PurchaseRequestItem;
-  onCancel: (purchaseRequestId: string) => void;
+  onCancel: (purchaseRequestId: string) => void | Promise<void>;
 }
 
 /**
@@ -77,6 +77,18 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
 }) => {
   const isPending = item.status === 'PENDING';
   const totalPrice = item.totalPrice + item.shippingFee;
+
+  const handleCancelClick = () => {
+    const result = onCancel(item.id);
+    if (result instanceof Promise) {
+      result.catch((error) => {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('구매 요청 취소 실패:', error);
+        }
+      });
+    }
+  };
 
   return (
     <div className={clsx('flex flex-col', 'w-full', 'py-16', 'border-b border-gray-200', 'gap-12')}>
@@ -115,7 +127,7 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
         <div className={clsx('w-full', 'tablet:w-auto')}>
           <Button
             variant="secondary"
-            onClick={() => onCancel(item.id)}
+            onClick={handleCancelClick}
             className="w-full h-40 tablet:w-auto tablet:h-44"
           >
             요청 취소
@@ -135,6 +147,18 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
 }) => {
   const isPending = item.status === 'PENDING';
   const totalPrice = item.totalPrice + item.shippingFee;
+
+  const handleCancelClick = () => {
+    const result = onCancel(item.id);
+    if (result instanceof Promise) {
+      result.catch((error) => {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('구매 요청 취소 실패:', error);
+        }
+      });
+    }
+  };
 
   return (
     <div
@@ -173,7 +197,7 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
       {/* 취소 버튼 (대기중일 때만) */}
       {isPending && (
         <div className={clsx('shrink-0')}>
-          <Button variant="secondary" onClick={() => onCancel(item.id)} className="w-126 h-44">
+          <Button variant="secondary" onClick={handleCancelClick} className="w-126 h-44">
             요청 취소
           </Button>
         </div>
@@ -190,9 +214,8 @@ const PurchaseRequestItemListOrg: React.FC<PurchaseRequestItemListOrgProps> = ({
   className,
   onCancel,
 }) => {
-  const handleCancel = (purchaseRequestId: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    (async () => {
+  const handleCancel = useCallback(
+    async (purchaseRequestId: string) => {
       try {
         await cancelPurchaseRequest(purchaseRequestId);
         if (onCancel) {
@@ -205,8 +228,9 @@ const PurchaseRequestItemListOrg: React.FC<PurchaseRequestItemListOrgProps> = ({
         }
         // TODO: 에러 토스트 메시지 표시
       }
-    })();
-  };
+    },
+    [onCancel]
+  );
 
   return (
     <div className={clsx('w-full', className)}>
