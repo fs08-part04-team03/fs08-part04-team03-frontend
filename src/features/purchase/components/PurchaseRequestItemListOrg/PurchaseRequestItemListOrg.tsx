@@ -1,5 +1,6 @@
 // 내 구매 요청 내역 - MyPurchaseRequestListPage
 // GET /api/v1/purchase/admin/managePurchaseRequests
+// review
 
 'use client';
 
