@@ -97,13 +97,13 @@ const InputField = ({
   const showToggle = type === 'password' || type === 'passwordConfirm';
 
   return (
-    <div className={clsx('flex flex-col w-327 md:w-480')}>
+    <div className="flex flex-col w-full">
       {/* label - htmlFor 연결 */}
       <label htmlFor={inputId} className="text-12 text-gray-600 font-normal tracking--0.3 mb-1">
         {label}
       </label>
 
-      <div className={clsx('flex items-center gap-1 h-40 w-319 md:w-472')}>
+      <div className="flex items-center gap-1 h-40 w-full">
         <input
           id={inputId}
           type={inputType}

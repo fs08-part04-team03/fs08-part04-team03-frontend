@@ -25,10 +25,10 @@ export const signupSchema = z
   })
   .refine(
     (data) => {
-      const hasLetter = /[A-Za-z]/.test(data.password);
+      const hasLowerCase = /[a-z]/.test(data.password);
       const hasNumber = /[0-9]/.test(data.password);
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.password);
-      return hasLetter && hasNumber && hasSpecialChar;
+      return hasLowerCase && hasNumber && hasSpecialChar;
     },
     {
       message: '유효하지 않은 비밀번호입니다.',
@@ -55,13 +55,13 @@ export const inviteSignupSchema = z
   })
   .refine(
     (data) => {
-      const hasLetter = /[A-Za-z]/.test(data.password);
+      const hasLowerCase = /[a-z]/.test(data.password);
       const hasNumber = /[0-9]/.test(data.password);
       const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(data.password);
-      return hasLetter && hasNumber && hasSpecialChar;
+      return hasLowerCase && hasNumber && hasSpecialChar;
     },
     {
-      message: '유효하지 않은 비밀번호입니다.',
+      message: '비밀번호는 소문자, 숫자, 특수문자를 포함해야 합니다.',
       path: ['password'],
     }
   )
