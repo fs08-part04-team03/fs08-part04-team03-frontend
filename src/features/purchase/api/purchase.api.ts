@@ -125,8 +125,8 @@ export async function getAllPurchases(
   params?: GetAllPurchasesParams
 ): Promise<GetAllPurchasesResponse> {
   const queryParams = new URLSearchParams();
-  if (params?.page) queryParams.append('page', params.page.toString());
-  if (params?.size) queryParams.append('size', params.size.toString());
+  if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+  if (params?.size !== undefined) queryParams.append('size', params.size.toString());
   if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
@@ -198,8 +198,8 @@ export async function managePurchaseRequests(
   params?: ManagePurchaseRequestsParams
 ): Promise<ManagePurchaseRequestsResponse> {
   const queryParams = new URLSearchParams();
-  if (params?.page) queryParams.append('page', params.page.toString());
-  if (params?.size) queryParams.append('size', params.size.toString());
+  if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+  if (params?.size !== undefined) queryParams.append('size', params.size.toString());
   if (params?.status) queryParams.append('status', params.status);
 
   const queryString = queryParams.toString();
@@ -377,8 +377,8 @@ export async function getMyPurchases(
   params?: GetMyPurchasesParams
 ): Promise<GetMyPurchasesResponse> {
   const queryParams = new URLSearchParams();
-  if (params?.page) queryParams.append('page', params.page.toString());
-  if (params?.size) queryParams.append('size', params.size.toString());
+  if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+  if (params?.size !== undefined) queryParams.append('size', params.size.toString());
   if (params?.status) queryParams.append('status', params.status);
 
   const queryString = queryParams.toString();

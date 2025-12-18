@@ -133,7 +133,7 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
       <Logo size="lg" />
     </div>
     <div className="w-600 relative">
-      <div className=" flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
+      <div className="flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
         <InviteSignupTemContent
           control={control}
           isValid={isValid}
