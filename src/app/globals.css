@@ -86,6 +86,10 @@ body {
   --color-black: #000000;
   --color-black-100: #6b6b6b;
   --color-black-400: #1f1f1f;
+  --color-blue-100: #def3ff;
+  --color-blue-200: #00a2ff;
+  --color-red-100: #ffdede;
+  --color-red-200: #ff8484;
 
   /* 기본 spacing 단위를 1px로 설정 (기본값: 0.25rem = 4px) */
   --spacing: 1px;
@@ -195,12 +199,14 @@ body {
   --spacing-100: 100px;
   --spacing-105: 105px;
   --spacing-110: 110px;
+  --spacing-126: 126px;
   --spacing-130: 130px;
   --spacing-140: 140px;
   --spacing-152: 152px;
   --spacing-153: 153px;
   --spacing-153\.5: 153.5px;
   --spacing-160: 160px;
+  --spacing-165: 165px;
   --spacing-171: 171px;
   --spacing-177: 177px;
   --spacing-179: 179px;
@@ -222,6 +228,7 @@ body {
   --spacing-336: 336px;
   --spacing-344: 344px;
   --spacing-345: 345px;
+  --spacing-349: 349px;
   --spacing-350: 350px;
   --spacing-366: 366px;
   --spacing-375: 375px;
@@ -236,6 +243,7 @@ body {
   --spacing-496: 496px;
   --spacing-500: 500px;
   --spacing-512: 512px;
+  --spacing-516: 516px;
   --spacing-540: 540px;
   --spacing-600: 600px;
   --spacing-610: 610px;
@@ -245,8 +253,10 @@ body {
   --spacing-734: 734px;
   --spacing-750: 750px;
   --spacing-1052: 1052px;
+  --spacing-1150: 1150px;
   --spacing-1152: 1152px;
   --spacing-1180: 1180px;
+  --spacing-1200: 1200px;
   --spacing-1352: 1352px;
   --spacing-1400: 1400px;
   --spacing-155: 155px;
