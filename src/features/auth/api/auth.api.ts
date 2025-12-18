@@ -45,14 +45,6 @@ interface SignupResponseData {
 }
 
 /**
- * 초대 정보 응답 데이터 타입
- */
-interface InviteInfoResponseData {
-  name: string;
-  email: string;
-}
-
-/**
  * 백엔드 role을 클라이언트 role로 변환
  */
 function normalizeRole(role: string): 'user' | 'manager' | 'admin' {
