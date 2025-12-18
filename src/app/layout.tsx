@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import HeaderShell from '@/components/organisms/HeaderShell/HeaderShell';
 import { Providers } from './providers';
 import './globals.css';
 import { suit } from './fonts';
@@ -16,7 +17,10 @@ const RootLayout = ({
 }>) => (
   <html lang="ko">
     <body className={`${suit.variable} font-sans`}>
-      <Providers>{children}</Providers>
+      <Providers>
+        <HeaderShell />
+        {children}
+      </Providers>
     </body>
   </html>
 );
