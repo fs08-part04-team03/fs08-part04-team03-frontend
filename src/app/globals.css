@@ -86,9 +86,9 @@ body {
   --color-black: #000000;
   --color-black-100: #6b6b6b;
   --color-black-400: #1f1f1f;
-
-  /* 기본 spacing 단위를 1px로 설정 (기본값: 0.25rem = 4px) */
-  --spacing: 1px;
+  --color-blue-100: #def3ff --color-blue-200: #00a2ff --color-red-100: #ffdede
+    --color-red-200: #ff8484 /* 기본 spacing 단위를 1px로 설정 (기본값: 0.25rem = 4px) */
+    --spacing: 1px;
 
   /* Spacing/Size 토큰 - Tailwind의 기본 spacing scale + 커스텀 */
   --spacing-0: 0px;
@@ -222,6 +222,7 @@ body {
   --spacing-336: 336px;
   --spacing-344: 344px;
   --spacing-345: 345px;
+  --spacing-349: 349px;
   --spacing-350: 350px;
   --spacing-366: 366px;
   --spacing-375: 375px;
@@ -236,6 +237,7 @@ body {
   --spacing-496: 496px;
   --spacing-500: 500px;
   --spacing-512: 512px;
+  --spacing-516: 516px;
   --spacing-540: 540px;
   --spacing-600: 600px;
   --spacing-610: 610px;
