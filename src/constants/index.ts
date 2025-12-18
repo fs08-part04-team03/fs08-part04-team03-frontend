@@ -3,7 +3,7 @@ export const PATHNAME = {
   ROOT: '/',
   LOGIN: '/login',
   SIGNUP: '/signup',
-  INVITE_SIGNUP: (token: string) => `/invite/${token}`,
+  INVITE_SIGNUP: (token: string) => `/invite?token=${token}`,
 
   // 회사 스코프
   COMPANY_ROOT: (companyId: string) => `/${companyId}`,
