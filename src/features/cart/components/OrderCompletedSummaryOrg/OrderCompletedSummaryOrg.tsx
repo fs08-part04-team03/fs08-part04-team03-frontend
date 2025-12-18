@@ -104,7 +104,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
       </div>
 
       <div className="mt-20 rounded-default bg-white shadow-[0_0_10px_0_rgba(0,0,0,0.12)]">
-        <div className="max-h-260 overflow-y-auto scrollbar-none tablet:max-h-360 tablet:px-14 tablet:pt-28 desktop:max-h-400 desktop:px-50 desktop:pt-44">
+        <div className="max-h-240 overflow-y-auto scrollbar-none tablet:max-h-360 tablet:px-14 tablet:pt-28 desktop:max-h-400 desktop:px-50 desktop:pt-44">
           <div className="flex flex-col gap-4">
             {items.map((item) => (
               <OrderItemCard
