@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '상태를 표시하는 태그 컴포넌트입니다. 4가지 variant를 지원하며, 각 variant는 자동으로 해당하는 아이콘(11px)을 표시합니다.\n\n- `approved`: 승인 상태 (파란색 배경 `bg-blue-100`, 파란색 텍스트 `text-blue-200`, check-circle 아이콘)\n- `rejected`: 거절 상태 (검은색 배경 `bg-black-100`, 회색 텍스트 `text-gray-50`, close-circle 아이콘)\n- `urgent`: 긴급 상태 (빨간색 배경 `bg-red-100`, 빨간색 텍스트 `text-red-200`, urgent 아이콘)\n- `pending`: 대기 상태 (회색 배경 `bg-gray-100`, 진한 회색 텍스트 `text-gray-950`, time 아이콘, 기본값)',
+          '상태를 표시하는 태그 컴포넌트입니다. 4가지 variant를 지원하며, 각 variant는 자동으로 해당하는 아이콘(15px)을 표시합니다.\n\n- `approved`: 승인 상태 (파란색 배경 `bg-blue-100`, 파란색 텍스트 `text-blue-200`, check-circle 아이콘)\n- `rejected`: 거절 상태 (검은색 배경 `bg-black-100`, 회색 텍스트 `text-gray-50`, close-circle 아이콘)\n- `urgent`: 긴급 상태 (빨간색 배경 `bg-red-100`, 빨간색 텍스트 `text-red`, urgent 아이콘)\n- `pending`: 대기 상태 (회색 배경 `bg-gray-100`, 진한 회색 텍스트 `text-gray-950`, time 아이콘, 기본값)',
       },
     },
   },
@@ -72,7 +72,7 @@ export const AllVariants: Story = {
     docs: {
       description: {
         story:
-          '모든 variant를 한 번에 확인할 수 있습니다. 각 variant는 자동으로 해당하는 아이콘(11px × 11px)을 텍스트 앞에 표시합니다.',
+          '모든 variant를 한 번에 확인할 수 있습니다. 각 variant는 자동으로 해당하는 아이콘(15px × 15px)을 텍스트 앞에 표시합니다.',
       },
     },
   },

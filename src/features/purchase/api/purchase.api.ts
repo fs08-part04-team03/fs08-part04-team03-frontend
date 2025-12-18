@@ -1,3 +1,5 @@
+'use client';
+
 import { useAuthStore } from '@/lib/store/authStore';
 
 /**
@@ -362,15 +364,13 @@ export interface PurchaseRequestItem {
  * 구매 요청 목록 응답 타입 (실제 API 응답 구조)
  */
 export interface GetMyPurchasesResponse {
-  data: {
-    purchaseList: PurchaseRequestItem[];
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
+  purchaseList: PurchaseRequestItem[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }
 
 export async function getMyPurchases(
