@@ -123,7 +123,7 @@ const GNB: React.FC<GNBProps> = ({
   };
 
   return (
-    <header
+    <div
       className={clsx(
         'sticky top-0 z-header',
         'w-full h-56',
@@ -185,7 +185,7 @@ const GNB: React.FC<GNBProps> = ({
           />
         </SideBarMenu>
       </div>
-    </header>
+    </div>
   );
 };
 
