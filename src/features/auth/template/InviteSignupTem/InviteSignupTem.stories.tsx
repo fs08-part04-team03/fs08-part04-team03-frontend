@@ -10,7 +10,8 @@ const meta = {
     nextjs: {
       appDirectory: true,
       navigation: {
-        pathname: '/invite/[token]',
+        pathname: '/invite',
+        query: { token: 'dummy-token-123' },
       },
     },
     docs: {
