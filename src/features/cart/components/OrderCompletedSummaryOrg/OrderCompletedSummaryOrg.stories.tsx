@@ -1,5 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import OrderCompletedSummaryOrg, { type OrderCompletedItem } from './OrderCompletedSummaryOrg';
+import OrderCompletedSummaryOrg, {
+  type OrderCompletedItem,
+  type CartRole,
+} from './OrderCompletedSummaryOrg';
 
 /** =====================
  * Mock Data
@@ -80,9 +83,9 @@ const meta: Meta<typeof OrderCompletedSummaryOrg> = {
     },
   },
   argTypes: {
-    role: {
+    cartRole: {
       control: 'radio',
-      options: ['user', 'manager', 'admin'],
+      options: ['user', 'manager', 'admin'] satisfies CartRole[],
       description: '화면 분기 기준 역할',
     },
     userType: {
@@ -103,7 +106,7 @@ type Story = StoryObj<typeof OrderCompletedSummaryOrg>;
 export const UserDefault: Story = {
   name: 'User / 기본 구매 완료',
   args: {
-    role: 'user',
+    cartRole: 'user',
     userType: 'default',
     items: mockItems,
     shippingFee: 3_000,
@@ -122,7 +125,7 @@ export const UserDefault: Story = {
 export const UserRequest: Story = {
   name: 'User / 구매 요청',
   args: {
-    role: 'user',
+    cartRole: 'user',
     userType: 'request',
     items: mockItems,
     shippingFee: 3_000,
@@ -141,7 +144,7 @@ export const UserRequest: Story = {
 export const Manager: Story = {
   name: 'Manager',
   args: {
-    role: 'manager',
+    cartRole: 'manager',
     items: mockItems,
     shippingFee: 3_000,
     onGoCart: () => {
@@ -159,7 +162,7 @@ export const Manager: Story = {
 export const Admin: Story = {
   name: 'Admin',
   args: {
-    role: 'admin',
+    cartRole: 'admin',
     items: mockItems,
     shippingFee: 3_000,
     onGoCart: () => {
