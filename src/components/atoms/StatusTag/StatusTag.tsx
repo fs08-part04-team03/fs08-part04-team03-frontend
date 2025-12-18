@@ -72,6 +72,13 @@ const variantIcons: Record<StatusTagVariant, React.ReactNode> = {
   pending: <TimeIcon />,
 };
 
+const variantLabels: Record<StatusTagVariant, string> = {
+  approved: '승인',
+  rejected: '반려',
+  urgent: '긴급',
+  pending: '대기중',
+};
+
 const StatusTag = forwardRef<HTMLSpanElement, StatusTagProps>(
   ({ variant = 'pending', className, children, ...props }, ref) => (
     <span
@@ -94,7 +101,7 @@ const StatusTag = forwardRef<HTMLSpanElement, StatusTagProps>(
       {...props}
     >
       <span className="shrink-0">{variantIcons[variant]}</span>
-      <span>{children}</span>
+      <span>{children || variantLabels[variant]}</span>
     </span>
   )
 );
