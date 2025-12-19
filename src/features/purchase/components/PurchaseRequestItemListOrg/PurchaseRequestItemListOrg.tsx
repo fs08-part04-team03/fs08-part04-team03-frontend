@@ -1,59 +1,20 @@
 // 내 구매 요청 내역 - MyPurchaseRequestListPage
-// GET /api/v1/purchase/admin/managePurchaseRequests
-// review
+// GET /api/v1/purchase/user/getMyPurchases
 
 'use client';
 
 import React, { useCallback } from 'react';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import StatusTag, { type StatusTagVariant } from '@/components/atoms/StatusTag/StatusTag';
+import StatusTag from '@/components/atoms/StatusTag/StatusTag';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import { cancelPurchaseRequest } from '@/features/purchase/api/purchase.api';
 import Button from '@/components/atoms/Button/Button';
-
-/**
- * 날짜를 한국 형식으로 포맷팅 (YYYY. MM. DD)
- */
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}. ${month}. ${day}`;
-}
-
-/**
- * 구매 아이템 목록에서 첫 번째 아이템 이름과 나머지 개수 반환
- */
-function formatItemDescription(purchaseItems: PurchaseRequestItem['purchaseItems']): string {
-  if (purchaseItems.length === 0) return '';
-  const firstItem = purchaseItems[0];
-  if (!firstItem) return '';
-  if (purchaseItems.length === 1) return firstItem.products.name;
-  const firstItemName = firstItem.products.name;
-  const remainingCount = purchaseItems.length - 1;
-  return `${firstItemName} 외 ${remainingCount}건`;
-}
-
-/**
- * 상태에 따른 StatusTag variant 반환
- */
-function getStatusTagVariant(status: PurchaseRequestItem['status']): StatusTagVariant {
-  if (status === 'APPROVED') {
-    return 'approved';
-  }
-  if (status === 'REJECTED') {
-    return 'rejected';
-  }
-  if (status === 'PENDING') {
-    return 'pending';
-  }
-  if (status === 'CANCELLED') {
-    return 'pending'; // TODO: CANCELLED 상태에 대한 별도 variant 추가 시 수정
-  }
-  return 'pending';
-}
+import {
+  formatDate,
+  formatItemDescription,
+  getStatusTagVariant,
+} from '@/features/purchase/utils/purchase.utils';
 
 /**
  * PurchaseRequestItemListOrg Props
@@ -77,6 +38,7 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
   onCancel,
 }) => {
   const isPending = item.status === 'PENDING';
+  const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
   const handleCancelClick = () => {
@@ -92,7 +54,16 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
   };
 
   return (
-    <div className={clsx('flex flex-col', 'w-full', 'py-16', 'border-b border-gray-200', 'gap-12')}>
+    <div
+      className={clsx(
+        'flex flex-col',
+        'w-full',
+        'py-16',
+        'border-b border-gray-200',
+        'gap-12',
+        isUrgent && 'bg-red-100'
+      )}
+    >
       {/* 첫 번째 줄: 2개 컬럼 (왼쪽: 날짜/제목/금액, 오른쪽: 태그) */}
       <div className={clsx('flex items-start', 'w-full', 'gap-12')}>
         {/* 왼쪽 컬럼: 날짜, 제목, 금액 */}
@@ -147,6 +118,7 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
   onCancel,
 }) => {
   const isPending = item.status === 'PENDING';
+  const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
   const handleCancelClick = () => {
@@ -166,23 +138,57 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
       className={clsx(
         'flex items-center',
         'w-full',
-        'py-16',
         'border-b border-gray-200',
-        'gap-16 tablet:gap-24 desktop:gap-32'
+        'gap-16 tablet:gap-24 desktop:gap-32',
+        isUrgent && 'bg-red-100'
       )}
     >
-      {/* 날짜 */}
-      <div className={clsx('text-gray-700', 'text-14', 'font-bold', 'shrink-0', 'w-100')}>
+      {/* 구매 요청일 */}
+      <div
+        className={clsx(
+          'text-gray-700',
+          'text-14',
+          'font-bold',
+          'shrink-0',
+          'tablet:w-100',
+          'desktop:w-180',
+          'py-20',
+          'tablet:px-0',
+          'desktop:px-40'
+        )}
+      >
         {formatDate(item.createdAt)}
       </div>
 
-      {/* 아이템 설명 */}
-      <div className={clsx('text-gray-700', 'text-14', 'flex-1', 'min-w-0')}>
+      {/* 상품 정보 */}
+      <div
+        className={clsx(
+          'text-gray-700',
+          'text-14',
+          'shrink-0',
+          'tablet:w-140',
+          'desktop:w-260',
+          'min-w-0',
+          'py-20',
+          'tablet:px-0',
+          'desktop:px-40'
+        )}
+      >
         {formatItemDescription(item.purchaseItems)}
       </div>
 
-      {/* 가격 */}
-      <div className={clsx('shrink-0', 'w-100', 'text-right')}>
+      {/* 주문 금액 */}
+      <div
+        className={clsx(
+          'shrink-0',
+          'text-left',
+          'tablet:w-100',
+          'desktop:w-180',
+          'py-20',
+          'tablet:px-0',
+          'desktop:px-40'
+        )}
+      >
         <PriceText
           value={totalPrice}
           showUnit
@@ -190,14 +196,34 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
         />
       </div>
 
-      {/* 상태 태그 */}
-      <div className={clsx('shrink-0')}>
+      {/* 상태 */}
+      <div
+        className={clsx(
+          'shrink-0',
+          'text-left',
+          'tablet:w-100',
+          'desktop:w-180',
+          'py-20',
+          'tablet:px-0',
+          'desktop:px-40'
+        )}
+      >
         <StatusTag variant={getStatusTagVariant(item.status)} />
       </div>
 
-      {/* 취소 버튼 (대기중일 때만) */}
+      {/* 비고 */}
       {isPending && (
-        <div className={clsx('shrink-0')}>
+        <div
+          className={clsx(
+            'shrink-0',
+            'text-left',
+            'tablet:w-100',
+            'desktop:w-180',
+            'py-20',
+            'tablet:px-0',
+            'desktop:px-40'
+          )}
+        >
           <Button variant="secondary" onClick={handleCancelClick} className="w-126 h-44">
             요청 취소
           </Button>
