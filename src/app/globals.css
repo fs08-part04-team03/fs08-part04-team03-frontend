@@ -88,7 +88,7 @@ body {
   --color-black-400: #1f1f1f;
   --color-blue-100: #def3ff;
   --color-blue-200: #00a2ff;
-  --color-red-100: #ffdede;
+  --color-red-100: #ffe5e5;
   --color-red-200: #ff8484;
 
   /* 기본 spacing 단위를 1px로 설정 (기본값: 0.25rem = 4px) */
@@ -250,7 +250,9 @@ body {
   --spacing-636: 636px;
   --spacing-656: 656px;
   --spacing-696: 696px;
+  --spacing-710: 710px;
   --spacing-734: 734px;
+  --spacing-740: 740px;
   --spacing-750: 750px;
   --spacing-1052: 1052px;
   --spacing-1150: 1150px;
