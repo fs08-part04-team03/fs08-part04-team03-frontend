@@ -172,7 +172,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
                   tablet:w-696 desktop:w-1200
                   px-12 py-8
                   text-16 tracking-tight
-                  border rounded-default resize-none
+                  border rounded-default resize-none scrollbar-none
                 `,
                 touched && !isMessageValid
                   ? 'border-error-500'
