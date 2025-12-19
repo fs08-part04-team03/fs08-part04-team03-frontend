@@ -1,7 +1,5 @@
-const MyPurchaseRequestListPage = () => (
-  <div>
-    <p>MyPurchaseRequestListPage — 구매요청내역 페이지</p>
-  </div>
-);
+import MyPurchaseRequestListSection from '@/features/purchase/section/MyPurchaseRequestListSection';
 
-export default MyPurchaseRequestListPage;
+const MyPurchseRequestPage = () => <MyPurchaseRequestListSection />;
+
+export default MyPurchseRequestPage;

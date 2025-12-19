@@ -337,6 +337,7 @@ export interface PurchaseRequestItem {
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
   requestMessage?: string;
   rejectReason?: string;
+  urgent?: boolean;
   purchaseItems: Array<{
     id: string;
     quantity: number;
