@@ -10,8 +10,11 @@ const MyPurchaseRequestListSection = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const page = Number.parseInt(searchParams.get('page') || '1', 10);
-  const size = Number.parseInt(searchParams.get('size') || '10', 10);
+  const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1);
+  const size = Math.max(
+    1,
+    Math.min(100, Number.parseInt(searchParams.get('size') || '10', 10) || 10)
+  );
   const status = searchParams.get('status') || undefined;
 
   const { data, isLoading, error, refetch } = useQuery({
