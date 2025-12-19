@@ -21,8 +21,18 @@ const MyPurchaseRequestListSection = () => {
 
   const handleCancel = useCallback(
     async (purchaseRequestId: string) => {
-      await cancelPurchaseRequest(purchaseRequestId);
-      await refetch();
+      try {
+        await cancelPurchaseRequest(purchaseRequestId);
+        await refetch();
+      } catch (cancelError) {
+        // 에러 처리: 사용자에게 피드백 제공
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('구매 요청 취소 실패:', cancelError);
+        }
+        // TODO: Toast나 다른 알림 컴포넌트로 사용자에게 에러 메시지 표시
+        throw cancelError; // 상위 컴포넌트에서도 처리할 수 있도록 에러 전파
+      }
     },
     [refetch]
   );
@@ -31,6 +41,20 @@ const MyPurchaseRequestListSection = () => {
     (newPage: number) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set('page', newPage.toString());
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [searchParams, router, pathname]
+  );
+
+  const handleStatusChange = useCallback(
+    (newStatus: string | undefined) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (newStatus) {
+        params.set('status', newStatus);
+      } else {
+        params.delete('status');
+      }
+      params.set('page', '1'); // 상태 변경 시 첫 페이지로 이동
       router.push(`${pathname}?${params.toString()}`);
     },
     [searchParams, router, pathname]
@@ -64,6 +88,7 @@ const MyPurchaseRequestListSection = () => {
         currentPage={data.currentPage}
         totalPages={data.totalPages}
         onPageChange={handlePageChange}
+        onStatusChange={handleStatusChange}
       />
     </div>
   );

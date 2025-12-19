@@ -4,10 +4,10 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams, usePathname } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import StatusTag, { type StatusTagVariant } from '@/components/atoms/StatusTag/StatusTag';
+import StatusTag from '@/components/atoms/StatusTag/StatusTag';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
 import { Divider } from '@/components/atoms/Divider/Divider';
@@ -15,49 +15,11 @@ import PurchaseRequestItemListOrg from '@/features/purchase/components/PurchaseR
 import DropDown, { type Option } from '@/components/atoms/DropDown/DropDown';
 import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBlock';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
-
-/**
- * 날짜를 한국 형식으로 포맷팅 (YYYY. MM. DD)
- */
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}. ${month}. ${day}`;
-}
-
-/**
- * 구매 아이템 목록에서 첫 번째 아이템 이름과 나머지 개수 반환
- */
-function formatItemDescription(purchaseItems: PurchaseRequestItem['purchaseItems']): string {
-  if (purchaseItems.length === 0) return '';
-  const firstItem = purchaseItems[0];
-  if (!firstItem) return '';
-  if (purchaseItems.length === 1) return firstItem.products.name;
-  const firstItemName = firstItem.products.name;
-  const remainingCount = purchaseItems.length - 1;
-  return `${firstItemName} 외 ${remainingCount}건`;
-}
-
-/**
- * 상태에 따른 StatusTag variant 반환
- */
-function getStatusTagVariant(status: PurchaseRequestItem['status']): StatusTagVariant {
-  if (status === 'APPROVED') {
-    return 'approved';
-  }
-  if (status === 'REJECTED') {
-    return 'rejected';
-  }
-  if (status === 'PENDING') {
-    return 'pending';
-  }
-  if (status === 'CANCELLED') {
-    return 'pending'; // TODO: CANCELLED 상태에 대한 별도 variant 추가 시 수정
-  }
-  return 'pending';
-}
+import {
+  formatDate,
+  formatItemDescription,
+  getStatusTagVariant,
+} from '@/features/purchase/utils/purchase.utils';
 
 /**
  * PurchaseRequestList Props
@@ -69,6 +31,7 @@ export interface PurchaseRequestListProps {
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  onStatusChange?: (status: string | undefined) => void;
 }
 
 interface PurchaseRequestTableRowProps {
@@ -169,7 +132,13 @@ const PurchaseRequestTableHeaderTablet = () => (
 /**
  * 테이블 헤더 (데스크탑)
  */
-const PurchaseRequestTableHeaderDesktop = () => {
+const PurchaseRequestTableHeaderDesktop = ({
+  onStatusChange,
+  currentStatus,
+}: {
+  onStatusChange?: (status: string | undefined) => void;
+  currentStatus?: string;
+}) => {
   const statusOptions: Option[] = [
     { key: 'ALL', label: '전체' },
     { key: 'PENDING', label: '대기중' },
@@ -177,6 +146,16 @@ const PurchaseRequestTableHeaderDesktop = () => {
     { key: 'REJECTED', label: '반려됨' },
     { key: 'CANCELLED', label: '취소됨' },
   ];
+
+  const selectedOption =
+    currentStatus && currentStatus !== 'ALL'
+      ? statusOptions.find((opt) => opt.key === currentStatus)
+      : statusOptions.find((opt) => opt.key === 'ALL');
+
+  const handleSelect = (option: Option) => {
+    const status = option.key === 'ALL' ? undefined : option.key;
+    onStatusChange?.(status);
+  };
 
   return (
     <div className={clsx('w-full')}>
@@ -191,7 +170,12 @@ const PurchaseRequestTableHeaderDesktop = () => {
         )}
       >
         <p>구매 요청 내역</p>
-        <DropDown items={statusOptions} placeholder="전체" />
+        <DropDown
+          items={statusOptions}
+          placeholder="전체"
+          selected={selectedOption}
+          onSelect={handleSelect}
+        />
       </div>
       <div className={clsx('flex items-center', 'w-full', 'gap-16 tablet:gap-24 desktop:gap-32')}>
         <div
@@ -408,10 +392,14 @@ const PurchaseRequestList = ({
   currentPage,
   totalPages,
   onPageChange,
+  onStatusChange,
 }: PurchaseRequestListProps) => {
   const router = useRouter();
   const params = useParams();
-  const companyId = (params?.companyId as string) || 'company-123';
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const companyId = params?.companyId as string;
+  const currentStatus = searchParams.get('status') || undefined;
 
   const handleCancel = useCallback(
     async (purchaseRequestId: string) => {
@@ -423,10 +411,28 @@ const PurchaseRequestList = ({
   );
 
   const handleNavigateToProducts = useCallback(() => {
-    if (companyId) {
-      router.push(`/${companyId}/products`);
-    }
+    if (!companyId) return;
+    router.push(`/${companyId}/products`);
   }, [router, companyId]);
+
+  const handleStatusChange = useCallback(
+    (status: string | undefined) => {
+      if (onStatusChange) {
+        onStatusChange(status);
+      } else {
+        // 기본 동작: URL 파라미터 업데이트
+        const urlParams = new URLSearchParams(searchParams.toString());
+        if (status) {
+          urlParams.set('status', status);
+        } else {
+          urlParams.delete('status');
+        }
+        urlParams.set('page', '1'); // 상태 변경 시 첫 페이지로 이동
+        router.push(`${pathname}?${urlParams.toString()}`);
+      }
+    },
+    [onStatusChange, searchParams, pathname, router]
+  );
 
   if (purchaseList.length === 0) {
     return (
@@ -458,7 +464,10 @@ const PurchaseRequestList = ({
 
           {/* 데스크탑 헤더 */}
           <div className={clsx('hidden desktop:block')}>
-            <PurchaseRequestTableHeaderDesktop />
+            <PurchaseRequestTableHeaderDesktop
+              onStatusChange={handleStatusChange}
+              currentStatus={currentStatus}
+            />
           </div>
 
           {/* Divider */}

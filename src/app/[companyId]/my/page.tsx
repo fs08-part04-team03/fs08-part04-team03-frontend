@@ -1,5 +1,5 @@
 import MyPurchaseRequestListSection from '@/features/purchase/section/MyPurchaseRequestListSection';
 
-const MyPurchseRequestPage = () => <MyPurchaseRequestListSection />;
+const MyPurchaseRequestPage = () => <MyPurchaseRequestListSection />;
 
-export default MyPurchseRequestPage;
+export default MyPurchaseRequestPage;
