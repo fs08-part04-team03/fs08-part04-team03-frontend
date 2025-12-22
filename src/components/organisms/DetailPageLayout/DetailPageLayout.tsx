@@ -67,14 +67,9 @@ const ProductImageBox = ({
 }) => (
   <div className={clsx('relative aspect-square bg-gray-100 rounded-8', sizeClass)}>
     {productImage ? (
-      <div className="absolute inset-0 bg-white rounded-8">
-        <div
-          className="absolute inset-0"
-          style={{ padding: '73px 120px', boxSizing: 'border-box' }}
-        >
-          <div className="relative w-full h-full">
-            <Image src={productImage.src} alt={productImage.alt} fill className="object-contain" />
-          </div>
+      <div className="absolute inset-0 bg-white rounded-8 p-[73px_120px]">
+        <div className="relative w-full h-full">
+          <Image src={productImage.src} alt={productImage.alt} fill className="object-contain" />
         </div>
       </div>
     ) : (
@@ -83,12 +78,25 @@ const ProductImageBox = ({
       </div>
     )}
 
-    {/* ❤️ */}
+    {/* ❤️ Like button */}
     <button
       type="button"
       aria-pressed={liked}
+      aria-label={liked ? '찜하기 취소' : '찜하기'}
       onClick={onToggleLike}
-      className="absolute bottom-20 right-20 w-30 h-30 cursor-pointer border-0 bg-transparent p-0"
+      className="
+        absolute bottom-20 right-20
+        w-30 h-30
+        border-0 bg-transparent p-0
+        cursor-pointer
+        rounded-4
+        transition-transform
+        active:scale-95
+        focus-visible:outline-none
+        focus-visible:ring-2
+        focus-visible:ring-primary-500
+        focus-visible:ring-offset-2
+      "
     >
       <Image
         src={liked ? '/icons/heart.svg' : '/icons/heart-outline.svg'}
