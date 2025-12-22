@@ -125,6 +125,7 @@ Product List 내부는 다음 순서로 구성됩니다.
     date: '2024.07.04',
     products: mockProducts,
     address: 'www.codeit.kr',
+    totalCount: mockProducts.length,
   },
 };
 
@@ -145,6 +146,7 @@ export const SingleProduct: Story = {
   name: '단일 상품',
   args: {
     products: [mockProducts[0]!],
+    totalCount: 1,
   },
 };
 
@@ -155,5 +157,6 @@ export const Empty: Story = {
   name: '상품 없음',
   args: {
     products: [],
+    totalCount: 0,
   },
 };
