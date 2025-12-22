@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Option } from '@/components/atoms/DropDown/DropDown';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import PurchaseRequestList from './PurchaseRequestList';
 
@@ -26,6 +27,26 @@ const meta = {
 export default meta;
 
 type Story = StoryObj<typeof PurchaseRequestList>;
+
+// 정렬 옵션 정의
+const sortOptions: Option[] = [
+  { key: 'LATEST', label: '최신순' },
+  { key: 'PRICE_LOW', label: '낮은 가격순' },
+  { key: 'PRICE_HIGH', label: '높은 가격순' },
+];
+
+const defaultSelectedSortOption = sortOptions.find((opt) => opt.key === 'LATEST');
+
+// 상태 필터 옵션 정의
+const statusOptions: Option[] = [
+  { key: 'ALL', label: '전체' },
+  { key: 'PENDING', label: '대기중' },
+  { key: 'APPROVED', label: '승인됨' },
+  { key: 'REJECTED', label: '반려됨' },
+  { key: 'CANCELLED', label: '취소됨' },
+];
+
+const defaultSelectedStatusOption = statusOptions.find((opt) => opt.key === 'ALL');
 
 // 더미 데이터 생성 헬퍼 함수
 const createPurchaseItem = (
@@ -78,6 +99,18 @@ export const Default: Story = {
         // eslint-disable-next-line no-console
         console.log('페이지 변경:', page);
       }}
+      sortOptions={sortOptions}
+      selectedSortOption={defaultSelectedSortOption}
+      onSortChange={(sort) => {
+        // eslint-disable-next-line no-console
+        console.log('정렬 변경:', sort);
+      }}
+      statusOptions={statusOptions}
+      selectedStatusOption={defaultSelectedStatusOption}
+      onStatusChange={(status) => {
+        // eslint-disable-next-line no-console
+        console.log('상태 변경:', status);
+      }}
     />
   ),
 };
@@ -91,6 +124,18 @@ export const Empty: Story = {
       onPageChange={(page) => {
         // eslint-disable-next-line no-console
         console.log('페이지 변경:', page);
+      }}
+      sortOptions={sortOptions}
+      selectedSortOption={defaultSelectedSortOption}
+      onSortChange={(sort) => {
+        // eslint-disable-next-line no-console
+        console.log('정렬 변경:', sort);
+      }}
+      statusOptions={statusOptions}
+      selectedStatusOption={defaultSelectedStatusOption}
+      onStatusChange={(status) => {
+        // eslint-disable-next-line no-console
+        console.log('상태 변경:', status);
       }}
     />
   ),
@@ -113,6 +158,18 @@ export const Urgent: Story = {
       onPageChange={(page) => {
         // eslint-disable-next-line no-console
         console.log('페이지 변경:', page);
+      }}
+      sortOptions={sortOptions}
+      selectedSortOption={defaultSelectedSortOption}
+      onSortChange={(sort) => {
+        // eslint-disable-next-line no-console
+        console.log('정렬 변경:', sort);
+      }}
+      statusOptions={statusOptions}
+      selectedStatusOption={defaultSelectedStatusOption}
+      onStatusChange={(status) => {
+        // eslint-disable-next-line no-console
+        console.log('상태 변경:', status);
       }}
     />
   ),
