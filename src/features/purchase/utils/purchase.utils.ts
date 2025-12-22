@@ -39,7 +39,7 @@ export function getStatusTagVariant(status: PurchaseRequestItem['status']): Stat
     return 'pending';
   }
   if (status === 'CANCELLED') {
-    return 'pending'; // TODO: CANCELLED 상태에 대한 별도 variant 추가 시 수정
+    return 'cancelled';
   }
   return 'pending';
 }

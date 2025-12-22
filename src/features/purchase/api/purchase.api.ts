@@ -323,6 +323,7 @@ export interface GetMyPurchasesParams {
   page?: number;
   size?: number;
   status?: string;
+  sort?: string;
 }
 
 /**
@@ -381,6 +382,7 @@ export async function getMyPurchases(
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
   if (params?.status) queryParams.append('status', params.status);
+  if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
   const url = `/api/v1/purchase/user/getMyPurchases${queryString ? `?${queryString}` : ''}`;
@@ -484,7 +486,35 @@ export async function urgentRequestPurchase(
  * 구매 요청 취소
  */
 export interface CancelPurchaseRequestResponse {
-  message: string;
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  totalPrice: number;
+  shippingFee: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  requestMessage?: string;
+  rejectReason?: string;
+  purchaseItems: Array<{
+    id: string;
+    quantity: number;
+    priceSnapshot: number;
+    products: {
+      id: number;
+      name: string;
+      image?: string;
+      link?: string;
+    };
+  }>;
+  requester: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  approver?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export async function cancelPurchaseRequest(
