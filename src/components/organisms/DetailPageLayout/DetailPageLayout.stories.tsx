@@ -36,6 +36,9 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** =====================
+ * Default
+ ====================== */
 export const Default: Story = {
   args: {
     breadcrumbItems: [
@@ -50,6 +53,7 @@ export const Default: Story = {
       productName: '코카콜라 제로',
       purchaseCount: 29,
       price: 2000,
+      type: 'default', // ✅ ItemMenu 표시
       onQuantityChange: () => {},
       onMenuClick: () => {},
       onAddToCart: () => {},
@@ -76,6 +80,9 @@ export const Default: Story = {
   },
 };
 
+/** =====================
+ * Without Image
+ ====================== */
 export const WithoutImage: Story = {
   args: {
     breadcrumbItems: [
@@ -86,6 +93,7 @@ export const WithoutImage: Story = {
       productName: '스프라이트',
       purchaseCount: 15,
       price: 1800,
+      type: 'default', // ✅ 기본 유지
       onQuantityChange: () => {},
       onMenuClick: () => {},
       onAddToCart: () => {},
@@ -106,6 +114,9 @@ export const WithoutImage: Story = {
   },
 };
 
+/** =====================
+ * Multiple Accordion Panels
+ ====================== */
 export const MultipleAccordionPanels: Story = {
   args: {
     breadcrumbItems: [{ label: '간편식', href: '/products?category=4' }, { label: '컵라면' }],
@@ -117,6 +128,7 @@ export const MultipleAccordionPanels: Story = {
       productName: '신라면 컵라면',
       purchaseCount: 42,
       price: 1500,
+      type: 'simple', // ✅ ItemMenu 숨김 예시
       onQuantityChange: () => {},
       onMenuClick: () => {},
       onAddToCart: () => {},
