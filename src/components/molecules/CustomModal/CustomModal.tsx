@@ -151,7 +151,12 @@ const CustomModal = ({
                   type === 'cancel' ? 'font-extrabold' : 'font-normal'
                 )}
               >
-                {type === 'cancel' ? `${productName} 외 ${cancelCount}건` : productName}
+                {(() => {
+                  if (type === 'cancel' && cancelCount > 0) {
+                    return `${productName} 외 ${cancelCount}건`;
+                  }
+                  return productName;
+                })()}
               </span>
             </div>
           </>
