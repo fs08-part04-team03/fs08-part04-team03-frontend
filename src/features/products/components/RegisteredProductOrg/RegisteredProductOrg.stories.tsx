@@ -26,20 +26,13 @@ const mockProducts: RegisteredProductOrgItem[] = [
     price: 3200,
     imageSrc: '/images/sample/milk.png',
   },
-  {
-    id: 3,
-    categoryLabel: '유제품',
-    name: '서울우유 1L',
-    price: 3200,
-    imageSrc: '/images/sample/milk.png',
-  },
 ];
 
 /** =====================
  * Meta
  ====================== */
 const meta: Meta<typeof RegisteredProductOrg> = {
-  title: 'Organisms/RegisteredProductOrg',
+  title: 'Features/Products/RegisteredProductOrg',
   component: RegisteredProductOrg,
   tags: ['autodocs'],
   parameters: {
