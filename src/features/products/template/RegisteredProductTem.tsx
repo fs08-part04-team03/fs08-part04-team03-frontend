@@ -32,6 +32,8 @@ const getPageSize = () => {
 };
 
 const RegisteredProductTem = ({ date, products, address }: RegisteredProductTemProps) => {
+  const totalCount = products.length;
+
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSort, setSelectedSort] = useState<Option>(sortOptions[0]!);
   const [pageSize, setPageSize] = useState(4);
@@ -116,7 +118,12 @@ const RegisteredProductTem = ({ date, products, address }: RegisteredProductTemP
           Content
       ====================== */}
       <div className="px-24">
-        <RegisteredProductOrg date={date} products={pagedProducts} address={address} />
+        <RegisteredProductOrg
+          date={date}
+          products={pagedProducts}
+          address={address}
+          totalCount={totalCount}
+        />
       </div>
 
       {/* =====================
