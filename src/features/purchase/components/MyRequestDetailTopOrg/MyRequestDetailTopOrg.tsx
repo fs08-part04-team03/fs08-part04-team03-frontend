@@ -15,7 +15,7 @@ interface MyRequestDetailTopOrgProps {
 export const MyRequestDetailTopOrg: React.FC<MyRequestDetailTopOrgProps> = ({
   purchaseRequest,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
@@ -36,7 +36,7 @@ export const MyRequestDetailTopOrg: React.FC<MyRequestDetailTopOrgProps> = ({
         </IconButton>
       </div>
       {isOpen && (
-        <div className="flex flex-col gap-16">
+        <div className="flex flex-col gap-16 px-0 tablet:px-0 desktop:px-60">
           {purchaseRequest.purchaseItems.map((item, index) => (
             <React.Fragment key={item.id}>
               <OrderItemDetailCard

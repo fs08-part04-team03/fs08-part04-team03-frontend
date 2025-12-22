@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useCallback } from 'react';
 import { getMyPurchases, cancelPurchaseRequest } from '@/features/purchase/api/purchase.api';
-import PurchaseRequestList from '@/features/purchase/template/PurchaseRequestList';
+import PurchaseRequestList from '@/features/purchase/template/PurchaseRequestListTem/PurchaseRequestList';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 
 const MyPurchaseRequestListSection = () => {
