@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, KeyboardEvent } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import ProductTile from '@/components/molecules/ProductTile/ProductTile';
@@ -16,6 +16,8 @@ interface BaseProductCardProps {
   shippingFee?: number;
   imageUrl?: string;
   className?: string;
+
+  /** 상세 페이지 이동 (현재 onClick, 추후 Link로 대체 가능) */
   onClick?: () => void;
 }
 
@@ -40,41 +42,54 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
     'transition-transform transition-[box-shadow] duration-200 ease-out',
     'hover:shadow-dropdown',
     pressed && 'scale-[0.97]',
-    onClick && 'cursor-pointer',
+    'cursor-pointer',
     className
   );
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!onClick) return;
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
-    <button
-      type="button"
+    <div
+      role="link"
+      tabIndex={0}
+      aria-label={`${name} 상세 페이지로 이동`}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
-      onClick={onClick}
-      className={clsx(rootClasses, 'border-0 bg-transparent p-0 appearance-none text-left')}
+      className={rootClasses}
     >
       {/* 이미지 영역 */}
-      <div className="relative w-155 h-155 rounded-default tablet:w-367 tablet:h-367 bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer">
+      <div className="relative w-155 h-155 rounded-default tablet:w-367 tablet:h-367 bg-gray-50 flex items-center justify-center overflow-hidden">
         {imageUrl ? (
           <Image src={imageUrl} alt={name} fill className="object-cover" />
         ) : (
           <span className="text-12 text-gray-500">이미지 없음</span>
         )}
 
-        {/* 하트 아이콘 */}
+        {/* 하트 아이콘 (카드 클릭과 완전 분리) */}
         <button
           type="button"
           aria-pressed={liked}
+          aria-label={liked ? '찜하기 취소' : '찜하기'}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             setLiked((prev) => !prev);
           }}
-          className="absolute bottom-10 right-10 w-30 h-30 tablet:bottom-20 tablet:right-20 cursor-pointer border-0 bg-transparent p-0"
+          className="absolute bottom-10 right-10 w-30 h-30 tablet:bottom-20 tablet:right-20 border-0 bg-transparent p-0 cursor-pointer"
         >
           <Image
             src={liked ? '/icons/heart.svg' : '/icons/heart-outline.svg'}
-            alt="찜하기"
+            alt=""
             width={30}
             height={30}
           />
@@ -82,7 +97,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       </div>
 
       {/* 텍스트 영역 */}
-      <div className="flex flex-col flex-1 min-w-0 px-8 pt-8 pb-12 gap-2 cursor-pointer">
+      <div className="flex flex-col flex-1 min-w-0 px-8 pt-8 pb-12 gap-2">
         {variant === 'product' ? (
           <ProductTile
             variant="product"
@@ -102,7 +117,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           />
         )}
       </div>
-    </button>
+    </div>
   );
 };
 
