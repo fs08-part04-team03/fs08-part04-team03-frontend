@@ -1,4 +1,4 @@
-import LandingHero from '../components/LandingHeroOrg/LandingHeorOrgn';
+import LandingHero from '../components/LandingHeroOrg/LandingHeroOrgn';
 
 const Landing = () => (
   <div className="flex flex-col items-center w-full overflow-hidden bg-white">
