@@ -3,12 +3,12 @@
 
 'use client';
 
-import React, { useCallback } from 'react';
+import React from 'react';
+import { useRouter } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import StatusTag from '@/components/atoms/StatusTag/StatusTag';
 import PriceText from '@/components/atoms/PriceText/PriceText';
-import { cancelPurchaseRequest } from '@/features/purchase/api/purchase.api';
 import Button from '@/components/atoms/Button/Button';
 import {
   formatDate,
@@ -23,11 +23,13 @@ export interface PurchaseRequestItemListOrgProps {
   purchaseList: PurchaseRequestItem[];
   className?: string;
   onCancel?: (purchaseRequestId: string) => void | Promise<void>;
+  companyId?: string;
 }
 
 interface PurchaseRequestItemRowProps {
   item: PurchaseRequestItem;
   onCancel: (purchaseRequestId: string) => void | Promise<void>;
+  companyId?: string;
 }
 
 /**
@@ -36,12 +38,28 @@ interface PurchaseRequestItemRowProps {
 const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
   item,
   onCancel,
+  companyId,
 }) => {
+  const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
-  const handleCancelClick = () => {
+  const handleRowClick = () => {
+    if (companyId) {
+      router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+    }
+  };
+
+  const handleRowKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleRowClick();
+    }
+  };
+
+  const handleCancelClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // row 클릭 이벤트 전파 방지
     const result = onCancel(item.id);
     if (result instanceof Promise) {
       result.catch((error) => {
@@ -55,14 +73,19 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={clsx(
         'flex flex-col',
         'w-full',
         'py-16',
         'border-b border-gray-200',
         'gap-12',
-        isUrgent && 'bg-red-100'
+        isUrgent && 'bg-red-100',
+        'cursor-pointer hover:bg-gray-50'
       )}
+      onClick={handleRowClick}
+      onKeyDown={handleRowKeyDown}
     >
       {/* 첫 번째 줄: 2개 컬럼 (왼쪽: 날짜/제목/금액, 오른쪽: 태그) */}
       <div className={clsx('flex items-start', 'w-full', 'gap-12')}>
@@ -116,12 +139,28 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
 const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
   item,
   onCancel,
+  companyId,
 }) => {
+  const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
-  const handleCancelClick = () => {
+  const handleRowClick = () => {
+    if (companyId) {
+      router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+    }
+  };
+
+  const handleRowKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleRowClick();
+    }
+  };
+
+  const handleCancelClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // row 클릭 이벤트 전파 방지
     const result = onCancel(item.id);
     if (result instanceof Promise) {
       result.catch((error) => {
@@ -135,13 +174,18 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={clsx(
         'flex items-center',
         'w-full',
         'border-b border-gray-200',
         'gap-16 tablet:gap-24 desktop:gap-32',
-        isUrgent && 'bg-red-100'
+        isUrgent && 'bg-red-100',
+        'cursor-pointer hover:bg-gray-50'
       )}
+      onClick={handleRowClick}
+      onKeyDown={handleRowKeyDown}
     >
       {/* 구매 요청일 */}
       <div
@@ -240,24 +284,9 @@ const PurchaseRequestItemListOrg: React.FC<PurchaseRequestItemListOrgProps> = ({
   purchaseList,
   className,
   onCancel,
+  companyId,
 }) => {
-  const handleCancel = useCallback(
-    async (purchaseRequestId: string) => {
-      try {
-        await cancelPurchaseRequest(purchaseRequestId);
-        if (onCancel) {
-          await onCancel(purchaseRequestId);
-        }
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('구매 요청 취소 실패:', error);
-        }
-        // TODO: 에러 토스트 메시지 표시
-      }
-    },
-    [onCancel]
-  );
+  const handleCancel = onCancel || (() => {});
 
   return (
     <div className={clsx('w-full', className)}>
@@ -265,12 +294,20 @@ const PurchaseRequestItemListOrg: React.FC<PurchaseRequestItemListOrgProps> = ({
         <React.Fragment key={item.id}>
           {/* 모바일 레이아웃 */}
           <div className={clsx('tablet:hidden')}>
-            <PurchaseRequestItemRowMobile item={item} onCancel={handleCancel} />
+            <PurchaseRequestItemRowMobile
+              item={item}
+              onCancel={handleCancel}
+              companyId={companyId}
+            />
           </div>
 
           {/* 태블릿/데스크탑 레이아웃 */}
           <div className={clsx('hidden tablet:block')}>
-            <PurchaseRequestItemRowDesktop item={item} onCancel={handleCancel} />
+            <PurchaseRequestItemRowDesktop
+              item={item}
+              onCancel={handleCancel}
+              companyId={companyId}
+            />
           </div>
         </React.Fragment>
       ))}

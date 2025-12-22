@@ -10,17 +10,17 @@ const meta = {
     docs: {
       description: {
         component:
-          '상태를 표시하는 태그 컴포넌트입니다. 4가지 variant를 지원하며, 각 variant는 자동으로 해당하는 아이콘(15px)을 표시합니다.\n\n- `approved`: 승인 상태 (파란색 배경 `bg-blue-100`, 파란색 텍스트 `text-blue-200`, check-circle 아이콘)\n- `rejected`: 거절 상태 (검은색 배경 `bg-black-100`, 회색 텍스트 `text-gray-50`, close-circle 아이콘)\n- `urgent`: 긴급 상태 (빨간색 배경 `bg-red-100`, 빨간색 텍스트 `text-red`, urgent 아이콘)\n- `pending`: 대기 상태 (회색 배경 `bg-gray-100`, 진한 회색 텍스트 `text-gray-950`, time 아이콘, 기본값)',
+          '상태를 표시하는 태그 컴포넌트입니다. 4가지 variant를 지원하며, 각 variant는 자동으로 해당하는 아이콘(15px)을 표시합니다.\n\n- `approved`: 승인 상태 (파란색 배경 `bg-blue-100`, 파란색 텍스트 `text-blue-200`, check-circle 아이콘)\n- `rejected`: 거절 상태 (빨간색 배경 `bg-red-100`, 빨간색 텍스트 `text-red`, close-circle 아이콘)\n- `cancelled`: 취소 상태 (검은색 배경 `bg-black-100`, 회색 텍스트 `text-gray-50`, close-circle 아이콘 white)\n- `pending`: 대기 상태 (회색 배경 `bg-gray-100`, 진한 회색 텍스트 `text-gray-950`, time 아이콘, 기본값)',
       },
     },
   },
   argTypes: {
     variant: {
       control: 'select',
-      options: ['approved', 'rejected', 'urgent', 'pending'],
+      options: ['approved', 'rejected', 'cancelled', 'pending'],
       description: '상태 태그 variant',
       table: {
-        type: { summary: "'approved' | 'rejected' | 'urgent' | 'pending'" },
+        type: { summary: "'approved' | 'rejected' | 'cancelled' | 'pending'" },
         defaultValue: { summary: 'pending' },
       },
     },
@@ -52,14 +52,14 @@ export const AllVariants: Story = {
       <div className="flex items-center gap-16">
         <span className="text-14 text-gray-700 w-80 font-medium">거절 (rejected):</span>
         <StatusTag variant="rejected">거절</StatusTag>
-        <span className="text-12 text-gray-500 ml-8">
-          bg-black-100, text-gray-50, close-circle.svg
-        </span>
+        <span className="text-12 text-gray-500 ml-8">bg-red-100, text-red, close-circle.svg</span>
       </div>
       <div className="flex items-center gap-16">
-        <span className="text-14 text-gray-700 w-80 font-medium">긴급 (urgent):</span>
-        <StatusTag variant="urgent">긴급</StatusTag>
-        <span className="text-12 text-gray-500 ml-8">bg-red-100, text-red, urgent.svg</span>
+        <span className="text-14 text-gray-700 w-80 font-medium">취소 (cancelled):</span>
+        <StatusTag variant="cancelled">취소</StatusTag>
+        <span className="text-12 text-gray-500 ml-8">
+          bg-black-100, text-gray-50, close-circle.svg (white)
+        </span>
       </div>
       <div className="flex items-center gap-16">
         <span className="text-14 text-gray-700 w-80 font-medium">대기 (pending):</span>

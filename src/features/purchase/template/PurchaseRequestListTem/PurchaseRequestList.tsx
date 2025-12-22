@@ -1,10 +1,10 @@
-// 내 구매 요청 내역 - MyPurchaseRequestListPage
+// 내 구매 요청 내역 - MyPurchaseRequestListPage [내가 요청한 내역들만 보이는곳, 유저, 메니저, 어드민]
 // GET /api/v1/purchase/user/getMyPurchases
 
 'use client';
 
-import { useCallback } from 'react';
-import { useRouter, useParams, useSearchParams, usePathname } from 'next/navigation';
+import { useCallback, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import StatusTag from '@/components/atoms/StatusTag/StatusTag';
@@ -15,6 +15,7 @@ import PurchaseRequestItemListOrg from '@/features/purchase/components/PurchaseR
 import DropDown, { type Option } from '@/components/atoms/DropDown/DropDown';
 import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBlock';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
+import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import {
   formatDate,
   formatItemDescription,
@@ -31,6 +32,11 @@ export interface PurchaseRequestListProps {
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  sortOptions?: Option[];
+  selectedSortOption?: Option;
+  onSortChange?: (sort: string | undefined) => void;
+  statusOptions?: Option[];
+  selectedStatusOption?: Option;
   onStatusChange?: (status: string | undefined) => void;
 }
 
@@ -133,26 +139,26 @@ const PurchaseRequestTableHeaderTablet = () => (
  * 테이블 헤더 (데스크탑)
  */
 const PurchaseRequestTableHeaderDesktop = ({
+  sortOptions,
+  selectedSortOption,
+  onSortChange,
+  statusOptions,
+  selectedStatusOption,
   onStatusChange,
-  currentStatus,
 }: {
+  sortOptions?: Option[];
+  selectedSortOption?: Option;
+  onSortChange?: (sort: string | undefined) => void;
+  statusOptions?: Option[];
+  selectedStatusOption?: Option;
   onStatusChange?: (status: string | undefined) => void;
-  currentStatus?: string;
 }) => {
-  const statusOptions: Option[] = [
-    { key: 'ALL', label: '전체' },
-    { key: 'PENDING', label: '대기중' },
-    { key: 'APPROVED', label: '승인됨' },
-    { key: 'REJECTED', label: '반려됨' },
-    { key: 'CANCELLED', label: '취소됨' },
-  ];
+  const handleSortSelect = (option: Option) => {
+    const sort = option.key === 'LATEST' ? undefined : option.key;
+    onSortChange?.(sort);
+  };
 
-  const selectedOption =
-    currentStatus && currentStatus !== 'ALL'
-      ? statusOptions.find((opt) => opt.key === currentStatus)
-      : statusOptions.find((opt) => opt.key === 'ALL');
-
-  const handleSelect = (option: Option) => {
+  const handleStatusSelect = (option: Option) => {
     const status = option.key === 'ALL' ? undefined : option.key;
     onStatusChange?.(status);
   };
@@ -170,12 +176,28 @@ const PurchaseRequestTableHeaderDesktop = ({
         )}
       >
         <p>구매 요청 내역</p>
-        <DropDown
-          items={statusOptions}
-          placeholder="전체"
-          selected={selectedOption}
-          onSelect={handleSelect}
-        />
+        <div className={clsx('flex items-center gap-12')}>
+          {statusOptions && (
+            <div className="relative z-dropdown">
+              <DropDown
+                items={statusOptions}
+                placeholder="전체"
+                selected={selectedStatusOption}
+                onSelect={handleStatusSelect}
+              />
+            </div>
+          )}
+          {sortOptions && (
+            <div className="relative z-dropdown">
+              <DropDown
+                items={sortOptions}
+                placeholder="최신순"
+                selected={selectedSortOption}
+                onSelect={handleSortSelect}
+              />
+            </div>
+          )}
+        </div>
       </div>
       <div className={clsx('flex items-center', 'w-full', 'gap-16 tablet:gap-24 desktop:gap-32')}>
         <div
@@ -266,12 +288,30 @@ const PurchaseRequestTableHeaderDesktop = ({
 /**
  * 테이블 행 컴포넌트 (태블릿/데스크탑)
  */
-const PurchaseRequestTableRowDesktop = ({ item, onCancel }: PurchaseRequestTableRowProps) => {
+const PurchaseRequestTableRowDesktop = ({
+  item,
+  onCancel,
+  companyId,
+}: PurchaseRequestTableRowProps & { companyId?: string }) => {
+  const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
-  const handleCancelClick = () => {
+  const handleRowClick = () => {
+    if (!companyId) return;
+    router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+  };
+
+  const handleRowKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleRowClick();
+    }
+  };
+
+  const handleCancelClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // row 클릭 이벤트 전파 방지
     const result = onCancel(item.id);
     if (result instanceof Promise) {
       result.catch((error) => {
@@ -285,12 +325,17 @@ const PurchaseRequestTableRowDesktop = ({ item, onCancel }: PurchaseRequestTable
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={clsx(
         'flex items-center',
         'w-full',
         'gap-16 tablet:gap-24 desktop:gap-32',
-        isUrgent && 'bg-red-100'
+        isUrgent && 'bg-red-100',
+        'cursor-pointer hover:bg-gray-50'
       )}
+      onClick={handleRowClick}
+      onKeyDown={handleRowKeyDown}
     >
       {/* 구매 요청일 */}
       <div
@@ -392,47 +437,70 @@ const PurchaseRequestList = ({
   currentPage,
   totalPages,
   onPageChange,
+  sortOptions,
+  selectedSortOption,
+  onSortChange,
+  statusOptions,
+  selectedStatusOption,
   onStatusChange,
 }: PurchaseRequestListProps) => {
   const router = useRouter();
   const params = useParams();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const companyId = params?.companyId as string;
-  const currentStatus = searchParams.get('status') || undefined;
+  const companyId = params?.companyId ? String(params.companyId) : undefined;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
+  const [cancelTargetItem, setCancelTargetItem] = useState<PurchaseRequestItem | null>(null);
 
-  const handleCancel = useCallback(
-    async (purchaseRequestId: string) => {
-      if (onCancel) {
-        await onCancel(purchaseRequestId);
+  const handleCancelClick = useCallback(
+    (purchaseRequestId: string) => {
+      const item = purchaseList.find((p) => p.id === purchaseRequestId);
+      if (item) {
+        setCancelTargetId(purchaseRequestId);
+        setCancelTargetItem(item);
+        setIsModalOpen(true);
       }
     },
-    [onCancel]
+    [purchaseList]
+  );
+
+  const handleModalClose = useCallback(() => {
+    setIsModalOpen(false);
+    setCancelTargetId(null);
+    setCancelTargetItem(null);
+  }, []);
+
+  const handleModalConfirm = useCallback(async () => {
+    if (!cancelTargetId || !onCancel) return;
+
+    try {
+      await onCancel(cancelTargetId);
+      setIsModalOpen(false);
+      setCancelTargetId(null);
+      setCancelTargetItem(null);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('구매 요청 취소 실패:', error);
+      }
+      // 에러 발생 시에도 모달을 닫아 사용자 혼란 방지
+      // 상위 컴포넌트에서 toast 등으로 에러를 표시할 것으로 예상
+      setIsModalOpen(false);
+      setCancelTargetId(null);
+      setCancelTargetItem(null);
+    }
+  }, [cancelTargetId, onCancel]);
+
+  const handleCancel = useCallback(
+    (purchaseRequestId: string) => {
+      handleCancelClick(purchaseRequestId);
+    },
+    [handleCancelClick]
   );
 
   const handleNavigateToProducts = useCallback(() => {
     if (!companyId) return;
     router.push(`/${companyId}/products`);
   }, [router, companyId]);
-
-  const handleStatusChange = useCallback(
-    (status: string | undefined) => {
-      if (onStatusChange) {
-        onStatusChange(status);
-      } else {
-        // 기본 동작: URL 파라미터 업데이트
-        const urlParams = new URLSearchParams(searchParams.toString());
-        if (status) {
-          urlParams.set('status', status);
-        } else {
-          urlParams.delete('status');
-        }
-        urlParams.set('page', '1'); // 상태 변경 시 첫 페이지로 이동
-        router.push(`${pathname}?${urlParams.toString()}`);
-      }
-    },
-    [onStatusChange, searchParams, pathname, router]
-  );
 
   if (purchaseList.length === 0) {
     return (
@@ -448,10 +516,14 @@ const PurchaseRequestList = ({
   }
 
   return (
-    <div className={clsx('w-full', 'desktop:max-w-1352', 'desktop:mx-auto', className)}>
+    <div className={clsx('w-full', 'desktop:max-w-1400', 'desktop:mx-auto', className)}>
       {/* 모바일 레이아웃 - PurchaseRequestItemListOrg 재사용 */}
       <div className={clsx('tablet:hidden')}>
-        <PurchaseRequestItemListOrg purchaseList={purchaseList} onCancel={handleCancel} />
+        <PurchaseRequestItemListOrg
+          purchaseList={purchaseList}
+          onCancel={handleCancel}
+          companyId={companyId}
+        />
       </div>
 
       {/* 태블릿/데스크탑 레이아웃 - 테이블 */}
@@ -465,8 +537,12 @@ const PurchaseRequestList = ({
           {/* 데스크탑 헤더 */}
           <div className={clsx('hidden desktop:block')}>
             <PurchaseRequestTableHeaderDesktop
-              onStatusChange={handleStatusChange}
-              currentStatus={currentStatus}
+              sortOptions={sortOptions}
+              selectedSortOption={selectedSortOption}
+              onSortChange={onSortChange}
+              statusOptions={statusOptions}
+              selectedStatusOption={selectedStatusOption}
+              onStatusChange={onStatusChange}
             />
           </div>
 
@@ -476,7 +552,12 @@ const PurchaseRequestList = ({
           {/* 테이블 바디 */}
           <div className={clsx('w-full')}>
             {purchaseList.map((item) => (
-              <PurchaseRequestTableRowDesktop key={item.id} item={item} onCancel={handleCancel} />
+              <PurchaseRequestTableRowDesktop
+                key={item.id}
+                item={item}
+                onCancel={handleCancel}
+                companyId={companyId}
+              />
             ))}
           </div>
         </div>
@@ -484,7 +565,7 @@ const PurchaseRequestList = ({
 
       {/* 페이지네이션 */}
       {currentPage !== undefined && totalPages !== undefined && totalPages > 0 && onPageChange && (
-        <div className={clsx('flex justify-center', 'mt-40')}>
+        <div className={clsx('flex justify-start', 'mt-20')}>
           <PaginationBlock
             current={currentPage}
             total={totalPages}
@@ -493,6 +574,28 @@ const PurchaseRequestList = ({
           />
         </div>
       )}
+
+      {/* 취소 확인 모달 */}
+      <CustomModal
+        open={isModalOpen}
+        type="cancel"
+        productName={
+          cancelTargetItem && cancelTargetItem.purchaseItems.length > 0
+            ? cancelTargetItem.purchaseItems[0]?.products.name
+            : undefined
+        }
+        cancelCount={
+          cancelTargetItem && cancelTargetItem.purchaseItems.length > 1
+            ? cancelTargetItem.purchaseItems.length - 1
+            : 0
+        }
+        onClose={handleModalClose}
+        onConfirm={() => {
+          handleModalConfirm().catch(() => {
+            // 에러는 handleModalConfirm 내부에서 처리됨
+          });
+        }}
+      />
     </div>
   );
 };
