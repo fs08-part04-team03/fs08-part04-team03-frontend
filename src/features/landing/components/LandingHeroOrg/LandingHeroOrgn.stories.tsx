@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import LandingHero from './LandingHeorOrgn';
+import LandingHero from './LandingHeroOrgn';
 
 /** =====================
  * Meta
