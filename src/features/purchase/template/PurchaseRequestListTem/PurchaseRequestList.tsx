@@ -482,6 +482,11 @@ const PurchaseRequestList = ({
         // eslint-disable-next-line no-console
         console.error('구매 요청 취소 실패:', error);
       }
+      // 에러 발생 시에도 모달을 닫아 사용자 혼란 방지
+      // 상위 컴포넌트에서 toast 등으로 에러를 표시할 것으로 예상
+      setIsModalOpen(false);
+      setCancelTargetId(null);
+      setCancelTargetItem(null);
     }
   }, [cancelTargetId, onCancel]);
 

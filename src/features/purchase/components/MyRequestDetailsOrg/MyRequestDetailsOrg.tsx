@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import { Divider } from '@/components/atoms/Divider/Divider';
@@ -217,96 +218,153 @@ const ApprovedInfoDesktop: React.FC<ApprovedInfoProps> = ({
 );
 
 // ActionButtons 섹션
-const ActionButtonsMobileTablet: React.FC = () => (
-  <div className="fixed bottom-0 left-0 right-0 flex justify-center items-center w-full gap-16 text-16 bg-white p-16 border-t border-gray-200">
-    <Button variant="secondary" size="sm" className="flex-1 max-w-338 h-50">
-      목록 보기
-    </Button>
-    <Button variant="primary" size="sm" className="flex-1 max-w-338 h-50">
-      장바구니 다시 담기
-    </Button>
-  </div>
-);
+interface ActionButtonsProps {
+  companyId?: string;
+}
 
-const ActionButtonsDesktop: React.FC = () => (
-  <div className="flex justify-center items-center w-full gap-16 text-16">
-    <Button variant="secondary" size="sm" className="flex-1 max-w-338 h-50">
-      목록 보기
-    </Button>
-    <Button variant="primary" size="sm" className="flex-1 max-w-338 h-50">
-      장바구니 다시 담기
-    </Button>
-  </div>
-);
+const ActionButtonsMobileTablet: React.FC<ActionButtonsProps> = ({ companyId }) => {
+  const router = useRouter();
+
+  const handleGoToList = () => {
+    if (!companyId) return;
+    router.push(`/${companyId}/my/purchase-requests`);
+  };
+
+  const handleAddToCart = () => {
+    if (!companyId) return;
+    router.push(`/${companyId}/cart`);
+  };
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 flex justify-center items-center w-full gap-16 text-16 bg-white p-16 border-t border-gray-200">
+      <Button
+        variant="secondary"
+        size="sm"
+        className="flex-1 max-w-338 h-50"
+        onClick={handleGoToList}
+      >
+        목록 보기
+      </Button>
+      <Button
+        variant="primary"
+        size="sm"
+        className="flex-1 max-w-338 h-50"
+        onClick={handleAddToCart}
+      >
+        장바구니 다시 담기
+      </Button>
+    </div>
+  );
+};
+
+const ActionButtonsDesktop: React.FC<ActionButtonsProps> = ({ companyId }) => {
+  const router = useRouter();
+
+  const handleGoToList = () => {
+    if (!companyId) return;
+    router.push(`/${companyId}/my/purchase-requests`);
+  };
+
+  const handleAddToCart = () => {
+    if (!companyId) return;
+    router.push(`/${companyId}/cart`);
+  };
+
+  return (
+    <div className="flex justify-center items-center w-full gap-16 text-16">
+      <Button
+        variant="secondary"
+        size="sm"
+        className="flex-1 max-w-338 h-50"
+        onClick={handleGoToList}
+      >
+        목록 보기
+      </Button>
+      <Button
+        variant="primary"
+        size="sm"
+        className="flex-1 max-w-338 h-50"
+        onClick={handleAddToCart}
+      >
+        장바구니 다시 담기
+      </Button>
+    </div>
+  );
+};
 
 // 메인 컴포넌트
-const MyRequestDetailsOrg: React.FC<MyRequestDetailsOrgProps> = ({ purchaseRequest }) => (
-  <>
-    {/* Mobile */}
-    <div className={clsx('flex flex-col tablet:hidden desktop:hidden')}>
-      <Divider className="my-16" />
-      <TotalSummary
-        totalPrice={purchaseRequest.totalPrice}
-        shippingFee={purchaseRequest.shippingFee}
-      />
-      <RequestInfoMobile
-        requester={purchaseRequest.requester}
-        createdAt={purchaseRequest.createdAt}
-        requestMessage={purchaseRequest.requestMessage}
-      />
-      <ApprovedInfoMobile
-        approver={purchaseRequest.approver}
-        updatedAt={purchaseRequest.updatedAt}
-        status={purchaseRequest.status}
-        rejectReason={purchaseRequest.rejectReason}
-      />
-      <div className="h-82" />
-      <ActionButtonsMobileTablet />
-    </div>
+const MyRequestDetailsOrg: React.FC<MyRequestDetailsOrgProps> = ({ purchaseRequest }) => {
+  const params = useParams();
+  const companyId = params?.companyId ? String(params.companyId) : undefined;
 
-    {/* Tablet */}
-    <div className={clsx('hidden tablet:flex desktop:hidden flex-col')}>
-      <Divider className="my-16" />
-      <TotalSummary
-        totalPrice={purchaseRequest.totalPrice}
-        shippingFee={purchaseRequest.shippingFee}
-      />
-      <RequestInfoTablet
-        requester={purchaseRequest.requester}
-        createdAt={purchaseRequest.createdAt}
-        requestMessage={purchaseRequest.requestMessage}
-      />
-      <ApprovedInfoTablet
-        approver={purchaseRequest.approver}
-        updatedAt={purchaseRequest.updatedAt}
-        status={purchaseRequest.status}
-        rejectReason={purchaseRequest.rejectReason}
-      />
-      <div className="h-82" />
-      <ActionButtonsMobileTablet />
-    </div>
+  return (
+    <>
+      {/* Mobile */}
+      <div className={clsx('flex flex-col tablet:hidden desktop:hidden')}>
+        <Divider className="my-16" />
+        <TotalSummary
+          totalPrice={purchaseRequest.totalPrice}
+          shippingFee={purchaseRequest.shippingFee}
+        />
+        <RequestInfoMobile
+          requester={purchaseRequest.requester}
+          createdAt={purchaseRequest.createdAt}
+          requestMessage={purchaseRequest.requestMessage}
+        />
+        <ApprovedInfoMobile
+          approver={purchaseRequest.approver}
+          updatedAt={purchaseRequest.updatedAt}
+          status={purchaseRequest.status}
+          rejectReason={purchaseRequest.rejectReason}
+        />
+        <div className="h-82" />
+        <ActionButtonsMobileTablet companyId={companyId} />
+      </div>
 
-    {/* Desktop */}
-    <div className={clsx('hidden desktop:flex flex-col gap-y-50')}>
-      <Divider className="my-16" />
-      <TotalSummary
-        totalPrice={purchaseRequest.totalPrice}
-        shippingFee={purchaseRequest.shippingFee}
-      />
-      <RequestInfoDesktop
-        requester={purchaseRequest.requester}
-        createdAt={purchaseRequest.createdAt}
-        requestMessage={purchaseRequest.requestMessage}
-      />
-      <ApprovedInfoDesktop
-        approver={purchaseRequest.approver}
-        updatedAt={purchaseRequest.updatedAt}
-        status={purchaseRequest.status}
-        rejectReason={purchaseRequest.rejectReason}
-      />
-      <ActionButtonsDesktop />
-    </div>
-  </>
-);
+      {/* Tablet */}
+      <div className={clsx('hidden tablet:flex desktop:hidden flex-col')}>
+        <Divider className="my-16" />
+        <TotalSummary
+          totalPrice={purchaseRequest.totalPrice}
+          shippingFee={purchaseRequest.shippingFee}
+        />
+        <RequestInfoTablet
+          requester={purchaseRequest.requester}
+          createdAt={purchaseRequest.createdAt}
+          requestMessage={purchaseRequest.requestMessage}
+        />
+        <ApprovedInfoTablet
+          approver={purchaseRequest.approver}
+          updatedAt={purchaseRequest.updatedAt}
+          status={purchaseRequest.status}
+          rejectReason={purchaseRequest.rejectReason}
+        />
+        <div className="h-82" />
+        <ActionButtonsMobileTablet companyId={companyId} />
+      </div>
+
+      {/* Desktop */}
+      <div className={clsx('hidden desktop:flex flex-col gap-y-50')}>
+        <Divider className="my-16" />
+        <TotalSummary
+          totalPrice={purchaseRequest.totalPrice}
+          shippingFee={purchaseRequest.shippingFee}
+        />
+        <RequestInfoDesktop
+          requester={purchaseRequest.requester}
+          createdAt={purchaseRequest.createdAt}
+          requestMessage={purchaseRequest.requestMessage}
+        />
+        <ApprovedInfoDesktop
+          approver={purchaseRequest.approver}
+          updatedAt={purchaseRequest.updatedAt}
+          status={purchaseRequest.status}
+          rejectReason={purchaseRequest.rejectReason}
+        />
+        <ActionButtonsDesktop companyId={companyId} />
+      </div>
+    </>
+  );
+};
 
 export default MyRequestDetailsOrg;
