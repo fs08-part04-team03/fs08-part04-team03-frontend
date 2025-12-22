@@ -34,41 +34,7 @@ interface TotalSummaryProps {
   shippingFee: number;
 }
 
-const TotalSummaryMobile: React.FC<TotalSummaryProps> = ({ totalPrice, shippingFee }) => (
-  <div className="flex flex-col gap-y-16">
-    <div className="flex items-center justify-between text-14">
-      주문금액
-      <PriceText value={totalPrice} />
-    </div>
-    <div className="flex items-center justify-between text-14">
-      배송비
-      <PriceText value={shippingFee} />
-    </div>
-    <div className="flex items-center justify-between text-18 font-bold mb-30">
-      총 주문 금액
-      <PriceText value={totalPrice + shippingFee} />
-    </div>
-  </div>
-);
-
-const TotalSummaryTablet: React.FC<TotalSummaryProps> = ({ totalPrice, shippingFee }) => (
-  <div className="flex flex-col gap-y-16">
-    <div className="flex items-center justify-between text-14">
-      주문금액
-      <PriceText value={totalPrice} />
-    </div>
-    <div className="flex items-center justify-between text-14">
-      배송비
-      <PriceText value={shippingFee} />
-    </div>
-    <div className="flex items-center justify-between text-18 font-bold mb-30">
-      총 주문 금액
-      <PriceText value={totalPrice + shippingFee} />
-    </div>
-  </div>
-);
-
-const TotalSummaryDesktop: React.FC<TotalSummaryProps> = ({ totalPrice, shippingFee }) => (
+const TotalSummary: React.FC<TotalSummaryProps> = ({ totalPrice, shippingFee }) => (
   <div className="flex flex-col gap-y-16">
     <div className="flex items-center justify-between text-14">
       주문금액
@@ -251,18 +217,7 @@ const ApprovedInfoDesktop: React.FC<ApprovedInfoProps> = ({
 );
 
 // ActionButtons 섹션
-const ActionButtonsMobile: React.FC = () => (
-  <div className="fixed bottom-0 left-0 right-0 flex justify-center items-center w-full gap-16 text-16 bg-white p-16 border-t border-gray-200">
-    <Button variant="secondary" size="sm" className="flex-1 max-w-338 h-50">
-      목록 보기
-    </Button>
-    <Button variant="primary" size="sm" className="flex-1 max-w-338 h-50">
-      장바구니 다시 담기
-    </Button>
-  </div>
-);
-
-const ActionButtonsTablet: React.FC = () => (
+const ActionButtonsMobileTablet: React.FC = () => (
   <div className="fixed bottom-0 left-0 right-0 flex justify-center items-center w-full gap-16 text-16 bg-white p-16 border-t border-gray-200">
     <Button variant="secondary" size="sm" className="flex-1 max-w-338 h-50">
       목록 보기
@@ -290,7 +245,7 @@ const MyRequestDetailsOrg: React.FC<MyRequestDetailsOrgProps> = ({ purchaseReque
     {/* Mobile */}
     <div className={clsx('flex flex-col tablet:hidden desktop:hidden')}>
       <Divider className="my-16" />
-      <TotalSummaryMobile
+      <TotalSummary
         totalPrice={purchaseRequest.totalPrice}
         shippingFee={purchaseRequest.shippingFee}
       />
@@ -306,13 +261,13 @@ const MyRequestDetailsOrg: React.FC<MyRequestDetailsOrgProps> = ({ purchaseReque
         rejectReason={purchaseRequest.rejectReason}
       />
       <div className="h-82" />
-      <ActionButtonsMobile />
+      <ActionButtonsMobileTablet />
     </div>
 
     {/* Tablet */}
     <div className={clsx('hidden tablet:flex desktop:hidden flex-col')}>
       <Divider className="my-16" />
-      <TotalSummaryTablet
+      <TotalSummary
         totalPrice={purchaseRequest.totalPrice}
         shippingFee={purchaseRequest.shippingFee}
       />
@@ -328,13 +283,13 @@ const MyRequestDetailsOrg: React.FC<MyRequestDetailsOrgProps> = ({ purchaseReque
         rejectReason={purchaseRequest.rejectReason}
       />
       <div className="h-82" />
-      <ActionButtonsTablet />
+      <ActionButtonsMobileTablet />
     </div>
 
     {/* Desktop */}
     <div className={clsx('hidden desktop:flex flex-col gap-y-50')}>
       <Divider className="my-16" />
-      <TotalSummaryDesktop
+      <TotalSummary
         totalPrice={purchaseRequest.totalPrice}
         shippingFee={purchaseRequest.shippingFee}
       />
