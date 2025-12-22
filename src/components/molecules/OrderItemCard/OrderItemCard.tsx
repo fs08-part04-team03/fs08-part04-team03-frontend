@@ -353,7 +353,7 @@ export const OrderItemCardDefaultDesktop: React.FC<OrderItemCardDefaultDesktopPr
             <span className="text-black-100 text-14 leading-20">{shippingLabelText}</span>
             <PriceText
               value={shippingCost}
-              className="font-normal! text-black-100! text-14 leading-20"
+              className="font-normal text-black-100 text-14 leading-20"
             />
           </div>
         </div>

@@ -292,13 +292,14 @@ const PurchaseRequestTableRowDesktop = ({
   item,
   onCancel,
   companyId,
-}: PurchaseRequestTableRowProps & { companyId: string }) => {
+}: PurchaseRequestTableRowProps & { companyId?: string }) => {
   const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
   const handleRowClick = () => {
+    if (!companyId) return;
     router.push(`/${companyId}/my/purchase-requests/${item.id}`);
   };
 
@@ -445,7 +446,7 @@ const PurchaseRequestList = ({
 }: PurchaseRequestListProps) => {
   const router = useRouter();
   const params = useParams();
-  const companyId = params?.companyId as string;
+  const companyId = params?.companyId ? String(params.companyId) : undefined;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
   const [cancelTargetItem, setCancelTargetItem] = useState<PurchaseRequestItem | null>(null);
