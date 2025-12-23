@@ -8,7 +8,7 @@ const meta: Meta<typeof Toast> = {
   argTypes: {
     variant: {
       control: 'inline-radio',
-      options: ['error', 'success'],
+      options: ['error', 'success', 'custom'],
     },
     amount: {
       control: 'text',
@@ -37,5 +37,13 @@ export const SuccessToast: Story = {
   args: {
     variant: 'success',
     message: '예산이 변경되었습니다.',
+  },
+};
+
+/** CUSTOM TOAST */
+export const CustomToast: Story = {
+  args: {
+    variant: 'custom',
+    message: '구매 요청이 취소되었습니다.',
   },
 };

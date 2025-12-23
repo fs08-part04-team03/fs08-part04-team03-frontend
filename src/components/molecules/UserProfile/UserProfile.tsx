@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Avatar } from '@/components/atoms/Avatar/Avatar';
 import { clsx } from '@/utils/clsx';
 
-export type UserProfileVariant = 'default' | 'secondary';
+export type UserProfileVariant = 'default' | 'secondary' | 'nameOnly';
 
 export interface UserProfileBaseProps {
   name: string;
@@ -108,6 +108,24 @@ export const UserProfileDefault: React.FC<UserProfileBaseProps> = ({
   </Link>
 );
 
+// UserProfileNameOnly: 아바타와 이름만 표시 (회사명 제외)
+export const UserProfileNameOnly: React.FC<UserProfileBaseProps> = ({
+  name,
+  avatarSrc,
+  profileHref = '/me/profile',
+  className,
+  company: _company, // 사용하지 않지만 props 타입 일관성을 위해 유지
+}) => (
+  <Link
+    href={profileHref}
+    aria-label={`View ${name}'s profile`}
+    className={clsx('flex items-center gap-8 hover:opacity-80 transition-opacity', className)}
+  >
+    <Avatar src={avatarSrc} alt={name} size={32} />
+    <span className={clsx('text-14 tablet:text-16 font-normal text-gray-900')}>{name}</span>
+  </Link>
+);
+
 // Main UserProfile Component (통합 컴포넌트)
 const UserProfile: React.FC<UserProfileProps> = ({
   name,
@@ -121,6 +139,19 @@ const UserProfile: React.FC<UserProfileProps> = ({
   if (variant === 'default') {
     return (
       <UserProfileDefault
+        name={name}
+        company={company}
+        avatarSrc={avatarSrc}
+        profileHref={profileHref}
+        className={className}
+      />
+    );
+  }
+
+  // variant가 'nameOnly'이면 아바타와 이름만 표시
+  if (variant === 'nameOnly') {
+    return (
+      <UserProfileNameOnly
         name={name}
         company={company}
         avatarSrc={avatarSrc}

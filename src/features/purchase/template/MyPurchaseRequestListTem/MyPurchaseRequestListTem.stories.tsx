@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import PurchaseRequestList from './PurchaseRequestList';
+import MyPurchaseRequestListTem from './MyPurchaseRequestListTem';
 
 const meta = {
-  title: 'Features/Purchase/PurchaseRequestList',
-  component: PurchaseRequestList,
+  title: 'Features/Purchase/MyPurchaseRequestListTem',
+  component: MyPurchaseRequestListTem,
   tags: ['autodocs'],
   parameters: {
     layout: 'padded',
@@ -22,11 +22,11 @@ const meta = {
       },
     },
   },
-} satisfies Meta<typeof PurchaseRequestList>;
+} satisfies Meta<typeof MyPurchaseRequestListTem>;
 
 export default meta;
 
-type Story = StoryObj<typeof PurchaseRequestList>;
+type Story = StoryObj<typeof MyPurchaseRequestListTem>;
 
 // 정렬 옵션 정의
 const sortOptions: Option[] = [
@@ -83,15 +83,25 @@ const createPurchaseItem = (
 
 export const Default: Story = {
   render: () => (
-    <PurchaseRequestList
+    <MyPurchaseRequestListTem
       purchaseList={[
         createPurchaseItem('1', 'APPROVED', 2, 1900, 0, '2024-07-04T00:00:00.000Z'),
         createPurchaseItem('2', 'PENDING', 1, 3000, 0, '2024-07-03T00:00:00.000Z'),
         createPurchaseItem('3', 'REJECTED', 3, 5000, 0, '2024-07-02T00:00:00.000Z'),
       ]}
-      onCancel={(id) => {
+      onCancelClick={(id) => {
         // eslint-disable-next-line no-console
-        console.log('취소 요청:', id);
+        console.log('취소 클릭:', id);
+      }}
+      cancelModalOpen={false}
+      cancelTargetItem={null}
+      onCancelModalClose={() => {
+        // eslint-disable-next-line no-console
+        console.log('취소 모달 닫기');
+      }}
+      onCancelConfirm={() => {
+        // eslint-disable-next-line no-console
+        console.log('취소 확인');
       }}
       currentPage={1}
       totalPages={3}
@@ -117,7 +127,7 @@ export const Default: Story = {
 
 export const Empty: Story = {
   render: () => (
-    <PurchaseRequestList
+    <MyPurchaseRequestListTem
       purchaseList={[]}
       currentPage={1}
       totalPages={0}
@@ -143,15 +153,25 @@ export const Empty: Story = {
 
 export const Urgent: Story = {
   render: () => (
-    <PurchaseRequestList
+    <MyPurchaseRequestListTem
       purchaseList={[
         createPurchaseItem('1', 'PENDING', 1, 5000, 0, '2024-07-04T00:00:00.000Z', true),
         createPurchaseItem('2', 'APPROVED', 2, 3000, 0, '2024-07-03T00:00:00.000Z'),
         createPurchaseItem('3', 'PENDING', 1, 8000, 0, '2024-07-02T00:00:00.000Z', true),
       ]}
-      onCancel={(id) => {
+      onCancelClick={(id) => {
         // eslint-disable-next-line no-console
-        console.log('취소 요청:', id);
+        console.log('취소 클릭:', id);
+      }}
+      cancelModalOpen={false}
+      cancelTargetItem={null}
+      onCancelModalClose={() => {
+        // eslint-disable-next-line no-console
+        console.log('취소 모달 닫기');
+      }}
+      onCancelConfirm={() => {
+        // eslint-disable-next-line no-console
+        console.log('취소 확인');
       }}
       currentPage={1}
       totalPages={1}
