@@ -141,6 +141,7 @@ const MyProductDetailTem = ({
         onClose={() => setEditModalOpen(false)}
         onSubmit={() => {
           console.log('상품 수정 완료');
+          // TODO: 실제 상품 수정 API 호출
           setEditModalOpen(false);
         }}
         initialName={detailPageProps.productDetailHeader.productName}
@@ -158,6 +159,7 @@ const MyProductDetailTem = ({
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={() => {
           console.log('상품 삭제 완료');
+          // TODO: 실제 상품 삭제 API 호출
           setDeleteModalOpen(false);
         }}
       />
