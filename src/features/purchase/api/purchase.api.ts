@@ -236,6 +236,12 @@ export interface ManagePurchaseRequestsResponse {
   hasPreviousPage: boolean;
 }
 
+/**
+ * 관리자용 구매 요청 목록을 페이지, 크기, 상태, 정렬 기준으로 조회합니다.
+ *
+ * @param params - 조회에 사용할 선택적 쿼리 매개변수 (page, size, status, sort)
+ * @returns 조회된 구매 요청 배열과 현재 페이지, 전체 페이지 수 등 페이징 메타데이터를 포함한 객체
+ */
 export async function managePurchaseRequests(
   params?: ManagePurchaseRequestsParams
 ): Promise<ManagePurchaseRequestsResponse> {
@@ -262,6 +268,12 @@ export interface ApprovePurchaseRequestResponse {
   data: PurchaseRequestItem;
 }
 
+/**
+ * 관리자 권한으로 지정된 구매 요청을 승인합니다.
+ *
+ * @param purchaseRequestId - 승인할 구매 요청의 식별자
+ * @returns 승인된 구매 요청의 상세 정보를 담은 `PurchaseRequestItem`
+ */
 export async function approvePurchaseRequest(
   purchaseRequestId: string
 ): Promise<ApprovePurchaseRequestResponse> {
@@ -286,6 +298,13 @@ export interface RejectPurchaseRequestResponse {
   data: PurchaseRequestItem;
 }
 
+/**
+ * 지정한 구매 요청을 주어진 사유로 거부하고 거부된 요청 항목을 반환합니다.
+ *
+ * @param purchaseRequestId - 거부할 구매 요청의 ID
+ * @param request - 거부 사유를 포함한 요청 본문 (`reason` 필수)
+ * @returns 거부 처리된 구매 요청 항목 (`PurchaseRequestItem`)
+ */
 export async function rejectPurchaseRequest(
   purchaseRequestId: string,
   request: RejectPurchaseRequestRequest
@@ -346,6 +365,11 @@ export interface PurchaseDashboardResponse {
   }>;
 }
 
+/**
+ * 구매 대시보드에 표시할 통계와 요약 정보를 가져옵니다.
+ *
+ * @returns 구매 대시보드 통계 및 요약을 담은 `PurchaseDashboardResponse`
+ */
 export async function getPurchaseDashboard(): Promise<PurchaseDashboardResponse> {
   const result = await fetchWithAuth<PurchaseDashboardResponse>(
     '/api/v1/purchase/admin/purchaseDashboard',
@@ -522,6 +546,12 @@ export interface CancelPurchaseRequestResponse {
   };
 }
 
+/**
+ * 지정한 구매 요청을 취소합니다.
+ *
+ * @param purchaseRequestId - 취소할 구매 요청의 ID
+ * @returns 취소된 구매 요청의 상세 정보를 담은 응답 객체
+ */
 export async function cancelPurchaseRequest(
   purchaseRequestId: string
 ): Promise<CancelPurchaseRequestResponse> {
@@ -544,6 +574,12 @@ export interface GetBudgetResponse {
   remainingBudget: number;
 }
 
+/**
+ * 주어진 회사의 예산과 지출 요약을 조회합니다.
+ *
+ * @param companyId - 조회할 회사의 식별자
+ * @returns 회사의 총 예산(`budget`), 해당 기간의 월별 지출(`monthlySpending`), 남은 예산(`remainingBudget`)을 포함한 객체
+ */
 export async function getBudget(companyId: string): Promise<GetBudgetResponse> {
   const result = await fetchWithAuth<GetBudgetResponse>(`/api/v1/budget/${companyId}`, {
     method: 'GET',
