@@ -93,7 +93,18 @@ const ProductEditModal = ({
     return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  // 초기 값 세팅
+  // ✅ Object URL cleanup on unmount
+  useEffect(
+    () => () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+    },
+    []
+  );
+
+  // 초기 값 세팅 + ✅ 모달 닫힐 때 Object URL cleanup
   useEffect(() => {
     if (open) {
       setProductName(initialName);
@@ -103,6 +114,9 @@ const ProductEditModal = ({
       setSelectedCategory(initialCategory);
       setSelectedSubCategory(initialSubCategory);
       setErrors({ name: '', price: '', link: '', category: '', subCategory: '', image: '' });
+    } else if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
     }
   }, [
     open,
