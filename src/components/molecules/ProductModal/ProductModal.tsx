@@ -30,34 +30,59 @@ const categories: Option[] = [
   { key: '7', label: '비품' },
 ];
 
-const subCategories: Option[] = [
-  { key: 'drink-soda', label: '탄산음료' },
-  { key: 'drink-fruit', label: '과즙음료' },
-  { key: 'drink-energy', label: '에너지음료' },
-  { key: 'drink-ion', label: '이온음료' },
-  { key: 'drink-health', label: '건강음료' },
-  { key: 'drink-tea', label: '차류' },
-  { key: 'water-water', label: '생수' },
-  { key: 'water-sparkling', label: '스파클링' },
-  { key: 'simple-cup-ramen', label: '컵라면' },
-  { key: 'simple-sausage', label: '소시지' },
-  { key: 'simple-egg', label: '계란' },
-  { key: 'simple-cup-rice', label: '컵밥류' },
-  { key: 'simple-cereal', label: '시리얼' },
-  { key: 'fresh-fruit', label: '과일' },
-  { key: 'fresh-salad', label: '샐러드' },
-  { key: 'fresh-bread', label: '빵' },
-  { key: 'fresh-sandwich', label: '샌드위치' },
-  { key: 'fresh-yogurt', label: '요거트류' },
-  { key: 'fresh-dairy', label: '유제품' },
-  { key: 'coffee-drip', label: '드립커피' },
-  { key: 'coffee-beans', label: '원두' },
-  { key: 'coffee-capsule', label: '캡슐커피' },
-  { key: 'supplies-disposable', label: '일회용품' },
-  { key: 'supplies-office', label: '사무용품' },
-  { key: 'supplies-cleaning', label: '청소용품' },
-  { key: 'supplies-hygiene', label: '위생용품' },
-];
+/**
+ * ✅ 대분류별 소분류 매핑
+ */
+const subCategoriesByCategory: Record<string, Option[]> = {
+  '1': [
+    { key: 'snack-snack', label: '과자' },
+    { key: 'snack-cookie', label: '쿠키' },
+    { key: 'snack-biscuit', label: '비스켓류' },
+    { key: 'snack-chocolate', label: '초콜릿류' },
+    { key: 'snack-candy', label: '캔디류' },
+    { key: 'snack-jelly', label: '젤리류' },
+    { key: 'snack-cereal-bar', label: '시리얼바' },
+    { key: 'snack-nuts', label: '견과류' },
+  ],
+  '2': [
+    { key: 'drink-soda', label: '탄산음료' },
+    { key: 'drink-fruit', label: '과즙음료' },
+    { key: 'drink-energy', label: '에너지음료' },
+    { key: 'drink-ion', label: '이온음료' },
+    { key: 'drink-health', label: '건강음료' },
+    { key: 'drink-tea', label: '차류' },
+  ],
+  '3': [
+    { key: 'water-water', label: '생수' },
+    { key: 'water-sparkling', label: '스파클링' },
+  ],
+  '4': [
+    { key: 'simple-cup-ramen', label: '컵라면' },
+    { key: 'simple-sausage', label: '소시지' },
+    { key: 'simple-egg', label: '계란' },
+    { key: 'simple-cup-rice', label: '컵밥류' },
+    { key: 'simple-cereal', label: '시리얼' },
+  ],
+  '5': [
+    { key: 'fresh-fruit', label: '과일' },
+    { key: 'fresh-salad', label: '샐러드' },
+    { key: 'fresh-bread', label: '빵' },
+    { key: 'fresh-sandwich', label: '샌드위치' },
+    { key: 'fresh-yogurt', label: '요거트류' },
+    { key: 'fresh-dairy', label: '유제품' },
+  ],
+  '6': [
+    { key: 'coffee-drip', label: '드립커피' },
+    { key: 'coffee-beans', label: '원두' },
+    { key: 'coffee-capsule', label: '캡슐커피' },
+  ],
+  '7': [
+    { key: 'supplies-disposable', label: '일회용품' },
+    { key: 'supplies-office', label: '사무용품' },
+    { key: 'supplies-cleaning', label: '청소용품' },
+    { key: 'supplies-hygiene', label: '위생용품' },
+  ],
+};
 
 const ProductModal = ({
   open,
@@ -87,6 +112,13 @@ const ProductModal = ({
     image: '',
   });
 
+  /**
+   * ✅ 선택된 대분류에 따른 소분류
+   */
+  const filteredSubCategories = selectedCategory
+    ? subCategoriesByCategory[selectedCategory.key] || []
+    : [];
+
   const formatPrice = (value: string) => {
     const numeric = value.replace(/[^0-9]/g, '');
     return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -112,6 +144,11 @@ const ProductModal = ({
     initialCategory,
     initialSubCategory,
   ]);
+
+  // ✅ 대분류 변경 시 소분류 초기화 (추가된 부분)
+  useEffect(() => {
+    setSelectedSubCategory(null);
+  }, [selectedCategory]);
 
   // validation
   const validate = useCallback(() => {
@@ -144,10 +181,7 @@ const ProductModal = ({
     if (open) validate();
   }, [open, validate]);
 
-  /**
-   * 🔴 여기만 수정
-   * 모달이 닫힐 때 blob URL 정리
-   */
+  // blob URL 정리
   useEffect(() => {
     if (!open && previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
@@ -251,7 +285,7 @@ const ProductModal = ({
                 selected={selectedCategory || undefined}
               />
               <DropDown
-                items={subCategories}
+                items={filteredSubCategories}
                 placeholder="소분류"
                 variant="medium"
                 buttonClassName={clsx(!selectedSubCategory && 'border-red-500')}
