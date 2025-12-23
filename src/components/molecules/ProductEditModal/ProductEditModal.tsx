@@ -30,34 +30,57 @@ const categories: Option[] = [
   { key: '7', label: '비품' },
 ];
 
-const subCategories: Option[] = [
-  { key: 'drink-soda', label: '탄산음료' },
-  { key: 'drink-fruit', label: '과즙음료' },
-  { key: 'drink-energy', label: '에너지음료' },
-  { key: 'drink-ion', label: '이온음료' },
-  { key: 'drink-health', label: '건강음료' },
-  { key: 'drink-tea', label: '차류' },
-  { key: 'water-water', label: '생수' },
-  { key: 'water-sparkling', label: '스파클링' },
-  { key: 'simple-cup-ramen', label: '컵라면' },
-  { key: 'simple-sausage', label: '소시지' },
-  { key: 'simple-egg', label: '계란' },
-  { key: 'simple-cup-rice', label: '컵밥류' },
-  { key: 'simple-cereal', label: '시리얼' },
-  { key: 'fresh-fruit', label: '과일' },
-  { key: 'fresh-salad', label: '샐러드' },
-  { key: 'fresh-bread', label: '빵' },
-  { key: 'fresh-sandwich', label: '샌드위치' },
-  { key: 'fresh-yogurt', label: '요거트류' },
-  { key: 'fresh-dairy', label: '유제품' },
-  { key: 'coffee-drip', label: '드립커피' },
-  { key: 'coffee-beans', label: '원두' },
-  { key: 'coffee-capsule', label: '캡슐커피' },
-  { key: 'supplies-disposable', label: '일회용품' },
-  { key: 'supplies-office', label: '사무용품' },
-  { key: 'supplies-cleaning', label: '청소용품' },
-  { key: 'supplies-hygiene', label: '위생용품' },
-];
+/** ✅ 대분류별 소분류 매핑 (로직만 추가) */
+const subCategoriesByCategory: Record<string, Option[]> = {
+  '1': [
+    { key: 'snack-snack', label: '과자' },
+    { key: 'snack-cookie', label: '쿠키' },
+    { key: 'snack-biscuit', label: '비스켓류' },
+    { key: 'snack-chocolate', label: '초콜릿류' },
+    { key: 'snack-candy', label: '캔디류' },
+    { key: 'snack-jelly', label: '젤리류' },
+    { key: 'snack-cereal-bar', label: '시리얼바' },
+    { key: 'snack-nuts', label: '견과류' },
+  ],
+  '2': [
+    { key: 'drink-soda', label: '탄산음료' },
+    { key: 'drink-fruit', label: '과즙음료' },
+    { key: 'drink-energy', label: '에너지음료' },
+    { key: 'drink-ion', label: '이온음료' },
+    { key: 'drink-health', label: '건강음료' },
+    { key: 'drink-tea', label: '차류' },
+  ],
+  '3': [
+    { key: 'water-water', label: '생수' },
+    { key: 'water-sparkling', label: '스파클링' },
+  ],
+  '4': [
+    { key: 'simple-cup-ramen', label: '컵라면' },
+    { key: 'simple-sausage', label: '소시지' },
+    { key: 'simple-egg', label: '계란' },
+    { key: 'simple-cup-rice', label: '컵밥류' },
+    { key: 'simple-cereal', label: '시리얼' },
+  ],
+  '5': [
+    { key: 'fresh-fruit', label: '과일' },
+    { key: 'fresh-salad', label: '샐러드' },
+    { key: 'fresh-bread', label: '빵' },
+    { key: 'fresh-sandwich', label: '샌드위치' },
+    { key: 'fresh-yogurt', label: '요거트류' },
+    { key: 'fresh-dairy', label: '유제품' },
+  ],
+  '6': [
+    { key: 'coffee-drip', label: '드립커피' },
+    { key: 'coffee-beans', label: '원두' },
+    { key: 'coffee-capsule', label: '캡슐커피' },
+  ],
+  '7': [
+    { key: 'supplies-disposable', label: '일회용품' },
+    { key: 'supplies-office', label: '사무용품' },
+    { key: 'supplies-cleaning', label: '청소용품' },
+    { key: 'supplies-hygiene', label: '위생용품' },
+  ],
+};
 
 const ProductEditModal = ({
   open,
@@ -88,12 +111,16 @@ const ProductEditModal = ({
     image: '',
   });
 
+  /** ✅ 선택된 대분류에 따른 소분류 */
+  const filteredSubCategories = selectedCategory
+    ? subCategoriesByCategory[selectedCategory.key] || []
+    : [];
+
   const formatPrice = (value: string) => {
     const numeric = value.replace(/[^0-9]/g, '');
     return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  // ✅ Object URL cleanup on unmount
   useEffect(
     () => () => {
       if (previewUrlRef.current) {
@@ -104,7 +131,6 @@ const ProductEditModal = ({
     []
   );
 
-  // 초기 값 세팅 + ✅ 모달 닫힐 때 Object URL cleanup
   useEffect(() => {
     if (open) {
       setProductName(initialName);
@@ -243,7 +269,6 @@ const ProductEditModal = ({
         </div>
 
         <form className="w-full flex flex-col flex-1 gap-20" onSubmit={handleSubmit}>
-          {/* 드롭다운 */}
           <div className="flex flex-col gap-2 mb-6 tablet:mb-8 desktop:mb-8">
             <div className="flex gap-20">
               <DropDown
@@ -251,11 +276,14 @@ const ProductEditModal = ({
                 placeholder="대분류"
                 variant="medium"
                 buttonClassName={clsx(!selectedCategory && 'border-red-500')}
-                onSelect={setSelectedCategory}
+                onSelect={(v) => {
+                  setSelectedCategory(v);
+                  setSelectedSubCategory(null);
+                }}
                 selected={selectedCategory || undefined}
               />
               <DropDown
-                items={subCategories}
+                items={filteredSubCategories}
                 placeholder="소분류"
                 variant="medium"
                 buttonClassName={clsx(!selectedSubCategory && 'border-red-500')}
@@ -269,7 +297,6 @@ const ProductEditModal = ({
             )}
           </div>
 
-          {/* 상품명 */}
           <div className="flex flex-col w-full gap-1">
             <InputField
               label="상품명"
@@ -282,7 +309,6 @@ const ProductEditModal = ({
             {errors.name && <span className="text-red-500 text-12">{errors.name}</span>}
           </div>
 
-          {/* 가격 */}
           <div className="flex flex-col w-full gap-1">
             <InputField
               label="가격"
@@ -296,7 +322,6 @@ const ProductEditModal = ({
             {errors.price && <span className="text-red-500 text-12">{errors.price}</span>}
           </div>
 
-          {/* 제품 링크 */}
           <div className="flex flex-col w-full gap-1">
             <InputField
               label="제품 링크"
