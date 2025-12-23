@@ -12,7 +12,7 @@ const LandingHero = () => {
   };
 
   return (
-    <section className="relative w-full pt-120 pb-60 bg-white">
+    <section className="relative w-full pt-80 pb-60 bg-white">
       <div className="flex flex-col items-center px-4 text-center">
         {/* 메인 텍스트 */}
         <h1
