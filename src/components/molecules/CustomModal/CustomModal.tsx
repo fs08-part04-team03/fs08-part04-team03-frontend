@@ -13,7 +13,7 @@ interface CustomModalProps {
   cancelCount?: number;
   type: ModalType;
   onClose: () => void;
-  onConfirm?: () => void;
+  onConfirm?: () => void | Promise<void>;
   onHome?: () => void;
   onOrder?: () => void;
 }
@@ -42,6 +42,20 @@ const CustomModal = ({
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       onClose();
     }
+  };
+
+  const getPrimaryButtonClickHandler = (): (() => void) | undefined => {
+    if (type === 'approved' || type === 'rejected') {
+      return (onOrder || onHome) as (() => void) | undefined;
+    }
+    if (onConfirm) {
+      return () => {
+        onConfirm()?.catch(() => {
+          // 에러는 무시 (이미 상위에서 처리됨)
+        });
+      };
+    }
+    return undefined;
   };
 
   if (!open) return null;
@@ -183,7 +197,7 @@ const CustomModal = ({
               'tablet:w-216 tablet:h-64 tablet:text-16',
               'desktop:w-216 desktop:h-64 desktop:text-16'
             )}
-            onClick={type === 'approved' || type === 'rejected' ? onOrder || onHome : onConfirm}
+            onClick={getPrimaryButtonClickHandler()}
           >
             {content.buttonRight}
           </Button>

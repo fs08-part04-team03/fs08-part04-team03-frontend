@@ -172,7 +172,7 @@ export const GNBPrimaryNavSidebar: React.FC<GNBPrimaryNavSidebarProps> = ({
 
   const items = getGNBPrimaryNavConfig(role);
   const profileHref = PATHNAME.PROFILE(companyId);
-  const isProfileActive = isNavActive(currentPath, '/[companyId]/profile');
+  const isProfileActive = isNavActive(currentPath, '/[companyId]/my/profile');
 
   return (
     <nav
