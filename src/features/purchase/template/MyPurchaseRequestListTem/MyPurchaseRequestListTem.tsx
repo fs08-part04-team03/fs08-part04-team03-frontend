@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
@@ -23,12 +23,16 @@ import {
 } from '@/features/purchase/utils/purchase.utils';
 
 /**
- * PurchaseRequestList Props
+ * MyPurchaseRequestListTem Props
  */
-export interface PurchaseRequestListProps {
+export interface MyPurchaseRequestListTemProps {
   purchaseList: PurchaseRequestItem[];
   className?: string;
-  onCancel?: (purchaseRequestId: string) => void | Promise<void>;
+  onCancelClick?: (purchaseRequestId: string) => void;
+  cancelModalOpen?: boolean;
+  cancelTargetItem?: PurchaseRequestItem | null;
+  onCancelModalClose?: () => void;
+  onCancelConfirm?: () => void | Promise<void>;
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
@@ -42,7 +46,7 @@ export interface PurchaseRequestListProps {
 
 interface PurchaseRequestTableRowProps {
   item: PurchaseRequestItem;
-  onCancel: (purchaseRequestId: string) => void | Promise<void>;
+  onCancelClick?: (purchaseRequestId: string) => void;
 }
 
 /**
@@ -290,7 +294,7 @@ const PurchaseRequestTableHeaderDesktop = ({
  */
 const PurchaseRequestTableRowDesktop = ({
   item,
-  onCancel,
+  onCancelClick,
   companyId,
 }: PurchaseRequestTableRowProps & { companyId?: string }) => {
   const router = useRouter();
@@ -312,15 +316,8 @@ const PurchaseRequestTableRowDesktop = ({
 
   const handleCancelClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // row 클릭 이벤트 전파 방지
-    const result = onCancel(item.id);
-    if (result instanceof Promise) {
-      result.catch((error) => {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('구매 요청 취소 실패:', error);
-        }
-      });
-    }
+    if (!onCancelClick) return;
+    onCancelClick(item.id);
   };
 
   return (
@@ -430,10 +427,14 @@ const PurchaseRequestTableRowDesktop = ({
 /**
  * 구매 요청 목록 테이블 컴포넌트
  */
-const PurchaseRequestList = ({
+const MyPurchaseRequestListTem = ({
   purchaseList,
   className,
-  onCancel,
+  onCancelClick,
+  cancelModalOpen = false,
+  cancelTargetItem,
+  onCancelModalClose,
+  onCancelConfirm,
   currentPage,
   totalPages,
   onPageChange,
@@ -443,59 +444,10 @@ const PurchaseRequestList = ({
   statusOptions,
   selectedStatusOption,
   onStatusChange,
-}: PurchaseRequestListProps) => {
+}: MyPurchaseRequestListTemProps) => {
   const router = useRouter();
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
-  const [cancelTargetItem, setCancelTargetItem] = useState<PurchaseRequestItem | null>(null);
-
-  const handleCancelClick = useCallback(
-    (purchaseRequestId: string) => {
-      const item = purchaseList.find((p) => p.id === purchaseRequestId);
-      if (item) {
-        setCancelTargetId(purchaseRequestId);
-        setCancelTargetItem(item);
-        setIsModalOpen(true);
-      }
-    },
-    [purchaseList]
-  );
-
-  const handleModalClose = useCallback(() => {
-    setIsModalOpen(false);
-    setCancelTargetId(null);
-    setCancelTargetItem(null);
-  }, []);
-
-  const handleModalConfirm = useCallback(async () => {
-    if (!cancelTargetId || !onCancel) return;
-
-    try {
-      await onCancel(cancelTargetId);
-      setIsModalOpen(false);
-      setCancelTargetId(null);
-      setCancelTargetItem(null);
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('구매 요청 취소 실패:', error);
-      }
-      // 에러 발생 시에도 모달을 닫아 사용자 혼란 방지
-      // 상위 컴포넌트에서 toast 등으로 에러를 표시할 것으로 예상
-      setIsModalOpen(false);
-      setCancelTargetId(null);
-      setCancelTargetItem(null);
-    }
-  }, [cancelTargetId, onCancel]);
-
-  const handleCancel = useCallback(
-    (purchaseRequestId: string) => {
-      handleCancelClick(purchaseRequestId);
-    },
-    [handleCancelClick]
-  );
 
   const handleNavigateToProducts = useCallback(() => {
     if (!companyId) return;
@@ -521,7 +473,7 @@ const PurchaseRequestList = ({
       <div className={clsx('tablet:hidden')}>
         <PurchaseRequestItemListOrg
           purchaseList={purchaseList}
-          onCancel={handleCancel}
+          onCancel={onCancelClick}
           companyId={companyId}
         />
       </div>
@@ -555,7 +507,7 @@ const PurchaseRequestList = ({
               <PurchaseRequestTableRowDesktop
                 key={item.id}
                 item={item}
-                onCancel={handleCancel}
+                onCancelClick={onCancelClick}
                 companyId={companyId}
               />
             ))}
@@ -577,7 +529,7 @@ const PurchaseRequestList = ({
 
       {/* 취소 확인 모달 */}
       <CustomModal
-        open={isModalOpen}
+        open={cancelModalOpen}
         type="cancel"
         productName={
           cancelTargetItem && cancelTargetItem.purchaseItems.length > 0
@@ -589,15 +541,17 @@ const PurchaseRequestList = ({
             ? cancelTargetItem.purchaseItems.length - 1
             : 0
         }
-        onClose={handleModalClose}
-        onConfirm={() => {
-          handleModalConfirm().catch(() => {
-            // 에러는 handleModalConfirm 내부에서 처리됨
-          });
-        }}
+        onClose={onCancelModalClose || (() => {})}
+        onConfirm={
+          onCancelConfirm
+            ? ((async () => {
+                await onCancelConfirm();
+              }) as () => void | Promise<void>)
+            : undefined
+        }
       />
     </div>
   );
 };
 
-export default PurchaseRequestList;
+export default MyPurchaseRequestListTem;
