@@ -1,25 +1,34 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import MyRequestDetailsTem from './MyRequestDetailsTem';
+import MyPurchaseRequestDetailTem from './MyPurchaseRequestDetailTem';
 
 const meta = {
-  title: 'Features/Purchase/MyRequestDetailsTem',
-  component: MyRequestDetailsTem,
+  title: 'Features/Purchase/MyPurchaseRequestDetailTem',
+  component: MyPurchaseRequestDetailTem,
   tags: ['autodocs'],
   parameters: {
     layout: 'padded',
+    nextjs: {
+      appDirectory: true,
+      navigation: {
+        pathname: '/company-123/my/purchase-requests/1',
+        params: {
+          companyId: 'company-123',
+        },
+      },
+    },
     docs: {
       description: {
         component:
-          '구매 요청 상세 정보를 표시하는 템플릿 컴포넌트입니다. MyRequestDetailTopOrg와 MyRequestDetailsOrg를 조합하여 구매 요청의 전체 상세 정보를 표시합니다.\n\n**주요 구성:**\n\n1. **MyRequestDetailTopOrg**: 구매 요청 상단 정보\n   - 구매 요청 내역 제목\n   - 요청 품목 개수 및 토글 버튼\n   - 품목 목록 (토글 가능)\n\n2. **MyRequestDetailsOrg**: 구매 요청 상세 정보\n   - 주문 금액 정보\n   - 요청 정보 (요청인, 요청 날짜, 요청 메시지)\n   - 승인 정보 (담당자, 승인 날짜, 상태, 결과 메시지)\n   - 액션 버튼 (목록 보기, 장바구니 다시 담기)\n\n**반응형 레이아웃:**\n- 모바일/태블릿/데스크탑 각각에 최적화된 레이아웃 제공\n- 모바일/태블릿: 액션 버튼 하단 고정\n- 데스크탑: 액션 버튼 일반 배치',
+          '구매 요청 상세 정보를 표시하는 템플릿 컴포넌트입니다. PurchaseRequestDetailTopOrg와 PurchaseRequestDetailOrg를 조합하여 구매 요청의 전체 상세 정보를 표시합니다.\n\n**주요 구성:**\n\n1. **PurchaseRequestDetailTopOrg**: 구매 요청 상단 정보\n   - 구매 요청 내역 제목\n   - 요청 품목 개수 및 토글 버튼\n   - 품목 목록 (토글 가능)\n\n2. **PurchaseRequestDetailOrg**: 구매 요청 상세 정보\n   - 주문 금액 정보\n   - 요청 정보 (요청인, 요청 날짜, 요청 메시지)\n   - 승인 정보 (담당자, 승인 날짜, 상태, 결과 메시지)\n   - 액션 버튼 (목록 보기, 장바구니 다시 담기)\n\n**반응형 레이아웃:**\n- 모바일/태블릿/데스크탑 각각에 최적화된 레이아웃 제공\n- 모바일/태블릿: 액션 버튼 하단 고정\n- 데스크탑: 액션 버튼 일반 배치',
       },
     },
   },
-} satisfies Meta<typeof MyRequestDetailsTem>;
+} satisfies Meta<typeof MyPurchaseRequestDetailTem>;
 
 export default meta;
 
-type Story = StoryObj<typeof MyRequestDetailsTem>;
+type Story = StoryObj<typeof MyPurchaseRequestDetailTem>;
 
 const mockPurchaseRequest: PurchaseRequestItem = {
   id: '1',
@@ -47,7 +56,6 @@ const mockPurchaseRequest: PurchaseRequestItem = {
       products: {
         id: 2,
         name: '펩시 콜라',
-        image: '/images/pocari.svg',
       },
     },
   ],

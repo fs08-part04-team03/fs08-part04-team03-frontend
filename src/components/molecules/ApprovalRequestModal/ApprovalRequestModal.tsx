@@ -20,7 +20,7 @@ type ModalAction = 'approve' | 'reject';
 interface ApprovalRequestModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (message: string) => void; // <-- 수정됨
+  onSubmit: (message: string) => void | Promise<void>;
   user: {
     name: string;
     company: { name: string };
@@ -137,10 +137,10 @@ const ApprovalRequestModal = ({
   }, [open]);
 
   /* Submit */
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (isMessageValid) {
-      onSubmit(message); // <-- 수정됨
+      await onSubmit(message);
       return;
     }
     setTouched(true);
@@ -181,7 +181,13 @@ const ApprovalRequestModal = ({
             'tablet:pt-40 tablet:px-60 tablet:pb-40',
             'desktop:pt-40 desktop:px-60 desktop:pb-40'
           )}
-          onSubmit={handleSubmit}
+          onSubmit={(e) => {
+            e.preventDefault();
+            // 에러는 handleSubmit 내부의 onSubmit 호출자가 처리
+            handleSubmit(e).catch(() => {
+              // 에러는 호출자가 처리하도록 전파되지 않음 (의도적)
+            });
+          }}
         >
           <header className="flex flex-col items-center mb-12 py-16 px-8 tablet:mb-20 tablet:py-0 tablet:px-0 desktop:mb-20 desktop:py-0 desktop:px-0">
             <h2 className="text-18 font-bold tracking-tight">{headerText}</h2>

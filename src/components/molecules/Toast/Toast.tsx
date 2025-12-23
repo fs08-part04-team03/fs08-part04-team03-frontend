@@ -6,7 +6,7 @@ import { IconButton } from '@/components/atoms/IconButton/IconButton';
 
 export interface ToastProps {
   amount?: string;
-  variant: 'error' | 'success';
+  variant: 'error' | 'success' | 'custom';
   message?: string;
   onClose?: () => void;
 }
@@ -39,7 +39,7 @@ const ToastContent = ({
   formattedAmount,
   onClose,
 }: {
-  variant: 'error' | 'success';
+  variant: 'error' | 'success' | 'custom';
   formattedAmount: string;
   onClose?: () => void;
 }) => {
@@ -66,7 +66,13 @@ const DesktopMessage = ({ message }: { message: string }) => (
 /* --------------------------------
  * Tablet Message
  * -------------------------------- */
-const TabletMessage = ({ message, variant }: { message: string; variant: 'error' | 'success' }) => {
+const TabletMessage = ({
+  message,
+  variant,
+}: {
+  message: string;
+  variant: 'error' | 'success' | 'custom';
+}) => {
   if (variant === 'error') {
     return (
       <span className="font-suit font-bold text-20 leading-none tracking--0.35">
@@ -81,7 +87,13 @@ const TabletMessage = ({ message, variant }: { message: string; variant: 'error'
 /* --------------------------------
  * Mobile Message
  * -------------------------------- */
-const MobileMessage = ({ variant }: { variant: 'error' | 'success' }) => {
+const MobileMessage = ({
+  variant,
+  message,
+}: {
+  variant: 'error' | 'success' | 'custom';
+  message?: string;
+}) => {
   if (variant === 'error') {
     return (
       <span>
@@ -90,6 +102,9 @@ const MobileMessage = ({ variant }: { variant: 'error' | 'success' }) => {
         수량을 줄이거나 항목을 제거해 주세요.
       </span>
     );
+  }
+  if (variant === 'custom') {
+    return <span>{message || ''}</span>;
   }
   return <span>예산이 변경되었습니다.</span>;
 };
@@ -105,6 +120,9 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
   if (variant === 'error') {
     iconSrc = '/icons/red-info.svg';
     defaultMessage = '예산이 부족합니다. 수량을 줄이거나 항목을 제거해주세요.';
+  } else if (variant === 'custom') {
+    iconSrc = '/icons/check-icon.svg';
+    defaultMessage = message || '';
   } else {
     iconSrc = '/icons/check-icon.svg';
     defaultMessage = '예산이 변경되었습니다.';
@@ -163,7 +181,7 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
         {/* Mobile */}
         <div className="mobile:flex tablet:hidden desktop:hidden justify-between items-center w-full">
           <div className="flex flex-col font-suit font-bold text-14 leading-160 tracking--0.35">
-            <MobileMessage variant={variant} />
+            <MobileMessage variant={variant} message={finalMessage} />
           </div>
           <CloseButton onClose={onClose} />
         </div>

@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import MyRequestDetailTopOrg from './MyRequestDetailTopOrg';
+import PurchaseRequestDetailTopOrg from './PurchaseRequestDetailTopOrg';
 
 const meta = {
-  title: 'Features/Purchase/MyRequestDetailTopOrg',
-  component: MyRequestDetailTopOrg,
+  title: 'Features/Purchase/Organisms/PurchaseRequestDetailTopOrg',
+  component: PurchaseRequestDetailTopOrg,
   tags: ['autodocs'],
   parameters: {
     layout: 'padded',
@@ -15,11 +15,11 @@ const meta = {
       },
     },
   },
-} satisfies Meta<typeof MyRequestDetailTopOrg>;
+} satisfies Meta<typeof PurchaseRequestDetailTopOrg>;
 
 export default meta;
 
-type Story = StoryObj<typeof MyRequestDetailTopOrg>;
+type Story = StoryObj<typeof PurchaseRequestDetailTopOrg>;
 
 const mockPurchaseRequest: PurchaseRequestItem = {
   id: '1',

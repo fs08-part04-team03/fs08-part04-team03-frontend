@@ -8,11 +8,11 @@ import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { Divider } from '@/components/atoms/Divider/Divider';
 
-interface MyRequestDetailTopOrgProps {
+interface PurchaseRequestDetailTopOrgProps {
   purchaseRequest: PurchaseRequestItem;
 }
 
-export const MyRequestDetailTopOrg: React.FC<MyRequestDetailTopOrgProps> = ({
+export const PurchaseRequestDetailTopOrg: React.FC<PurchaseRequestDetailTopOrgProps> = ({
   purchaseRequest,
 }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -54,4 +54,4 @@ export const MyRequestDetailTopOrg: React.FC<MyRequestDetailTopOrgProps> = ({
   );
 };
 
-export default MyRequestDetailTopOrg;
+export default PurchaseRequestDetailTopOrg;
