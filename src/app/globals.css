@@ -256,11 +256,13 @@ body {
   --spacing-734: 734px;
   --spacing-740: 740px;
   --spacing-750: 750px;
+  --spacing-768: 768px;
   --spacing-1052: 1052px;
   --spacing-1150: 1150px;
   --spacing-1152: 1152px;
   --spacing-1180: 1180px;
   --spacing-1200: 1200px;
+  --spacing-1240: 1240px;
   --spacing-1352: 1352px;
   --spacing-1400: 1400px;
   --spacing-155: 155px;
@@ -354,6 +356,19 @@ body {
   .px-toast-32 {
     padding-left: 32px;
     padding-right: 32px;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 50s linear infinite;
   }
 
   /* .gap-8 {
