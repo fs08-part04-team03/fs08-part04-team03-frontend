@@ -7,14 +7,10 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import StatusTag from '@/components/atoms/StatusTag/StatusTag';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
-import {
-  formatDate,
-  formatItemDescription,
-  getStatusTagVariant,
-} from '@/features/purchase/utils/purchase.utils';
+import UserProfile from '@/components/molecules/UserProfile/UserProfile';
+import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
 
 /**
  * PurchaseRequestItemListOrg Props
@@ -22,13 +18,17 @@ import {
 export interface PurchaseRequestItemListOrgProps {
   purchaseList: PurchaseRequestItem[];
   className?: string;
-  onCancel?: (purchaseRequestId: string) => void | Promise<void>;
+  onReject?: (purchaseRequestId: string) => void;
+  onApprove?: (purchaseRequestId: string) => void;
+  onCancel?: (purchaseRequestId: string) => void;
   companyId?: string;
 }
 
 interface PurchaseRequestItemRowProps {
   item: PurchaseRequestItem;
-  onCancel: (purchaseRequestId: string) => void | Promise<void>;
+  onReject?: (purchaseRequestId: string) => void;
+  onApprove?: (purchaseRequestId: string) => void;
+  onCancel?: (purchaseRequestId: string) => void;
   companyId?: string;
 }
 
@@ -37,6 +37,8 @@ interface PurchaseRequestItemRowProps {
  */
 const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
   item,
+  onReject,
+  onApprove,
   onCancel,
   companyId,
 }) => {
@@ -58,17 +60,22 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
     }
   };
 
+  const handleRejectClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // row 클릭 이벤트 전파 방지
+    if (!onReject) return;
+    onReject(item.id);
+  };
+
+  const handleApproveClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // row 클릭 이벤트 전파 방지
+    if (!onApprove) return;
+    onApprove(item.id);
+  };
+
   const handleCancelClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // row 클릭 이벤트 전파 방지
-    const result = onCancel(item.id);
-    if (result instanceof Promise) {
-      result.catch((error) => {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('구매 요청 취소 실패:', error);
-        }
-      });
-    }
+    if (!onCancel) return;
+    onCancel(item.id);
   };
 
   return (
@@ -87,7 +94,7 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
       onClick={handleRowClick}
       onKeyDown={handleRowKeyDown}
     >
-      {/* 첫 번째 줄: 2개 컬럼 (왼쪽: 날짜/제목/금액, 오른쪽: 태그) */}
+      {/* 첫 번째 줄: 2개 컬럼 (왼쪽: 날짜/제목/금액, 오른쪽: 요청인) */}
       <div className={clsx('flex items-start', 'w-full', 'gap-12')}>
         {/* 왼쪽 컬럼: 날짜, 제목, 금액 */}
         <div className={clsx('flex flex-col', 'flex-1', 'min-w-0', 'gap-4')}>
@@ -111,23 +118,50 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
           </div>
         </div>
 
-        {/* 오른쪽 컬럼: 상태 태그 */}
+        {/* 오른쪽 컬럼: 요청인 */}
         <div className={clsx('shrink-0')}>
-          <StatusTag variant={getStatusTagVariant(item.status)} />
+          <UserProfile
+            name={item.requester.name}
+            company={{ name: '회사명' }}
+            profileHref={companyId ? `/${companyId}/my/profile` : undefined}
+            variant="nameOnly"
+          />
         </div>
       </div>
 
-      {/* 두 번째 줄 (취소 버튼 - 대기중일 때만) */}
+      {/* 두 번째 줄 (반려/승인 버튼 또는 취소 버튼 - 대기중일 때만) */}
       {isPending && (
-        <div className={clsx('w-full', 'tablet:w-auto')}>
-          <Button
-            variant="secondary"
-            onClick={handleCancelClick}
-            className="w-full h-40 tablet:w-auto tablet:h-44"
-          >
-            요청 취소
-          </Button>
-        </div>
+        <>
+          {onReject && onApprove && (
+            <div className={clsx('w-full', 'flex gap-8')}>
+              <Button
+                variant="secondary"
+                onClick={handleRejectClick}
+                className="flex-1 h-40 tablet:w-auto tablet:h-44"
+              >
+                반려
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleApproveClick}
+                className="flex-1 h-40 tablet:w-auto tablet:h-44"
+              >
+                승인
+              </Button>
+            </div>
+          )}
+          {onCancel && (
+            <div className={clsx('w-full', 'flex gap-8')}>
+              <Button
+                variant="secondary"
+                onClick={handleCancelClick}
+                className="flex-1 h-40 tablet:w-auto tablet:h-44"
+              >
+                요청 취소
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -138,6 +172,8 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
  */
 const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
   item,
+  onReject,
+  onApprove,
   onCancel,
   companyId,
 }) => {
@@ -159,17 +195,22 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
     }
   };
 
+  const handleRejectClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // row 클릭 이벤트 전파 방지
+    if (!onReject) return;
+    onReject(item.id);
+  };
+
+  const handleApproveClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // row 클릭 이벤트 전파 방지
+    if (!onApprove) return;
+    onApprove(item.id);
+  };
+
   const handleCancelClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // row 클릭 이벤트 전파 방지
-    const result = onCancel(item.id);
-    if (result instanceof Promise) {
-      result.catch((error) => {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('구매 요청 취소 실패:', error);
-        }
-      });
-    }
+    if (!onCancel) return;
+    onCancel(item.id);
   };
 
   return (
@@ -240,7 +281,7 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
         />
       </div>
 
-      {/* 상태 */}
+      {/* 요청인 */}
       <div
         className={clsx(
           'shrink-0',
@@ -252,26 +293,56 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
           'desktop:px-40'
         )}
       >
-        <StatusTag variant={getStatusTagVariant(item.status)} />
+        <UserProfile
+          name={item.requester.name}
+          company={{ name: '회사명' }}
+          profileHref={companyId ? `/${companyId}/my/profile` : undefined}
+          variant="secondary"
+        />
       </div>
 
       {/* 비고 */}
       {isPending && (
-        <div
-          className={clsx(
-            'shrink-0',
-            'text-left',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
+        <>
+          {onReject && onApprove && (
+            <div
+              className={clsx(
+                'shrink-0',
+                'text-left',
+                'tablet:w-100',
+                'desktop:w-180',
+                'py-20',
+                'tablet:px-0',
+                'desktop:px-40',
+                'flex gap-8'
+              )}
+            >
+              <Button variant="secondary" onClick={handleRejectClick} className="h-44">
+                반려
+              </Button>
+              <Button variant="primary" onClick={handleApproveClick} className="h-44">
+                승인
+              </Button>
+            </div>
           )}
-        >
-          <Button variant="secondary" onClick={handleCancelClick} className="w-126 h-44">
-            요청 취소
-          </Button>
-        </div>
+          {onCancel && (
+            <div
+              className={clsx(
+                'shrink-0',
+                'text-left',
+                'tablet:w-100',
+                'desktop:w-180',
+                'py-20',
+                'tablet:px-0',
+                'desktop:px-40'
+              )}
+            >
+              <Button variant="secondary" onClick={handleCancelClick} className="h-44 w-126">
+                요청 취소
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -283,36 +354,38 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
 const PurchaseRequestItemListOrg: React.FC<PurchaseRequestItemListOrgProps> = ({
   purchaseList,
   className,
+  onReject,
+  onApprove,
   onCancel,
   companyId,
-}) => {
-  const handleCancel = onCancel || (() => {});
+}) => (
+  <div className={clsx('w-full', className)}>
+    {purchaseList.map((item) => (
+      <React.Fragment key={item.id}>
+        {/* 모바일 레이아웃 */}
+        <div className={clsx('tablet:hidden')}>
+          <PurchaseRequestItemRowMobile
+            item={item}
+            onReject={onReject}
+            onApprove={onApprove}
+            onCancel={onCancel}
+            companyId={companyId}
+          />
+        </div>
 
-  return (
-    <div className={clsx('w-full', className)}>
-      {purchaseList.map((item) => (
-        <React.Fragment key={item.id}>
-          {/* 모바일 레이아웃 */}
-          <div className={clsx('tablet:hidden')}>
-            <PurchaseRequestItemRowMobile
-              item={item}
-              onCancel={handleCancel}
-              companyId={companyId}
-            />
-          </div>
-
-          {/* 태블릿/데스크탑 레이아웃 */}
-          <div className={clsx('hidden tablet:block')}>
-            <PurchaseRequestItemRowDesktop
-              item={item}
-              onCancel={handleCancel}
-              companyId={companyId}
-            />
-          </div>
-        </React.Fragment>
-      ))}
-    </div>
-  );
-};
+        {/* 태블릿/데스크탑 레이아웃 */}
+        <div className={clsx('hidden tablet:block')}>
+          <PurchaseRequestItemRowDesktop
+            item={item}
+            onReject={onReject}
+            onApprove={onApprove}
+            onCancel={onCancel}
+            companyId={companyId}
+          />
+        </div>
+      </React.Fragment>
+    ))}
+  </div>
+);
 
 export default PurchaseRequestItemListOrg;
