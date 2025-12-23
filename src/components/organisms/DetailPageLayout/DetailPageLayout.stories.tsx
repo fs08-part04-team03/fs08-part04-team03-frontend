@@ -53,9 +53,11 @@ export const Default: Story = {
       productName: '코카콜라 제로',
       purchaseCount: 29,
       price: 2000,
-      type: 'default', // ✅ ItemMenu 표시
+      type: 'default', // ItemMenu 표시
       onQuantityChange: () => {},
-      onMenuClick: () => {},
+      onMenuClick: (action) => {
+        console.log('menu action:', action);
+      },
       onAddToCart: () => {},
     },
     accordionPanels: [
@@ -93,9 +95,11 @@ export const WithoutImage: Story = {
       productName: '스프라이트',
       purchaseCount: 15,
       price: 1800,
-      type: 'default', // ✅ 기본 유지
+      type: 'default',
       onQuantityChange: () => {},
-      onMenuClick: () => {},
+      onMenuClick: (action) => {
+        console.log('menu action:', action);
+      },
       onAddToCart: () => {},
     },
     accordionPanels: [
@@ -128,9 +132,11 @@ export const MultipleAccordionPanels: Story = {
       productName: '신라면 컵라면',
       purchaseCount: 42,
       price: 1500,
-      type: 'simple', // ✅ ItemMenu 숨김 예시
+      type: 'simple', // ItemMenu 숨김
       onQuantityChange: () => {},
-      onMenuClick: () => {},
+      onMenuClick: (action) => {
+        console.log('menu action:', action);
+      },
       onAddToCart: () => {},
     },
     accordionPanels: [
