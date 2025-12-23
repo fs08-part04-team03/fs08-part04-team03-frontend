@@ -1,3 +1,5 @@
+// 관리자: 구매 요청 관리 페이지
+
 import { RoleGuard } from '@/components/guards/RoleGuard';
 
 const PurchaseRequestFormPage = () => (
