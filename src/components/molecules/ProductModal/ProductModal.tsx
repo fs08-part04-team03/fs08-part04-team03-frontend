@@ -145,7 +145,7 @@ const ProductModal = ({
     initialSubCategory,
   ]);
 
-  // ✅ 대분류 변경 시 소분류 초기화 (추가된 부분)
+  // ✅ 대분류 변경 시 소분류 초기화
   useEffect(() => {
     setSelectedSubCategory(null);
   }, [selectedCategory]);
@@ -181,13 +181,24 @@ const ProductModal = ({
     if (open) validate();
   }, [open, validate]);
 
-  // blob URL 정리
+  // blob URL 정리 (모달 닫힐 때)
   useEffect(() => {
     if (!open && previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
       previewUrlRef.current = null;
     }
   }, [open]);
+
+  // ✅ [추가] 언마운트 시 blob URL 정리
+  useEffect(
+    () => () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+    },
+    []
+  );
 
   if (!open) return null;
 
