@@ -2,11 +2,12 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname, useParams } from 'next/navigation';
 import {
   managePurchaseRequests,
   approvePurchaseRequest,
   rejectPurchaseRequest,
+  getBudget,
 } from '@/features/purchase/api/purchase.api';
 import PurchaseRequestListTem from '@/features/purchase/template/PurchaseRequestListTem/PurchaseRequestListTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
@@ -14,10 +15,12 @@ import { PURCHASE_REQUEST_STATUS_OPTIONS } from '@/constants';
 import { COMMON_SORT_OPTIONS, DEFAULT_SORT_KEY } from '@/constants/sort';
 
 const PurchaseRequestListSection = () => {
+  const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const companyId = params?.companyId ? String(params.companyId) : undefined;
   const [showToast, setShowToast] = useState(false);
   const [toastVariant, setToastVariant] = useState<'success' | 'error' | 'custom'>('success');
   const [toastMessage, setToastMessage] = useState('');
@@ -57,6 +60,24 @@ const PurchaseRequestListSection = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['purchaseRequests', page, size, status, sort],
     queryFn: () => managePurchaseRequests({ page, size, status, sort }),
+  });
+
+  // 예산 조회
+  const {
+    data: budgetData,
+    isLoading: isBudgetLoading,
+    error: budgetError,
+  } = useQuery({
+    queryKey: ['budget', companyId],
+    queryFn: async () => {
+      if (!companyId) {
+        throw new Error('Company ID is required');
+      }
+      const result = await getBudget(companyId);
+      return result;
+    },
+    enabled: !!companyId,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   const handleRejectClick = useCallback((purchaseRequestId: string) => {
@@ -131,42 +152,42 @@ const PurchaseRequestListSection = () => {
 
   const handlePageChange = useCallback(
     (newPage: number) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('page', newPage.toString());
-      router.push(`${pathname}?${params.toString()}`);
+      const urlParams = new URLSearchParams(searchParams.toString());
+      urlParams.set('page', newPage.toString());
+      router.push(`${pathname}?${urlParams.toString()}`);
     },
     [searchParams, router, pathname]
   );
 
   const handleSortChange = useCallback(
     (newSort: string | undefined) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const urlParams = new URLSearchParams(searchParams.toString());
       if (newSort && newSort !== DEFAULT_SORT_KEY) {
-        params.set('sort', newSort);
+        urlParams.set('sort', newSort);
       } else {
-        params.delete('sort');
+        urlParams.delete('sort');
       }
-      params.set('page', '1');
-      router.push(`${pathname}?${params.toString()}`);
+      urlParams.set('page', '1');
+      router.push(`${pathname}?${urlParams.toString()}`);
     },
     [searchParams, router, pathname]
   );
 
   const handleStatusChange = useCallback(
     (newStatus: string | undefined) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const urlParams = new URLSearchParams(searchParams.toString());
       if (newStatus && newStatus !== 'ALL') {
-        params.set('status', newStatus);
+        urlParams.set('status', newStatus);
       } else {
-        params.delete('status');
+        urlParams.delete('status');
       }
-      params.set('page', '1');
-      router.push(`${pathname}?${params.toString()}`);
+      urlParams.set('page', '1');
+      router.push(`${pathname}?${urlParams.toString()}`);
     },
     [searchParams, router, pathname]
   );
 
-  if (isLoading) {
+  if (isLoading || isBudgetLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>로딩 중...</p>
@@ -174,7 +195,7 @@ const PurchaseRequestListSection = () => {
     );
   }
 
-  if (error) {
+  if (error || budgetError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
@@ -200,9 +221,9 @@ const PurchaseRequestListSection = () => {
         rejectModalOpen={rejectModalOpen}
         onApproveModalClose={handleApproveModalClose}
         onRejectModalClose={handleRejectModalClose}
-        onApproveSubmit={handleApproveSubmit as (message: string) => void | Promise<void>}
-        onRejectSubmit={handleRejectSubmit as (message: string) => void | Promise<void>}
-        budget={2000000}
+        onApproveSubmit={handleApproveSubmit}
+        onRejectSubmit={handleRejectSubmit}
+        budget={budgetData?.budget ?? 0}
         currentPage={data.currentPage}
         totalPages={data.totalPages}
         onPageChange={handlePageChange}

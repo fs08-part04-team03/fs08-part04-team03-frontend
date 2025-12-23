@@ -122,7 +122,7 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
         <div className={clsx('shrink-0')}>
           <UserProfile
             name={item.requester.name}
-            company={{ name: '회사명' }}
+            company={{ name: item.requester.company || '' }}
             profileHref={companyId ? `/${companyId}/my/profile` : undefined}
             variant="nameOnly"
           />
@@ -295,7 +295,7 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
       >
         <UserProfile
           name={item.requester.name}
-          company={{ name: '회사명' }}
+          company={{ name: item.requester.company || '' }}
           profileHref={companyId ? `/${companyId}/my/profile` : undefined}
           variant="secondary"
         />
