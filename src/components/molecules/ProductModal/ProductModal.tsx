@@ -30,9 +30,6 @@ const categories: Option[] = [
   { key: '7', label: '비품' },
 ];
 
-/**
- * ✅ 대분류별 소분류 매핑
- */
 const subCategoriesByCategory: Record<string, Option[]> = {
   '1': [
     { key: 'snack-snack', label: '과자' },
@@ -101,7 +98,9 @@ const ProductModal = ({
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Option | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<Option | null>(null);
+
   const previewUrlRef = useRef<string | null>(null);
+  const prevCategoryRef = useRef<Option | null>(null); // ✅ 추가
 
   const [errors, setErrors] = useState({
     name: '',
@@ -112,9 +111,6 @@ const ProductModal = ({
     image: '',
   });
 
-  /**
-   * ✅ 선택된 대분류에 따른 소분류
-   */
   const filteredSubCategories = selectedCategory
     ? subCategoriesByCategory[selectedCategory.key] || []
     : [];
@@ -133,6 +129,7 @@ const ProductModal = ({
       setPreview(initialImage);
       setSelectedCategory(initialCategory);
       setSelectedSubCategory(initialSubCategory);
+      prevCategoryRef.current = initialCategory; // ✅ 핵심
       setErrors({ name: '', price: '', link: '', category: '', subCategory: '', image: '' });
     }
   }, [
@@ -145,12 +142,18 @@ const ProductModal = ({
     initialSubCategory,
   ]);
 
-  // ✅ 대분류 변경 시 소분류 초기화
+  // ✅ 대분류 변경 시 소분류 초기화 (초기 세팅 제외)
   useEffect(() => {
-    setSelectedSubCategory(null);
+    if (
+      prevCategoryRef.current &&
+      selectedCategory &&
+      prevCategoryRef.current.key !== selectedCategory.key
+    ) {
+      setSelectedSubCategory(null);
+    }
+    prevCategoryRef.current = selectedCategory;
   }, [selectedCategory]);
 
-  // validation
   const validate = useCallback(() => {
     const newErrors = { name: '', price: '', link: '', category: '', subCategory: '', image: '' };
 
@@ -170,7 +173,6 @@ const ProductModal = ({
     return !Object.values(newErrors).some((msg) => msg !== '');
   }, [productName, price, link, selectedCategory, selectedSubCategory, preview]);
 
-  // ESC 닫기
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => open && e.key === 'Escape' && onClose();
     if (open) document.addEventListener('keydown', handleEsc);
@@ -181,7 +183,6 @@ const ProductModal = ({
     if (open) validate();
   }, [open, validate]);
 
-  // blob URL 정리 (모달 닫힐 때)
   useEffect(() => {
     if (!open && previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
@@ -189,7 +190,6 @@ const ProductModal = ({
     }
   }, [open]);
 
-  // ✅ [추가] 언마운트 시 blob URL 정리
   useEffect(
     () => () => {
       if (previewUrlRef.current) {
