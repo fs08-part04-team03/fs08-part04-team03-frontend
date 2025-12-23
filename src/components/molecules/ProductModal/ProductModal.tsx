@@ -143,12 +143,16 @@ const ProductModal = ({
     if (open) validate();
   }, [open, validate]);
 
-  useEffect(
-    () => () => {
-      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-    },
-    []
-  );
+  /**
+   * 🔴 여기만 수정
+   * 모달이 닫힐 때 blob URL 정리
+   */
+  useEffect(() => {
+    if (!open && previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+  }, [open]);
 
   if (!open) return null;
 
