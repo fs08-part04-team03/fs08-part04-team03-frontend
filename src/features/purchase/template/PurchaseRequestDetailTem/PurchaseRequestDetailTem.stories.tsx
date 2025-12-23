@@ -75,6 +75,7 @@ export const Default: Story = {
   args: {
     purchaseRequest: mockPurchaseRequest,
     budget: 2000000,
+    monthlySpending: 500000,
     approveModalOpen: false,
     rejectModalOpen: false,
     onApproveClick: () => {
@@ -119,6 +120,7 @@ export const WithoutRequestMessage: Story = {
       requestMessage: undefined,
     },
     budget: 2000000,
+    monthlySpending: 500000,
     approveModalOpen: false,
     rejectModalOpen: false,
     onApproveClick: () => {},
@@ -145,6 +147,7 @@ export const WithRejectReason: Story = {
       rejectReason: '예산 초과로 인한 반려입니다.',
     },
     budget: 2000000,
+    monthlySpending: 500000,
     approveModalOpen: false,
     rejectModalOpen: false,
     onApproveClick: () => {},
@@ -171,6 +174,7 @@ export const WithoutApprover: Story = {
       approver: undefined,
     },
     budget: 2000000,
+    monthlySpending: 500000,
     approveModalOpen: false,
     rejectModalOpen: false,
     onApproveClick: () => {},

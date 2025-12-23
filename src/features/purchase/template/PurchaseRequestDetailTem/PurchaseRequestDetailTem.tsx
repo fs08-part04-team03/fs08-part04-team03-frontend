@@ -11,6 +11,7 @@ import PurchaseRequestDetailActionsOrg from '../../components/PurchaseRequestDet
 interface PurchaseRequestDetailTemProps {
   purchaseRequest: PurchaseRequestItem;
   budget: number;
+  monthlySpending: number;
   approveModalOpen: boolean;
   rejectModalOpen: boolean;
   onApproveClick: () => void;
@@ -24,6 +25,7 @@ interface PurchaseRequestDetailTemProps {
 const PurchaseRequestDetailTem: React.FC<PurchaseRequestDetailTemProps> = ({
   purchaseRequest,
   budget,
+  monthlySpending,
   approveModalOpen,
   rejectModalOpen,
   onApproveClick,
@@ -38,7 +40,7 @@ const PurchaseRequestDetailTem: React.FC<PurchaseRequestDetailTemProps> = ({
 
   // BudgetInfo에 필요한 값들을 계산 (my/ 경로가 아닌 경우 BudgetInfo만 표시)
   const budgetInfo = {
-    monthlySpending: 500000, // 이번 달 지출액
+    monthlySpending,
     remainingBudget: budget,
     budgetAfterPurchase: budget - (purchaseRequest.totalPrice + purchaseRequest.shippingFee), // 구매 후 예산
   };

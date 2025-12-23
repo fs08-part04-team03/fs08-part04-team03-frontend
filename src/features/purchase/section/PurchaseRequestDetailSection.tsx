@@ -8,6 +8,7 @@ import {
   managePurchaseRequests,
   approvePurchaseRequest,
   rejectPurchaseRequest,
+  getBudget,
 } from '@/features/purchase/api/purchase.api';
 import { Toast } from '@/components/molecules/Toast/Toast';
 
@@ -16,6 +17,7 @@ const PurchaseRequestDetailSection = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const requestId = params?.requestId as string | undefined;
+  const companyId = params?.companyId ? String(params.companyId) : undefined;
   const [showToast, setShowToast] = useState(false);
   const [toastVariant, setToastVariant] = useState<'success' | 'error' | 'custom'>('success');
   const [toastMessage, setToastMessage] = useState('');
@@ -50,6 +52,28 @@ const PurchaseRequestDetailSection = () => {
     enabled: !!requestId,
   });
 
+  // 예산 조회
+  const {
+    data: budgetData,
+    isLoading: isBudgetLoading,
+    error: budgetError,
+  } = useQuery({
+    queryKey: ['budget', companyId],
+    queryFn: async () => {
+      if (!companyId) {
+        throw new Error('Company ID is required');
+      }
+      const result = await getBudget(companyId);
+      return result;
+    },
+    enabled: !!companyId,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+  });
+
+  // 예산 값 (로딩 중이거나 에러 발생 시 fallback 값 사용)
+  const budget: number = budgetData?.budget ?? 2000000;
+  const monthlySpending: number = budgetData?.monthlySpending ?? 0;
+
   const handleApproveClick = useCallback(() => {
     setApproveModalOpen(true);
   }, []);
@@ -79,7 +103,6 @@ const PurchaseRequestDetailSection = () => {
         setToastMessage('구매 요청이 승인되었습니다.');
         setShowToast(true);
         // 목록 페이지로 이동
-        const companyId = params?.companyId ? String(params.companyId) : undefined;
         if (companyId) {
           router.push(`/${companyId}/purchase-requests`);
         }
@@ -93,7 +116,7 @@ const PurchaseRequestDetailSection = () => {
         setShowToast(true);
       }
     },
-    [requestId, queryClient, params, router]
+    [requestId, queryClient, companyId, router]
   );
 
   const handleRejectSubmit = useCallback(
@@ -109,7 +132,6 @@ const PurchaseRequestDetailSection = () => {
         setToastMessage('구매 요청이 반려되었습니다.');
         setShowToast(true);
         // 목록 페이지로 이동
-        const companyId = params?.companyId ? String(params.companyId) : undefined;
         if (companyId) {
           router.push(`/${companyId}/purchase-requests`);
         }
@@ -123,10 +145,10 @@ const PurchaseRequestDetailSection = () => {
         setShowToast(true);
       }
     },
-    [requestId, queryClient, params, router]
+    [requestId, queryClient, companyId, router]
   );
 
-  if (isLoading) {
+  if (isLoading || isBudgetLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>로딩 중...</p>
@@ -146,11 +168,18 @@ const PurchaseRequestDetailSection = () => {
     return null;
   }
 
+  // 예산 로딩 실패 시 경고 로그 (UI는 fallback 값으로 계속 표시)
+  if (budgetError && process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.warn('예산 정보를 불러오는 중 오류가 발생했습니다. 기본값을 사용합니다.', budgetError);
+  }
+
   return (
     <div className="w-full">
       <PurchaseRequestDetailTem
         purchaseRequest={data}
-        budget={2000000}
+        budget={budget}
+        monthlySpending={monthlySpending}
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}
         onApproveClick={handleApproveClick}
