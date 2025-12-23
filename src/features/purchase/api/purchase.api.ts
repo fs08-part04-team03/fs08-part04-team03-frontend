@@ -534,3 +534,20 @@ export async function cancelPurchaseRequest(
 
   return result.data;
 }
+
+/**
+ * 예산 조회
+ */
+export interface GetBudgetResponse {
+  budget: number;
+  monthlySpending: number;
+  remainingBudget: number;
+}
+
+export async function getBudget(companyId: string): Promise<GetBudgetResponse> {
+  const result = await fetchWithAuth<GetBudgetResponse>(`/api/v1/budget/${companyId}`, {
+    method: 'GET',
+  });
+
+  return result.data;
+}

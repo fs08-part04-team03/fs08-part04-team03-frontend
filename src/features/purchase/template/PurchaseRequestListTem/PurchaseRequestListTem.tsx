@@ -237,7 +237,7 @@ const PurchaseRequestTableRowDesktop = ({
       <div className={clsx(TABLE_CELL_BASE_STYLES.cell, COLUMN_WIDTHS.requester)}>
         <UserProfile
           name={item.requester.name}
-          company={{ name: '회사명' }}
+          company={{ name: item.requester.company || '' }}
           profileHref={companyId ? `/${companyId}/my/profile` : undefined}
           variant="nameOnly"
         />

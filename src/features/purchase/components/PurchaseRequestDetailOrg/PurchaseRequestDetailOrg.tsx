@@ -152,33 +152,7 @@ const ApprovedInfoMobile = ({
   </div>
 );
 
-const ApprovedInfoTablet = ({
-  approverName,
-  approvalDate,
-  statusLabel,
-  resultMessage,
-}: ApprovedInfoProps) => (
-  <div className="flex flex-col">
-    <h1 className="font-bold text-16 py-14">승인 정보</h1>
-    <Divider orientation="horizontal" variant="thick" />
-    <div className="grid grid-cols-[140px_1fr_140px_1fr] border-b border-gray-100">
-      <p className="text-16 border-r border-gray-100 p-16">담당자</p>
-      <p className="text-16 border-r border-gray-100 p-16">{approverName}</p>
-      <p className="text-16 border-r border-gray-100 p-16">승인 날짜</p>
-      <p className="text-16 p-16">
-        {approvalDate ? <DateText date={approvalDate} className="text-16" /> : '-'}
-      </p>
-    </div>
-    <div className="grid grid-cols-[140px_1fr_140px_1fr] border-b border-gray-100 items-start">
-      <p className="text-16 border-r border-gray-100 p-16">상태</p>
-      <p className="text-16 border-r border-gray-100 p-16">{statusLabel}</p>
-      <p className="text-16 border-r border-gray-100 p-16">결과 메시지</p>
-      <p className="text-16 p-16 wrap-break-word">{resultMessage}</p>
-    </div>
-  </div>
-);
-
-const ApprovedInfoDesktop = ({
+const ApprovedInfo = ({
   approverName,
   approvalDate,
   statusLabel,
@@ -240,40 +214,7 @@ const BudgetInfoMobile = ({
   </div>
 );
 
-const BudgetInfoTablet = ({
-  monthlySpending,
-  remainingBudget,
-  budgetAfterPurchase,
-}: BudgetInfoProps) => (
-  <div className="flex flex-col">
-    <h1 className="font-bold text-16 py-14">예산 정보</h1>
-    <Divider orientation="horizontal" variant="thick" />
-    <div className="grid grid-cols-[1fr_auto] border-b border-gray-100">
-      <p className="text-16 border-r border-gray-100 p-16">이번 달 지출액</p>
-      <p className="text-16 p-16">
-        <PriceText value={monthlySpending} className="text-16" />
-      </p>
-    </div>
-    <div className="grid grid-cols-[1fr_auto] border-b border-gray-100">
-      <p className="text-16 border-r border-gray-100 p-16">이번 달 남은 예산</p>
-      <p className="text-16 p-16">
-        <PriceText value={remainingBudget} className="text-16" />
-      </p>
-    </div>
-    <div className="grid grid-cols-[1fr_auto] border-b border-gray-100">
-      <p className="text-16 border-r border-gray-100 p-16">구매 후 예산</p>
-      <p className="text-16 p-16">
-        <PriceText value={budgetAfterPurchase} className="text-16" />
-      </p>
-    </div>
-  </div>
-);
-
-const BudgetInfoDesktop = ({
-  monthlySpending,
-  remainingBudget,
-  budgetAfterPurchase,
-}: BudgetInfoProps) => (
+const BudgetInfo = ({ monthlySpending, remainingBudget, budgetAfterPurchase }: BudgetInfoProps) => (
   <div className="flex flex-col">
     <h1 className="font-bold text-16 py-14">예산 정보</h1>
     <Divider orientation="horizontal" variant="thick" />
@@ -347,14 +288,14 @@ const PurchaseRequestDetailOrg = ({
         requestMessage={purchaseRequest.requestMessage}
       />
       {budgetInfo && (
-        <BudgetInfoTablet
+        <BudgetInfo
           monthlySpending={budgetInfo.monthlySpending}
           remainingBudget={budgetInfo.remainingBudget}
           budgetAfterPurchase={budgetInfo.budgetAfterPurchase}
         />
       )}
       {approvedInfo && (
-        <ApprovedInfoTablet
+        <ApprovedInfo
           approverName={approvedInfo.approverName}
           approvalDate={approvedInfo.approvalDate}
           statusLabel={approvedInfo.statusLabel}
@@ -376,14 +317,14 @@ const PurchaseRequestDetailOrg = ({
         requestMessage={purchaseRequest.requestMessage}
       />
       {budgetInfo && (
-        <BudgetInfoDesktop
+        <BudgetInfo
           monthlySpending={budgetInfo.monthlySpending}
           remainingBudget={budgetInfo.remainingBudget}
           budgetAfterPurchase={budgetInfo.budgetAfterPurchase}
         />
       )}
       {approvedInfo && (
-        <ApprovedInfoDesktop
+        <ApprovedInfo
           approverName={approvedInfo.approverName}
           approvalDate={approvedInfo.approvalDate}
           statusLabel={approvedInfo.statusLabel}

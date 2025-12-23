@@ -184,7 +184,8 @@ const ApprovalRequestModal = ({
           onSubmit={(e) => {
             e.preventDefault();
             handleSubmit(e).catch(() => {
-              // 에러는 이미 handleSubmit 내부에서 처리됨
+              // 에러는 onSubmit 호출자가 처리하도록 전파됨
+              // 필요시 여기서 추가 에러 처리 (예: 토스트 메시지)
             });
           }}
         >

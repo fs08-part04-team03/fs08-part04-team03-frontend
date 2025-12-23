@@ -50,7 +50,7 @@ const CustomModal = ({
     }
     if (onConfirm) {
       return () => {
-        onConfirm()?.catch(() => {
+        Promise.resolve(onConfirm()).catch(() => {
           // 에러는 무시 (이미 상위에서 처리됨)
         });
       };

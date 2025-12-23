@@ -56,7 +56,7 @@ const PurchaseRequestListSection = () => {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['purchaseRequests', page, size, status, sort],
-    queryFn: () => managePurchaseRequests({ page, size, status }),
+    queryFn: () => managePurchaseRequests({ page, size, status, sort }),
   });
 
   const handleRejectClick = useCallback((purchaseRequestId: string) => {

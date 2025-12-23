@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/atoms/Button/Button';
+import { Toast } from '@/components/molecules/Toast/Toast';
 
 export interface PurchaseRequestDetailActionsOrgProps {
   companyId?: string;
@@ -18,14 +19,39 @@ const PurchaseRequestDetailActionsOrg: React.FC<PurchaseRequestDetailActionsOrgP
   onRejectClick,
 }) => {
   const router = useRouter();
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  // 토스트 자동 닫기 (3초 후)
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [showToast]);
 
   const handleGoToList = () => {
-    if (!companyId) return;
+    if (!companyId) {
+      // eslint-disable-next-line no-console
+      console.warn('companyId missing');
+      setToastMessage('회사가 선택되지 않았습니다.');
+      setShowToast(true);
+      return;
+    }
     router.push(`/${companyId}/my/purchase-requests`);
   };
 
   const handleAddToCart = () => {
-    if (!companyId) return;
+    if (!companyId) {
+      // eslint-disable-next-line no-console
+      console.warn('companyId missing');
+      setToastMessage('회사가 선택되지 않았습니다.');
+      setShowToast(true);
+      return;
+    }
     router.push(`/${companyId}/cart`);
   };
 
@@ -76,6 +102,8 @@ const PurchaseRequestDetailActionsOrg: React.FC<PurchaseRequestDetailActionsOrgP
   }
 
   // 사용자용 버튼 세트 (목록 보기, 장바구니 다시 담기)
+  const isDisabled = !companyId;
+
   return (
     <>
       {/* 모바일/태블릿용: 고정 하단 버튼 */}
@@ -85,6 +113,7 @@ const PurchaseRequestDetailActionsOrg: React.FC<PurchaseRequestDetailActionsOrgP
           size="sm"
           className="flex-1 max-w-338 h-50"
           onClick={handleGoToList}
+          inactive={isDisabled}
         >
           목록 보기
         </Button>
@@ -93,6 +122,7 @@ const PurchaseRequestDetailActionsOrg: React.FC<PurchaseRequestDetailActionsOrgP
           size="sm"
           className="flex-1 max-w-338 h-50"
           onClick={handleAddToCart}
+          inactive={isDisabled}
         >
           장바구니 다시 담기
         </Button>
@@ -104,6 +134,7 @@ const PurchaseRequestDetailActionsOrg: React.FC<PurchaseRequestDetailActionsOrgP
           size="sm"
           className="flex-1 max-w-338 h-50"
           onClick={handleGoToList}
+          inactive={isDisabled}
         >
           목록 보기
         </Button>
@@ -112,10 +143,17 @@ const PurchaseRequestDetailActionsOrg: React.FC<PurchaseRequestDetailActionsOrgP
           size="sm"
           className="flex-1 max-w-338 h-50"
           onClick={handleAddToCart}
+          inactive={isDisabled}
         >
           장바구니 다시 담기
         </Button>
       </div>
+      {/* Toast */}
+      {showToast && (
+        <div className="fixed top-60 left-1/2 -translate-x-1/2 z-toast tablet:top-30">
+          <Toast variant="error" message={toastMessage} onClose={() => setShowToast(false)} />
+        </div>
+      )}
     </>
   );
 };
