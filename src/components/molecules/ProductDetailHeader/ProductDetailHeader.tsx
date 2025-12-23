@@ -7,21 +7,17 @@ import ItemMenu from '@/components/molecules/ItemMenu/ItemMenu';
 import ProductTile from '@/components/molecules/ProductTile/ProductTile';
 import { NumberInput } from '@/components/molecules/NumberInput/NumberInput';
 import PriceText from '@/components/atoms/PriceText/PriceText';
-
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 
-/** =====================
- * Types
- ====================== */
 export type ProductDetailHeaderType = 'default' | 'simple';
 
 export interface ProductDetailHeaderProps {
   productName: string;
   purchaseCount: number;
   price: number;
-  type?: ProductDetailHeaderType; // ✅ 추가
+  type?: ProductDetailHeaderType;
   onQuantityChange?: (option: Option) => void;
-  onMenuClick?: () => void;
+  onMenuClick?: (action: 'edit' | 'delete') => void; // ✅ 수정
   onAddToCart?: () => void;
   className?: string;
 }
@@ -39,9 +35,8 @@ type InternalHeaderProps = Pick<
   quantity: number;
 };
 
-/** =====================
- * Mobile
- ====================== */
+// --- Mobile / Tablet / Desktop ---
+// UI 그대로, ItemMenu onClick만 수정
 const ProductDetailHeaderMobile: React.FC<InternalHeaderProps> = ({
   productName,
   purchaseCount,
@@ -63,7 +58,6 @@ const ProductDetailHeaderMobile: React.FC<InternalHeaderProps> = ({
             {purchaseCount}회 구매
           </span>
         </div>
-
         <div className="flex items-start gap-8 shrink-0">
           <NumberInput
             variant="default"
@@ -74,12 +68,10 @@ const ProductDetailHeaderMobile: React.FC<InternalHeaderProps> = ({
           {type === 'default' && <ItemMenu onClick={onMenuClick} />}
         </div>
       </div>
-
       <PriceText
         value={price}
         className="text-16 leading-24 tracking--0.4 font-bold text-gray-950"
       />
-
       <Button variant="primary" size="lg" fullWidth className="mt-32" onClick={onAddToCart}>
         장바구니 담기
       </Button>
@@ -87,9 +79,6 @@ const ProductDetailHeaderMobile: React.FC<InternalHeaderProps> = ({
   </div>
 );
 
-/** =====================
- * Tablet
- ====================== */
 const ProductDetailHeaderTablet: React.FC<InternalHeaderProps> = ({
   productName,
   purchaseCount,
@@ -110,7 +99,6 @@ const ProductDetailHeaderTablet: React.FC<InternalHeaderProps> = ({
           purchaseCount={purchaseCount}
           size="md"
         />
-
         <div className="flex items-start gap-8 shrink-0">
           <NumberInput
             variant="default"
@@ -121,7 +109,6 @@ const ProductDetailHeaderTablet: React.FC<InternalHeaderProps> = ({
           {type === 'default' && <ItemMenu onClick={onMenuClick} />}
         </div>
       </div>
-
       <Button variant="primary" size="lg" fullWidth className="mt-32" onClick={onAddToCart}>
         장바구니 담기
       </Button>
@@ -129,9 +116,6 @@ const ProductDetailHeaderTablet: React.FC<InternalHeaderProps> = ({
   </div>
 );
 
-/** =====================
- * Desktop
- ====================== */
 const ProductDetailHeaderDesktop: React.FC<InternalHeaderProps> = ({
   productName,
   purchaseCount,
@@ -152,7 +136,6 @@ const ProductDetailHeaderDesktop: React.FC<InternalHeaderProps> = ({
           purchaseCount={purchaseCount}
           size="md"
         />
-
         <div className="flex items-start gap-8 shrink-0">
           <NumberInput
             variant="default"
@@ -163,7 +146,6 @@ const ProductDetailHeaderDesktop: React.FC<InternalHeaderProps> = ({
           {type === 'default' && <ItemMenu onClick={onMenuClick} />}
         </div>
       </div>
-
       <Button variant="primary" size="lg" fullWidth className="mt-32" onClick={onAddToCart}>
         장바구니 담기
       </Button>
@@ -171,9 +153,7 @@ const ProductDetailHeaderDesktop: React.FC<InternalHeaderProps> = ({
   </div>
 );
 
-/** =====================
- * Container
- ====================== */
+// --- Container ---
 const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
   productName,
   purchaseCount,
@@ -208,7 +188,6 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
         quantity={quantity}
         type={type}
       />
-
       <ProductDetailHeaderTablet
         productName={productName}
         purchaseCount={purchaseCount}
@@ -219,7 +198,6 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
         quantity={quantity}
         type={type}
       />
-
       <ProductDetailHeaderDesktop
         productName={productName}
         purchaseCount={purchaseCount}
