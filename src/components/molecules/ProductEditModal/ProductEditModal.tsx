@@ -120,9 +120,10 @@ const ProductEditModal = ({
     if (!productName.trim()) newErrors.name = '상품명을 입력해주세요.';
     if (!price.trim()) newErrors.price = '가격을 입력해주세요.';
 
-    const urlRegex = /^(https?:\/\/|www\.)/;
+    const urlRegex = /^https?:\/\/.+/;
     if (!link.trim()) newErrors.link = '제품 링크를 입력해주세요.';
-    else if (!urlRegex.test(link)) newErrors.link = '올바른 URL 형식이 아닙니다.';
+    else if (!urlRegex.test(link))
+      newErrors.link = 'http:// 또는 https://로 시작하는 URL을 입력해주세요.';
 
     if (!selectedCategory) newErrors.category = '대분류를 선택해주세요.';
     if (!selectedSubCategory) newErrors.subCategory = '소분류를 선택해주세요.';
