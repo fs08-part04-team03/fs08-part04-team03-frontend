@@ -168,6 +168,7 @@ export interface ManagePurchaseRequestsParams {
   page?: number;
   size?: number;
   status?: string;
+  sort?: string;
 }
 
 export interface PurchaseRequest {
@@ -186,12 +187,53 @@ export interface PurchaseRequest {
   reason?: string;
 }
 
+// 구매 요청 아이템 타입 (실제 API 응답 구조) - PurchaseRequestItem을 먼저 정의
+export interface PurchaseRequestItem {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  totalPrice: number;
+  shippingFee: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  requestMessage?: string;
+  rejectReason?: string;
+  urgent?: boolean;
+  purchaseItems: Array<{
+    id: string;
+    quantity: number;
+    priceSnapshot: number;
+    products: {
+      id: number;
+      name: string;
+      image?: string;
+      link?: string;
+    };
+  }>;
+  requester: {
+    id: string;
+    name: string;
+    email: string;
+    company?: string;
+    avatarSrc?: string;
+  };
+  approver?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+/**
+ * 구매 요청 목록 응답 타입 (관리자)
+ */
 export interface ManagePurchaseRequestsResponse {
-  requests: PurchaseRequest[];
-  total: number;
-  page: number;
-  size: number;
+  purchaseRequests: PurchaseRequestItem[];
+  currentPage: number;
   totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }
 
 export async function managePurchaseRequests(
@@ -201,6 +243,7 @@ export async function managePurchaseRequests(
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
   if (params?.status) queryParams.append('status', params.status);
+  if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
   const url = `/api/v1/purchase/admin/managePurchaseRequests${queryString ? `?${queryString}` : ''}`;
@@ -216,7 +259,7 @@ export async function managePurchaseRequests(
  * 구매 요청 승인 (관리자)
  */
 export interface ApprovePurchaseRequestResponse {
-  message: string;
+  data: PurchaseRequestItem;
 }
 
 export async function approvePurchaseRequest(
@@ -236,22 +279,22 @@ export async function approvePurchaseRequest(
  * 구매 요청 반려 (관리자)
  */
 export interface RejectPurchaseRequestRequest {
-  reason?: string;
+  reason: string;
 }
 
 export interface RejectPurchaseRequestResponse {
-  message: string;
+  data: PurchaseRequestItem;
 }
 
 export async function rejectPurchaseRequest(
   purchaseRequestId: string,
-  request?: RejectPurchaseRequestRequest
+  request: RejectPurchaseRequestRequest
 ): Promise<RejectPurchaseRequestResponse> {
   const result = await fetchWithAuth<RejectPurchaseRequestResponse>(
     `/api/v1/purchase/admin/rejectPurchaseRequest/${purchaseRequestId}`,
     {
       method: 'PATCH',
-      body: JSON.stringify(request || {}),
+      body: JSON.stringify(request),
     }
   );
 
@@ -314,52 +357,14 @@ export async function getPurchaseDashboard(): Promise<PurchaseDashboardResponse>
   return result.data;
 }
 
-// ==================== 사용자 API ====================
+// 사용자 API
 
-/**
- * 내 구매 내역 조회
- */
+// 내 구매 내역 조회
 export interface GetMyPurchasesParams {
   page?: number;
   size?: number;
   status?: string;
   sort?: string;
-}
-
-/**
- * 구매 요청 아이템 타입 (실제 API 응답 구조)
- */
-export interface PurchaseRequestItem {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  totalPrice: number;
-  shippingFee: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
-  requestMessage?: string;
-  rejectReason?: string;
-  urgent?: boolean;
-  purchaseItems: Array<{
-    id: string;
-    quantity: number;
-    priceSnapshot: number;
-    products: {
-      id: number;
-      name: string;
-      image?: string;
-      link?: string;
-    };
-  }>;
-  requester: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  approver?: {
-    id: string;
-    name: string;
-    email: string;
-  };
 }
 
 /**

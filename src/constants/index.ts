@@ -1,3 +1,5 @@
+import type { Option } from '@/components/atoms/DropDown/DropDown';
+
 // 경로(Path) 상수
 export const PATHNAME = {
   ROOT: '/',
@@ -18,8 +20,8 @@ export const PATHNAME = {
   WISHLIST: (companyId: string) => `/${companyId}/wishlist`,
 
   //  프로필
-  PROFILE: (companyId: string) => `/${companyId}/profile`,
-  MYPAGE: (companyId: string) => `/${companyId}/profile`, // alias
+  PROFILE: (companyId: string) => `/${companyId}/my/profile`,
+  MYPAGE: (companyId: string) => `/${companyId}/my/profile`, // alias
 
   //  장바구니
   CART: (companyId: string) => `/${companyId}/cart`,
@@ -125,3 +127,12 @@ export type {
   CategorySection,
   CategoryBreadcrumbItem,
 } from './categories/categories.constants';
+
+// 상태 필터 옵션 : 구매요청페이지 사용
+export const PURCHASE_REQUEST_STATUS_OPTIONS: Option[] = [
+  { key: 'ALL', label: '전체' },
+  { key: 'PENDING', label: '대기중' },
+  { key: 'APPROVED', label: '승인됨' },
+  { key: 'REJECTED', label: '반려됨' },
+  { key: 'CANCELLED', label: '취소됨' },
+] as const;
