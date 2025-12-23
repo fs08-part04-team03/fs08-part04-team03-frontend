@@ -58,6 +58,9 @@ export const Default: Story = {
     purchaseCount: 29,
     price: 2000,
     type: 'default',
+    onMenuClick: (action) => {
+      console.log('menu action:', action);
+    },
   },
   parameters: {
     docs: {
@@ -78,6 +81,9 @@ export const Simple: Story = {
     purchaseCount: 29,
     price: 2000,
     type: 'simple',
+    onMenuClick: (action) => {
+      console.log('menu action:', action);
+    },
   },
   parameters: {
     docs: {

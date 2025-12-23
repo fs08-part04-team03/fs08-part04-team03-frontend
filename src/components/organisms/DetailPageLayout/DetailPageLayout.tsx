@@ -10,6 +10,9 @@ import ProductDetailHeader, {
 } from '@/components/molecules/ProductDetailHeader/ProductDetailHeader';
 import { Divider } from '@/components/atoms/Divider/Divider';
 
+/* =====================
+ * Types
+ ====================== */
 export interface DetailPageLayoutProps {
   breadcrumbItems: BreadcrumbItem[];
   productImage?: {
@@ -18,7 +21,9 @@ export interface DetailPageLayoutProps {
     width?: number;
     height?: number;
   };
-  productDetailHeader: ProductDetailHeaderProps;
+  productDetailHeader: ProductDetailHeaderProps & {
+    type?: 'default' | 'simple';
+  };
   accordionPanels?: Array<{
     id?: string | number;
     label: string;
@@ -30,29 +35,22 @@ export interface DetailPageLayoutProps {
 
 type InternalLayoutProps = {
   breadcrumbItems: BreadcrumbItem[];
-  productImage?: {
-    src: string;
-    alt: string;
-  };
+  productImage?: { src: string; alt: string };
   liked: boolean;
   onToggleLike: () => void;
   productName: string;
   purchaseCount: number;
   price: number;
+  type: 'default' | 'simple';
   onQuantityChange?: ProductDetailHeaderProps['onQuantityChange'];
   onMenuClick?: ProductDetailHeaderProps['onMenuClick'];
   onAddToCart?: ProductDetailHeaderProps['onAddToCart'];
   headerClassName?: string;
-  accordionPanels?: Array<{
-    id?: string | number;
-    label: string;
-    content?: string;
-    subContent?: string;
-  }>;
+  accordionPanels?: DetailPageLayoutProps['accordionPanels'];
 };
 
 /* =====================
- * 공통 이미지 박스
+ * Product Image Box
  ====================== */
 const ProductImageBox = ({
   sizeClass,
@@ -78,7 +76,6 @@ const ProductImageBox = ({
       </div>
     )}
 
-    {/* ❤️ Like button */}
     <button
       type="button"
       aria-pressed={liked}
@@ -87,8 +84,7 @@ const ProductImageBox = ({
       className="
         absolute bottom-20 right-20
         w-30 h-30
-        border-0 bg-transparent p-0
-        cursor-pointer
+        bg-transparent p-0
         rounded-4
         transition-transform
         active:scale-95
@@ -120,6 +116,7 @@ const DetailPageLayoutMobile: React.FC<InternalLayoutProps> = ({
   productName,
   purchaseCount,
   price,
+  type,
   onQuantityChange,
   onMenuClick,
   onAddToCart,
@@ -145,8 +142,9 @@ const DetailPageLayoutMobile: React.FC<InternalLayoutProps> = ({
           productName={productName}
           purchaseCount={purchaseCount}
           price={price}
+          type={type}
           onQuantityChange={onQuantityChange}
-          onMenuClick={onMenuClick}
+          onMenuClick={type === 'default' ? onMenuClick : undefined}
           onAddToCart={onAddToCart}
           className={headerClassName}
         />
@@ -176,6 +174,7 @@ const DetailPageLayoutTablet: React.FC<InternalLayoutProps> = ({
   productName,
   purchaseCount,
   price,
+  type,
   onQuantityChange,
   onMenuClick,
   onAddToCart,
@@ -199,8 +198,9 @@ const DetailPageLayoutTablet: React.FC<InternalLayoutProps> = ({
         productName={productName}
         purchaseCount={purchaseCount}
         price={price}
+        type={type}
         onQuantityChange={onQuantityChange}
-        onMenuClick={onMenuClick}
+        onMenuClick={type === 'default' ? onMenuClick : undefined}
         onAddToCart={onAddToCart}
         className={headerClassName}
       />
@@ -229,6 +229,7 @@ const DetailPageLayoutDesktop: React.FC<InternalLayoutProps> = ({
   productName,
   purchaseCount,
   price,
+  type,
   onQuantityChange,
   onMenuClick,
   onAddToCart,
@@ -253,8 +254,9 @@ const DetailPageLayoutDesktop: React.FC<InternalLayoutProps> = ({
           productName={productName}
           purchaseCount={purchaseCount}
           price={price}
+          type={type}
           onQuantityChange={onQuantityChange}
-          onMenuClick={onMenuClick}
+          onMenuClick={type === 'default' ? onMenuClick : undefined}
           onAddToCart={onAddToCart}
           className={headerClassName}
         />
@@ -275,13 +277,13 @@ const DetailPageLayoutDesktop: React.FC<InternalLayoutProps> = ({
 /* =====================
  * Root
  ====================== */
-const DetailPageLayout = ({
+const DetailPageLayout: React.FC<DetailPageLayoutProps> = ({
   breadcrumbItems,
   productImage,
   productDetailHeader,
   accordionPanels,
   className,
-}: DetailPageLayoutProps) => {
+}) => {
   const [liked, setLiked] = useState(false);
 
   const handleToggleLike = () => {
@@ -292,6 +294,7 @@ const DetailPageLayout = ({
     productName,
     purchaseCount,
     price,
+    type = 'default',
     onQuantityChange,
     onMenuClick,
     onAddToCart,
@@ -309,6 +312,7 @@ const DetailPageLayout = ({
         productName={productName}
         purchaseCount={purchaseCount}
         price={price}
+        type={type}
         onQuantityChange={onQuantityChange}
         onMenuClick={onMenuClick}
         onAddToCart={onAddToCart}
@@ -324,6 +328,7 @@ const DetailPageLayout = ({
         productName={productName}
         purchaseCount={purchaseCount}
         price={price}
+        type={type}
         onQuantityChange={onQuantityChange}
         onMenuClick={onMenuClick}
         onAddToCart={onAddToCart}
@@ -339,6 +344,7 @@ const DetailPageLayout = ({
         productName={productName}
         purchaseCount={purchaseCount}
         price={price}
+        type={type}
         onQuantityChange={onQuantityChange}
         onMenuClick={onMenuClick}
         onAddToCart={onAddToCart}
