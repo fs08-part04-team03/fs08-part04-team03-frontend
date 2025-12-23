@@ -19,11 +19,18 @@ const MyPurchaseRequestDetailTem: React.FC<MyPurchaseRequestDetailTemProps> = ({
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
   // ApprovedInfo에 필요한 값들을 계산 (my/ 경로에서는 ApprovedInfo만 표시)
+  let resultMessage = '-';
+  if (purchaseRequest.status === 'REJECTED' && purchaseRequest.rejectReason) {
+    resultMessage = purchaseRequest.rejectReason;
+  } else if (purchaseRequest.status === 'APPROVED') {
+    resultMessage = '승인되었습니다.';
+  }
+
   const approvedInfo = {
     approverName: purchaseRequest.approver?.name || '-',
     approvalDate: purchaseRequest.approver ? purchaseRequest.updatedAt : null,
     statusLabel: PURCHASE_REQUEST_STATUS_LABEL[purchaseRequest.status],
-    resultMessage: purchaseRequest.rejectReason || '-',
+    resultMessage,
   };
 
   return (

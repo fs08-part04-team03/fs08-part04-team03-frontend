@@ -64,8 +64,8 @@ const PurchaseRequestDetailTem: React.FC<PurchaseRequestDetailTemProps> = ({
           ? purchaseRequest.requester.avatarSrc
           : undefined,
     },
-    items: purchaseRequest.purchaseItems.map((item, index) => ({
-      id: index,
+    items: purchaseRequest.purchaseItems.map((item) => ({
+      id: Number.parseInt(item.id, 10),
       title: item.products.name,
       price: item.priceSnapshot,
       quantity: item.quantity,
