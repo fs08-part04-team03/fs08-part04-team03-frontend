@@ -123,6 +123,7 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
           <UserProfile
             name={item.requester.name}
             company={{ name: item.requester.company || '' }}
+            avatarSrc={item.requester.avatarSrc}
             profileHref={companyId ? `/${companyId}/my/profile` : undefined}
             variant="nameOnly"
           />
@@ -296,6 +297,7 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
         <UserProfile
           name={item.requester.name}
           company={{ name: item.requester.company || '' }}
+          avatarSrc={item.requester.avatarSrc}
           profileHref={companyId ? `/${companyId}/my/profile` : undefined}
           variant="secondary"
         />
