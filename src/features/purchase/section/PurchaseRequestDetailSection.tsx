@@ -11,6 +11,7 @@ import {
   getBudget,
 } from '@/features/purchase/api/purchase.api';
 import { Toast } from '@/components/molecules/Toast/Toast';
+import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 
 const PurchaseRequestDetailSection = () => {
   const params = useParams();
@@ -23,6 +24,9 @@ const PurchaseRequestDetailSection = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [successModalType, setSuccessModalType] = useState<'approved' | 'rejected'>('approved');
+  const [budgetShortageModalOpen, setBudgetShortageModalOpen] = useState(false);
 
   // 토스트 자동 닫기 (3초 후)
   useEffect(() => {
@@ -74,9 +78,21 @@ const PurchaseRequestDetailSection = () => {
   const budget: number = budgetData?.budget ?? 2000000;
   const monthlySpending: number = budgetData?.monthlySpending ?? 0;
 
+  // 예산 검증
+  const totalOrderAmount = data ? data.totalPrice + data.shippingFee : 0;
+  const remainingBudget = budget - monthlySpending;
+  const isBudgetSufficient = remainingBudget >= totalOrderAmount;
+
   const handleApproveClick = useCallback(() => {
+    if (!isBudgetSufficient) {
+      setToastVariant('error');
+      setToastMessage('예산이 부족합니다.');
+      setShowToast(true);
+      setBudgetShortageModalOpen(true);
+      return;
+    }
     setApproveModalOpen(true);
-  }, []);
+  }, [isBudgetSufficient]);
 
   const handleRejectClick = useCallback(() => {
     setRejectModalOpen(true);
@@ -99,13 +115,8 @@ const PurchaseRequestDetailSection = () => {
         await queryClient.invalidateQueries({ queryKey: ['purchaseRequestDetail', requestId] });
         await queryClient.invalidateQueries({ queryKey: ['purchaseRequests'] });
         setApproveModalOpen(false);
-        setToastVariant('custom');
-        setToastMessage('구매 요청이 승인되었습니다.');
-        setShowToast(true);
-        // 목록 페이지로 이동
-        if (companyId) {
-          router.push(`/${companyId}/purchase-requests`);
-        }
+        setSuccessModalType('approved');
+        setSuccessModalOpen(true);
       } catch (approveError) {
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
@@ -116,7 +127,7 @@ const PurchaseRequestDetailSection = () => {
         setShowToast(true);
       }
     },
-    [requestId, queryClient, companyId, router]
+    [requestId, queryClient]
   );
 
   const handleRejectSubmit = useCallback(
@@ -128,13 +139,8 @@ const PurchaseRequestDetailSection = () => {
         await queryClient.invalidateQueries({ queryKey: ['purchaseRequestDetail', requestId] });
         await queryClient.invalidateQueries({ queryKey: ['purchaseRequests'] });
         setRejectModalOpen(false);
-        setToastVariant('custom');
-        setToastMessage('구매 요청이 반려되었습니다.');
-        setShowToast(true);
-        // 목록 페이지로 이동
-        if (companyId) {
-          router.push(`/${companyId}/purchase-requests`);
-        }
+        setSuccessModalType('rejected');
+        setSuccessModalOpen(true);
       } catch (rejectError) {
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
@@ -145,8 +151,45 @@ const PurchaseRequestDetailSection = () => {
         setShowToast(true);
       }
     },
-    [requestId, queryClient, companyId, router]
+    [requestId, queryClient]
   );
+
+  const handleSuccessModalClose = useCallback(() => {
+    setSuccessModalOpen(false);
+  }, []);
+
+  const handleGoHome = useCallback(() => {
+    if (companyId) {
+      router.push(`/${companyId}`);
+    }
+  }, [companyId, router]);
+
+  const handleGoToPurchaseHistory = useCallback(() => {
+    if (companyId) {
+      router.push(`/${companyId}/my/orders`);
+    }
+  }, [companyId, router]);
+
+  const handleGoToPurchaseRequests = useCallback(() => {
+    if (companyId) {
+      router.push(`/${companyId}/purchase-requests`);
+    }
+  }, [companyId, router]);
+
+  const handleBudgetShortageModalClose = useCallback(() => {
+    setBudgetShortageModalOpen(false);
+  }, []);
+
+  const handleGoToBudgetRequest = useCallback(() => {
+    // TODO: 예산 증액 요청 페이지 구현 예정
+    // if (companyId) {
+    //   router.push(`/${companyId}/budget-request`);
+    // }
+    setBudgetShortageModalOpen(false);
+    setToastVariant('custom');
+    setToastMessage('예산 증액 요청 기능은 준비 중입니다.');
+    setShowToast(true);
+  }, []);
 
   if (isLoading || isBudgetLoading) {
     return (
@@ -188,6 +231,7 @@ const PurchaseRequestDetailSection = () => {
         onRejectModalClose={handleRejectModalClose}
         onApproveSubmit={handleApproveSubmit}
         onRejectSubmit={handleRejectSubmit}
+        isBudgetSufficient={isBudgetSufficient}
       />
       {/* Toast */}
       {showToast && (
@@ -199,6 +243,23 @@ const PurchaseRequestDetailSection = () => {
           />
         </div>
       )}
+      {/* Success Modal */}
+      <CustomModal
+        open={successModalOpen}
+        type={successModalType}
+        onClose={handleSuccessModalClose}
+        onHome={handleGoHome}
+        onOrder={
+          successModalType === 'approved' ? handleGoToPurchaseHistory : handleGoToPurchaseRequests
+        }
+      />
+      {/* Budget Shortage Modal */}
+      <CustomModal
+        open={budgetShortageModalOpen}
+        type="budget-shortage"
+        onClose={handleBudgetShortageModalClose}
+        onBudgetRequest={handleGoToBudgetRequest}
+      />
     </div>
   );
 };

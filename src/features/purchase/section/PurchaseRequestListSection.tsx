@@ -11,6 +11,7 @@ import {
 } from '@/features/purchase/api/purchase.api';
 import PurchaseRequestListTem from '@/features/purchase/template/PurchaseRequestListTem/PurchaseRequestListTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
+import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import { PURCHASE_REQUEST_STATUS_OPTIONS } from '@/constants';
 import { COMMON_SORT_OPTIONS, DEFAULT_SORT_KEY } from '@/constants/sort';
 
@@ -30,13 +31,17 @@ const PurchaseRequestListSection = () => {
 
   // 토스트 자동 닫기 (3초 후)
   useEffect(() => {
-    if (showToast) {
-      const timer = setTimeout(() => {
-        setShowToast(false);
-      }, 3000);
-      return () => clearTimeout(timer);
+    if (!showToast) {
+      return undefined;
     }
-    return undefined;
+
+    const timer = setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [showToast]);
 
   const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1);
@@ -105,7 +110,6 @@ const PurchaseRequestListSection = () => {
       if (!selectedRequestId) return;
       try {
         await rejectPurchaseRequest(selectedRequestId, { reason: message });
-        // 리패치: 관련 쿼리 무효화
         await queryClient.invalidateQueries({ queryKey: ['purchaseRequests'] });
         setRejectModalOpen(false);
         setSelectedRequestId(null);
@@ -203,12 +207,22 @@ const PurchaseRequestListSection = () => {
     );
   }
 
-  if (!data || !data.purchaseRequests) {
+  if (data === undefined || data.purchaseRequests === undefined) {
     return null;
   }
 
-  // API 응답이 이미 PurchaseRequestItem 형식과 동일하므로 그대로 사용
   const purchaseList = data.purchaseRequests;
+
+  if (purchaseList.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <StatusNotice
+          title="구매 요청 내역이 없습니다"
+          description="아직 승인 대기 중인 구매 요청이 없습니다"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
