@@ -61,14 +61,10 @@ const meta: Meta<typeof MyProductDetailTem> = {
   title: 'Features/Products/Template/MyProductDetailTem',
   component: MyProductDetailTem,
   tags: ['autodocs'],
-  parameters: {
-    docs: {
-      description: {
-        component:
-          'MyProductDetailTem 컴포넌트는 상품 상세 페이지 템플릿입니다. ' +
-          '카테고리 패널, 제품 이미지, 제품 상세 헤더, ItemMenu, 수정/삭제 모달 등을 포함합니다. ' +
-          'breadcrumbItems를 통해 상세 페이지 내 위치를 표시하며, headerType에 따라 ItemMenu 표시 여부를 제어할 수 있습니다.',
-      },
+  argTypes: {
+    productRole: {
+      control: 'radio',
+      options: ['user', 'manager', 'admin'],
     },
   },
 };
@@ -77,40 +73,34 @@ export default meta;
 type Story = StoryObj<typeof MyProductDetailTem>;
 
 /* =====================
- * ItemMenu OFF
+ * User (ItemMenu OFF)
  ====================== */
-export const WithoutItemMenu: Story = {
+export const User: Story = {
   args: {
+    productRole: 'user',
     categorySections: mockCategorySections,
     detailPageProps: mockDetailPageProps,
-    headerType: 'simple', // simple일 때 ItemMenu 표시 X
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'breadcrumb는 "음료 > 탄산음료"로 고정되며, headerType이 simple일 때 ItemMenu가 표시되지 않습니다.',
-      },
-    },
   },
 };
 
 /* =====================
- * ItemMenu ON
+ * Manager (ItemMenu ON)
  ====================== */
-export const WithItemMenu: Story = {
+export const Manager: Story = {
   args: {
+    productRole: 'manager',
     categorySections: mockCategorySections,
     detailPageProps: mockDetailPageProps,
-    headerType: 'default', // default일 때 ItemMenu 표시
   },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'breadcrumb는 "음료 > 탄산음료"로 고정되며, headerType이 default일 때 ItemMenu가 표시됩니다. ' +
-          'ItemMenu 클릭 시 상품 수정/삭제 모달이 작동합니다.',
-      },
-    },
+};
+
+/* =====================
+ * Admin (ItemMenu ON)
+ ====================== */
+export const Admin: Story = {
+  args: {
+    productRole: 'admin',
+    categorySections: mockCategorySections,
+    detailPageProps: mockDetailPageProps,
   },
 };

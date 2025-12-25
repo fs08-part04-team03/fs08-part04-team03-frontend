@@ -207,6 +207,8 @@ body {
   --spacing-153: 153px;
   --spacing-153\.5: 153.5px;
   --spacing-154: 154px;
+  --spacing-155: 155px;
+  --spacing-156: 156px;
   --spacing-160: 160px;
   --spacing-165: 165px;
   --spacing-171: 171px;
@@ -215,7 +217,12 @@ body {
   --spacing-180: 180px;
   --spacing-200: 200px;
   --spacing-216: 216px;
+  --spacing-219: 219px;
   --spacing-225: 225px;
+  --spacing-241: 241px;
+  --spacing-242: 242px;
+  --spacing-251: 251px;
+  --spacing-252: 252px;
   --spacing-270: 270px;
   --spacing-280: 280px;
   --spacing-295: 295px;
@@ -224,6 +231,8 @@ body {
   --spacing-303\.667: 303.667px;
   --spacing-304: 304px;
   --spacing-310: 310px;
+  --spacing-315: 315px;
+  --spacing-319: 319px;
   --spacing-326\.5: 326.5px;
   --spacing-327: 327px;
   --spacing-328: 328px;
@@ -233,10 +242,14 @@ body {
   --spacing-349: 349px;
   --spacing-350: 350px;
   --spacing-366: 366px;
+  --spacing-367: 367px;
+  --spacing-373: 373px;
   --spacing-375: 375px;
   --spacing-376: 376px;
   --spacing-394: 394px;
   --spacing-426: 426px;
+  --spacing-439: 439px;
+  --spacing-445: 445px;
   --spacing-448: 448px;
   --spacing-452: 452px;
   --spacing-472: 472px;
@@ -263,14 +276,9 @@ body {
   --spacing-1180: 1180px;
   --spacing-1200: 1200px;
   --spacing-1240: 1240px;
+  --spacing-1304: 1304px;
   --spacing-1352: 1352px;
   --spacing-1400: 1400px;
-  --spacing-155: 155px;
-  --spacing-241: 241px;
-  --spacing-319: 319px;
-  --spacing-367: 367px;
-  --spacing-439: 439px;
-  --spacing-1304: 1304px;
 
   /* 브레이크포인트 */
   --breakpoint-mobile: 0px;
