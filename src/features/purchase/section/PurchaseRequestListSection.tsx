@@ -47,7 +47,7 @@ const PurchaseRequestListSection = () => {
   const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1);
   const size = Math.max(
     1,
-    Math.min(100, Number.parseInt(searchParams.get('size') || '10', 10) || 10)
+    Math.min(100, Number.parseInt(searchParams.get('size') || '6', 10) || 6)
   );
   const status = searchParams.get('status') || undefined;
   const sort = searchParams.get('sort') || undefined;

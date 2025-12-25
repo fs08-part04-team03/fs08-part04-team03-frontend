@@ -15,8 +15,6 @@ import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
 import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
 
-const ITEMS_PER_PAGE = 6;
-
 const TABLE_CELL_BASE_STYLES = {
   header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 tablet:px-0 desktop:px-40',
   cell: 'shrink-0 text-left py-20 tablet:px-0 desktop:px-40',
@@ -272,18 +270,7 @@ const PurchaseRequestListTem = ({
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
-  const paginatedList = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return purchaseList.slice(startIndex, endIndex);
-  }, [purchaseList, currentPage]);
-
-  const calculatedTotalPages = useMemo(
-    () => Math.ceil(purchaseList.length / ITEMS_PER_PAGE),
-    [purchaseList.length]
-  );
-
-  const finalTotalPages = totalPages ?? calculatedTotalPages;
+  const finalTotalPages = totalPages ?? 1;
 
   const handleNavigateToProducts = useCallback(() => {
     if (!companyId) return;
@@ -329,7 +316,7 @@ const PurchaseRequestListTem = ({
   return (
     <div className={clsx('w-full desktop:max-w-1400 desktop:mx-auto', className)}>
       <div className="tablet:hidden">
-        {paginatedList.length === 0 ? (
+        {purchaseList.length === 0 ? (
           <div className="w-full mt-200 flex justify-center">
             <StatusNotice
               title="구매 요청한 내역이 없어요"
@@ -340,7 +327,7 @@ const PurchaseRequestListTem = ({
           </div>
         ) : (
           <PurchaseRequestItemListOrg
-            purchaseList={paginatedList}
+            purchaseList={purchaseList}
             onReject={onRejectClick}
             onApprove={onApproveClick}
             companyId={companyId}
@@ -350,7 +337,7 @@ const PurchaseRequestListTem = ({
 
       <div className="hidden tablet:block overflow-x-auto">
         <div className="w-full">
-          {paginatedList.length === 0 ? (
+          {purchaseList.length === 0 ? (
             <>
               <div className="hidden desktop:block">
                 <div className="w-full">
@@ -416,7 +403,7 @@ const PurchaseRequestListTem = ({
               <Divider variant="thin" className="w-full" />
 
               <div className="w-full">
-                {paginatedList.map((item) => (
+                {purchaseList.map((item) => (
                   <PurchaseRequestTableRowDesktop
                     key={item.id}
                     item={item}
@@ -431,7 +418,7 @@ const PurchaseRequestListTem = ({
         </div>
       </div>
 
-      {paginatedList.length > 0 && finalTotalPages > 0 && onPageChange && (
+      {purchaseList.length > 0 && finalTotalPages > 0 && onPageChange && (
         <div className="flex justify-start mt-20">
           <PaginationBlock
             current={currentPage}
