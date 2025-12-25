@@ -14,9 +14,27 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
+/* =========================
+ * Product (기본 카드)
+ * ========================= */
+export const Product: Story = {
   args: {
     variant: 'product',
+    name: '코카콜라',
+    price: 3500,
+    purchaseCount: 24,
+  },
+};
+
+/* =========================
+ * Wishlist 카드
+ * - mobile: 동일
+ * - tablet: w-219
+ * - desktop: w-373
+ * ========================= */
+export const Wishlist: Story = {
+  args: {
+    variant: 'wishlist',
     name: '코카콜라',
     price: 3500,
     purchaseCount: 24,

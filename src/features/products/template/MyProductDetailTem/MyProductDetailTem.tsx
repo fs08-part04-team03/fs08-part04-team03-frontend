@@ -13,13 +13,27 @@ import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import { Option } from '@/components/atoms/DropDown/DropDown';
 
 /* =====================
+ * Role
+ ====================== */
+export type ProductRole = 'user' | 'manager' | 'admin';
+
+/* =====================
  * Props
  ====================== */
 interface MyProductDetailTemProps {
+  productRole: ProductRole;
   categorySections: CategoryPanelSection[];
   detailPageProps: DetailPageLayoutProps;
-  headerType?: 'default' | 'simple';
 }
+
+/* =====================
+ * Role → HeaderType 정책
+ ====================== */
+const ROLE_HEADER_TYPE_MAP: Record<ProductRole, 'default' | 'simple'> = {
+  user: 'simple',
+  manager: 'default',
+  admin: 'default',
+};
 
 /* =====================
  * Mock categories
@@ -75,10 +89,12 @@ const subCategories: Option[] = [
  * MyProductDetailTem
  ====================== */
 const MyProductDetailTem = ({
+  productRole,
   categorySections,
   detailPageProps,
-  headerType = 'default',
 }: MyProductDetailTemProps) => {
+  const headerType = ROLE_HEADER_TYPE_MAP[productRole];
+
   const initialSelectedCategory = useMemo(() => {
     const lastLabel =
       detailPageProps.breadcrumbItems?.[detailPageProps.breadcrumbItems.length - 1]?.label;
