@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useParams } from 'next/navigation';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import { PurchaseRequestDetailTopOrg } from '@/features/purchase/components/PurchaseRequestDetailTopOrg/PurchaseRequestDetailTopOrg';
@@ -20,9 +19,10 @@ interface PurchaseRequestDetailTemProps {
   onRejectModalClose: () => void;
   onApproveSubmit: (message: string) => void | Promise<void>;
   onRejectSubmit: (message: string) => void | Promise<void>;
+  isBudgetSufficient?: boolean;
 }
 
-const PurchaseRequestDetailTem: React.FC<PurchaseRequestDetailTemProps> = ({
+const PurchaseRequestDetailTem = ({
   purchaseRequest,
   budget,
   monthlySpending,
@@ -34,7 +34,8 @@ const PurchaseRequestDetailTem: React.FC<PurchaseRequestDetailTemProps> = ({
   onRejectModalClose,
   onApproveSubmit,
   onRejectSubmit,
-}) => {
+  isBudgetSufficient = true,
+}: PurchaseRequestDetailTemProps) => {
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
@@ -83,6 +84,7 @@ const PurchaseRequestDetailTem: React.FC<PurchaseRequestDetailTemProps> = ({
         actionType="admin"
         onApproveClick={onApproveClick}
         onRejectClick={onRejectClick}
+        isBudgetSufficient={isBudgetSufficient}
       />
       {/* 승인 모달 */}
       <ApprovalRequestModal
