@@ -1,9 +1,6 @@
-// 내 구매 요청 내역 - MyPurchaseRequestListPage [내가 요청한 내역들만 보이는곳, 유저, 메니저, 어드민]
-// GET /api/v1/purchase/user/getMyPurchases
-
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
@@ -18,7 +15,6 @@ import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
 import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
 
-// 공통 스타일 상수
 const TABLE_CELL_BASE_STYLES = {
   header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 tablet:px-0 desktop:px-40',
   cell: 'shrink-0 text-left py-20 tablet:px-0 desktop:px-40',
@@ -31,9 +27,6 @@ const COLUMN_WIDTHS = {
   requester: 'tablet:w-100 desktop:w-180',
 } as const;
 
-/**
- * PurchaseRequestListTem Props
- */
 export interface PurchaseRequestListTemProps {
   purchaseList: PurchaseRequestItem[];
   className?: string;
@@ -64,9 +57,6 @@ interface PurchaseRequestTableRowProps {
   onApproveClick?: (purchaseRequestId: string) => void;
 }
 
-/**
- * 테이블 헤더 셀 컴포넌트
- */
 const TableHeaderCell = ({
   children,
   widthClass,
@@ -75,9 +65,6 @@ const TableHeaderCell = ({
   widthClass?: string;
 }) => <div className={clsx(TABLE_CELL_BASE_STYLES.header, widthClass)}>{children}</div>;
 
-/**
- * 테이블 헤더 (태블릿)
- */
 const PurchaseRequestTableHeaderTablet = () => (
   <div className="w-full">
     <div className="flex items-center w-full gap-16 tablet:gap-24 desktop:gap-32">
@@ -90,9 +77,6 @@ const PurchaseRequestTableHeaderTablet = () => (
   </div>
 );
 
-/**
- * 테이블 헤더 (데스크탑)
- */
 const PurchaseRequestTableHeaderDesktop = ({
   sortOptions,
   selectedSortOption,
@@ -156,9 +140,6 @@ const PurchaseRequestTableHeaderDesktop = ({
   );
 };
 
-/**
- * 테이블 행 컴포넌트 (태블릿/데스크탑)
- */
 const PurchaseRequestTableRowDesktop = ({
   item,
   onRejectClick,
@@ -166,7 +147,6 @@ const PurchaseRequestTableRowDesktop = ({
   companyId,
 }: PurchaseRequestTableRowProps & { companyId?: string }) => {
   const router = useRouter();
-  const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
@@ -183,13 +163,13 @@ const PurchaseRequestTableRowDesktop = ({
   };
 
   const handleRejectClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // row 클릭 이벤트 전파 방지
+    e.stopPropagation();
     if (!onRejectClick) return;
     onRejectClick(item.id);
   };
 
   const handleApproveClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // row 클릭 이벤트 전파 방지
+    e.stopPropagation();
     if (!onApproveClick) return;
     onApproveClick(item.id);
   };
@@ -206,7 +186,6 @@ const PurchaseRequestTableRowDesktop = ({
       onClick={handleRowClick}
       onKeyDown={handleRowKeyDown}
     >
-      {/* 구매 요청일 */}
       <div
         className={clsx(
           TABLE_CELL_BASE_STYLES.cell,
@@ -217,7 +196,6 @@ const PurchaseRequestTableRowDesktop = ({
         {formatDate(item.createdAt)}
       </div>
 
-      {/* 상품 정보 */}
       <div
         className={clsx(
           TABLE_CELL_BASE_STYLES.cell,
@@ -228,12 +206,10 @@ const PurchaseRequestTableRowDesktop = ({
         {formatItemDescription(item.purchaseItems)}
       </div>
 
-      {/* 주문 금액 */}
       <div className={clsx(TABLE_CELL_BASE_STYLES.cell, COLUMN_WIDTHS.price)}>
         <PriceText value={totalPrice} showUnit className="text-gray-700 text-14 font-normal" />
       </div>
 
-      {/* 요청인 */}
       <div className={clsx(TABLE_CELL_BASE_STYLES.cell, COLUMN_WIDTHS.requester)}>
         <UserProfile
           name={item.requester.name}
@@ -243,14 +219,8 @@ const PurchaseRequestTableRowDesktop = ({
         />
       </div>
 
-      {/* 비고 */}
-      <div
-        className={clsx(
-          TABLE_CELL_BASE_STYLES.cell,
-          isPending && onRejectClick && onApproveClick && 'flex gap-8'
-        )}
-      >
-        {isPending && onRejectClick && onApproveClick && (
+      <div className={clsx(TABLE_CELL_BASE_STYLES.cell, 'flex gap-8')}>
+        {onRejectClick && onApproveClick && (
           <>
             <Button
               variant="secondary"
@@ -273,9 +243,6 @@ const PurchaseRequestTableRowDesktop = ({
   );
 };
 
-/**
- * 구매 요청 목록 테이블 컴포넌트
- */
 const PurchaseRequestListTem = ({
   purchaseList,
   className,
@@ -289,7 +256,7 @@ const PurchaseRequestListTem = ({
   onApproveSubmit,
   onRejectSubmit,
   budget = 2000000,
-  currentPage,
+  currentPage = 1,
   totalPages,
   onPageChange,
   sortOptions,
@@ -303,125 +270,168 @@ const PurchaseRequestListTem = ({
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
+  const finalTotalPages = totalPages ?? 1;
+
   const handleNavigateToProducts = useCallback(() => {
     if (!companyId) return;
     router.push(`/${companyId}/products`);
   }, [router, companyId]);
 
-  // 선택된 요청 데이터 찾기
   const selectedRequest = selectedRequestId
     ? purchaseList.find((item) => item.id === selectedRequestId)
     : null;
 
-  // 모달에 필요한 데이터 변환
-  const modalData = selectedRequest
-    ? {
-        user: {
-          name: selectedRequest.requester.name,
-          company: {
-            name:
-              'company' in selectedRequest.requester &&
-              selectedRequest.requester.company &&
-              typeof selectedRequest.requester.company === 'string'
-                ? selectedRequest.requester.company
-                : '',
-          },
-          avatarSrc:
-            'avatarSrc' in selectedRequest.requester &&
-            selectedRequest.requester.avatarSrc &&
-            typeof selectedRequest.requester.avatarSrc === 'string'
-              ? selectedRequest.requester.avatarSrc
-              : undefined,
-        },
-        items: selectedRequest.purchaseItems.map((item, index) => ({
-          id: index,
-          title: item.products.name,
-          price: item.priceSnapshot,
-          quantity: item.quantity,
-        })),
-        deliveryFee: selectedRequest.shippingFee,
-        budget,
-      }
-    : null;
+  const modalData = useMemo(() => {
+    if (!selectedRequest) return null;
 
-  if (purchaseList.length === 0) {
-    return (
-      <div className={clsx('w-full mt-200 flex justify-center', className)}>
-        <StatusNotice
-          title="구매 요청한 내역이 없어요"
-          description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-          buttonText="상품 리스트로 이동"
-          onButtonClick={handleNavigateToProducts}
-        />
-      </div>
-    );
-  }
+    return {
+      user: {
+        name: selectedRequest.requester.name,
+        company: {
+          name:
+            'company' in selectedRequest.requester &&
+            selectedRequest.requester.company &&
+            typeof selectedRequest.requester.company === 'string'
+              ? selectedRequest.requester.company
+              : '',
+        },
+        avatarSrc:
+          'avatarSrc' in selectedRequest.requester &&
+          selectedRequest.requester.avatarSrc &&
+          typeof selectedRequest.requester.avatarSrc === 'string'
+            ? selectedRequest.requester.avatarSrc
+            : undefined,
+      },
+      items: selectedRequest.purchaseItems.map((item, index) => ({
+        id: index,
+        title: item.products.name,
+        price: item.priceSnapshot,
+        quantity: item.quantity,
+      })),
+      deliveryFee: selectedRequest.shippingFee,
+      budget,
+    };
+  }, [selectedRequest, budget]);
 
   return (
     <div className={clsx('w-full desktop:max-w-1400 desktop:mx-auto', className)}>
-      {/* 모바일 레이아웃 */}
       <div className="tablet:hidden">
-        <PurchaseRequestItemListOrg
-          purchaseList={purchaseList}
-          onReject={onRejectClick}
-          onApprove={onApproveClick}
-          companyId={companyId}
-        />
-      </div>
-
-      {/* 태블릿/데스크탑 레이아웃 */}
-      <div className="hidden tablet:block overflow-x-auto">
-        <div className="w-full">
-          {/* 태블릿 헤더 */}
-          <div className="hidden tablet:block desktop:hidden">
-            <PurchaseRequestTableHeaderTablet />
-          </div>
-
-          {/* 데스크탑 헤더 */}
-          <div className="hidden desktop:block">
-            <PurchaseRequestTableHeaderDesktop
-              sortOptions={sortOptions}
-              selectedSortOption={selectedSortOption}
-              onSortChange={onSortChange}
-              statusOptions={statusOptions}
-              selectedStatusOption={selectedStatusOption}
-              onStatusChange={onStatusChange}
+        {purchaseList.length === 0 ? (
+          <div className="w-full mt-200 flex justify-center">
+            <StatusNotice
+              title="구매 요청한 내역이 없어요"
+              description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
+              buttonText="상품 리스트로 이동"
+              onButtonClick={handleNavigateToProducts}
             />
           </div>
+        ) : (
+          <PurchaseRequestItemListOrg
+            purchaseList={purchaseList}
+            onReject={onRejectClick}
+            onApprove={onApproveClick}
+            companyId={companyId}
+          />
+        )}
+      </div>
 
-          <Divider variant="thin" className="w-full" />
+      <div className="hidden tablet:block overflow-x-auto">
+        <div className="w-full">
+          {purchaseList.length === 0 ? (
+            <>
+              <div className="hidden desktop:block">
+                <div className="w-full">
+                  <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
+                    <p>구매 요청 내역</p>
+                    <div className="flex items-center gap-12">
+                      {statusOptions && (
+                        <div className="relative z-dropdown">
+                          <DropDown
+                            items={statusOptions}
+                            placeholder="전체"
+                            selected={selectedStatusOption}
+                            onSelect={(option) => {
+                              const status = option.key === 'ALL' ? undefined : option.key;
+                              onStatusChange?.(status);
+                            }}
+                          />
+                        </div>
+                      )}
+                      {sortOptions && (
+                        <div className="relative z-dropdown">
+                          <DropDown
+                            items={sortOptions}
+                            placeholder="최신순"
+                            selected={selectedSortOption}
+                            onSelect={(option) => {
+                              const sort = option.key === 'LATEST' ? undefined : option.key;
+                              onSortChange?.(sort);
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full mt-200 flex justify-center">
+                <StatusNotice
+                  title="구매 요청한 내역이 없어요"
+                  description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
+                  buttonText="상품 리스트로 이동"
+                  onButtonClick={handleNavigateToProducts}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="hidden tablet:block desktop:hidden">
+                <PurchaseRequestTableHeaderTablet />
+              </div>
 
-          {/* 테이블 바디 */}
-          <div className="w-full">
-            {purchaseList.map((item) => (
-              <PurchaseRequestTableRowDesktop
-                key={item.id}
-                item={item}
-                onRejectClick={onRejectClick}
-                onApproveClick={onApproveClick}
-                companyId={companyId}
-              />
-            ))}
-          </div>
+              <div className="hidden desktop:block">
+                <PurchaseRequestTableHeaderDesktop
+                  sortOptions={sortOptions}
+                  selectedSortOption={selectedSortOption}
+                  onSortChange={onSortChange}
+                  statusOptions={statusOptions}
+                  selectedStatusOption={selectedStatusOption}
+                  onStatusChange={onStatusChange}
+                />
+              </div>
+
+              <Divider variant="thin" className="w-full" />
+
+              <div className="w-full">
+                {purchaseList.map((item) => (
+                  <PurchaseRequestTableRowDesktop
+                    key={item.id}
+                    item={item}
+                    onRejectClick={onRejectClick}
+                    onApproveClick={onApproveClick}
+                    companyId={companyId}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* 페이지네이션 */}
-      {currentPage !== undefined && totalPages !== undefined && totalPages > 0 && onPageChange && (
+      {purchaseList.length > 0 && finalTotalPages > 0 && onPageChange && (
         <div className="flex justify-start mt-20">
           <PaginationBlock
             current={currentPage}
-            total={totalPages}
+            total={finalTotalPages}
             onPrev={onPageChange}
             onNext={onPageChange}
           />
         </div>
       )}
 
-      {/* 승인 모달 */}
       {modalData && (
         <ApprovalRequestModal
-          open={approveModalOpen || false}
+          open={approveModalOpen}
           onClose={onApproveModalClose || (() => {})}
           onSubmit={onApproveSubmit || (async () => {})}
           user={modalData.user}
@@ -432,10 +442,9 @@ const PurchaseRequestListTem = ({
         />
       )}
 
-      {/* 반려 모달 */}
       {modalData && (
         <ApprovalRequestModal
-          open={rejectModalOpen || false}
+          open={rejectModalOpen}
           onClose={onRejectModalClose || (() => {})}
           onSubmit={onRejectSubmit || (async () => {})}
           user={modalData.user}

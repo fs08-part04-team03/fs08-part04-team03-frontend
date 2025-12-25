@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/atoms/Button/Button';
 import { Toast } from '@/components/molecules/Toast/Toast';
@@ -10,14 +10,16 @@ export interface PurchaseRequestDetailActionsOrgProps {
   actionType?: 'user' | 'admin';
   onApproveClick?: () => void;
   onRejectClick?: () => void;
+  isBudgetSufficient?: boolean;
 }
 
-const PurchaseRequestDetailActionsOrg: React.FC<PurchaseRequestDetailActionsOrgProps> = ({
+const PurchaseRequestDetailActionsOrg = ({
   companyId,
   actionType = 'user',
   onApproveClick,
   onRejectClick,
-}) => {
+  isBudgetSufficient = true,
+}: PurchaseRequestDetailActionsOrgProps) => {
   const router = useRouter();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -74,6 +76,7 @@ const PurchaseRequestDetailActionsOrg: React.FC<PurchaseRequestDetailActionsOrgP
             size="sm"
             className="flex-1 max-w-338 h-50"
             onClick={onApproveClick}
+            inactive={!isBudgetSufficient}
           >
             요청 승인
           </Button>
@@ -93,6 +96,7 @@ const PurchaseRequestDetailActionsOrg: React.FC<PurchaseRequestDetailActionsOrgP
             size="sm"
             className="flex-1 max-w-338 h-50"
             onClick={onApproveClick}
+            inactive={!isBudgetSufficient}
           >
             요청 승인
           </Button>

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
 
-type ModalType = 'delete' | 'cancel' | 'approved' | 'rejected';
+type ModalType = 'delete' | 'cancel' | 'approved' | 'rejected' | 'budget-shortage';
 
 interface CustomModalProps {
   open: boolean;
@@ -16,6 +16,7 @@ interface CustomModalProps {
   onConfirm?: () => void | Promise<void>;
   onHome?: () => void;
   onOrder?: () => void;
+  onBudgetRequest?: () => void;
 }
 
 const CustomModal = ({
@@ -27,6 +28,7 @@ const CustomModal = ({
   onConfirm,
   onHome,
   onOrder,
+  onBudgetRequest,
 }: CustomModalProps) => {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
@@ -47,6 +49,9 @@ const CustomModal = ({
   const getPrimaryButtonClickHandler = (): (() => void) | undefined => {
     if (type === 'approved' || type === 'rejected') {
       return (onOrder || onHome) as (() => void) | undefined;
+    }
+    if (type === 'budget-shortage') {
+      return onBudgetRequest;
     }
     if (onConfirm) {
       return () => {
@@ -89,6 +94,13 @@ const CustomModal = ({
       buttonRight: '구매 요청 내역 보기',
       icon: '/icons/red-i.svg',
     },
+    'budget-shortage': {
+      title: '예산 부족',
+      description: '이번 달 남은 예산이 부족합니다.\n예산 증액을 요청해주세요.',
+      buttonLeft: '닫기',
+      buttonRight: '예산 증액 요청',
+      icon: '/icons/red-i.svg',
+    },
   };
 
   const content = modalContent[type];
@@ -125,8 +137,8 @@ const CustomModal = ({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* approved / rejected */}
-        {type === 'approved' || type === 'rejected' ? (
+        {/* approved / rejected / budget-shortage */}
+        {type === 'approved' || type === 'rejected' || type === 'budget-shortage' ? (
           <div className="flex flex-col items-center gap-5 mb-36">
             <h2 className={clsx('text-16 text-center tablet:text-18 desktop:text-18', 'font-bold')}>
               {content.title}
