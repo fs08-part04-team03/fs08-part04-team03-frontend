@@ -34,10 +34,6 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   onClick,
   onUnlike,
 }) => {
-  /**
-   * product / order : 내부 상태 사용
-   * wishlist        : 항상 true (부모 제어)
-   */
   const [liked, setLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
 
@@ -74,12 +70,10 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
     e.stopPropagation();
 
     if (isWishlist) {
-      /** ✅ 찜 해제 → 부모에게 위임 */
       onUnlike?.();
       return;
     }
 
-    /** product / order 기존 동작 */
     setLiked((prev) => !prev);
   };
 
@@ -101,16 +95,24 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       <div
         className={clsx(
           'relative rounded-default bg-gray-50 flex items-center justify-center overflow-hidden',
-
           (variant === 'product' || variant === 'order') &&
             'w-155 h-241 tablet:w-156 tablet:h-252 desktop:w-367 desktop:h-439',
-
           variant === 'wishlist' &&
             'w-155 h-155 tablet:w-219 tablet:h-219 desktop:w-373 desktop:h-373'
         )}
       >
         {imageUrl ? (
-          <Image src={imageUrl} alt={name} fill className="object-cover" />
+          <Image
+            src={imageUrl}
+            alt={name}
+            width={54}
+            height={93}
+            className={clsx(
+              'object-cover',
+              'tablet:w-[54px] tablet:h-[94px]',
+              'desktop:w-[128px] desktop:h-[222px]'
+            )}
+          />
         ) : (
           <span className="text-12 text-gray-500">이미지 없음</span>
         )}
