@@ -3,6 +3,12 @@ import '../src/app/globals.css';
 
 const preview: Preview = {
   parameters: {
+    nextjs: {
+      router: {
+        pathname: '/',
+        query: {},
+      },
+    },
     docs: {
       iframeHeight: 800,
     },
