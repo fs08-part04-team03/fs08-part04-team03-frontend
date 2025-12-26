@@ -109,8 +109,8 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
             height={93}
             className={clsx(
               'object-cover',
-              'tablet:w-[54px] tablet:h-[94px]',
-              'desktop:w-[128px] desktop:h-[222px]'
+              'tablet:w-54 tablet:h-94',
+              'desktop:w-128 desktop:h-222'
             )}
           />
         ) : (
