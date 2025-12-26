@@ -7,21 +7,6 @@ const preview: Preview = {
       router: {
         pathname: '/',
         query: {},
-        push: async () => Promise.resolve(true),
-        replace: async () => Promise.resolve(true),
-        prefetch: async () => Promise.resolve(),
-        back: () => {},
-        reload: () => {},
-        route: '/',
-        asPath: '/',
-        isReady: true,
-        isPreview: false,
-        isLocaleDomain: false,
-        events: {
-          on: () => {},
-          off: () => {},
-          emit: () => {},
-        },
       },
     },
     docs: {

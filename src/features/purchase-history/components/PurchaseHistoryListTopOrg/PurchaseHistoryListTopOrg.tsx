@@ -30,6 +30,10 @@ export const PurchaseHistoryListTopOrg: React.FC<PurchaseHistoryListTopOrgProps>
   const spendingPercentage =
     thisMonthBudget > 0 ? Math.round((thisMonthSpending / thisMonthBudget) * 100) : 0;
 
+  // 남은 예산 계산 (음수 방지)
+  const currentBudget = Math.max(0, thisMonthBudget - thisMonthSpending);
+  const lastBudget = Math.max(0, lastMonthBudget - lastMonthSpending);
+
   // 작년 대비 지출 차이
   const yearOverYearDiff = thisYearTotalSpending - lastYearTotalSpending;
 
@@ -73,8 +77,8 @@ export const PurchaseHistoryListTopOrg: React.FC<PurchaseHistoryListTopOrgProps>
           <div className="mt-4 tablet:mt-6 desktop:mt-8 w-full">
             <ProgressBar
               value={spendingPercentage}
-              currentBudget={thisMonthBudget - thisMonthSpending}
-              lastBudget={lastMonthBudget - lastMonthSpending}
+              currentBudget={currentBudget}
+              lastBudget={lastBudget}
               className="w-full"
             />
           </div>
