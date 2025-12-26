@@ -218,7 +218,7 @@ const ProductModal = ({
     Object.values(errors).every((msg) => msg === '');
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center">
+    <div className="fixed inset-0 z-30 flex items-center justify-center">
       <button
         type="button"
         aria-label="모달 닫기 영역"
