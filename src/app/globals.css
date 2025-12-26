@@ -233,6 +233,7 @@ body {
   --spacing-310: 310px;
   --spacing-315: 315px;
   --spacing-319: 319px;
+  --spacing-325: 325px;
   --spacing-326\.5: 326.5px;
   --spacing-327: 327px;
   --spacing-328: 328px;
@@ -259,8 +260,10 @@ body {
   --spacing-500: 500px;
   --spacing-512: 512px;
   --spacing-516: 516px;
+  --spacing-522: 522px;
   --spacing-540: 540px;
   --spacing-600: 600px;
+  --spacing-604: 604px;
   --spacing-610: 610px;
   --spacing-636: 636px;
   --spacing-656: 656px;
@@ -270,6 +273,9 @@ body {
   --spacing-740: 740px;
   --spacing-750: 750px;
   --spacing-768: 768px;
+  --spacing-938: 938px;
+  --spacing-950: 950px;
+  --spacing-1045: 1045px;
   --spacing-1052: 1052px;
   --spacing-1150: 1150px;
   --spacing-1152: 1152px;
@@ -287,6 +293,7 @@ body {
 
   /* Border Radius */
   --radius-default: 2px;
+  --radius-4: 4px;
   --radius-6: 6px;
   --radius-8: 8px;
   --radius-100: 100px;
