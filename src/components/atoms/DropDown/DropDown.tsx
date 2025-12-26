@@ -96,7 +96,7 @@ const DropDown: React.FC<DropDownProps> = ({
   };
 
   return (
-    <div ref={dropdownRef} className="relative inline-block">
+    <div ref={dropdownRef} className="relative z-20 inline-block">
       {/* 선택 박스 */}
       <button
         type="button"
