@@ -105,7 +105,7 @@ const mockProducts = Array.from({ length: 12 }).map((_, index) => ({
   name: `상품 ${index + 1}`,
   price: 1500 + index * 300,
   purchaseCount: 50 + index * 5,
-  imageUrl: `/images/sample${(index % 6) + 1}.png`,
+  imageUrl: `/images/zero-cola.svg`,
   categoryId: [101, 102, 103, 201, 202, 301, 401, 501, 601, 701][index % 10],
 }));
 
@@ -195,7 +195,7 @@ export const Default: Story = {
       categorySections={mockCategorySections}
       breadcrumbItems={breadcrumbItems}
       sortOptions={sortOptions}
-      products={allProducts}
+      products={mockProducts} // ✅ 기본 UI 확인 (12개)
     />
   ),
 };
@@ -206,7 +206,7 @@ export const ManyProducts: Story = {
       categorySections={mockCategorySections}
       breadcrumbItems={breadcrumbItems}
       sortOptions={sortOptions}
-      products={allProducts}
+      products={allProducts} // ✅ 스크롤 / 밀집 테스트 (42개)
     />
   ),
 };
