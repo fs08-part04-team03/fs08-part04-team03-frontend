@@ -3,7 +3,7 @@
 import React, { forwardRef, type HTMLAttributes } from 'react';
 import { clsx } from '@/utils/clsx';
 
-export type StatusTagVariant = 'approved' | 'rejected' | 'cancelled' | 'pending';
+export type StatusTagVariant = 'approved' | 'rejected' | 'cancelled' | 'pending' | 'urgent';
 
 export interface StatusTagProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: StatusTagVariant;
@@ -15,6 +15,7 @@ const variantStyles: Record<StatusTagVariant, string> = {
   rejected: clsx('bg-red-100', 'text-red'),
   cancelled: clsx('bg-black-100', 'text-gray-50'),
   pending: clsx('bg-gray-100', 'text-gray-950'),
+  urgent: clsx('bg-[#F2F6FF]', 'text-[#4C8AE1]'),
 };
 
 /**
@@ -61,11 +62,12 @@ const CloseCircleWhiteIcon = () => (
   </svg>
 );
 
-const variantIcons: Record<StatusTagVariant, React.ReactNode> = {
+const variantIcons: Record<StatusTagVariant, React.ReactNode | null> = {
   approved: <CheckCircleIcon />,
   rejected: <CloseCircleIcon />,
   cancelled: <CloseCircleWhiteIcon />,
   pending: <TimeIcon />,
+  urgent: null,
 };
 
 const variantLabels: Record<StatusTagVariant, string> = {
@@ -73,6 +75,7 @@ const variantLabels: Record<StatusTagVariant, string> = {
   rejected: '거절',
   cancelled: '취소',
   pending: '대기중',
+  urgent: '즉시 요청',
 };
 
 const StatusTag = forwardRef<HTMLSpanElement, StatusTagProps>(
@@ -86,7 +89,7 @@ const StatusTag = forwardRef<HTMLSpanElement, StatusTagProps>(
         'justify-center items-center',
         'gap-4',
         'rounded-100',
-        'text-14 font-bold leading-normal tracking--0.3px',
+        'text-13 font-bold leading-normal tracking--0.3px',
         variantStyles[variant],
         className
       )}
@@ -96,7 +99,7 @@ const StatusTag = forwardRef<HTMLSpanElement, StatusTagProps>(
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     >
-      <span className="shrink-0">{variantIcons[variant]}</span>
+      {variantIcons[variant] && <span className="shrink-0">{variantIcons[variant]}</span>}
       <span>{children || variantLabels[variant]}</span>
     </span>
   )

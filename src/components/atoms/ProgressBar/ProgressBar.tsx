@@ -6,9 +6,15 @@ export interface ProgressBarProps {
   value: number; // 0~100
   currentBudget: number; // 이번 달 남은 예산
   lastBudget: number; // 지난 달 남은 예산
+  className?: string; // 컨테이너 width를 조절하기 위한 className
 }
 
-const ProgressBar: React.FC<ProgressBarProps> = ({ value, currentBudget, lastBudget }) => {
+const ProgressBar: React.FC<ProgressBarProps> = ({
+  value,
+  currentBudget,
+  lastBudget,
+  className,
+}) => {
   const clampedValue = Math.max(0, Math.min(100, value));
   const diff = currentBudget - lastBudget; // 양수면 "덜 사용", 음수면 "더 사용"
 
@@ -25,11 +31,31 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ value, currentBudget, lastBud
     }
   };
 
+  // 기본 width 클래스
+  const defaultContainerWidth = 'w-345 desktop:w-345 tablet:w-179 mobile:w-116';
+  const defaultTrackWidth = 'w-304 desktop:w-304 tablet:w-179 mobile:w-116';
+
+  // className이 제공되면 기본 width를 override
+  const containerWidthClass = className || defaultContainerWidth;
+  // track width는 container width에 비례하여 계산 (약 88% 정도)
+  // className이 제공되면 track도 full width로 설정하거나, 기본 비율 유지
+  const trackWidthClass = className ? 'w-full' : defaultTrackWidth;
+  // 최상위 컨테이너 width: className이 있으면 적용, 없으면 w-fit
+  const wrapperWidthClass = className || 'w-fit';
+
   return (
-    <div className="relative group w-fit" tabIndex={0} role="button" onKeyDown={handleKeyDown}>
+    <div
+      className={clsx('relative group', wrapperWidthClass)}
+      tabIndex={0}
+      role="button"
+      onKeyDown={handleKeyDown}
+    >
       {/* ProgressBar 본체 */}
       <div
-        className="flex items-center justify-between w-345 desktop:w-345 tablet:w-179 mobile:w-116 h-17 tablet:h-17 mobile:h-15"
+        className={clsx(
+          'flex items-center justify-between h-17 tablet:h-17 mobile:h-15',
+          containerWidthClass
+        )}
         role="progressbar"
         aria-valuenow={clampedValue}
         aria-valuemin={0}
@@ -37,7 +63,9 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ value, currentBudget, lastBud
         aria-label="진행률"
       >
         {/* Progress track */}
-        <div className="relative w-304 desktop:w-304 tablet:w-179 mobile:w-116 h-6 rounded-6 bg-gray-200 overflow-hidden">
+        <div
+          className={clsx('relative h-6 rounded-6 bg-gray-200 overflow-hidden', trackWidthClass)}
+        >
           <div
             className={clsx('h-full bg-secondary-500 rounded-6 transition-all duration-500')}
             style={{ width: `${clampedValue}%` }}
