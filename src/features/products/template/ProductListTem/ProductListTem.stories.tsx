@@ -114,7 +114,7 @@ const sodaProducts = Array.from({ length: 30 }).map((_, index) => ({
   name: `탄산음료 ${index + 1}`,
   price: 1000 + index * 200,
   purchaseCount: 20 + index * 3,
-  imageUrl: `/images/sample${(index % 6) + 1}.png`,
+  imageUrl: `/images/zero-cola.svg`,
   categoryId: 101,
 }));
 
