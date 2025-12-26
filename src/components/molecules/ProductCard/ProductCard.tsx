@@ -17,6 +17,9 @@ interface BaseProductCardProps {
   imageUrl?: string;
   className?: string;
   onClick?: () => void;
+
+  /** ✅ wishlist 전용 */
+  onUnlike?: () => void;
 }
 
 const ProductCard: React.FC<BaseProductCardProps> = ({
@@ -29,9 +32,17 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   imageUrl,
   className,
   onClick,
+  onUnlike,
 }) => {
-  const [liked, setLiked] = useState(false);
+  /**
+   * product / order : 내부 상태 사용
+   * wishlist        : 항상 true (부모 제어)
+   */
+  const [liked, setLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
+
+  const isWishlist = variant === 'wishlist';
+  const isLiked = isWishlist ? true : liked;
 
   const rootClasses = clsx(
     'flex flex-col overflow-hidden',
@@ -41,11 +52,11 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
     pressed && 'scale-[0.97]',
     'cursor-pointer',
 
-    // ✅ Product / Order
+    // Product / Order
     (variant === 'product' || variant === 'order') &&
       'w-155 h-241 tablet:w-156 tablet:h-252 desktop:w-367 desktop:h-439',
 
-    // ✅ Wishlist
+    // Wishlist
     variant === 'wishlist' && 'w-155 h-251 tablet:w-219 tablet:h-315 desktop:w-373 desktop:h-445',
 
     className
@@ -57,6 +68,19 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       e.preventDefault();
       onClick();
     }
+  };
+
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (isWishlist) {
+      /** ✅ 찜 해제 → 부모에게 위임 */
+      onUnlike?.();
+      return;
+    }
+
+    /** product / order 기존 동작 */
+    setLiked((prev) => !prev);
   };
 
   return (
@@ -71,16 +95,16 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       onPointerLeave={() => setPressed(false)}
       className={rootClasses}
     >
-      {/* 이미지 영역 */}
+      {/* =====================
+          Image
+      ====================== */}
       <div
         className={clsx(
           'relative rounded-default bg-gray-50 flex items-center justify-center overflow-hidden',
 
-          // Product / Order 이미지
           (variant === 'product' || variant === 'order') &&
             'w-155 h-241 tablet:w-156 tablet:h-252 desktop:w-367 desktop:h-439',
 
-          // Wishlist 이미지
           variant === 'wishlist' &&
             'w-155 h-155 tablet:w-219 tablet:h-219 desktop:w-373 desktop:h-373'
         )}
@@ -91,19 +115,17 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           <span className="text-12 text-gray-500">이미지 없음</span>
         )}
 
+        {/* Heart */}
         <button
           type="button"
-          aria-pressed={liked}
-          aria-label={liked ? '찜하기 취소' : '찜하기'}
+          aria-pressed={isLiked}
+          aria-label={isLiked ? '찜하기 취소' : '찜하기'}
           onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            setLiked((prev) => !prev);
-          }}
-          className="absolute bottom-10 right-10 w-30 h-30 tablet:bottom-20 tablet:right-20 bg-transparent p-0"
+          onClick={handleHeartClick}
+          className="absolute bottom-10 right-10 w-30 h-30 desktop:bottom-20 desktop:right-20 bg-transparent p-0"
         >
           <Image
-            src={liked ? '/icons/heart.svg' : '/icons/heart-outline.svg'}
+            src={isLiked ? '/icons/heart.svg' : '/icons/heart-outline.svg'}
             alt=""
             width={30}
             height={30}
@@ -111,7 +133,9 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
         </button>
       </div>
 
-      {/* 텍스트 영역 */}
+      {/* =====================
+          Text
+      ====================== */}
       <div className="flex flex-col flex-1 min-w-0 px-8 pt-8 pb-12 gap-2">
         {variant === 'product' || variant === 'wishlist' ? (
           <ProductTile
