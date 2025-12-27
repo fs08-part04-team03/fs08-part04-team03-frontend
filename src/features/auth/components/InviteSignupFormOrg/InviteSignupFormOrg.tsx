@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { inviteSignupSchema, type InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import { inviteSignup } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
+import { setAuthCookies } from '@/utils/cookies';
 
 export const useInviteSignupForm = (email: string, token: string) => {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -60,9 +61,9 @@ export const useInviteSignupForm = (email: string, token: string) => {
       // eslint-disable-next-line no-console
       console.log('[InviteSignup] 인증 정보 저장 완료');
 
-      // 쿠키에 인증 정보 저장 (middleware에서 사용)
-      document.cookie = `mock-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7일
-      document.cookie = `mock-company-id=${user.companyId}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7일
+      // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
+      // accessToken을 함께 전송하여 서버 측에서 검증 가능하도록 함
+      await setAuthCookies(user.role, user.companyId, accessToken);
       // eslint-disable-next-line no-console
       console.log('[InviteSignup] 쿠키 저장 완료:', {
         role: user.role,

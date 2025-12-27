@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { inviteSignupSchema, type InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import { inviteSignup } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
+import { setAuthCookies } from '@/utils/cookies';
 import InviteSignupTem from '@/features/auth/template/InviteSignupTem/InviteSignupTem';
 
 interface InviteSignupSectionProps {
@@ -21,7 +22,6 @@ interface InviteSignupSectionProps {
  * 초대 회원가입 비즈니스 로직을 담당하는 섹션 컴포넌트
  */
 const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) => {
-  const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
@@ -85,8 +85,6 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
   });
 
   const onSubmit = async (values: InviteSignupInput): Promise<void> => {
-    setServerError(null);
-
     try {
       // eslint-disable-next-line no-console
       console.log('[InviteSignup] 초대 회원가입 시도 시작:', { email: values.email });
@@ -106,8 +104,9 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       // eslint-disable-next-line no-console
       console.log('[InviteSignup] 인증 정보 저장 완료');
 
-      document.cookie = `mock-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}`;
-      document.cookie = `mock-company-id=${user.companyId}; path=/; max-age=${60 * 60 * 24 * 7}`;
+      // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
+      // accessToken을 함께 전송하여 서버 측에서 검증 가능하도록 함
+      await setAuthCookies(user.role, user.companyId, accessToken);
       // eslint-disable-next-line no-console
       console.log('[InviteSignup] 쿠키 저장 완료:', {
         role: user.role,
@@ -127,7 +126,6 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
         error instanceof Error ? error.message : '회원가입에 실패했습니다. 다시 시도해 주세요.';
       setToastMessage(errorMessage);
       setShowToast(true);
-      setServerError(errorMessage);
     }
   };
 
@@ -136,7 +134,6 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       control={form.control}
       handleSubmit={form.handleSubmit}
       isValid={form.formState.isValid}
-      serverError={serverError}
       onSubmit={onSubmit}
       showToast={showToast}
       toastMessage={toastMessage}
