@@ -284,14 +284,24 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
     // 개발 환경에서만 상세 에러 로그
-    // eslint-disable-next-line no-console
-    console.error('로그인 API 응답 형식 오류:', {
-      status: response.status,
-      statusText: response.statusText,
-      contentType,
-      body: responseText,
-      url: `${apiUrl}${AUTH_API_PATHS.LOGIN}`,
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('로그인 API 응답 형식 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+        body: responseText,
+        url: `${apiUrl}${AUTH_API_PATHS.LOGIN}`,
+      });
+    } else {
+      // 프로덕션에서는 민감한 정보 없이 요약만 로그
+      // eslint-disable-next-line no-console
+      console.error('로그인 API 응답 형식 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+      });
+    }
     throw new Error('서버 응답 형식이 올바르지 않습니다.');
   }
 
@@ -300,13 +310,23 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     result = JSON.parse(responseText) as ApiResponse<LoginResponseData>;
   } catch (parseError) {
     // 개발 환경에서만 상세 에러 로그
-    // eslint-disable-next-line no-console
-    console.error('로그인 JSON 파싱 오류:', {
-      parseError,
-      responseText,
-      status: response.status,
-      statusText: response.statusText,
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('로그인 JSON 파싱 오류:', {
+        parseError,
+        responseText,
+        status: response.status,
+        statusText: response.statusText,
+      });
+    } else {
+      // 프로덕션에서는 민감한 정보 없이 요약만 로그
+      // eslint-disable-next-line no-console
+      console.error('로그인 JSON 파싱 오류:', {
+        parseError: parseError instanceof Error ? parseError.message : 'Unknown error',
+        status: response.status,
+        statusText: response.statusText,
+      });
+    }
     throw new Error('서버 응답을 파싱할 수 없습니다.');
   }
 
@@ -514,14 +534,24 @@ export async function signup(
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
     // 개발 환경에서만 상세 에러 로그
-    // eslint-disable-next-line no-console
-    console.error('회원가입 API 응답 형식 오류:', {
-      status: response.status,
-      statusText: response.statusText,
-      contentType,
-      body: responseText,
-      url: `${apiUrl}${AUTH_API_PATHS.ADMIN_REGISTER}`,
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('회원가입 API 응답 형식 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+        body: responseText,
+        url: `${apiUrl}${AUTH_API_PATHS.ADMIN_REGISTER}`,
+      });
+    } else {
+      // 프로덕션에서는 민감한 정보 없이 요약만 로그
+      // eslint-disable-next-line no-console
+      console.error('회원가입 API 응답 형식 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+      });
+    }
     throw new Error('서버 응답 형식이 올바르지 않습니다.');
   }
 
@@ -530,13 +560,23 @@ export async function signup(
     result = JSON.parse(responseText) as ApiResponse<SignupResponseData>;
   } catch (parseError) {
     // 개발 환경에서만 상세 에러 로그
-    // eslint-disable-next-line no-console
-    console.error('회원가입 JSON 파싱 오류:', {
-      parseError,
-      responseText,
-      status: response.status,
-      statusText: response.statusText,
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('회원가입 JSON 파싱 오류:', {
+        parseError,
+        responseText,
+        status: response.status,
+        statusText: response.statusText,
+      });
+    } else {
+      // 프로덕션에서는 민감한 정보 없이 요약만 로그
+      // eslint-disable-next-line no-console
+      console.error('회원가입 JSON 파싱 오류:', {
+        parseError: parseError instanceof Error ? parseError.message : 'Unknown error',
+        status: response.status,
+        statusText: response.statusText,
+      });
+    }
     throw new Error('서버 응답을 파싱할 수 없습니다.');
   }
 
