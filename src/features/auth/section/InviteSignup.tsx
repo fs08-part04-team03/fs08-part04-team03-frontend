@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import InviteSignupTem from '@/features/auth/template/InviteSignupTem/InviteSignupTem';
+import InviteSignupSection from '@/features/auth/section/InviteSignupSection';
 import { getInviteInfo } from '@/features/auth/api/auth.api';
 
 interface InviteSignupProps {
@@ -75,7 +75,7 @@ const InviteSignup: React.FC<InviteSignupProps> = ({ token }) => {
     return null; // 화면에 아무것도 표시하지 않음
   }
 
-  return <InviteSignupTem name={inviteData.name} email={inviteData.email} token={token} />;
+  return <InviteSignupSection name={inviteData.name} email={inviteData.email} token={token} />;
 };
 
 export default InviteSignup;

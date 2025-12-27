@@ -2,8 +2,8 @@
 
 import React from 'react';
 
-import SignupTem from '@/features/auth/template/SignupTem/SignupTem';
+import SignupSection from '@/features/auth/section/SignupSection';
 
-const Signup: React.FC = () => <SignupTem />;
+const Signup: React.FC = () => <SignupSection />;
 
 export default Signup;
