@@ -4,7 +4,8 @@ import '../src/app/globals.css';
 const preview: Preview = {
   parameters: {
     nextjs: {
-      router: {
+      appDirectory: true,
+      navigation: {
         pathname: '/',
         query: {},
       },

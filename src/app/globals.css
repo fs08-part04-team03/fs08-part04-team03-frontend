@@ -44,6 +44,10 @@ body {
 /* Tailwind CSS 4 @theme 블록 - 디자인 토큰 정의 */
 /* stylelint-disable-next-line at-rule-no-unknown */
 @theme {
+  /* Breakpoints */
+  --breakpoint-tablet: 744px;
+  --breakpoint-desktop: 1024px;
+
   /* Z-Index 레이어 토큰 */
   --z-base: 1;
   --z-header: 10;
@@ -288,11 +292,6 @@ body {
   --spacing-1352: 1352px;
   --spacing-1400: 1400px;
 
-  /* 브레이크포인트 */
-  --breakpoint-mobile: 0px;
-  --breakpoint-tablet: 768px;
-  --breakpoint-desktop: 1024px;
-
   /* Border Radius */
   --radius-default: 2px;
   --radius-4: 4px;
@@ -342,6 +341,15 @@ body {
 }
 
 @layer utilities {
+  /* Header 데스크탑 패딩 (GNB & AuthHeader) */
+  @media (min-width: 1024px) {
+    .gnb-container,
+    .auth-header-container {
+      padding-left: 100px !important;
+      padding-right: 100px !important;
+    }
+  }
+
   .scrollbar-none {
     scrollbar-width: none;
     -ms-overflow-style: none;
