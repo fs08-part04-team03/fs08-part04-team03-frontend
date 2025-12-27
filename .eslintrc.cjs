@@ -67,8 +67,6 @@ module.exports = {
           '**/next.config.ts',
           '**/next.config.js',
         ],
-        // @types 패키지는 dependencies에 있어도 허용 (타입 정의는 런타임에도 필요할 수 있음)
-        optionalDependencies: false,
       },
     ],
 
