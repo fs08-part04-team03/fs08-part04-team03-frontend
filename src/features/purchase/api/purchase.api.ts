@@ -2,6 +2,7 @@
 
 import { useAuthStore } from '@/lib/store/authStore';
 import { getApiTimeout, getApiUrl } from '@/utils/api';
+import { PURCHASE_API_PATHS, BUDGET_API_PATHS } from '@/constants/purchase.constants';
 
 /**
  * 백엔드 API 응답 타입
@@ -129,7 +130,7 @@ export async function getAllPurchases(
   if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
-  const url = `/api/v1/purchase/admin/getAllPurchases${queryString ? `?${queryString}` : ''}`;
+  const url = `${PURCHASE_API_PATHS.ADMIN_GET_ALL_PURCHASES}${queryString ? `?${queryString}` : ''}`;
 
   const result = await fetchWithAuth<GetAllPurchasesResponse>(url, {
     method: 'GET',
@@ -152,7 +153,7 @@ export interface PurchaseNowResponse {
 }
 
 export async function purchaseNow(request: PurchaseNowRequest): Promise<PurchaseNowResponse> {
-  const result = await fetchWithAuth<PurchaseNowResponse>('/api/v1/purchase/admin/purchaseNow', {
+  const result = await fetchWithAuth<PurchaseNowResponse>(PURCHASE_API_PATHS.ADMIN_PURCHASE_NOW, {
     method: 'POST',
     body: JSON.stringify(request),
   });
@@ -251,11 +252,27 @@ export async function managePurchaseRequests(
   if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
-  const url = `/api/v1/purchase/admin/managePurchaseRequests${queryString ? `?${queryString}` : ''}`;
+  const url = `${PURCHASE_API_PATHS.ADMIN_MANAGE_PURCHASE_REQUESTS}${queryString ? `?${queryString}` : ''}`;
 
   const result = await fetchWithAuth<ManagePurchaseRequestsResponse>(url, {
     method: 'GET',
   });
+
+  return result.data;
+}
+
+/**
+ * 구매 요청 상세 조회 (관리자)
+ */
+export async function getPurchaseRequestDetail(
+  purchaseRequestId: string
+): Promise<PurchaseRequestItem> {
+  const result = await fetchWithAuth<PurchaseRequestItem>(
+    `${PURCHASE_API_PATHS.ADMIN_GET_PURCHASE_REQUEST_DETAIL}/${purchaseRequestId}`,
+    {
+      method: 'GET',
+    }
+  );
 
   return result.data;
 }
@@ -277,7 +294,7 @@ export async function approvePurchaseRequest(
   purchaseRequestId: string
 ): Promise<ApprovePurchaseRequestResponse> {
   const result = await fetchWithAuth<ApprovePurchaseRequestResponse>(
-    `/api/v1/purchase/admin/approvePurchaseRequest/${purchaseRequestId}`,
+    `${PURCHASE_API_PATHS.ADMIN_APPROVE_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',
     }
@@ -309,7 +326,7 @@ export async function rejectPurchaseRequest(
   request: RejectPurchaseRequestRequest
 ): Promise<RejectPurchaseRequestResponse> {
   const result = await fetchWithAuth<RejectPurchaseRequestResponse>(
-    `/api/v1/purchase/admin/rejectPurchaseRequest/${purchaseRequestId}`,
+    `${PURCHASE_API_PATHS.ADMIN_REJECT_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',
       body: JSON.stringify(request),
@@ -338,7 +355,7 @@ export interface ExpenseStatisticsResponse {
 
 export async function getExpenseStatistics(): Promise<ExpenseStatisticsResponse> {
   const result = await fetchWithAuth<ExpenseStatisticsResponse>(
-    '/api/v1/purchase/admin/expenseStatistics',
+    PURCHASE_API_PATHS.ADMIN_EXPENSE_STATISTICS,
     {
       method: 'GET',
     }
@@ -371,7 +388,7 @@ export interface PurchaseDashboardResponse {
  */
 export async function getPurchaseDashboard(): Promise<PurchaseDashboardResponse> {
   const result = await fetchWithAuth<PurchaseDashboardResponse>(
-    '/api/v1/purchase/admin/purchaseDashboard',
+    PURCHASE_API_PATHS.ADMIN_PURCHASE_DASHBOARD,
     {
       method: 'GET',
     }
@@ -413,7 +430,7 @@ export async function getMyPurchases(
   if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
-  const url = `/api/v1/purchase/user/getMyPurchases${queryString ? `?${queryString}` : ''}`;
+  const url = `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASES}${queryString ? `?${queryString}` : ''}`;
 
   const result = await fetchWithAuth<GetMyPurchasesResponse>(url, {
     method: 'GET',
@@ -445,7 +462,7 @@ export interface MyPurchaseDetail extends PurchaseRequestItem {
 
 export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<MyPurchaseDetail> {
   const result = await fetchWithAuth<MyPurchaseDetail>(
-    `/api/v1/purchase/user/getMyPurchaseDetail/${purchaseRequestId}`,
+    `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASE_DETAIL}/${purchaseRequestId}`,
     {
       method: 'GET',
     }
@@ -472,7 +489,7 @@ export async function requestPurchase(
   request: RequestPurchaseRequest
 ): Promise<RequestPurchaseResponse> {
   const result = await fetchWithAuth<RequestPurchaseResponse>(
-    '/api/v1/purchase/user/requestPurchase',
+    PURCHASE_API_PATHS.USER_REQUEST_PURCHASE,
     {
       method: 'POST',
       body: JSON.stringify(request),
@@ -500,7 +517,7 @@ export async function urgentRequestPurchase(
   request: UrgentRequestPurchaseRequest
 ): Promise<UrgentRequestPurchaseResponse> {
   const result = await fetchWithAuth<UrgentRequestPurchaseResponse>(
-    '/api/v1/purchase/user/urgentRequestPurchase',
+    PURCHASE_API_PATHS.USER_URGENT_REQUEST_PURCHASE,
     {
       method: 'POST',
       body: JSON.stringify(request),
@@ -555,7 +572,7 @@ export async function cancelPurchaseRequest(
   purchaseRequestId: string
 ): Promise<CancelPurchaseRequestResponse> {
   const result = await fetchWithAuth<CancelPurchaseRequestResponse>(
-    `/api/v1/purchase/user/cancelPurchaseRequest/${purchaseRequestId}`,
+    `${PURCHASE_API_PATHS.USER_CANCEL_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',
     }
@@ -580,9 +597,12 @@ export interface GetBudgetResponse {
  * @returns 회사의 총 예산(`budget`), 해당 기간의 월별 지출(`monthlySpending`), 남은 예산(`remainingBudget`)을 포함한 객체
  */
 export async function getBudget(companyId: string): Promise<GetBudgetResponse> {
-  const result = await fetchWithAuth<GetBudgetResponse>(`/api/v1/budget/${companyId}`, {
-    method: 'GET',
-  });
+  const result = await fetchWithAuth<GetBudgetResponse>(
+    `${BUDGET_API_PATHS.GET_BUDGET}/${companyId}`,
+    {
+      method: 'GET',
+    }
+  );
 
   return result.data;
 }

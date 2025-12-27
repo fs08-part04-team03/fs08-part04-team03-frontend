@@ -26,36 +26,24 @@ export const PATHNAME = {
   //  장바구니
   CART: (companyId: string) => `/${companyId}/cart`,
 
-  //  구매요청내역, 구매요청내역상세 (유저용)
+  //  구매요청 폼 페이지 (장바구니에서 넘어오는 페이지)
   PURCHASE_REQUEST: (companyId: string) => `/${companyId}/purchase-request`,
   PURCHASE_REQUEST_COMPLETED: (companyId: string) => `/${companyId}/purchase-request/completed`,
 
   //  주문 완료 (장바구니 구매 완료 - 관리자/최고관리자)
   ORDER_COMPLETED: (companyId: string) => `/${companyId}/order/completed`,
 
-  //  내구매요청내역, 구매요청내역상세
-  MY_PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/my`,
-  PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/my`, // alias
+  //  내 구매요청 내역 (모든 유저가 자신이 요청한 구매 목록을 볼 수 있는 페이지)
+  MY_PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/my/purchase-requests`,
   MY_PURCHASE_REQUEST_DETAIL: (companyId: string, requestId: string) =>
     `/${companyId}/my/purchase-requests/${requestId}`,
 
   //  관리자 (manager 이상) - 구매 요청 관리
-  REQUESTS: (companyId: string) => `/${companyId}/requests`,
-  REQUEST_DETAIL: (companyId: string, requestId: string) => `/${companyId}/requests/${requestId}`,
-  //  관리자 (manager 이상) - 구매 내역 확인
-  PURCHASE_HISTORY: (companyId: string) => `/${companyId}/purchase-history`,
-  PURCHASE_HISTORY_DETAIL: (companyId: string, orderId: string) =>
-    `/${companyId}/purchase-history/${orderId}`,
-
-  // Deprecated: MANAGER_* 키들은 제거 예정. 위의 일반 이름을 사용하세요.
-  /** @deprecated Use PATHNAME.REQUESTS instead */
-  MANAGER_REQUESTS: (companyId: string) => `/${companyId}/requests`,
-  /** @deprecated Use PATHNAME.REQUEST_DETAIL instead */
-  MANAGER_REQUEST_DETAIL: (companyId: string, requestId: string) =>
+  MANAGER_PURCHASE_REQUESTS: (companyId: string) => `/${companyId}/requests`,
+  MANAGER_PURCHASE_REQUEST_DETAIL: (companyId: string, requestId: string) =>
     `/${companyId}/requests/${requestId}`,
-  /** @deprecated Use PATHNAME.PURCHASE_HISTORY instead */
+  //  관리자 (manager 이상) - 구매 내역 확인
   MANAGER_PURCHASE_HISTORY: (companyId: string) => `/${companyId}/purchase-history`,
-  /** @deprecated Use PATHNAME.PURCHASE_HISTORY_DETAIL instead */
   MANAGER_PURCHASE_HISTORY_DETAIL: (companyId: string, orderId: string) =>
     `/${companyId}/purchase-history/${orderId}`,
 
@@ -75,9 +63,9 @@ export const BREADCRUMB_ITEMS = {
     label: '상품',
     href: (companyId: string) => PATHNAME.PRODUCTS(companyId),
   },
-  PURCHASE_REQUESTS: {
+  MY_PURCHASE_REQUESTS: {
     label: '구매 요청 내역',
-    href: (companyId: string) => PATHNAME.PURCHASE_REQUESTS(companyId),
+    href: (companyId: string) => PATHNAME.MY_PURCHASE_REQUESTS(companyId),
   },
   CART: {
     label: '장바구니',
@@ -145,3 +133,10 @@ export {
   ENV_KEYS,
   HTTP_HEADERS,
 } from './auth.constants';
+
+// Purchase API 관련 상수 re-export
+export {
+  PURCHASE_API_PATHS,
+  BUDGET_API_PATHS,
+  PURCHASE_REQUEST_STATUS_LABEL,
+} from './purchase.constants';
