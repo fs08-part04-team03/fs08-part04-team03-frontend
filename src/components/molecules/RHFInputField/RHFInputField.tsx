@@ -3,6 +3,7 @@
 import { Controller, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
 
 import InputField, { type InputFieldType } from '@/components/molecules/InputField/InputField';
+import { formatBusinessNumber } from '@/utils/formatBusinessNumber';
 
 export interface RHFInputFieldProps<T extends FieldValues> {
   /** React Hook Form의 control 객체 */
@@ -44,6 +45,9 @@ export interface RHFInputFieldProps<T extends FieldValues> {
    * - 2: 두 줄 고정 (overflow-hidden)
    */
   errorLines?: 1 | 2;
+
+  /** 사업자 번호 자동 포맷팅 활성화 (선택사항) */
+  formatAsBusinessNumber?: boolean;
 }
 
 /**
@@ -65,6 +69,7 @@ const RHFInputField = <T extends FieldValues>({
   disabled,
   className,
   errorLines = 2,
+  formatAsBusinessNumber = false,
 }: RHFInputFieldProps<T>) => {
   const errorSlotClassName =
     errorLines === 1
@@ -75,28 +80,38 @@ const RHFInputField = <T extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
-        <div className={className}>
-          <InputField
-            id={id}
-            label={label}
-            placeholder={placeholder}
-            type={type}
-            value={(field.value ?? '') as string}
-            onChange={(value) => field.onChange(value)}
-            onBlur={field.onBlur}
-            minLength={minLength}
-            maxLength={maxLength}
-            compareWith={compareWith}
-            disabled={disabled}
-          />
+      render={({ field, fieldState }) => {
+        const handleChange = (value: string) => {
+          if (formatAsBusinessNumber) {
+            field.onChange(formatBusinessNumber(value));
+          } else {
+            field.onChange(value);
+          }
+        };
 
-          {/* 에러 메시지 슬롯: 항상 동일 높이 */}
-          <div className={errorSlotClassName} aria-live="polite">
-            {fieldState.error?.message ?? '\u00A0'}
+        return (
+          <div className={className}>
+            <InputField
+              id={id}
+              label={label}
+              placeholder={placeholder}
+              type={type}
+              value={(field.value ?? '') as string}
+              onChange={handleChange}
+              onBlur={field.onBlur}
+              minLength={minLength}
+              maxLength={maxLength}
+              compareWith={compareWith}
+              disabled={disabled}
+            />
+
+            {/* 에러 메시지 슬롯: 항상 동일 높이 */}
+            <div className={errorSlotClassName} aria-live="polite">
+              {fieldState.error?.message ?? '\u00A0'}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      }}
     />
   );
 };
