@@ -9,8 +9,18 @@ import { loginSchema, type LoginInput } from '@/features/auth/schemas/login.sche
 import { login } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
 import { setAuthCookies } from '@/utils/cookies';
+import LoginTem from '@/features/auth/template/LoginTem/LoginTem';
 
-export const useLoginForm = () => {
+/**
+ * LoginSection
+ * 로그인 비즈니스 로직을 담당하는 섹션 컴포넌트
+ * - form 상태 관리
+ * - API 호출
+ * - 인증 정보 저장
+ * - Toast 관리
+ * - 리다이렉트
+ */
+const LoginSection = () => {
   const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -91,5 +101,18 @@ export const useLoginForm = () => {
     }
   };
 
-  return { ...form, serverError, setServerError, onSubmit, showToast, toastMessage, setShowToast };
+  return (
+    <LoginTem
+      control={form.control}
+      handleSubmit={form.handleSubmit}
+      isValid={form.formState.isValid}
+      serverError={serverError}
+      onSubmit={onSubmit}
+      showToast={showToast}
+      toastMessage={toastMessage}
+      setShowToast={setShowToast}
+    />
+  );
 };
+
+export default LoginSection;

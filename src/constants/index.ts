@@ -136,3 +136,12 @@ export const PURCHASE_REQUEST_STATUS_OPTIONS: Option[] = [
   { key: 'REJECTED', label: '반려됨' },
   { key: 'CANCELLED', label: '취소됨' },
 ] as const;
+
+// Auth API 관련 상수 re-export
+export {
+  AUTH_API_PATHS,
+  DEFAULT_API_URL,
+  DEFAULT_TIMEOUT,
+  ENV_KEYS,
+  HTTP_HEADERS,
+} from './auth.constants';
