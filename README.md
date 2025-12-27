@@ -45,16 +45,17 @@ cp .env.example .env
 `.env` 파일을 생성하고 다음 변수를 설정하세요:
 
 ```
-# 데이터베이스
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_NAME=myapp
+# API 설정
+NEXT_PUBLIC_API_URL=https://fs08-part04-team03-backend.onrender.com
+NEXT_PUBLIC_API_TIMEOUT=10000
 
-# JWT
-JWT_SECRET=your-secret-key
+# JWT 토큰 검증을 위한 시크릿 키
+# 프로덕션 환경에서는 반드시 강력한 랜덤 문자열로 설정하세요
+# 예: openssl rand -base64 32
+JWT_SECRET=your-secret-key-here
 
-# 서버
-PORT=3000
+# Node 환경 설정
+NODE_ENV=development
 ```
 
 자세한 내용은 `.env.example` 파일을 참고하세요.
