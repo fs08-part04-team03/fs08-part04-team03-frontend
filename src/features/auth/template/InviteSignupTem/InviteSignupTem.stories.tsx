@@ -2,10 +2,12 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { fn } from '@storybook/test';
 import { useState } from 'react';
 import { inviteSignupSchema, type InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import InviteSignupTem from './InviteSignupTem';
+
+// Mock function for Storybook (replaces @storybook/test fn)
+const fn = () => () => {};
 
 const meta = {
   title: 'Features/Auth/Template/InviteSignupTem',
@@ -67,7 +69,6 @@ const InviteSignupTemWithForm = (args: Partial<Story['args']>) => {
       control={form.control}
       handleSubmit={form.handleSubmit}
       isValid={form.formState.isValid}
-      serverError={args?.serverError ?? null}
       onSubmit={args?.onSubmit ?? fn()}
       showToast={args?.showToast ?? false}
       toastMessage={args?.toastMessage ?? ''}
@@ -94,7 +95,6 @@ export const Default: Story = {
   render: (args) => <InviteSignupTemWithForm {...args} />,
   args: {
     name: '홍길동',
-    serverError: null,
     showToast: false,
     toastMessage: '',
     preview: null,
@@ -114,7 +114,6 @@ export const WithImagePreview: Story = {
   render: (args) => <InviteSignupTemWithForm {...args} />,
   args: {
     name: '김철수',
-    serverError: null,
     showToast: false,
     toastMessage: '',
     preview: 'https://picsum.photos/200/200',
@@ -125,18 +124,17 @@ export const WithImagePreview: Story = {
 };
 
 /**
- * 서버 에러 상태
+ * 서버 에러 상태 (Toast로 표시)
  *
- * 회원가입 실패 시 서버에서 반환된 에러 메시지가 표시됩니다.
- * 에러 박스는 레이아웃 점프를 방지하기 위해 항상 공간을 확보합니다.
+ * 회원가입 실패 시 서버에서 반환된 에러 메시지가 Toast로 표시됩니다.
+ * 서버 통신 에러는 Toast로만 표시되며, 폼 상단에는 표시되지 않습니다.
  */
 export const WithServerError: Story = {
   render: (args) => <InviteSignupTemWithForm {...args} />,
   args: {
     name: '이영희',
-    serverError: '초대 토큰이 만료되었습니다. 관리자에게 문의해 주세요.',
-    showToast: false,
-    toastMessage: '',
+    showToast: true,
+    toastMessage: '초대 토큰이 만료되었습니다. 관리자에게 문의해 주세요.',
     preview: null,
     onSubmit: fn(),
     setShowToast: fn(),
@@ -154,7 +152,6 @@ export const WithToast: Story = {
   render: (args) => <InviteSignupTemWithForm {...args} />,
   args: {
     name: '박민수',
-    serverError: null,
     showToast: true,
     toastMessage: '이미지 업로드에 실패했습니다. 다시 시도해 주세요.',
     preview: null,
@@ -174,7 +171,6 @@ export const WithLongName: Story = {
   render: (args) => <InviteSignupTemWithForm {...args} />,
   args: {
     name: '알렉산더 막시밀리안 요한',
-    serverError: null,
     showToast: false,
     toastMessage: '',
     preview: null,
@@ -185,7 +181,7 @@ export const WithLongName: Story = {
 };
 
 /**
- * 복합 상태 (이미지 + 에러 + Toast)
+ * 복합 상태 (이미지 + Toast)
  *
  * 여러 상태가 동시에 활성화된 복합적인 시나리오입니다.
  * 실제 사용 시 발생할 수 있는 상황을 시뮬레이션합니다.
@@ -194,7 +190,6 @@ export const ComplexState: Story = {
   render: (args) => <InviteSignupTemWithForm {...args} />,
   args: {
     name: '정수현',
-    serverError: '비밀번호가 보안 정책을 충족하지 않습니다.',
     showToast: true,
     toastMessage: '입력 정보를 확인해 주세요.',
     preview: 'https://picsum.photos/200/200',
@@ -208,15 +203,14 @@ export const ComplexState: Story = {
  * 네트워크 에러 시나리오
  *
  * 초대 토큰 검증 중 네트워크 에러가 발생한 상황을 시뮬레이션합니다.
- * 서버 에러와 Toast가 함께 표시됩니다.
+ * 서버 에러는 Toast로만 표시됩니다.
  */
 export const NetworkError: Story = {
   render: (args) => <InviteSignupTemWithForm {...args} />,
   args: {
     name: '최지훈',
-    serverError: '요청 시간이 초과되었습니다. 다시 시도해주세요.',
     showToast: true,
-    toastMessage: '네트워크 오류가 발생했습니다.',
+    toastMessage: '요청 시간이 초과되었습니다. 다시 시도해주세요.',
     preview: null,
     onSubmit: fn(),
     setShowToast: fn(),

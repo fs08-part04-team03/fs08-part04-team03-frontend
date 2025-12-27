@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { type Control, type UseFormHandleSubmit } from 'react-hook-form';
 
 import RHFInputField from '@/components/molecules/RHFInputField/RHFInputField';
@@ -17,7 +17,6 @@ interface InviteSignupTemProps {
   control: Control<InviteSignupInput>;
   handleSubmit: UseFormHandleSubmit<InviteSignupInput>;
   isValid: boolean;
-  serverError: string | null;
   onSubmit: (values: InviteSignupInput) => void | Promise<void>;
   showToast: boolean;
   toastMessage: string;
@@ -39,99 +38,82 @@ interface InviteSignupTemContentProps extends InviteSignupTemViewProps {
 const InviteSignupTemContent: React.FC<InviteSignupTemContentProps> = ({
   control,
   isValid,
-  serverError,
   onSubmit,
   handleSubmit,
   preview,
   onImageChange,
   name,
   className,
-}) => {
-  // 서버 에러 슬롯: "항상 자리 확보"로 레이아웃 점프 제거
-  const serverErrorBoxClassName = useMemo(() => {
-    const base = 'rounded-8 px-12 text-14';
-    const visible = 'border border-error-200 bg-error-25 text-error-700';
-    const hidden = 'border border-transparent bg-transparent text-transparent';
-    return `${base} ${serverError ? visible : hidden}`;
-  }, [serverError]);
+}) => (
+  <form
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    onSubmit={handleSubmit(onSubmit)}
+    className={className}
+    noValidate
+  >
+    <header className="mb-4 text-center tablet:text-left">
+      <h1 className="text-20 font-bold text-black-400">{name} 님, 만나서 반갑습니다.</h1>
+      <p className="mt-4 text-14 text-gray-600">비밀번호를 입력해 회원가입을 완료해주세요</p>
+    </header>
 
-  return (
-    <form
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      onSubmit={handleSubmit(onSubmit)}
-      className={className}
-      noValidate
-    >
-      <header className="mb-4 text-center tablet:text-left">
-        <h1 className="text-20 font-bold text-black-400">{name} 님, 만나서 반갑습니다.</h1>
-        <p className="mt-4 text-14 text-gray-600">비밀번호를 입력해 회원가입을 완료해주세요</p>
-      </header>
-
-      {/* 서버 에러 영역: 항상 렌더링해서 점프 방지 */}
-      <div className={serverErrorBoxClassName} aria-live="polite">
-        {serverError ?? '\u00A0'}
+    {/* 프로필 이미지 업로드 */}
+    <div className="mb-24">
+      <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
+      <div className="flex justify-center">
+        <label htmlFor="invite-profile-image-upload" className="cursor-pointer">
+          <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
+            {preview ? (
+              <Image
+                src={preview}
+                alt="프로필 미리보기"
+                width={140}
+                height={140}
+                className="object-cover"
+              />
+            ) : (
+              <Image
+                src="/icons/photo-icon.svg"
+                alt="이미지 업로드"
+                width={48}
+                height={48}
+                className="opacity-40"
+              />
+            )}
+          </div>
+          <input
+            id="invite-profile-image-upload"
+            type="file"
+            accept="image/*"
+            onChange={onImageChange}
+            className="hidden"
+          />
+        </label>
       </div>
+    </div>
 
-      {/* 프로필 이미지 업로드 */}
-      <div className="mb-24">
-        <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
-        <div className="flex justify-center">
-          <label htmlFor="invite-profile-image-upload" className="cursor-pointer">
-            <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
-              {preview ? (
-                <Image
-                  src={preview}
-                  alt="프로필 미리보기"
-                  width={140}
-                  height={140}
-                  className="object-cover"
-                />
-              ) : (
-                <Image
-                  src="/icons/photo-icon.svg"
-                  alt="이미지 업로드"
-                  width={48}
-                  height={48}
-                  className="opacity-40"
-                />
-              )}
-            </div>
-            <input
-              id="invite-profile-image-upload"
-              type="file"
-              accept="image/*"
-              onChange={onImageChange}
-              className="hidden"
-            />
-          </label>
-        </div>
-      </div>
+    {inviteSignupFields.map((field) => (
+      <RHFInputField
+        key={field.name}
+        control={control}
+        name={field.name}
+        label={field.label}
+        placeholder={field.placeholder}
+        type={field.type}
+        className="w-full"
+        disabled={field.disabled}
+        errorLines={2}
+      />
+    ))}
 
-      {inviteSignupFields.map((field) => (
-        <RHFInputField
-          key={field.name}
-          control={control}
-          name={field.name}
-          label={field.label}
-          placeholder={field.placeholder}
-          type={field.type}
-          className="w-full"
-          disabled={field.disabled}
-          errorLines={2}
-        />
-      ))}
-
-      <Button type="submit" variant="primary" className="mt-8" fullWidth inactive={!isValid}>
-        회원가입
-      </Button>
-    </form>
-  );
-};
+    <Button type="submit" variant="primary" className="mt-8" fullWidth inactive={!isValid}>
+      회원가입
+    </Button>
+  </form>
+);
 
 export const InviteSignupTemMobile: React.FC<InviteSignupTemViewProps> = ({
   control,
   isValid,
-  serverError,
   onSubmit,
   handleSubmit,
   preview,
@@ -145,7 +127,6 @@ export const InviteSignupTemMobile: React.FC<InviteSignupTemViewProps> = ({
     <InviteSignupTemContent
       control={control}
       isValid={isValid}
-      serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
       preview={preview}
@@ -165,7 +146,6 @@ export const InviteSignupTemMobile: React.FC<InviteSignupTemViewProps> = ({
 export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
   control,
   isValid,
-  serverError,
   onSubmit,
   handleSubmit,
   preview,
@@ -181,7 +161,6 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
         <InviteSignupTemContent
           control={control}
           isValid={isValid}
-          serverError={serverError}
           onSubmit={onSubmit}
           handleSubmit={handleSubmit}
           preview={preview}
@@ -207,7 +186,6 @@ const InviteSignupTem: React.FC<InviteSignupTemProps> = ({
   control,
   handleSubmit,
   isValid,
-  serverError,
   onSubmit,
   showToast,
   toastMessage,
@@ -220,7 +198,6 @@ const InviteSignupTem: React.FC<InviteSignupTemProps> = ({
     <InviteSignupTemMobile
       control={control}
       isValid={isValid}
-      serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
       preview={preview}
@@ -230,7 +207,6 @@ const InviteSignupTem: React.FC<InviteSignupTemProps> = ({
     <InviteSignupTemDesktop
       control={control}
       isValid={isValid}
-      serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
       preview={preview}
