@@ -24,8 +24,8 @@ export function generatePurchaseRequestsBreadcrumb(companyId: string): Breadcrum
   return [
     { label: BREADCRUMB_ITEMS.HOME.label, href: BREADCRUMB_ITEMS.HOME.href(companyId) },
     {
-      label: BREADCRUMB_ITEMS.PURCHASE_REQUESTS.label,
-      href: BREADCRUMB_ITEMS.PURCHASE_REQUESTS.href(companyId),
+      label: BREADCRUMB_ITEMS.MY_PURCHASE_REQUESTS.label,
+      href: BREADCRUMB_ITEMS.MY_PURCHASE_REQUESTS.href(companyId),
     },
   ];
 }
@@ -37,8 +37,8 @@ export function generatePurchaseRequestDetailBreadcrumb(
   return [
     { label: BREADCRUMB_ITEMS.HOME.label, href: BREADCRUMB_ITEMS.HOME.href(companyId) },
     {
-      label: BREADCRUMB_ITEMS.PURCHASE_REQUESTS.label,
-      href: BREADCRUMB_ITEMS.PURCHASE_REQUESTS.href(companyId),
+      label: BREADCRUMB_ITEMS.MY_PURCHASE_REQUESTS.label,
+      href: BREADCRUMB_ITEMS.MY_PURCHASE_REQUESTS.href(companyId),
     },
     { label: `Request #${requestId.slice(0, 8)}` },
   ];
