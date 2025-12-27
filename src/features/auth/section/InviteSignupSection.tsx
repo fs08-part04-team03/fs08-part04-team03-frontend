@@ -59,8 +59,14 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       if (file.size > MAX_FILE_SIZE) {
         setToastMessage('이미지 파일 크기는 5MB 이하여야 합니다.');
         setShowToast(true);
-        // input 값 초기화
+        // input 값 및 상태 초기화
         e.target.value = '';
+        setPreview(null);
+        setProfileImage(null);
+        if (previewUrlRef.current) {
+          URL.revokeObjectURL(previewUrlRef.current);
+          previewUrlRef.current = null;
+        }
         return;
       }
 
@@ -68,7 +74,14 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       if (!file.type.startsWith('image/')) {
         setToastMessage('이미지 파일만 업로드 가능합니다.');
         setShowToast(true);
+        // input 값 및 상태 초기화
         e.target.value = '';
+        setPreview(null);
+        setProfileImage(null);
+        if (previewUrlRef.current) {
+          URL.revokeObjectURL(previewUrlRef.current);
+          previewUrlRef.current = null;
+        }
         return;
       }
 
@@ -106,42 +119,47 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
 
   const onSubmit = async (values: InviteSignupInput): Promise<void> => {
     try {
-      // eslint-disable-next-line no-console
-      console.log('[InviteSignup] 초대 회원가입 시도 시작:', { email: values.email });
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('[InviteSignup] 초대 회원가입 시도 시작');
+      }
       const { user, accessToken } = await inviteSignup({
         email: values.email,
         password: values.password,
         inviteToken: token,
       });
 
-      // eslint-disable-next-line no-console
-      console.log('[InviteSignup] 초대 회원가입 API 성공:', {
-        user,
-        hasAccessToken: !!accessToken,
-      });
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('[InviteSignup] 초대 회원가입 API 성공:', { hasAccessToken: !!accessToken });
+      }
 
       setAuth({ user, accessToken });
-      // eslint-disable-next-line no-console
-      console.log('[InviteSignup] 인증 정보 저장 완료');
 
       // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
       // accessToken을 함께 전송하여 서버 측에서 검증 가능하도록 함
-      await setAuthCookies(user.role, user.companyId, accessToken);
-      // eslint-disable-next-line no-console
-      console.log('[InviteSignup] 쿠키 저장 완료:', {
-        role: user.role,
-        companyId: user.companyId,
-      });
+      try {
+        await setAuthCookies(user.role, user.companyId, accessToken);
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log('[InviteSignup] 쿠키 저장 완료');
+        }
+      } catch (cookieError) {
+        // 쿠키 설정 실패 시 에러 처리
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[InviteSignup] 쿠키 저장 실패:', cookieError);
+        }
+        throw new Error('인증 정보 저장에 실패했습니다. 다시 시도해주세요.');
+      }
 
       const redirectPath = `/${user.companyId}/products`;
-      // eslint-disable-next-line no-console
-      console.log('[InviteSignup] 리다이렉트 시도:', redirectPath);
       router.push(redirectPath);
-      // eslint-disable-next-line no-console
-      console.log('[InviteSignup] router.push 호출 완료');
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[InviteSignup] 초대 회원가입 실패:', error);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[InviteSignup] 초대 회원가입 실패:', error);
+      }
       const errorMessage =
         error instanceof Error ? error.message : '회원가입에 실패했습니다. 다시 시도해 주세요.';
       setToastMessage(errorMessage);

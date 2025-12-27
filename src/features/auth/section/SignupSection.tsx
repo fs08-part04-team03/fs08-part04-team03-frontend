@@ -59,8 +59,14 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
       if (file.size > MAX_FILE_SIZE) {
         setToastMessage('이미지 파일 크기는 5MB 이하여야 합니다.');
         setShowToast(true);
-        // input 값 초기화
+        // input 값 및 상태 초기화
         e.target.value = '';
+        setPreview(null);
+        setProfileImage(null);
+        if (previewUrlRef.current) {
+          URL.revokeObjectURL(previewUrlRef.current);
+          previewUrlRef.current = null;
+        }
         return;
       }
 
@@ -68,7 +74,14 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
       if (!file.type.startsWith('image/')) {
         setToastMessage('이미지 파일만 업로드 가능합니다.');
         setShowToast(true);
+        // input 값 및 상태 초기화
         e.target.value = '';
+        setPreview(null);
+        setProfileImage(null);
+        if (previewUrlRef.current) {
+          URL.revokeObjectURL(previewUrlRef.current);
+          previewUrlRef.current = null;
+        }
         return;
       }
 
