@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { type Control } from 'react-hook-form';
+import { type Control, type UseFormHandleSubmit } from 'react-hook-form';
 
 import RHFInputField from '@/components/molecules/RHFInputField/RHFInputField';
 import Button from '@/components/atoms/Button/Button';
@@ -10,16 +10,29 @@ import type { SignupInput } from '@/features/auth/schemas/signup.schema';
 import Logo from '@/components/atoms/Logo/Logo';
 import Link from 'next/link';
 import { PATHNAME } from '@/constants';
-import { useSignupForm } from '@/features/auth/components/SignupFormOrg/SignupFormOrg';
+import { Toast } from '@/components/molecules/Toast/Toast';
+import Image from 'next/image';
 
-interface SignupTemViewProps {
+interface SignupTemProps {
   control: Control<SignupInput>;
+  handleSubmit: UseFormHandleSubmit<SignupInput>;
   isValid: boolean;
   serverError: string | null;
   onSubmit: (values: SignupInput) => void | Promise<void>;
-  handleSubmit: (
-    onSubmit: (values: SignupInput) => void | Promise<void>
-  ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
+  showToast: boolean;
+  toastMessage: string;
+  setShowToast: (show: boolean) => void;
+  preview: string | null;
+  onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  title?: string;
+  subtitle?: string;
+  submitButtonText?: string;
+}
+
+interface SignupTemViewProps extends Omit<
+  SignupTemProps,
+  'showToast' | 'toastMessage' | 'setShowToast'
+> {
   title?: string;
   subtitle?: string;
   submitButtonText?: string;
@@ -35,6 +48,8 @@ const SignupTemContent: React.FC<SignupTemContentProps> = ({
   serverError,
   onSubmit,
   handleSubmit,
+  preview,
+  onImageChange,
   className,
   title = '기업 담당자 회원가입',
   subtitle = '* 그룹 내 유저는 기업 담당자의 초대 메일을 통해 가입이 가능합니다.',
@@ -68,6 +83,41 @@ const SignupTemContent: React.FC<SignupTemContentProps> = ({
         {serverError ?? '\u00A0'}
       </div>
 
+      {/* 프로필 이미지 업로드 */}
+      <div className="mb-24">
+        <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
+        <div className="flex justify-center">
+          <label htmlFor="profile-image-upload" className="cursor-pointer">
+            <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
+              {preview ? (
+                <Image
+                  src={preview}
+                  alt="프로필 미리보기"
+                  width={140}
+                  height={140}
+                  className="object-cover"
+                />
+              ) : (
+                <Image
+                  src="/icons/photo-icon.svg"
+                  alt="이미지 업로드"
+                  width={48}
+                  height={48}
+                  className="opacity-40"
+                />
+              )}
+            </div>
+            <input
+              id="profile-image-upload"
+              type="file"
+              accept="image/*"
+              onChange={onImageChange}
+              className="hidden"
+            />
+          </label>
+        </div>
+      </div>
+
       {signupFields.map((field) => (
         <RHFInputField
           key={field.name}
@@ -78,6 +128,7 @@ const SignupTemContent: React.FC<SignupTemContentProps> = ({
           type={field.type}
           className="w-full"
           disabled={field.disabled}
+          formatAsBusinessNumber={field.name === 'businessNumber'}
         />
       ))}
 
@@ -94,6 +145,8 @@ export const SignupTemMobile: React.FC<SignupTemViewProps> = ({
   serverError,
   onSubmit,
   handleSubmit,
+  preview,
+  onImageChange,
   title,
   subtitle,
   submitButtonText,
@@ -108,6 +161,8 @@ export const SignupTemMobile: React.FC<SignupTemViewProps> = ({
       serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
+      preview={preview}
+      onImageChange={onImageChange}
       title={title}
       subtitle={subtitle}
       submitButtonText={submitButtonText}
@@ -128,12 +183,14 @@ export const SignupTemDesktop: React.FC<SignupTemViewProps> = ({
   serverError,
   onSubmit,
   handleSubmit,
+  preview,
+  onImageChange,
   title,
   subtitle,
   submitButtonText,
 }) => (
   <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
-    <div className="mt-177">
+    <div className="mt-120">
       <Logo size="lg" />
     </div>
     <div className="w-600 mx-auto">
@@ -144,6 +201,8 @@ export const SignupTemDesktop: React.FC<SignupTemViewProps> = ({
           serverError={serverError}
           onSubmit={onSubmit}
           handleSubmit={handleSubmit}
+          preview={preview}
+          onImageChange={onImageChange}
           title={title}
           subtitle={subtitle}
           submitButtonText={submitButtonText}
@@ -163,41 +222,53 @@ export const SignupTemDesktop: React.FC<SignupTemViewProps> = ({
   </div>
 );
 
-interface SignupTemProps {
-  title?: string;
-  subtitle?: string;
-  submitButtonText?: string;
-}
-
-const SignupTem: React.FC<SignupTemProps> = ({ title, subtitle, submitButtonText }) => {
-  const { control, handleSubmit, formState, serverError, onSubmit } = useSignupForm();
-
-  return (
-    <>
-      <SignupTemMobile
-        control={control}
-        isValid={formState.isValid}
-        serverError={serverError}
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        onSubmit={onSubmit as (values: SignupInput) => void | Promise<void>}
-        handleSubmit={handleSubmit}
-        title={title}
-        subtitle={subtitle}
-        submitButtonText={submitButtonText}
-      />
-      <SignupTemDesktop
-        control={control}
-        isValid={formState.isValid}
-        serverError={serverError}
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        onSubmit={onSubmit as (values: SignupInput) => void | Promise<void>}
-        handleSubmit={handleSubmit}
-        title={title}
-        subtitle={subtitle}
-        submitButtonText={submitButtonText}
-      />
-    </>
-  );
-};
+const SignupTem: React.FC<SignupTemProps> = ({
+  control,
+  handleSubmit,
+  isValid,
+  serverError,
+  onSubmit,
+  showToast,
+  toastMessage,
+  setShowToast,
+  preview,
+  onImageChange,
+  title,
+  subtitle,
+  submitButtonText,
+}) => (
+  <>
+    <SignupTemMobile
+      control={control}
+      isValid={isValid}
+      serverError={serverError}
+      onSubmit={onSubmit}
+      handleSubmit={handleSubmit}
+      preview={preview}
+      onImageChange={onImageChange}
+      title={title}
+      subtitle={subtitle}
+      submitButtonText={submitButtonText}
+    />
+    <SignupTemDesktop
+      control={control}
+      isValid={isValid}
+      serverError={serverError}
+      onSubmit={onSubmit}
+      handleSubmit={handleSubmit}
+      preview={preview}
+      onImageChange={onImageChange}
+      title={title}
+      subtitle={subtitle}
+      submitButtonText={submitButtonText}
+    />
+    {/* Toast */}
+    {showToast && (
+      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
+        <Toast variant="custom" message={toastMessage} onClose={() => setShowToast(false)} />
+      </div>
+    )}
+  </>
+);
 
 export default SignupTem;

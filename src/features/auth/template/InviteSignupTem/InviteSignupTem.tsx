@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { type Control } from 'react-hook-form';
+import { type Control, type UseFormHandleSubmit } from 'react-hook-form';
 
 import RHFInputField from '@/components/molecules/RHFInputField/RHFInputField';
 import Button from '@/components/atoms/Button/Button';
@@ -10,29 +10,30 @@ import type { InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import Logo from '@/components/atoms/Logo/Logo';
 import Link from 'next/link';
 import { PATHNAME } from '@/constants';
-import { useInviteSignupForm } from '@/features/auth/components/InviteSignupFormOrg/InviteSignupFormOrg';
+import { Toast } from '@/components/molecules/Toast/Toast';
+import Image from 'next/image';
 
-interface InviteSignupTemContentProps {
+interface InviteSignupTemProps {
   control: Control<InviteSignupInput>;
+  handleSubmit: UseFormHandleSubmit<InviteSignupInput>;
   isValid: boolean;
   serverError: string | null;
-  onSubmit: (values: InviteSignupInput) => void;
-  handleSubmit: (
-    onSubmit: (values: InviteSignupInput) => void
-  ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
+  onSubmit: (values: InviteSignupInput) => void | Promise<void>;
+  showToast: boolean;
+  toastMessage: string;
+  setShowToast: (show: boolean) => void;
+  preview: string | null;
+  onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   name: string;
-  className?: string;
 }
 
-interface InviteSignupTemViewProps {
-  control: Control<InviteSignupInput>;
-  isValid: boolean;
-  serverError: string | null;
-  onSubmit: (values: InviteSignupInput) => void;
-  handleSubmit: (
-    onSubmit: (values: InviteSignupInput) => void
-  ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
-  name: string;
+type InviteSignupTemViewProps = Omit<
+  InviteSignupTemProps,
+  'showToast' | 'toastMessage' | 'setShowToast'
+>;
+
+interface InviteSignupTemContentProps extends InviteSignupTemViewProps {
+  className?: string;
 }
 
 const InviteSignupTemContent: React.FC<InviteSignupTemContentProps> = ({
@@ -41,6 +42,8 @@ const InviteSignupTemContent: React.FC<InviteSignupTemContentProps> = ({
   serverError,
   onSubmit,
   handleSubmit,
+  preview,
+  onImageChange,
   name,
   className,
 }) => {
@@ -67,6 +70,41 @@ const InviteSignupTemContent: React.FC<InviteSignupTemContentProps> = ({
       {/* 서버 에러 영역: 항상 렌더링해서 점프 방지 */}
       <div className={serverErrorBoxClassName} aria-live="polite">
         {serverError ?? '\u00A0'}
+      </div>
+
+      {/* 프로필 이미지 업로드 */}
+      <div className="mb-24">
+        <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
+        <div className="flex justify-center">
+          <label htmlFor="invite-profile-image-upload" className="cursor-pointer">
+            <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
+              {preview ? (
+                <Image
+                  src={preview}
+                  alt="프로필 미리보기"
+                  width={140}
+                  height={140}
+                  className="object-cover"
+                />
+              ) : (
+                <Image
+                  src="/icons/photo-icon.svg"
+                  alt="이미지 업로드"
+                  width={48}
+                  height={48}
+                  className="opacity-40"
+                />
+              )}
+            </div>
+            <input
+              id="invite-profile-image-upload"
+              type="file"
+              accept="image/*"
+              onChange={onImageChange}
+              className="hidden"
+            />
+          </label>
+        </div>
       </div>
 
       {inviteSignupFields.map((field) => (
@@ -96,6 +134,8 @@ export const InviteSignupTemMobile: React.FC<InviteSignupTemViewProps> = ({
   serverError,
   onSubmit,
   handleSubmit,
+  preview,
+  onImageChange,
   name,
 }) => (
   <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
@@ -108,6 +148,8 @@ export const InviteSignupTemMobile: React.FC<InviteSignupTemViewProps> = ({
       serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
+      preview={preview}
+      onImageChange={onImageChange}
       name={name}
       className="flex w-327 flex-col tablet:hidden desktop:hidden"
     />
@@ -126,10 +168,12 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
   serverError,
   onSubmit,
   handleSubmit,
+  preview,
+  onImageChange,
   name,
 }) => (
   <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
-    <div className="mt-177">
+    <div className="mt-120">
       <Logo size="lg" />
     </div>
     <div className="w-600 relative">
@@ -140,6 +184,8 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
           serverError={serverError}
           onSubmit={onSubmit}
           handleSubmit={handleSubmit}
+          preview={preview}
+          onImageChange={onImageChange}
           name={name}
           className="flex flex-col w-full tablet:w-480 desktop:w-480"
         />
@@ -157,38 +203,47 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
   </div>
 );
 
-interface InviteSignupTemProps {
-  name: string;
-  email: string;
-  token: string;
-}
-
-const InviteSignupTem: React.FC<InviteSignupTemProps> = ({ name, email, token }) => {
-  const { control, handleSubmit, formState, serverError, onSubmit } = useInviteSignupForm(
-    email,
-    token
-  );
-
-  return (
-    <>
-      <InviteSignupTemMobile
-        control={control}
-        isValid={formState.isValid}
-        serverError={serverError}
-        onSubmit={onSubmit}
-        handleSubmit={handleSubmit}
-        name={name}
-      />
-      <InviteSignupTemDesktop
-        control={control}
-        isValid={formState.isValid}
-        serverError={serverError}
-        onSubmit={onSubmit}
-        handleSubmit={handleSubmit}
-        name={name}
-      />
-    </>
-  );
-};
+const InviteSignupTem: React.FC<InviteSignupTemProps> = ({
+  control,
+  handleSubmit,
+  isValid,
+  serverError,
+  onSubmit,
+  showToast,
+  toastMessage,
+  setShowToast,
+  preview,
+  onImageChange,
+  name,
+}) => (
+  <>
+    <InviteSignupTemMobile
+      control={control}
+      isValid={isValid}
+      serverError={serverError}
+      onSubmit={onSubmit}
+      handleSubmit={handleSubmit}
+      preview={preview}
+      onImageChange={onImageChange}
+      name={name}
+    />
+    <InviteSignupTemDesktop
+      control={control}
+      isValid={isValid}
+      serverError={serverError}
+      onSubmit={onSubmit}
+      handleSubmit={handleSubmit}
+      preview={preview}
+      onImageChange={onImageChange}
+      name={name}
+    />
+    {/* Toast */}
+    {showToast && (
+      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
+        <Toast variant="custom" message={toastMessage} onClose={() => setShowToast(false)} />
+      </div>
+    )}
+  </>
+);
 
 export default InviteSignupTem;

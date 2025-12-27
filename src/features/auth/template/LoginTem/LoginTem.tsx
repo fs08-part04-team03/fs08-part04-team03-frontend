@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { type Control } from 'react-hook-form';
+import { type Control, type UseFormHandleSubmit } from 'react-hook-form';
 
 import RHFInputField from '@/components/molecules/RHFInputField/RHFInputField';
 import Button from '@/components/atoms/Button/Button';
@@ -10,19 +10,25 @@ import type { LoginInput } from '@/features/auth/schemas/login.schema';
 import Logo from '@/components/atoms/Logo/Logo';
 import Link from 'next/link';
 import { PATHNAME } from '@/constants';
-import { useLoginForm } from '@/features/auth/components/LoginFormOrg/LoginFormOrg';
+import { Toast } from '@/components/molecules/Toast/Toast';
 
 interface LoginTemProps {
   control: Control<LoginInput>;
+  handleSubmit: UseFormHandleSubmit<LoginInput>;
   isValid: boolean;
   serverError: string | null;
   onSubmit: (values: LoginInput) => void | Promise<void>;
-  handleSubmit: (
-    onSubmit: (values: LoginInput) => void | Promise<void>
-  ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
+  showToast: boolean;
+  toastMessage: string;
+  setShowToast: (show: boolean) => void;
 }
 
-interface LoginTemContentProps extends LoginTemProps {
+interface LoginTemContentProps {
+  control: Control<LoginInput>;
+  handleSubmit: UseFormHandleSubmit<LoginInput>;
+  isValid: boolean;
+  serverError: string | null;
+  onSubmit: (values: LoginInput) => void | Promise<void>;
   className?: string;
 }
 
@@ -77,13 +83,9 @@ const LoginTemContent: React.FC<LoginTemContentProps> = ({
   );
 };
 
-export const LoginTemMobile: React.FC<LoginTemProps> = ({
-  control,
-  isValid,
-  serverError,
-  onSubmit,
-  handleSubmit,
-}) => (
+export const LoginTemMobile: React.FC<
+  Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>
+> = ({ control, isValid, serverError, onSubmit, handleSubmit }) => (
   <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
     <div className="m-38">
       <Logo size="lg" />
@@ -105,13 +107,9 @@ export const LoginTemMobile: React.FC<LoginTemProps> = ({
   </div>
 );
 
-export const LoginTemDesktop: React.FC<LoginTemProps> = ({
-  control,
-  isValid,
-  serverError,
-  onSubmit,
-  handleSubmit,
-}) => (
+export const LoginTemDesktop: React.FC<
+  Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>
+> = ({ control, isValid, serverError, onSubmit, handleSubmit }) => (
   <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
     <div className="mt-177">
       <Logo size="lg" />
@@ -140,27 +138,38 @@ export const LoginTemDesktop: React.FC<LoginTemProps> = ({
   </div>
 );
 
-const LoginTem: React.FC = () => {
-  const { control, handleSubmit, formState, serverError, onSubmit } = useLoginForm();
-
-  return (
-    <>
-      <LoginTemMobile
-        control={control}
-        isValid={formState.isValid}
-        serverError={serverError}
-        onSubmit={onSubmit}
-        handleSubmit={handleSubmit}
-      />
-      <LoginTemDesktop
-        control={control}
-        isValid={formState.isValid}
-        serverError={serverError}
-        onSubmit={onSubmit}
-        handleSubmit={handleSubmit}
-      />
-    </>
-  );
-};
+const LoginTem: React.FC<LoginTemProps> = ({
+  control,
+  handleSubmit,
+  isValid,
+  serverError,
+  onSubmit,
+  showToast,
+  toastMessage,
+  setShowToast,
+}) => (
+  <>
+    <LoginTemMobile
+      control={control}
+      isValid={isValid}
+      serverError={serverError}
+      onSubmit={onSubmit}
+      handleSubmit={handleSubmit}
+    />
+    <LoginTemDesktop
+      control={control}
+      isValid={isValid}
+      serverError={serverError}
+      onSubmit={onSubmit}
+      handleSubmit={handleSubmit}
+    />
+    {/* Toast */}
+    {showToast && (
+      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
+        <Toast variant="custom" message={toastMessage} onClose={() => setShowToast(false)} />
+      </div>
+    )}
+  </>
+);
 
 export default LoginTem;
