@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import jwt from 'jsonwebtoken';
 import type { UserRole } from '@/constants/roles';
 
@@ -79,10 +80,24 @@ export async function POST(request: NextRequest) {
       const upperRole = roleValue.toUpperCase();
       if (upperRole === 'MANAGER') return 'manager';
       if (upperRole === 'ADMIN') return 'admin';
-      return 'user';
+      if (upperRole === 'USER') return 'user';
+      // 알 수 없는 역할은 에러 반환 (보안상 안전)
+      // eslint-disable-next-line no-console
+      console.error('알 수 없는 역할:', roleValue);
+      throw new Error(`유효하지 않은 역할입니다: ${roleValue}`);
     };
 
-    const normalizedTokenRole = normalizeRole(tokenRole);
+    let normalizedTokenRole: UserRole;
+    try {
+      normalizedTokenRole = normalizeRole(tokenRole);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('역할 정규화 실패:', error);
+      return NextResponse.json(
+        { success: false, message: '토큰에 유효하지 않은 역할이 포함되어 있습니다.' },
+        { status: 401 }
+      );
+    }
 
     // 요청 body의 role과 companyId와 토큰의 값 비교
     if (normalizedTokenRole !== role || tokenCompanyId !== companyId) {
