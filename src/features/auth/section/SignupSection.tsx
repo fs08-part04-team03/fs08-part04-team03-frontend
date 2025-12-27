@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema, type SignupInput } from '@/features/auth/schemas/signup.schema';
 import { signup } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
+import { setAuthCookies } from '@/utils/cookies';
 import SignupTem from '@/features/auth/template/SignupTem/SignupTem';
 
 interface SignupSectionProps {
@@ -21,7 +22,6 @@ interface SignupSectionProps {
  * 회원가입 비즈니스 로직을 담당하는 섹션 컴포넌트
  */
 const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps) => {
-  const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
@@ -88,8 +88,6 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
   });
 
   const onSubmit = async (values: SignupInput): Promise<void> => {
-    setServerError(null);
-
     try {
       // eslint-disable-next-line no-console
       console.log('[Signup] 회원가입 시도 시작:', { email: values.email, name: values.name });
@@ -108,8 +106,9 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
       // eslint-disable-next-line no-console
       console.log('[Signup] 인증 정보 저장 완료');
 
-      document.cookie = `mock-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}`;
-      document.cookie = `mock-company-id=${user.companyId}; path=/; max-age=${60 * 60 * 24 * 7}`;
+      // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
+      // accessToken을 함께 전송하여 서버 측에서 검증 가능하도록 함
+      await setAuthCookies(user.role, user.companyId, accessToken);
       // eslint-disable-next-line no-console
       console.log('[Signup] 쿠키 저장 완료:', {
         role: user.role,
@@ -129,7 +128,6 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
         error instanceof Error ? error.message : '회원가입에 실패했습니다. 다시 시도해 주세요.';
       setToastMessage(errorMessage);
       setShowToast(true);
-      setServerError(errorMessage);
     }
   };
 
@@ -138,7 +136,6 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
       control={form.control}
       handleSubmit={form.handleSubmit}
       isValid={form.formState.isValid}
-      serverError={serverError}
       onSubmit={onSubmit}
       showToast={showToast}
       toastMessage={toastMessage}

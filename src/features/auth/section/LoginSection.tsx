@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@/features/auth/schemas/login.schema';
 import { login } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
+import { setAuthCookies } from '@/utils/cookies';
 import LoginTem from '@/features/auth/template/LoginTem/LoginTem';
 
 /**
@@ -65,9 +66,9 @@ const LoginSection = () => {
       // eslint-disable-next-line no-console
       console.log('[Login] 인증 정보 저장 완료');
 
-      // 쿠키에 인증 정보 저장 (middleware에서 사용)
-      document.cookie = `mock-role=${user.role}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7일
-      document.cookie = `mock-company-id=${user.companyId}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7일
+      // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
+      // accessToken을 함께 전송하여 서버 측에서 검증 가능하도록 함
+      await setAuthCookies(user.role, user.companyId, accessToken);
       // eslint-disable-next-line no-console
       console.log('[Login] 쿠키 저장 완료:', {
         role: user.role,
