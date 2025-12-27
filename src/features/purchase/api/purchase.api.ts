@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuthStore } from '@/lib/store/authStore';
+import { getApiTimeout, getApiUrl } from '@/utils/api';
 
 /**
  * 백엔드 API 응답 타입
@@ -15,17 +16,15 @@ interface ApiResponse<T> {
  * 공통 API 요청 헬퍼 함수
  */
 async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
-  }
+  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
+  const apiUrl = getApiUrl();
 
   const { accessToken } = useAuthStore.getState();
   if (!accessToken) {
     throw new Error('인증 토큰이 없습니다. 로그인이 필요합니다.');
   }
 
-  const timeout = Number.parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000', 10);
+  const timeout = getApiTimeout();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
