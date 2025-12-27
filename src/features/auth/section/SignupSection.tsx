@@ -122,8 +122,10 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
 
   const onSubmit = async (values: SignupInput): Promise<void> => {
     try {
-      // eslint-disable-next-line no-console
-      console.log('[Signup] 회원가입 시도 시작:', { email: values.email, name: values.name });
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('[Signup] 회원가입 시도 시작');
+      }
       const { user, accessToken } = await signup({
         name: values.name,
         email: values.email,
@@ -132,31 +134,37 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
         businessNumber: values.businessNumber,
       });
 
-      // eslint-disable-next-line no-console
-      console.log('[Signup] 회원가입 API 성공:', { user, hasAccessToken: !!accessToken });
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('[Signup] 회원가입 API 성공:', { hasAccessToken: !!accessToken });
+      }
 
       setAuth({ user, accessToken });
-      // eslint-disable-next-line no-console
-      console.log('[Signup] 인증 정보 저장 완료');
 
       // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
       // accessToken을 함께 전송하여 서버 측에서 검증 가능하도록 함
-      await setAuthCookies(user.role, user.companyId, accessToken);
-      // eslint-disable-next-line no-console
-      console.log('[Signup] 쿠키 저장 완료:', {
-        role: user.role,
-        companyId: user.companyId,
-      });
+      try {
+        await setAuthCookies(user.role, user.companyId, accessToken);
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log('[Signup] 쿠키 저장 완료');
+        }
+      } catch (cookieError) {
+        // 쿠키 설정 실패 시 에러 처리
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[Signup] 쿠키 저장 실패:', cookieError);
+        }
+        throw new Error('인증 정보 저장에 실패했습니다. 다시 시도해주세요.');
+      }
 
       const redirectPath = `/${user.companyId}/products`;
-      // eslint-disable-next-line no-console
-      console.log('[Signup] 리다이렉트 시도:', redirectPath);
       router.push(redirectPath);
-      // eslint-disable-next-line no-console
-      console.log('[Signup] router.push 호출 완료');
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[Signup] 회원가입 실패:', error);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[Signup] 회원가입 실패:', error);
+      }
       const errorMessage =
         error instanceof Error ? error.message : '회원가입에 실패했습니다. 다시 시도해 주세요.';
       setToastMessage(errorMessage);
