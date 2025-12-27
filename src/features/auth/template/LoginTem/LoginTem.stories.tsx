@@ -2,9 +2,11 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { fn } from '@storybook/test';
 import { loginSchema, type LoginInput } from '@/features/auth/schemas/login.schema';
 import LoginTem from './LoginTem';
+
+// Mock function for Storybook (replaces @storybook/test fn)
+const fn = () => () => {};
 
 const meta = {
   title: 'Features/Auth/Template/LoginTem',
