@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import PurchaseRequestDetailTem from '@/features/purchase/template/PurchaseRequestDetailTem/PurchaseRequestDetailTem';
 import {
-  managePurchaseRequests,
+  getPurchaseRequestDetail,
   approvePurchaseRequest,
   rejectPurchaseRequest,
   getBudget,
@@ -45,13 +45,7 @@ const PurchaseRequestDetailSection = () => {
       if (!requestId) {
         throw new Error('Request ID is required');
       }
-      // TODO: 상세 조회 API가 있다면 사용, 현재는 목록에서 필터링
-      const result = await managePurchaseRequests({ page: 1, size: 100 });
-      const request = result.purchaseRequests.find((r) => r.id === requestId);
-      if (!request) {
-        throw new Error('Purchase request not found');
-      }
-      return request;
+      return getPurchaseRequestDetail(requestId);
     },
     enabled: !!requestId,
   });
