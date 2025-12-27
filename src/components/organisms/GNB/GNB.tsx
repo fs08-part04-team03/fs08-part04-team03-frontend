@@ -15,37 +15,37 @@ import { GNBCategorySwitcher } from '@/components/molecules/GNBCategorySwitcher/
 import { SideBarMenu } from '@/components/organisms/SideBarMenu/SideBarMenu';
 
 export interface GNBProps {
-  /** 사용자 역할 (user | manager | admin) */
+  /** 사용자 역할 */
   role: UserRole;
 
-  /** GNB 우측에 표시할 유저 프로필 컴포넌트 (태블릿/데스크탑에서만 사용) */
+  /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
   userProfile?: React.ReactNode;
 
   /** 장바구니에 담긴 상품 개수 */
   cartCount?: number;
 
-  /** 로그아웃 클릭 시 호출되는 콜백 (데스크탑 Only) */
+  /** 로그아웃 콜백 */
   onLogout?: () => void;
 
-  /** 햄버거 메뉴 클릭 시 호출되는 콜백 (모바일/태블릿) */
+  /** 햄버거 메뉴 클릭 콜백 */
   onMenuClick?: () => void;
 
-  /** 네비게이션 아이템 클릭 시 호출되는 콜백 */
+  /** 네비게이션 아이템 클릭 콜백 */
   onNavItemClick?: (key: AppRouteKey) => void;
 
-  /** 현재 활성 경로 (pathname 대신 사용 가능) */
+  /** 현재 활성 경로 */
   activePath?: string;
 
-  /** 대분류 카테고리 리스트 (모바일 카테고리 스위처용) */
+  /** 대분류 카테고리 리스트 */
   categories?: ParentCategoryOption[];
 
-  /** 현재 선택된 카테고리 ID (모바일 카테고리 스위처용) */
+  /** 현재 선택된 카테고리 ID */
   activeCategoryId?: ParentCategoryKey;
 
-  /** 상품의 대분류 ID (상품 상세 페이지에서 사용) */
+  /** 상품의 대분류 ID */
   productCategoryId?: ParentCategoryKey;
 
-  /** 카테고리 변경 시 호출되는 콜백 */
+  /** 카테고리 변경 콜백 */
   onCategoryChange?: (id: ParentCategoryKey) => void;
 
   /** GNB 컨테이너 className */
@@ -56,8 +56,6 @@ export interface GNBProps {
  * GNB (Global Navigation Bar)
  *
  * 반응형 전역 네비게이션 바 컴포넌트
- * - 모바일: Brand | CategorySwitcher | UserActions
- * - 태블릿/데스크탑: Brand | PrimaryNav | UserActions
  */
 const GNB: React.FC<GNBProps> = ({
   role,
@@ -79,12 +77,8 @@ const GNB: React.FC<GNBProps> = ({
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // activePath가 없으면 pathname 사용
   const currentActivePath = activePath ?? pathname ?? '';
 
-  const hasCategories = categories.length > 0 && activeCategoryId && onCategoryChange;
-
-  // 데스크탑 뷰포트에서는 사이드바 자동 닫기
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -93,7 +87,6 @@ const GNB: React.FC<GNBProps> = ({
     };
 
     window.addEventListener('resize', handleResize);
-    // 초기 로드 시에도 체크
     handleResize();
 
     return () => window.removeEventListener('resize', handleResize);
@@ -104,43 +97,37 @@ const GNB: React.FC<GNBProps> = ({
     onMenuClick?.();
   };
 
-  const handleSidebarClose = () => {
+  const closeSidebar = () => {
     setIsSidebarOpen(false);
   };
 
   const handleNavItemClick = (key: AppRouteKey) => {
-    handleSidebarClose();
+    closeSidebar();
     onNavItemClick?.(key);
   };
 
-  const handleProfileClick = () => {
-    handleSidebarClose();
-  };
-
   const handleSidebarLogout = () => {
-    handleSidebarClose();
+    closeSidebar();
     onLogout?.();
   };
 
   return (
     <div
       className={clsx(
+        'gnb-container',
         'sticky top-0 z-header',
         'w-full h-56',
         'bg-white border-b border-gray-200',
         'flex items-center justify-between',
-        'px-16 tablet:px-24 desktop:px-32',
+        'px-14 tablet:px-24',
         className
       )}
     >
-      {/* 왼쪽: Brand */}
       <div className="flex items-center shrink-0">
         <GNBBrand />
       </div>
 
-      {/* 중앙: PrimaryNav (데스크탑) 또는 CategorySwitcher (모바일) */}
-      <div className="flex-1 flex items-center justify-start desktop:ml-40">
-        {/* 데스크탑: PrimaryNav */}
+      <div className="flex-1 flex items-center justify-start desktop:ml-10">
         <GNBPrimaryNav
           role={role}
           companyId={companyId}
@@ -148,8 +135,7 @@ const GNB: React.FC<GNBProps> = ({
           onItemClick={onNavItemClick}
         />
 
-        {/* 모바일: CategorySwitcher */}
-        {hasCategories && (
+        {categories.length > 0 && activeCategoryId && onCategoryChange && (
           <div className="flex-1 flex items-center justify-center tablet:hidden">
             <GNBCategorySwitcher
               categories={categories}
@@ -161,7 +147,6 @@ const GNB: React.FC<GNBProps> = ({
         )}
       </div>
 
-      {/* 오른쪽: UserActions */}
       <div className="flex items-center shrink-0">
         <GNBUserActions
           companyId={companyId}
@@ -172,19 +157,16 @@ const GNB: React.FC<GNBProps> = ({
         />
       </div>
 
-      {/* SideBarMenu (모바일/태블릿 전용) */}
-      <div className="desktop:hidden">
-        <SideBarMenu open={isSidebarOpen} onClose={handleSidebarClose}>
-          <GNBPrimaryNavSidebar
-            role={role}
-            companyId={companyId}
-            activePath={currentActivePath}
-            onItemClick={handleNavItemClick}
-            onProfileClick={handleProfileClick}
-            onLogout={onLogout ? handleSidebarLogout : undefined}
-          />
-        </SideBarMenu>
-      </div>
+      <SideBarMenu open={isSidebarOpen} onClose={closeSidebar}>
+        <GNBPrimaryNavSidebar
+          role={role}
+          companyId={companyId}
+          activePath={currentActivePath}
+          onItemClick={handleNavItemClick}
+          onProfileClick={closeSidebar}
+          onLogout={onLogout ? handleSidebarLogout : undefined}
+        />
+      </SideBarMenu>
     </div>
   );
 };
