@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
 import type { UserRole } from '@/constants/roles';
 
 /**
@@ -35,13 +36,68 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // accessToken 검증: 백엔드 API를 통해 사용자 정보 확인
+    // accessToken 검증: JWT 토큰을 검증하고 디코딩하여 사용자 정보 확인
     // 이렇게 하면 클라이언트가 임의의 role과 companyId를 보내는 것을 방지할 수 있습니다.
-    // TODO: 백엔드 API에 사용자 정보 검증 엔드포인트가 있다면 여기서 검증하세요.
-    // 예: const userInfo = await verifyToken(accessToken);
-    //     if (userInfo.role !== role || userInfo.companyId !== companyId) {
-    //       return NextResponse.json({ success: false, message: '인증 정보가 일치하지 않습니다.' }, { status: 403 });
-    //     }
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      // eslint-disable-next-line no-console
+      console.error('JWT_SECRET 환경 변수가 설정되지 않았습니다.');
+      return NextResponse.json(
+        { success: false, message: '서버 설정 오류가 발생했습니다.' },
+        { status: 500 }
+      );
+    }
+
+    let decodedToken: jwt.JwtPayload;
+    try {
+      // JWT 토큰 검증 및 디코딩
+      decodedToken = jwt.verify(accessToken, jwtSecret) as jwt.JwtPayload;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('토큰 검증 실패:', error);
+      return NextResponse.json(
+        { success: false, message: '유효하지 않은 토큰입니다.' },
+        { status: 401 }
+      );
+    }
+
+    // 디코딩된 토큰에서 role과 companyId 추출
+    const tokenRole = decodedToken.role as string;
+    const tokenCompanyId = decodedToken.companyId as string;
+
+    if (!tokenRole || !tokenCompanyId) {
+      // eslint-disable-next-line no-console
+      console.error('토큰에 필수 정보가 없습니다:', { tokenRole, tokenCompanyId });
+      return NextResponse.json(
+        { success: false, message: '토큰에 필수 정보가 없습니다.' },
+        { status: 401 }
+      );
+    }
+
+    // 백엔드 role을 클라이언트 role로 정규화 (대소문자 무시)
+    const normalizeRole = (roleValue: string): UserRole => {
+      const upperRole = roleValue.toUpperCase();
+      if (upperRole === 'MANAGER') return 'manager';
+      if (upperRole === 'ADMIN') return 'admin';
+      return 'user';
+    };
+
+    const normalizedTokenRole = normalizeRole(tokenRole);
+
+    // 요청 body의 role과 companyId와 토큰의 값 비교
+    if (normalizedTokenRole !== role || tokenCompanyId !== companyId) {
+      // eslint-disable-next-line no-console
+      console.error('인증 정보 불일치:', {
+        tokenRole: normalizedTokenRole,
+        requestRole: role,
+        tokenCompanyId,
+        requestCompanyId: companyId,
+      });
+      return NextResponse.json(
+        { success: false, message: '인증 정보가 일치하지 않습니다.' },
+        { status: 403 }
+      );
+    }
 
     const response = NextResponse.json({ success: true });
 

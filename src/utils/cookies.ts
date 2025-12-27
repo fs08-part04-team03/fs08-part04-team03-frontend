@@ -27,8 +27,14 @@ export async function setAuthCookies(
     });
 
     if (!response.ok) {
-      const error = (await response.json()) as ErrorResponse;
-      throw new Error(error.message || '쿠키 설정에 실패했습니다.');
+      let errorMessage = '쿠키 설정에 실패했습니다.';
+      try {
+        const error = (await response.json()) as ErrorResponse;
+        errorMessage = error.message || errorMessage;
+      } catch {
+        // JSON 파싱 실패 시 기본 메시지 사용
+      }
+      throw new Error(errorMessage);
     }
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -48,8 +54,14 @@ export async function clearAuthCookies(): Promise<void> {
     });
 
     if (!response.ok) {
-      const error = (await response.json()) as ErrorResponse;
-      throw new Error(error.message || '쿠키 삭제에 실패했습니다.');
+      let errorMessage = '쿠키 삭제에 실패했습니다.';
+      try {
+        const error = (await response.json()) as ErrorResponse;
+        errorMessage = error.message || errorMessage;
+      } catch {
+        // JSON 파싱 실패 시 기본 메시지 사용
+      }
+      throw new Error(errorMessage);
     }
   } catch (error) {
     // eslint-disable-next-line no-console
