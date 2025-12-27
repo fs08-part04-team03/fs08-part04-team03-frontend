@@ -54,6 +54,24 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // 파일 크기 제한: 5MB (5 * 1024 * 1024 bytes)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024;
+      if (file.size > MAX_FILE_SIZE) {
+        setToastMessage('이미지 파일 크기는 5MB 이하여야 합니다.');
+        setShowToast(true);
+        // input 값 초기화
+        e.target.value = '';
+        return;
+      }
+
+      // 이미지 파일 타입 검증
+      if (!file.type.startsWith('image/')) {
+        setToastMessage('이미지 파일만 업로드 가능합니다.');
+        setShowToast(true);
+        e.target.value = '';
+        return;
+      }
+
       try {
         // 이전 preview URL 정리
         if (previewUrlRef.current) {
@@ -66,8 +84,10 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
         setPreview(newPreviewUrl);
         setProfileImage(file);
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('[SignupSection] 이미지 업로드 실패:', error);
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[SignupSection] 이미지 업로드 실패:', error);
+        }
         setToastMessage('이미지 업로드에 실패했습니다. 다시 시도해 주세요.');
         setShowToast(true);
       }
