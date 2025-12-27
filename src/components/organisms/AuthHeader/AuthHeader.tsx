@@ -13,11 +13,12 @@ interface AuthHeaderProps {
 const AuthHeader: React.FC<AuthHeaderProps> = ({ className }) => (
   <div
     className={clsx(
+      'auth-header-container',
       'sticky top-0 z-header',
       'w-full h-56',
       'bg-white border-b border-gray-200',
       'flex items-center justify-between',
-      'px-16 tablet:px-24 desktop:px-32',
+      'px-14 tablet:px-24',
       className
     )}
   >
