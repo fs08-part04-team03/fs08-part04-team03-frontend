@@ -1,7 +1,6 @@
-const PurchaseHistoryDetailPage = () => (
-  <div>
-    <p>MyPurchaseRequestDetailPage — 구매요청내역 상세 페이지</p>
-  </div>
-);
+// 내 구매 요청 상세 페이지
+import MyPurchaseRequestDetailSection from '@/features/purchase/section/MyPurchaseRequestDetailSection';
 
-export default PurchaseHistoryDetailPage;
+const MyPurchaseRequestDetailPage = () => <MyPurchaseRequestDetailSection />;
+
+export default MyPurchaseRequestDetailPage;

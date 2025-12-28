@@ -3,19 +3,19 @@ import { ROUTES, type AppRouteKey } from '@/constants/routes';
 
 /** 역할별 GNB 노출 메뉴 키 */
 export const ROLE_NAV_KEYS: Record<UserRole, AppRouteKey[]> = {
-  user: ['product-list', 'purchase-request-list', 'product-register-list'],
+  user: ['product-list', 'my-purchase-request-list', 'product-register-list'],
   manager: [
     'product-list',
-    'purchase-request-list',
+    'my-purchase-request-list',
     'product-register-list',
-    'purchase-request-manage',
+    'purchase-request-list-manager',
     'purchase-history-check',
   ],
   admin: [
     'product-list',
-    'purchase-request-list',
+    'my-purchase-request-list',
     'product-register-list',
-    'purchase-request-manage',
+    'purchase-request-list-manager',
     'purchase-history-check',
     'management',
   ],

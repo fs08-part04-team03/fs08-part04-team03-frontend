@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
 
-type ModalType = 'delete' | 'cancel' | 'approved' | 'rejected';
+type ModalType = 'delete' | 'cancel' | 'approved' | 'rejected' | 'budget-shortage';
 
 interface CustomModalProps {
   open: boolean;
@@ -13,9 +13,10 @@ interface CustomModalProps {
   cancelCount?: number;
   type: ModalType;
   onClose: () => void;
-  onConfirm?: () => void;
+  onConfirm?: () => void | Promise<void>;
   onHome?: () => void;
   onOrder?: () => void;
+  onBudgetRequest?: () => void;
 }
 
 const CustomModal = ({
@@ -27,6 +28,7 @@ const CustomModal = ({
   onConfirm,
   onHome,
   onOrder,
+  onBudgetRequest,
 }: CustomModalProps) => {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
@@ -42,6 +44,27 @@ const CustomModal = ({
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       onClose();
     }
+  };
+
+  const getPrimaryButtonClickHandler = (): (() => void) | undefined => {
+    if (type === 'approved' || type === 'rejected') {
+      return onOrder ?? onHome;
+    }
+    if (type === 'budget-shortage') {
+      return onBudgetRequest;
+    }
+    if (onConfirm) {
+      return () => {
+        Promise.resolve(onConfirm()).catch((error) => {
+          // 상위 컴포넌트에서 에러 처리를 담당
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('Modal confirm error:', error);
+          }
+        });
+      };
+    }
+    return undefined;
   };
 
   if (!open) return null;
@@ -73,6 +96,13 @@ const CustomModal = ({
       description: '요청이 반려되었어요!\n목록에서 다른 요청을 확인해보세요.',
       buttonLeft: '홈으로',
       buttonRight: '구매 요청 내역 보기',
+      icon: '/icons/red-i.svg',
+    },
+    'budget-shortage': {
+      title: '예산 부족',
+      description: '이번 달 남은 예산이 부족합니다.\n예산 증액을 요청해주세요.',
+      buttonLeft: '닫기',
+      buttonRight: '예산 증액 요청',
       icon: '/icons/red-i.svg',
     },
   };
@@ -111,8 +141,8 @@ const CustomModal = ({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* approved / rejected */}
-        {type === 'approved' || type === 'rejected' ? (
+        {/* approved / rejected / budget-shortage */}
+        {type === 'approved' || type === 'rejected' || type === 'budget-shortage' ? (
           <div className="flex flex-col items-center gap-5 mb-36">
             <h2 className={clsx('text-16 text-center tablet:text-18 desktop:text-18', 'font-bold')}>
               {content.title}
@@ -151,7 +181,12 @@ const CustomModal = ({
                   type === 'cancel' ? 'font-extrabold' : 'font-normal'
                 )}
               >
-                {type === 'cancel' ? `${productName} 외 ${cancelCount}건` : productName}
+                {(() => {
+                  if (type === 'cancel' && cancelCount > 0) {
+                    return `${productName} 외 ${cancelCount}건`;
+                  }
+                  return productName;
+                })()}
               </span>
             </div>
           </>
@@ -178,7 +213,7 @@ const CustomModal = ({
               'tablet:w-216 tablet:h-64 tablet:text-16',
               'desktop:w-216 desktop:h-64 desktop:text-16'
             )}
-            onClick={type === 'approved' || type === 'rejected' ? onOrder || onHome : onConfirm}
+            onClick={getPrimaryButtonClickHandler()}
           >
             {content.buttonRight}
           </Button>

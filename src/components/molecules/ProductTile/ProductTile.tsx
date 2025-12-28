@@ -28,14 +28,13 @@ export type ProductTileProps = ProductTileProductProps | ProductTileOrderProps;
 const ProductTile: React.FC<ProductTileProps> = (props) => {
   const { name, price, size = 'md', className, variant } = props;
 
-  // mobile → sm / md,tablet 이상 → 데스크탑 스타일로 확대
   // 상품명
   const nameClass =
     size === 'sm'
       ? 'text-14 leading-22 tracking--0.35'
       : 'text-16 leading-24 tracking--0.4 tablet:text-18 tablet:leading-26 tablet:tracking--0.45';
 
-  // 보조정보 (구매횟수 / 수량 / 배송비)
+  // 보조정보
   const subClass =
     size === 'sm'
       ? 'text-13 leading-18 tracking--0.3'
@@ -47,7 +46,6 @@ const ProductTile: React.FC<ProductTileProps> = (props) => {
       ? 'text-14 leading-22 tracking--0.35'
       : 'text-16 leading-24 tracking--0.4 tablet:text-18 tablet:leading-26 tablet:tracking--0.45';
 
-  // META (구매횟수 / 수량 / 배송비)
   let subNode: React.ReactNode = null;
   let purchaseCountNode: React.ReactNode = null;
   let orderSubNode: React.ReactNode = null;
@@ -89,15 +87,15 @@ const ProductTile: React.FC<ProductTileProps> = (props) => {
     if (variant === 'product' && purchaseCountNode) {
       return (
         <>
-          {/* 모바일 */}
-          <div className="flex flex-col gap-2 tablet:hidden">
+          {/* 모바일 + 태블릿 */}
+          <div className="flex flex-col gap-2 desktop:hidden">
             <h1 className={clsx('font-normal text-gray-950', nameClass)}>{name}</h1>
             <PriceText value={price} className={clsx('font-bold text-gray-950', priceClass)} />
             {subNode}
           </div>
 
-          {/* 데스크탑 (tablet 이상) */}
-          <div className="hidden tablet:flex tablet:flex-col tablet:gap-2">
+          {/* 데스크톱 */}
+          <div className="hidden desktop:flex desktop:flex-col desktop:gap-2">
             <div className="flex flex-row items-center gap-8">
               <h1 className={clsx('font-normal text-gray-950', nameClass)}>{name}</h1>
               {purchaseCountNode}
@@ -111,15 +109,15 @@ const ProductTile: React.FC<ProductTileProps> = (props) => {
     if (variant === 'order' && orderSubNode) {
       return (
         <>
-          {/* 모바일 */}
-          <div className="flex flex-col gap-2 tablet:hidden">
+          {/* 모바일 + 태블릿 */}
+          <div className="flex flex-col gap-2 desktop:hidden">
             <h1 className={clsx('font-normal text-gray-950', nameClass)}>{name}</h1>
             <PriceText value={price} className={clsx('font-bold text-gray-950', priceClass)} />
             {orderSubNode}
           </div>
 
-          {/* 데스크탑 */}
-          <div className="hidden tablet:flex tablet:flex-col tablet:gap-2">
+          {/* 데스크톱 */}
+          <div className="hidden desktop:flex desktop:flex-col desktop:gap-2">
             <div className="flex flex-row items-center gap-8">
               <h1 className={clsx('font-normal text-gray-950', nameClass)}>{name}</h1>
               {orderSubNodeInline}
