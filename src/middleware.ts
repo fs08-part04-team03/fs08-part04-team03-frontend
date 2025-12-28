@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { hasAccess } from '@/utils/auth';
 import type { UserRole } from '@/constants/roles';
+import { VALID_ROLES } from '@/constants/roles';
 
 /**
  * 인증된 사용자 정보를 쿠키에서 가져옵니다.
@@ -12,7 +13,7 @@ function getAuthUser(request: NextRequest): { role: UserRole; companyId: string 
   const role = request.cookies.get('auth-role')?.value as UserRole | undefined;
   const companyId = request.cookies.get('auth-company-id')?.value;
 
-  if (role && companyId && ['user', 'manager', 'admin'].includes(role)) {
+  if (role && companyId && VALID_ROLES.includes(role)) {
     return { role, companyId };
   }
 

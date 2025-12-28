@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import jwt from 'jsonwebtoken';
 import type { UserRole } from '@/constants/roles';
+import { VALID_ROLES } from '@/constants/roles';
 
 /**
  * 인증 쿠키 설정 API Route
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     // role 유효성 검증
-    if (!['user', 'manager', 'admin'].includes(role)) {
+    if (!VALID_ROLES.includes(role)) {
       return NextResponse.json(
         { success: false, message: '유효하지 않은 role입니다.' },
         { status: 400 }
