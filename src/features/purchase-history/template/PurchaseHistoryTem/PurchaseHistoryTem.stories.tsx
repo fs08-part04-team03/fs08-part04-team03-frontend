@@ -168,7 +168,7 @@ export const WithPagination: Story = {
         `2025-07-${String(i + 2).padStart(2, '0')}T00:00:00.000Z`,
         i % 4 === 0,
         `사용자${i + 1}`,
-        i % 3 === 0 ? undefined : Object.values(approvers)[i % 3]
+        i % 3 === 0 ? undefined : Object.values(approvers)[(i % 3) - 1]
       )
     ),
     companyId: 'company-1',
@@ -215,7 +215,7 @@ export const EmptyList: Story = {
     docs: {
       description: {
         story:
-          '구매 내역이 없는 상태입니다.\n\n**상단 통계:**\n- PurchaseHistoryListTopOrg 컴포넌트 표시\n- 모든 지출액이 0원\n- 예산은 설정되어 있지만 사용하지 않은 상태\n\n**하단 영역:**\n- PurchaseHistoryListBottomOrg는 숨김\n- StatusNotice 컴포넌트로 빈 상태 메시지 표시\n- 제목: "구매 내역이 없어요"\n- 설명: "구매 요청을 승인하고\\n상품을 주문해 보세요"\n- 버튼: "상품으로 이동" - 클릭 시 상품 리스트 페이지로 이동',
+          '구매 내역이 없는 상태입니다.\n\n**상단 통계:**\n- PurchaseHistoryListTopOrg 컴포넌트 표시\n- 모든 지출액이 0원\n- 예산은 설정되어 있지만 사용하지 않은 상태\n\n**하단 영역:**\n- PurchaseHistoryListOrg는 숨김\n- StatusNotice 컴포넌트로 빈 상태 메시지 표시\n- 제목: "구매 내역이 없어요"\n- 설명: "구매 요청을 승인하고\\n상품을 주문해 보세요"\n- 버튼: "상품으로 이동" - 클릭 시 상품 리스트 페이지로 이동',
       },
     },
   },

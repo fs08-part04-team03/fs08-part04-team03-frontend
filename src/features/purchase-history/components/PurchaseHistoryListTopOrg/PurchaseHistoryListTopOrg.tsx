@@ -69,7 +69,7 @@ export const PurchaseHistoryListTopOrg: React.FC<PurchaseHistoryListTopOrgProps>
             <p className="text-14 tablet:text-14 desktop:text-16 text-gray-600">
               지난 달 예산은
               <br />
-              <PriceText value={lastMonthBudget} className="text-gray-600" /> 이였어요
+              <PriceText value={lastMonthBudget} className="text-gray-600" /> 이었어요
             </p>
           </div>
 
