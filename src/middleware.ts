@@ -2,17 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { hasAccess } from '@/utils/auth';
 import type { UserRole } from '@/constants/roles';
+import { VALID_ROLES } from '@/constants/roles';
 
 /**
- * 개발 환경에서 사용할 mock 사용자 정보
- * TODO: 실제 인증 시스템 구현 후 제거
+ * 인증된 사용자 정보를 쿠키에서 가져옵니다.
+ * HttpOnly 쿠키로 안전하게 저장된 인증 정보를 읽습니다.
  */
-function getMockUser(request: NextRequest): { role: UserRole; companyId: string } | null {
-  // 개발 중에는 쿠키나 헤더에서 역할을 가져올 수 있도록 설정 예) 쿠키에서 역할 가져오기
-  const role = request.cookies.get('mock-role')?.value as UserRole | undefined;
-  const companyId = request.cookies.get('mock-company-id')?.value;
+function getAuthUser(request: NextRequest): { role: UserRole; companyId: string } | null {
+  // 서버 측에서 설정된 HttpOnly 쿠키에서 인증 정보 가져오기
+  const role = request.cookies.get('auth-role')?.value as UserRole | undefined;
+  const companyId = request.cookies.get('auth-company-id')?.value;
 
-  if (role && companyId && ['user', 'manager', 'admin'].includes(role)) {
+  if (role && companyId && VALID_ROLES.includes(role)) {
     return { role, companyId };
   }
 
@@ -36,7 +37,7 @@ export function middleware(request: NextRequest) {
 
   // [companyId] 스코프 경로인 경우 권한 검증 예: '/123', '/123/products', '/123/admin/users' 등
   if (pathname.match(/^\/[^/]+/)) {
-    const user = getMockUser(request);
+    const user = getAuthUser(request);
 
     // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
     if (!user) {

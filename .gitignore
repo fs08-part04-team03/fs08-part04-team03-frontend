@@ -43,6 +43,9 @@ Thumbs.db
 # Testing
 coverage/
 
+# Mocks
+mocks/
+
 # Documentation
 docs/
 

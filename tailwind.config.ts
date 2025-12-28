@@ -8,7 +8,7 @@ const config: Config = {
   ],
   theme: {
     screens: {
-      tablet: '768px',
+      tablet: '744px',
       desktop: '1024px',
     },
   },

@@ -44,6 +44,10 @@ body {
 /* Tailwind CSS 4 @theme 블록 - 디자인 토큰 정의 */
 /* stylelint-disable-next-line at-rule-no-unknown */
 @theme {
+  /* Breakpoints */
+  --breakpoint-tablet: 744px;
+  --breakpoint-desktop: 1024px;
+
   /* Z-Index 레이어 토큰 */
   --z-base: 1;
   --z-header: 10;
@@ -201,6 +205,7 @@ body {
   --spacing-110: 110px;
   --spacing-120: 120px;
   --spacing-126: 126px;
+  --spacing-128: 128px;
   --spacing-130: 130px;
   --spacing-140: 140px;
   --spacing-152: 152px;
@@ -218,6 +223,7 @@ body {
   --spacing-200: 200px;
   --spacing-216: 216px;
   --spacing-219: 219px;
+  --spacing-222: 222px;
   --spacing-225: 225px;
   --spacing-241: 241px;
   --spacing-242: 242px;
@@ -233,6 +239,7 @@ body {
   --spacing-310: 310px;
   --spacing-315: 315px;
   --spacing-319: 319px;
+  --spacing-325: 325px;
   --spacing-326\.5: 326.5px;
   --spacing-327: 327px;
   --spacing-328: 328px;
@@ -259,8 +266,10 @@ body {
   --spacing-500: 500px;
   --spacing-512: 512px;
   --spacing-516: 516px;
+  --spacing-522: 522px;
   --spacing-540: 540px;
   --spacing-600: 600px;
+  --spacing-604: 604px;
   --spacing-610: 610px;
   --spacing-636: 636px;
   --spacing-656: 656px;
@@ -270,6 +279,9 @@ body {
   --spacing-740: 740px;
   --spacing-750: 750px;
   --spacing-768: 768px;
+  --spacing-938: 938px;
+  --spacing-950: 950px;
+  --spacing-1045: 1045px;
   --spacing-1052: 1052px;
   --spacing-1150: 1150px;
   --spacing-1152: 1152px;
@@ -280,13 +292,9 @@ body {
   --spacing-1352: 1352px;
   --spacing-1400: 1400px;
 
-  /* 브레이크포인트 */
-  --breakpoint-mobile: 0px;
-  --breakpoint-tablet: 768px;
-  --breakpoint-desktop: 1024px;
-
   /* Border Radius */
   --radius-default: 2px;
+  --radius-4: 4px;
   --radius-6: 6px;
   --radius-8: 8px;
   --radius-100: 100px;
@@ -333,6 +341,15 @@ body {
 }
 
 @layer utilities {
+  /* Header 데스크탑 패딩 (GNB & AuthHeader) */
+  @media (min-width: 1024px) {
+    .gnb-container,
+    .auth-header-container {
+      padding-left: 100px !important;
+      padding-right: 100px !important;
+    }
+  }
+
   .scrollbar-none {
     scrollbar-width: none;
     -ms-overflow-style: none;
