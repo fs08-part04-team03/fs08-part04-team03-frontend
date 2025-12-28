@@ -41,12 +41,12 @@ const InfoRowTwoColumns = ({ label1, value1, label2, value2 }: InfoRowTwoColumns
   <>
     {/* Mobile: 두 행으로 분리 */}
     <div className="grid grid-cols-[140px_1fr] border-b border-gray-100 tablet:hidden">
-      <p className="text-14 border-r border-gray-100 py-8 px-20">{label1}</p>
-      <p className="text-14 py-8 px-20">{value1}</p>
+      <p className="text-14 border-r border-gray-100 py-8 px-16 tablet:px-20">{label1}</p>
+      <p className="text-14 py-8 px-16 tablet:px-20">{value1}</p>
     </div>
     <div className="grid grid-cols-[140px_1fr] border-b border-gray-100 tablet:hidden">
-      <p className="text-14 border-r border-gray-100 py-8 px-20">{label2}</p>
-      <p className="text-14 py-8 px-20">{value2}</p>
+      <p className="text-14 border-r border-gray-100 py-8 px-16 tablet:px-20">{label2}</p>
+      <p className="text-14 py-8 px-16 tablet:px-20">{value2}</p>
     </div>
 
     {/* Tablet/Desktop: 한 행에 2x2 그리드 */}
@@ -70,8 +70,10 @@ const InfoRowSingle = ({ label, value, fullWidth = false }: InfoRowSingleProps) 
   <div
     className={`grid ${fullWidth ? 'grid-cols-[140px_3fr]' : 'grid-cols-[140px_1fr]'} border-b border-gray-100`}
   >
-    <p className="text-14 tablet:text-16 border-r border-gray-100 py-8 px-20">{label}</p>
-    <p className="text-14 tablet:text-16 py-8 px-20 wrap-break-word">{value}</p>
+    <p className="text-14 tablet:text-16 border-r border-gray-100 py-8 px-16 tablet:px-20">
+      {label}
+    </p>
+    <p className="text-14 tablet:text-16 py-8 px-16 tablet:px-20 wrap-break-word">{value}</p>
   </div>
 );
 
@@ -83,15 +85,17 @@ interface RequestInfoProps {
 }
 
 const RequestInfo = ({ requester, createdAt, requestMessage }: RequestInfoProps) => (
-  <InfoSection title="요청 정보">
-    <InfoRowTwoColumns
-      label1="요청인"
-      value1={requester.name}
-      label2="요청 날짜"
-      value2={<DateText date={createdAt} className="text-14 tablet:text-16" />}
-    />
-    {requestMessage && <InfoRowSingle label="요청 메시지" value={requestMessage} fullWidth />}
-  </InfoSection>
+  <div className="pt-30">
+    <InfoSection title="요청 정보">
+      <InfoRowTwoColumns
+        label1="요청인"
+        value1={requester.name}
+        label2="요청 날짜"
+        value2={<DateText date={createdAt} className="text-14 tablet:text-16" />}
+      />
+      {requestMessage && <InfoRowSingle label="요청 메시지" value={requestMessage} fullWidth />}
+    </InfoSection>
+  </div>
 );
 
 // ApprovedInfo 섹션
@@ -131,8 +135,7 @@ const PurchaseHistoryDetailInfoOrg = ({
   purchaseRequest,
   approvedInfo,
 }: PurchaseHistoryDetailInfoOrgProps) => (
-  <div className="flex flex-col gap-30 desktop:gap-50">
-    <Divider className="my-16" />
+  <div className="flex flex-col gap-30 w-full px-24 tablet:px-0 tablet:w-696 desktop:w-1200 desktop:mx-0">
     <RequestInfo
       requester={purchaseRequest.requester}
       createdAt={purchaseRequest.createdAt}
