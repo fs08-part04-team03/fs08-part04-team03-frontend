@@ -48,15 +48,19 @@ const CustomModal = ({
 
   const getPrimaryButtonClickHandler = (): (() => void) | undefined => {
     if (type === 'approved' || type === 'rejected') {
-      return (onOrder || onHome) as (() => void) | undefined;
+      return onOrder ?? onHome;
     }
     if (type === 'budget-shortage') {
       return onBudgetRequest;
     }
     if (onConfirm) {
       return () => {
-        Promise.resolve(onConfirm()).catch(() => {
-          // 에러는 무시 (이미 상위에서 처리됨)
+        Promise.resolve(onConfirm()).catch((error) => {
+          // 상위 컴포넌트에서 에러 처리를 담당
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('Modal confirm error:', error);
+          }
         });
       };
     }
