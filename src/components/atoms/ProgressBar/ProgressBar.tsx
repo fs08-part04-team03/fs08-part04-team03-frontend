@@ -53,7 +53,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
       {/* ProgressBar 본체 */}
       <div
         className={clsx(
-          'flex items-center justify-between h-17 tablet:h-17 mobile:h-15',
+          'flex items-center gap-5 desktop:gap-10 tablet:gap-8 h-17 tablet:h-17 mobile:h-15',
           containerWidthClass
         )}
         role="progressbar"
