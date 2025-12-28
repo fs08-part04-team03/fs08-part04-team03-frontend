@@ -18,8 +18,8 @@ interface UsePurchaseItemReturn {
   itemDescription: string;
   totalQuantity: number;
   isUrgent: boolean;
-  handleRowClick: () => void;
-  handleRowKeyDown: (e: React.KeyboardEvent) => void;
+  handleItemClick: () => void;
+  handleItemKeyDown: (e: React.KeyboardEvent) => void;
 }
 
 const usePurchaseItem = (item: PurchaseRequestItem, companyId: string): UsePurchaseItemReturn => {
@@ -37,26 +37,26 @@ const usePurchaseItem = (item: PurchaseRequestItem, companyId: string): UsePurch
 
   const isUrgent = item.urgent === true;
 
-  const handleRowClick = useCallback(() => {
+  const handleItemClick = useCallback(() => {
     router.push(`/${companyId}/purchase-history/${item.id}`);
   }, [router, companyId, item.id]);
 
-  const handleRowKeyDown = useCallback(
+  const handleItemKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        handleRowClick();
+        handleItemClick();
       }
     },
-    [handleRowClick]
+    [handleItemClick]
   );
 
   return {
     itemDescription,
     totalQuantity,
     isUrgent,
-    handleRowClick,
-    handleRowKeyDown,
+    handleItemClick,
+    handleItemKeyDown,
   };
 };
 
@@ -75,22 +75,24 @@ export const PurchaseHistoryRowOrg: React.FC<PurchaseHistoryRowOrgProps> = ({
   companyId,
   isFirst = false,
 }) => {
-  const { itemDescription, totalQuantity, isUrgent, handleRowClick, handleRowKeyDown } =
+  const { itemDescription, totalQuantity, isUrgent, handleItemClick, handleItemKeyDown } =
     usePurchaseItem(item, companyId);
 
   return (
     <>
       {/* Mobile: Card Layout */}
       <div
-        role="button"
-        tabIndex={0}
-        className={`w-full border-b border-gray-200 ${isFirst ? 'border-t border-gray-200' : ''} cursor-pointer hover:bg-gray-50 flex flex-col tablet:hidden`}
-        onClick={handleRowClick}
-        onKeyDown={handleRowKeyDown}
+        className={`w-full border-b border-gray-200 ${isFirst ? 'border-t border-gray-200' : ''} flex flex-col tablet:hidden`}
       >
         {/* Mobile Header */}
         <div className="flex items-center justify-between px-16 py-8 border-b border-gray-200">
-          <div className="flex items-center gap-8">
+          <div
+            role="button"
+            tabIndex={0}
+            className="flex items-center gap-8 cursor-pointer hover:opacity-70 transition-opacity"
+            onClick={handleItemClick}
+            onKeyDown={handleItemKeyDown}
+          >
             <span className="text-14 font-bold text-gray-950">{itemDescription}</span>
             <span className="text-12 text-gray-500">총수량 {totalQuantity}개</span>
           </div>
@@ -125,15 +127,17 @@ export const PurchaseHistoryRowOrg: React.FC<PurchaseHistoryRowOrgProps> = ({
 
       {/* Tablet: Card Layout */}
       <div
-        role="button"
-        tabIndex={0}
-        className={`w-full border-b border-gray-200 ${isFirst ? 'border-t border-gray-200' : ''} cursor-pointer hover:bg-gray-50 hidden tablet:flex desktop:hidden flex-col`}
-        onClick={handleRowClick}
-        onKeyDown={handleRowKeyDown}
+        className={`w-full border-b border-gray-200 ${isFirst ? 'border-t border-gray-200' : ''} hidden tablet:flex desktop:hidden flex-col`}
       >
         {/* Tablet Header */}
         <div className="flex items-center justify-between px-20 py-8 border-b border-gray-200">
-          <div className="flex items-center gap-8">
+          <div
+            role="button"
+            tabIndex={0}
+            className="flex items-center gap-8 cursor-pointer hover:opacity-70 transition-opacity"
+            onClick={handleItemClick}
+            onKeyDown={handleItemKeyDown}
+          >
             <span className="text-16 font-bold text-gray-950">{itemDescription}</span>
             <span className="text-12 text-gray-500">총수량 {totalQuantity}개</span>
           </div>
@@ -173,19 +177,19 @@ export const PurchaseHistoryRowOrg: React.FC<PurchaseHistoryRowOrgProps> = ({
       </div>
 
       {/* Desktop: Row Layout */}
-      <div
-        role="button"
-        tabIndex={0}
-        className="hidden desktop:grid desktop:grid-cols-[130px_160px_1fr_140px_120px_100px] desktop:gap-16 desktop:items-center desktop:h-100 w-full border-b border-gray-200 cursor-pointer hover:bg-gray-50"
-        onClick={handleRowClick}
-        onKeyDown={handleRowKeyDown}
-      >
+      <div className="hidden desktop:grid desktop:grid-cols-[130px_160px_1fr_140px_120px_100px] desktop:gap-16 desktop:items-center desktop:h-100 w-full border-b border-gray-200">
         <DateText date={item.createdAt} className="flex items-center h-100 text-16 px-40" />
         <div className="flex items-center gap-8">
           <span className="text-16 text-gray-950">{item.requester.name}</span>
           {isUrgent && <StatusTag variant="urgent" className="text-12" />}
         </div>
-        <div className="flex flex-col gap-4">
+        <div
+          role="button"
+          tabIndex={0}
+          className="flex flex-col gap-4 cursor-pointer hover:opacity-70 transition-opacity"
+          onClick={handleItemClick}
+          onKeyDown={handleItemKeyDown}
+        >
           <span className="text-16 text-gray-950">{itemDescription}</span>
           <span className="text-14 text-gray-500">총 수량 {totalQuantity}개</span>
         </div>
