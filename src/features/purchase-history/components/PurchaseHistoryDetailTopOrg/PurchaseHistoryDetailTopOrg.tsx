@@ -13,6 +13,69 @@ interface PurchaseHistoryDetailTopOrgProps {
   purchaseRequest: PurchaseRequestItem;
 }
 
+// 가격 행 컴포넌트
+interface PriceRowProps {
+  label: string;
+  value: number;
+  bold?: boolean;
+}
+
+const PriceRow = ({ label, value, bold = false }: PriceRowProps) => (
+  <div className="flex justify-between items-center">
+    <span className={`${bold ? 'text-18 font-bold text-gray-950' : 'text-16 text-gray-700'}`}>
+      {label}
+    </span>
+    <PriceText
+      value={value}
+      className={`${bold ? 'text-18 font-bold text-gray-950' : 'text-16 text-gray-700'}`}
+    />
+  </div>
+);
+
+// 구매 물품 목록 섹션
+interface PurchaseItemsListProps {
+  items: PurchaseRequestItem['purchaseItems'];
+}
+
+const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => (
+  <>
+    {items.map((item, index) => (
+      <React.Fragment key={item.id}>
+        <div className="my-16">
+          <OrderItemDetailCard
+            name={item.products.name}
+            unitPrice={item.priceSnapshot}
+            quantity={item.quantity}
+            imageSrc={item.products.image}
+          />
+        </div>
+        {index < items.length - 1 && <Divider />}
+      </React.Fragment>
+    ))}
+  </>
+);
+
+// 가격 요약 섹션
+interface PriceSummaryProps {
+  orderAmount: number;
+  shippingFee: number;
+  totalAmount: number;
+}
+
+const PriceSummary = ({ orderAmount, shippingFee, totalAmount }: PriceSummaryProps) => (
+  <>
+    <Divider />
+    <div className="flex flex-col tablet:gap-12 tablet:px-20 desktop:gap-12 desktop:px-20 pt-20">
+      <PriceRow label="주문금액" value={orderAmount} />
+      <PriceRow label="배송비" value={shippingFee} />
+      <div className="pt-8">
+        <PriceRow label="총 주문금액" value={totalAmount} bold />
+      </div>
+    </div>
+  </>
+);
+
+// 메인 컴포넌트
 export const PurchaseHistoryDetailTopOrg: React.FC<PurchaseHistoryDetailTopOrgProps> = ({
   purchaseRequest,
 }) => {
@@ -20,16 +83,18 @@ export const PurchaseHistoryDetailTopOrg: React.FC<PurchaseHistoryDetailTopOrgPr
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
-  const orderAmount = purchaseRequest.totalPrice - purchaseRequest.shippingFee;
-  const { shippingFee } = purchaseRequest;
-  const totalAmount = purchaseRequest.totalPrice;
+  const { totalPrice, shippingFee } = purchaseRequest;
+  const orderAmount = totalPrice - shippingFee;
+  const totalAmount = totalPrice;
 
   return (
-    <div className="flex flex-col gap-16 gap-y-30">
-      <h1 className="font-bold text-18">구매 내역 상세</h1>
-      <div className="flex items-center gap-10">
+    <div className="flex flex-col gap-30">
+      <div className="px-24 tablet:px-0">
+        <h1 className="font-bold text-18">구매 내역 상세</h1>
+      </div>
+      <div className="flex items-center gap-6 px-24 tablet:px-0">
         <p className="font-bold text-16">구매품목</p>
-        <p className="text-16"> 총 {purchaseRequest.purchaseItems.length}개</p>
+        <p className="text-16">총 {purchaseRequest.purchaseItems.length}개</p>
         <IconButton variant="default" size="sm" onClick={toggleOpen} aria-expanded={isOpen}>
           <Image
             alt="Arrow Up"
@@ -41,34 +106,13 @@ export const PurchaseHistoryDetailTopOrg: React.FC<PurchaseHistoryDetailTopOrgPr
         </IconButton>
       </div>
       {isOpen && (
-        <div className="flex flex-col px-0 tablet:px-20 desktop:px-60 py-30 tablet:py-30 desktop:py-40 tablet:w-696 desktop:w-1200 desktop:shadow-lg tablet:shadow-lg">
-          {purchaseRequest.purchaseItems.map((item, index) => (
-            <React.Fragment key={item.id}>
-              <OrderItemDetailCard
-                name={item.products.name}
-                unitPrice={item.priceSnapshot}
-                quantity={item.quantity}
-                imageSrc={item.products.image}
-              />
-              {index < purchaseRequest.purchaseItems.length - 1 && <Divider className="my-16" />}
-            </React.Fragment>
-          ))}
-
-          <Divider />
-          <div className="flex flex-col gap-12 px-20 pt-20">
-            <div className="flex justify-between items-center">
-              <span className="text-16 text-gray-700">주문금액</span>
-              <PriceText value={orderAmount} className="text-16 text-gray-700" />
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-16 text-gray-700">배송비</span>
-              <PriceText value={shippingFee} className="text-16 text-gray-700" />
-            </div>
-            <div className="flex justify-between items-center pt-8">
-              <span className="text-18 font-bold text-gray-950">총 주문금액</span>
-              <PriceText value={totalAmount} className="text-18 font-bold text-gray-950" />
-            </div>
-          </div>
+        <div className="flex flex-col w-full px-24 tablet:px-20 desktop:px-60 tablet:py-30 desktop:py-40 tablet:w-696 desktop:w-1200 desktop:shadow-lg tablet:shadow-lg">
+          <PurchaseItemsList items={purchaseRequest.purchaseItems} />
+          <PriceSummary
+            orderAmount={orderAmount}
+            shippingFee={shippingFee}
+            totalAmount={totalAmount}
+          />
         </div>
       )}
     </div>
