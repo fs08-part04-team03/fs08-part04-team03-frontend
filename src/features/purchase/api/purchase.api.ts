@@ -1,6 +1,8 @@
 'use client';
 
 import { useAuthStore } from '@/lib/store/authStore';
+import { getApiTimeout, getApiUrl } from '@/utils/api';
+import { PURCHASE_API_PATHS, BUDGET_API_PATHS } from '@/constants/purchase.constants';
 
 /**
  * 백엔드 API 응답 타입
@@ -15,17 +17,15 @@ interface ApiResponse<T> {
  * 공통 API 요청 헬퍼 함수
  */
 async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
-  }
+  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
+  const apiUrl = getApiUrl();
 
   const { accessToken } = useAuthStore.getState();
   if (!accessToken) {
     throw new Error('인증 토큰이 없습니다. 로그인이 필요합니다.');
   }
 
-  const timeout = Number.parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000', 10);
+  const timeout = getApiTimeout();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
@@ -130,7 +130,7 @@ export async function getAllPurchases(
   if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
-  const url = `/api/v1/purchase/admin/getAllPurchases${queryString ? `?${queryString}` : ''}`;
+  const url = `${PURCHASE_API_PATHS.ADMIN_GET_ALL_PURCHASES}${queryString ? `?${queryString}` : ''}`;
 
   const result = await fetchWithAuth<GetAllPurchasesResponse>(url, {
     method: 'GET',
@@ -153,7 +153,7 @@ export interface PurchaseNowResponse {
 }
 
 export async function purchaseNow(request: PurchaseNowRequest): Promise<PurchaseNowResponse> {
-  const result = await fetchWithAuth<PurchaseNowResponse>('/api/v1/purchase/admin/purchaseNow', {
+  const result = await fetchWithAuth<PurchaseNowResponse>(PURCHASE_API_PATHS.ADMIN_PURCHASE_NOW, {
     method: 'POST',
     body: JSON.stringify(request),
   });
@@ -252,11 +252,27 @@ export async function managePurchaseRequests(
   if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
-  const url = `/api/v1/purchase/admin/managePurchaseRequests${queryString ? `?${queryString}` : ''}`;
+  const url = `${PURCHASE_API_PATHS.ADMIN_MANAGE_PURCHASE_REQUESTS}${queryString ? `?${queryString}` : ''}`;
 
   const result = await fetchWithAuth<ManagePurchaseRequestsResponse>(url, {
     method: 'GET',
   });
+
+  return result.data;
+}
+
+/**
+ * 구매 요청 상세 조회 (관리자)
+ */
+export async function getPurchaseRequestDetail(
+  purchaseRequestId: string
+): Promise<PurchaseRequestItem> {
+  const result = await fetchWithAuth<PurchaseRequestItem>(
+    `${PURCHASE_API_PATHS.ADMIN_GET_PURCHASE_REQUEST_DETAIL}/${purchaseRequestId}`,
+    {
+      method: 'GET',
+    }
+  );
 
   return result.data;
 }
@@ -278,7 +294,7 @@ export async function approvePurchaseRequest(
   purchaseRequestId: string
 ): Promise<ApprovePurchaseRequestResponse> {
   const result = await fetchWithAuth<ApprovePurchaseRequestResponse>(
-    `/api/v1/purchase/admin/approvePurchaseRequest/${purchaseRequestId}`,
+    `${PURCHASE_API_PATHS.ADMIN_APPROVE_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',
     }
@@ -310,7 +326,7 @@ export async function rejectPurchaseRequest(
   request: RejectPurchaseRequestRequest
 ): Promise<RejectPurchaseRequestResponse> {
   const result = await fetchWithAuth<RejectPurchaseRequestResponse>(
-    `/api/v1/purchase/admin/rejectPurchaseRequest/${purchaseRequestId}`,
+    `${PURCHASE_API_PATHS.ADMIN_REJECT_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',
       body: JSON.stringify(request),
@@ -339,7 +355,7 @@ export interface ExpenseStatisticsResponse {
 
 export async function getExpenseStatistics(): Promise<ExpenseStatisticsResponse> {
   const result = await fetchWithAuth<ExpenseStatisticsResponse>(
-    '/api/v1/purchase/admin/expenseStatistics',
+    PURCHASE_API_PATHS.ADMIN_EXPENSE_STATISTICS,
     {
       method: 'GET',
     }
@@ -372,7 +388,7 @@ export interface PurchaseDashboardResponse {
  */
 export async function getPurchaseDashboard(): Promise<PurchaseDashboardResponse> {
   const result = await fetchWithAuth<PurchaseDashboardResponse>(
-    '/api/v1/purchase/admin/purchaseDashboard',
+    PURCHASE_API_PATHS.ADMIN_PURCHASE_DASHBOARD,
     {
       method: 'GET',
     }
@@ -414,7 +430,7 @@ export async function getMyPurchases(
   if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
-  const url = `/api/v1/purchase/user/getMyPurchases${queryString ? `?${queryString}` : ''}`;
+  const url = `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASES}${queryString ? `?${queryString}` : ''}`;
 
   const result = await fetchWithAuth<GetMyPurchasesResponse>(url, {
     method: 'GET',
@@ -446,7 +462,7 @@ export interface MyPurchaseDetail extends PurchaseRequestItem {
 
 export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<MyPurchaseDetail> {
   const result = await fetchWithAuth<MyPurchaseDetail>(
-    `/api/v1/purchase/user/getMyPurchaseDetail/${purchaseRequestId}`,
+    `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASE_DETAIL}/${purchaseRequestId}`,
     {
       method: 'GET',
     }
@@ -473,7 +489,7 @@ export async function requestPurchase(
   request: RequestPurchaseRequest
 ): Promise<RequestPurchaseResponse> {
   const result = await fetchWithAuth<RequestPurchaseResponse>(
-    '/api/v1/purchase/user/requestPurchase',
+    PURCHASE_API_PATHS.USER_REQUEST_PURCHASE,
     {
       method: 'POST',
       body: JSON.stringify(request),
@@ -501,7 +517,7 @@ export async function urgentRequestPurchase(
   request: UrgentRequestPurchaseRequest
 ): Promise<UrgentRequestPurchaseResponse> {
   const result = await fetchWithAuth<UrgentRequestPurchaseResponse>(
-    '/api/v1/purchase/user/urgentRequestPurchase',
+    PURCHASE_API_PATHS.USER_URGENT_REQUEST_PURCHASE,
     {
       method: 'POST',
       body: JSON.stringify(request),
@@ -556,7 +572,7 @@ export async function cancelPurchaseRequest(
   purchaseRequestId: string
 ): Promise<CancelPurchaseRequestResponse> {
   const result = await fetchWithAuth<CancelPurchaseRequestResponse>(
-    `/api/v1/purchase/user/cancelPurchaseRequest/${purchaseRequestId}`,
+    `${PURCHASE_API_PATHS.USER_CANCEL_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',
     }
@@ -581,9 +597,12 @@ export interface GetBudgetResponse {
  * @returns 회사의 총 예산(`budget`), 해당 기간의 월별 지출(`monthlySpending`), 남은 예산(`remainingBudget`)을 포함한 객체
  */
 export async function getBudget(companyId: string): Promise<GetBudgetResponse> {
-  const result = await fetchWithAuth<GetBudgetResponse>(`/api/v1/budget/${companyId}`, {
-    method: 'GET',
-  });
+  const result = await fetchWithAuth<GetBudgetResponse>(
+    `${BUDGET_API_PATHS.GET_BUDGET}/${companyId}`,
+    {
+      method: 'GET',
+    }
+  );
 
   return result.data;
 }

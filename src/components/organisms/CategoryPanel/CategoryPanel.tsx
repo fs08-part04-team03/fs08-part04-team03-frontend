@@ -33,9 +33,11 @@ export interface CategoryPanelProps {
 }
 
 type InternalPanelProps = CategoryPanelProps;
-
 type TabletDesktopPanelProps = Omit<CategoryPanelProps, 'activeSectionId'>;
 
+/* =========================
+   Mobile Panel
+========================= */
 const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
   sections,
   activeSectionId,
@@ -43,7 +45,6 @@ const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
   onChange,
   className,
 }) => {
-  // 1) 우선순위: activeSectionId (GNB 선택) > selectedValue로 역추론 > fallback(first)
   const activeSection = useMemo(() => {
     if (!sections?.length) return null;
 
@@ -75,7 +76,7 @@ const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
           'scroll-smooth scrollbar-none'
         )}
         style={{
-          WebkitOverflowScrolling: 'touch', // iOS 터치 스크롤
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         <div className={clsx('flex min-w-max px-16')}>
@@ -106,6 +107,9 @@ const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
   );
 };
 
+/* =========================
+   Tablet Panel
+========================= */
 const CategoryPanelTablet: React.FC<TabletDesktopPanelProps> = ({
   sections,
   selectedValue,
@@ -159,6 +163,11 @@ const CategoryPanelTablet: React.FC<TabletDesktopPanelProps> = ({
         className
       )}
     >
+      {/* 카테고리 타이틀 */}
+      <div className="mb-10 text-[18px] font-suit font-bold text-gray-primary-950 tracking-[-0.45px]">
+        카테고리
+      </div>
+
       {sections.map((section) => {
         const isOpen = openSectionId === section.id;
 
@@ -241,6 +250,9 @@ const CategoryPanelTablet: React.FC<TabletDesktopPanelProps> = ({
   );
 };
 
+/* =========================
+   Desktop Panel
+========================= */
 const CategoryPanelDesktop: React.FC<TabletDesktopPanelProps> = ({
   sections = [],
   selectedValue,
@@ -288,6 +300,11 @@ const CategoryPanelDesktop: React.FC<TabletDesktopPanelProps> = ({
 
   return (
     <section className={clsx('hidden desktop:flex w-180 bg-white', 'flex flex-col', className)}>
+      {/* 카테고리 타이틀 */}
+      <div className="mb-10 text-[18px] font-suit font-bold text-gray-primary-950 tracking-[-0.45px]">
+        카테고리
+      </div>
+
       {sections.map((section) => {
         const isOpen = openSectionId === section.id;
 
@@ -370,6 +387,9 @@ const CategoryPanelDesktop: React.FC<TabletDesktopPanelProps> = ({
   );
 };
 
+/* =========================
+   CategoryPanel Export
+========================= */
 export const CategoryPanel: React.FC<CategoryPanelProps> = ({
   sections,
   activeSectionId,

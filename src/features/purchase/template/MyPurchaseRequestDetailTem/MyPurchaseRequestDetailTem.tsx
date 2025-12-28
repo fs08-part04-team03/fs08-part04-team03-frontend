@@ -18,6 +18,10 @@ const MyPurchaseRequestDetailTem: React.FC<MyPurchaseRequestDetailTemProps> = ({
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
+  if (!companyId) {
+    return <div className="p-20 text-red-600">회사 정보를 불러올 수 없습니다.</div>;
+  }
+
   // ApprovedInfo에 필요한 값들을 계산 (my/ 경로에서는 ApprovedInfo만 표시)
   let resultMessage = '-';
   if (purchaseRequest.status === 'REJECTED' && purchaseRequest.rejectReason) {

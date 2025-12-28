@@ -1,6 +1,9 @@
-import type { LoginInput } from '@/features/auth/schemas/login.schema';
-import type { SignupInput } from '@/features/auth/schemas/signup.schema';
+import type { LoginInput, RefreshTokenInput } from '@/features/auth/schemas/login.schema';
+import type { SignupInput, InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import type { User } from '@/lib/store/authStore';
+import { useAuthStore } from '@/lib/store/authStore';
+import { AUTH_API_PATHS, HTTP_HEADERS } from '@/constants/auth.constants';
+import { getApiTimeout, getApiUrl } from '@/utils/api';
 
 /**
  * 회원가입 API 요청 타입 (confirmPassword 제외)
@@ -58,14 +61,12 @@ function normalizeRole(role: string): 'user' | 'manager' | 'admin' {
  * 로그인 API 호출
  */
 export async function login(credentials: LoginInput): Promise<{ user: User; accessToken: string }> {
-  // API URL 검증
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
-  }
+  // 실제 API 호출
+  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
+  const apiUrl = getApiUrl();
 
-  // 타임아웃 설정 (환경 변수 또는 기본값 10초)
-  const timeout = Number.parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000', 10);
+  // 타임아웃 설정 (환경 변수 또는 기본값)
+  const timeout = getApiTimeout();
 
   // AbortController 생성 및 타임아웃 설정
   const controller = new AbortController();
@@ -73,18 +74,32 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     controller.abort();
   }, timeout);
 
+  const requestUrl = `${apiUrl}${AUTH_API_PATHS.LOGIN}`;
+  const requestBody = {
+    email: credentials.email,
+    password: credentials.password,
+  };
+
+  // 개발 환경에서만 요청 정보 로그
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('로그인 API 요청:', {
+      url: requestUrl,
+      method: 'POST',
+      body: { ...requestBody, password: '***' }, // 비밀번호는 마스킹
+    });
+  }
+
   let response: Response;
   try {
-    response = await fetch(`${apiUrl}/api/auth/login`, {
+    response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
       },
-      body: JSON.stringify({
-        email: credentials.email,
-        password: credentials.password,
-      }),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
+      credentials: 'include', // CSRF 토큰을 위한 쿠키 포함
     });
   } catch (error) {
     // 타임아웃 또는 중단 에러 처리
@@ -92,27 +107,99 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     if (error instanceof Error && error.name === 'AbortError') {
       throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
     }
+    // 개발 환경에서만 에러 로그
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('로그인 API 요청 실패:', {
+        error,
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+        url: requestUrl,
+      });
+    }
+    // Failed to fetch 에러 처리
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      const errorMessage =
+        '서버에 연결할 수 없습니다.\n\n' +
+        '가능한 원인:\n' +
+        '1. 백엔드 서버가 실행되지 않았습니다.\n' +
+        '2. CORS 설정 문제일 수 있습니다.\n' +
+        '3. 네트워크 연결 문제일 수 있습니다.\n\n' +
+        '브라우저 개발자 도구의 Network 탭에서 자세한 에러를 확인해주세요.';
+      throw new Error(errorMessage);
+    }
     throw error;
   }
 
   // 응답을 받은 후 타임아웃 타이머 정리
   clearTimeout(timeoutId);
 
+  // 응답 본문을 먼저 읽어서 확인
+  const responseText = await response.text();
+
   // 응답이 JSON인지 확인
   const contentType = response.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
-    await response.text(); // 응답 본문 소비
+  if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
+    // 개발 환경에서만 상세 에러 로그
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('로그인 API 응답 형식 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+        body: responseText,
+        url: `${apiUrl}${AUTH_API_PATHS.LOGIN}`,
+      });
+    } else {
+      // 프로덕션에서는 민감한 정보 없이 요약만 로그
+      // eslint-disable-next-line no-console
+      console.error('로그인 API 응답 형식 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+      });
+    }
     throw new Error('서버 응답 형식이 올바르지 않습니다.');
   }
 
   let result: ApiResponse<LoginResponseData>;
   try {
-    result = (await response.json()) as ApiResponse<LoginResponseData>;
-  } catch {
+    result = JSON.parse(responseText) as ApiResponse<LoginResponseData>;
+  } catch (parseError) {
+    // 개발 환경에서만 상세 에러 로그
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('로그인 JSON 파싱 오류:', {
+        parseError,
+        responseText,
+        status: response.status,
+        statusText: response.statusText,
+      });
+    } else {
+      // 프로덕션에서는 민감한 정보 없이 요약만 로그
+      // eslint-disable-next-line no-console
+      console.error('로그인 JSON 파싱 오류:', {
+        parseError: parseError instanceof Error ? parseError.message : 'Unknown error',
+        status: response.status,
+        statusText: response.statusText,
+      });
+    }
     throw new Error('서버 응답을 파싱할 수 없습니다.');
   }
 
   if (!result.success || !response.ok) {
+    // 개발 환경에서만 상세 에러 로그
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('로그인 실패 응답:', {
+        success: result.success,
+        responseOk: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        message: result.message,
+        data: result.data,
+      });
+    }
     throw new Error(result.message || '로그인에 실패했습니다.');
   }
 
@@ -133,14 +220,11 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
 export async function signup(
   signupData: SignupRequest
 ): Promise<{ user: User; accessToken: string }> {
-  // API URL 검증
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
-  }
+  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
+  const apiUrl = getApiUrl();
 
-  // 타임아웃 설정 (환경 변수 또는 기본값 10초)
-  const timeout = Number.parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000', 10);
+  // 타임아웃 설정 (환경 변수 또는 기본값)
+  const timeout = getApiTimeout();
 
   // AbortController 생성 및 타임아웃 설정
   const controller = new AbortController();
@@ -150,10 +234,10 @@ export async function signup(
 
   let response: Response;
   try {
-    response = await fetch(`${apiUrl}/api/auth/signup`, {
+    response = await fetch(`${apiUrl}${AUTH_API_PATHS.ADMIN_REGISTER}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
       },
       body: JSON.stringify({
         name: signupData.name,
@@ -163,6 +247,7 @@ export async function signup(
         businessNumber: signupData.businessNumber,
       }),
       signal: controller.signal,
+      credentials: 'include', // CSRF 토큰을 위한 쿠키 포함
     });
   } catch (error) {
     // 타임아웃 또는 중단 에러 처리
@@ -170,27 +255,98 @@ export async function signup(
     if (error instanceof Error && error.name === 'AbortError') {
       throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
     }
+    // 개발 환경에서만 에러 로그
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('회원가입 API 요청 실패:', {
+        error,
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+        url: `${apiUrl}${AUTH_API_PATHS.ADMIN_REGISTER}`,
+      });
+    }
+    // Failed to fetch 에러 처리
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      const errorMessage =
+        '서버에 연결할 수 없습니다.\n\n' +
+        '가능한 원인:\n' +
+        '1. 백엔드 서버가 실행되지 않았습니다.\n' +
+        '2. CORS 설정 문제일 수 있습니다.\n' +
+        '3. 네트워크 연결 문제일 수 있습니다.\n\n' +
+        '브라우저 개발자 도구의 Network 탭에서 자세한 에러를 확인해주세요.';
+      throw new Error(errorMessage);
+    }
     throw error;
   }
 
   // 응답을 받은 후 타임아웃 타이머 정리
   clearTimeout(timeoutId);
 
+  // 응답 본문을 먼저 읽어서 확인
+  const responseText = await response.text();
+
   // 응답이 JSON인지 확인
   const contentType = response.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
-    await response.text(); // 응답 본문 소비
+  if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
+    // 개발 환경에서만 상세 에러 로그
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('회원가입 API 응답 형식 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+        body: responseText,
+        url: `${apiUrl}${AUTH_API_PATHS.ADMIN_REGISTER}`,
+      });
+    } else {
+      // 프로덕션에서는 민감한 정보 없이 요약만 로그
+      // eslint-disable-next-line no-console
+      console.error('회원가입 API 응답 형식 오류:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+      });
+    }
     throw new Error('서버 응답 형식이 올바르지 않습니다.');
   }
 
   let result: ApiResponse<SignupResponseData>;
   try {
-    result = (await response.json()) as ApiResponse<SignupResponseData>;
-  } catch {
+    result = JSON.parse(responseText) as ApiResponse<SignupResponseData>;
+  } catch (parseError) {
+    // 개발 환경에서만 상세 에러 로그
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('회원가입 JSON 파싱 오류:', {
+        parseError,
+        responseText,
+        status: response.status,
+        statusText: response.statusText,
+      });
+    } else {
+      // 프로덕션에서는 민감한 정보 없이 요약만 로그
+      // eslint-disable-next-line no-console
+      console.error('회원가입 JSON 파싱 오류:', {
+        parseError: parseError instanceof Error ? parseError.message : 'Unknown error',
+        status: response.status,
+        statusText: response.statusText,
+      });
+    }
     throw new Error('서버 응답을 파싱할 수 없습니다.');
   }
 
   if (!result.success || !response.ok) {
+    // 개발 환경에서만 상세 에러 로그
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('회원가입 실패 응답:', {
+        success: result.success,
+        responseOk: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        message: result.message,
+      });
+    }
     throw new Error(result.message || '회원가입에 실패했습니다.');
   }
 
@@ -218,14 +374,11 @@ interface InviteInfoResponseData {
  * @param inviteUrl - 초대 URL (예: "http://localhost:3000/invite?token=...")
  */
 export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoResponseData> {
-  // API URL 검증
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
-  }
+  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
+  const apiUrl = getApiUrl();
 
-  // 타임아웃 설정 (환경 변수 또는 기본값 10초)
-  const timeout = Number.parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '10000', 10);
+  // 타임아웃 설정 (환경 변수 또는 기본값)
+  const timeout = getApiTimeout();
 
   // AbortController 생성 및 타임아웃 설정
   const controller = new AbortController();
@@ -235,15 +388,16 @@ export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoRespon
 
   let response: Response;
   try {
-    response = await fetch(`${apiUrl}/api/v1/auth/invitation/verifyUrl`, {
+    response = await fetch(`${apiUrl}${AUTH_API_PATHS.INVITATION_VERIFY_URL}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
       },
       body: JSON.stringify({
         inviteUrl,
       }),
       signal: controller.signal,
+      credentials: 'include', // CSRF 토큰을 위한 쿠키 포함
     });
   } catch (error) {
     // 타임아웃 또는 중단 에러 처리
@@ -262,7 +416,7 @@ export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoRespon
 
   // 응답이 JSON인지 확인
   const contentType = response.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
+  if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
     // 개발 환경에서만 상세 에러 로그
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console
@@ -296,4 +450,267 @@ export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoRespon
   }
 
   return result.data;
+}
+
+/**
+ * 초대 회원가입 API 요청 타입 (confirmPassword 제외)
+ */
+type InviteSignupRequest = Omit<InviteSignupInput, 'confirmPassword'> & {
+  inviteToken: string; // 초대 토큰
+};
+
+/**
+ * 초대 회원가입 응답 데이터 타입
+ */
+interface InviteSignupResponseData {
+  user: {
+    id: string;
+    companyId: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+  accessToken: string;
+}
+
+/**
+ * 초대 회원가입 API 호출
+ */
+export async function inviteSignup(
+  signupData: InviteSignupRequest
+): Promise<{ user: User; accessToken: string }> {
+  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
+  const apiUrl = getApiUrl();
+
+  // 타임아웃 설정 (환경 변수 또는 기본값)
+  const timeout = getApiTimeout();
+
+  // AbortController 생성 및 타임아웃 설정
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}${AUTH_API_PATHS.REGISTER}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
+      },
+      body: JSON.stringify({
+        email: signupData.email,
+        password: signupData.password,
+        inviteToken: signupData.inviteToken,
+      }),
+      signal: controller.signal,
+      credentials: 'include', // CSRF 토큰을 위한 쿠키 포함
+    });
+  } catch (error) {
+    // 타임아웃 또는 중단 에러 처리
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+    }
+    // 개발 환경에서만 에러 로그
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('초대 회원가입 API 요청 실패:', {
+        error,
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+        url: `${apiUrl}${AUTH_API_PATHS.REGISTER}`,
+      });
+    }
+    // Failed to fetch 에러 처리
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      const errorMessage =
+        '서버에 연결할 수 없습니다.\n\n' +
+        '가능한 원인:\n' +
+        '1. 백엔드 서버가 실행되지 않았습니다.\n' +
+        '2. CORS 설정 문제일 수 있습니다.\n' +
+        '3. 네트워크 연결 문제일 수 있습니다.\n\n' +
+        '브라우저 개발자 도구의 Network 탭에서 자세한 에러를 확인해주세요.';
+      throw new Error(errorMessage);
+    }
+    throw error;
+  }
+
+  // 응답을 받은 후 타임아웃 타이머 정리
+  clearTimeout(timeoutId);
+
+  // 응답이 JSON인지 확인
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
+    await response.text(); // 응답 본문 소비
+    throw new Error('서버 응답 형식이 올바르지 않습니다.');
+  }
+
+  let result: ApiResponse<InviteSignupResponseData>;
+  try {
+    result = (await response.json()) as ApiResponse<InviteSignupResponseData>;
+  } catch {
+    throw new Error('서버 응답을 파싱할 수 없습니다.');
+  }
+
+  if (!result.success || !response.ok) {
+    // 개발 환경에서만 상세 에러 로그
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('초대 회원가입 실패 응답:', {
+        success: result.success,
+        responseOk: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        message: result.message,
+      });
+    }
+    throw new Error(result.message || '회원가입에 실패했습니다.');
+  }
+
+  return {
+    user: {
+      id: result.data.user.id,
+      email: result.data.user.email,
+      role: normalizeRole(result.data.user.role),
+      companyId: result.data.user.companyId,
+    },
+    accessToken: result.data.accessToken,
+  };
+}
+
+/**
+ * 토큰 재발급 응답 데이터 타입
+ */
+interface RefreshTokenResponseData {
+  accessToken: string;
+}
+
+/**
+ * 토큰 재발급 API 호출
+ */
+export async function refreshToken(
+  refreshTokenInput: RefreshTokenInput
+): Promise<{ accessToken: string }> {
+  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
+  const apiUrl = getApiUrl();
+
+  // 타임아웃 설정 (환경 변수 또는 기본값)
+  const timeout = getApiTimeout();
+
+  // AbortController 생성 및 타임아웃 설정
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}${AUTH_API_PATHS.REFRESH}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
+      },
+      body: JSON.stringify({
+        refreshToken: refreshTokenInput.refreshToken,
+      }),
+      signal: controller.signal,
+      credentials: 'include', // CSRF 토큰을 위한 쿠키 포함
+    });
+  } catch (error) {
+    // 타임아웃 또는 중단 에러 처리
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+    }
+    throw error;
+  }
+
+  // 응답을 받은 후 타임아웃 타이머 정리
+  clearTimeout(timeoutId);
+
+  // 응답이 JSON인지 확인
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
+    await response.text(); // 응답 본문 소비
+    throw new Error('서버 응답 형식이 올바르지 않습니다.');
+  }
+
+  let result: ApiResponse<RefreshTokenResponseData>;
+  try {
+    result = (await response.json()) as ApiResponse<RefreshTokenResponseData>;
+  } catch {
+    throw new Error('서버 응답을 파싱할 수 없습니다.');
+  }
+
+  if (!result.success || !response.ok) {
+    throw new Error(result.message || '토큰 재발급에 실패했습니다.');
+  }
+
+  return {
+    accessToken: result.data.accessToken,
+  };
+}
+
+/**
+ * 로그아웃 API 호출
+ */
+export async function logout(): Promise<void> {
+  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
+  const apiUrl = getApiUrl();
+
+  // 타임아웃 설정 (환경 변수 또는 기본값)
+  const timeout = getApiTimeout();
+
+  // AbortController 생성 및 타임아웃 설정
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  // accessToken 가져오기
+  const { accessToken } = useAuthStore.getState();
+
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}${AUTH_API_PATHS.LOGOUT}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
+        ...(accessToken && { Authorization: `${HTTP_HEADERS.AUTHORIZATION_PREFIX}${accessToken}` }),
+      },
+      signal: controller.signal,
+      credentials: 'include', // CSRF 토큰을 위한 쿠키 포함
+    });
+  } catch (error) {
+    // 타임아웃 또는 중단 에러 처리
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+    }
+    throw error;
+  }
+
+  // 응답을 받은 후 타임아웃 타이머 정리
+  clearTimeout(timeoutId);
+
+  // 응답이 JSON인지 확인
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    let result: ApiResponse<unknown>;
+    try {
+      result = (await response.json()) as ApiResponse<unknown>;
+      if (!result.success || !response.ok) {
+        throw new Error(result.message || '로그아웃에 실패했습니다.');
+      }
+    } catch (parseError) {
+      if (parseError instanceof Error) {
+        throw parseError;
+      }
+      throw new Error('서버 응답을 파싱할 수 없습니다.');
+    }
+  } else if (!response.ok) {
+    await response.text(); // 응답 본문 소비
+    throw new Error('로그아웃에 실패했습니다.');
+  }
 }

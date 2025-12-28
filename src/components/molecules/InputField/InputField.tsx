@@ -1,6 +1,7 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { clsx } from '@/utils/clsx';
+import { formatBusinessNumber } from '@/utils/formatBusinessNumber';
 import Image from 'next/image';
 
 export type InputFieldType = 'text' | 'email' | 'password' | 'passwordConfirm' | 'businessNumber';
@@ -43,13 +44,6 @@ const InputField = ({
 
   // input과 label 연결을 위한 id
   const inputId = id ?? `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
-
-  const formatBusinessNumber = (v: string) => {
-    const digits = v.replace(/\D/g, '').slice(0, 10);
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 10)}`;
-  };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     let v = e.target.value;

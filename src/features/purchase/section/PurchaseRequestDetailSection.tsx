@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import PurchaseRequestDetailTem from '@/features/purchase/template/PurchaseRequestDetailTem/PurchaseRequestDetailTem';
 import {
-  managePurchaseRequests,
+  getPurchaseRequestDetail,
   approvePurchaseRequest,
   rejectPurchaseRequest,
   getBudget,
@@ -45,13 +45,7 @@ const PurchaseRequestDetailSection = () => {
       if (!requestId) {
         throw new Error('Request ID is required');
       }
-      // TODO: 상세 조회 API가 있다면 사용, 현재는 목록에서 필터링
-      const result = await managePurchaseRequests({ page: 1, size: 100 });
-      const request = result.purchaseRequests.find((r) => r.id === requestId);
-      if (!request) {
-        throw new Error('Purchase request not found');
-      }
-      return request;
+      return getPurchaseRequestDetail(requestId);
     },
     enabled: !!requestId,
   });
@@ -74,16 +68,23 @@ const PurchaseRequestDetailSection = () => {
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
-  // 예산 값 (로딩 중이거나 에러 발생 시 fallback 값 사용)
-  const budget: number = budgetData?.budget ?? 2000000;
+  // 예산 검증: 예산 데이터가 없으면 승인 불가 (보안상 안전)
+  const budget: number = budgetData?.budget ?? 0;
   const monthlySpending: number = budgetData?.monthlySpending ?? 0;
-
-  // 예산 검증
   const totalOrderAmount = data ? data.totalPrice + data.shippingFee : 0;
   const remainingBudget = budget - monthlySpending;
-  const isBudgetSufficient = remainingBudget >= totalOrderAmount;
+
+  // 예산 데이터 로딩 실패 시 승인 불가
+  const hasBudgetData = !isBudgetLoading && !budgetError && budgetData !== undefined;
+  const isBudgetSufficient = hasBudgetData && remainingBudget >= totalOrderAmount;
 
   const handleApproveClick = useCallback(() => {
+    if (!hasBudgetData) {
+      setToastVariant('error');
+      setToastMessage('예산 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.');
+      setShowToast(true);
+      return;
+    }
     if (!isBudgetSufficient) {
       setToastVariant('error');
       setToastMessage('예산이 부족합니다.');
@@ -92,7 +93,7 @@ const PurchaseRequestDetailSection = () => {
       return;
     }
     setApproveModalOpen(true);
-  }, [isBudgetSufficient]);
+  }, [hasBudgetData, isBudgetSufficient]);
 
   const handleRejectClick = useCallback(() => {
     setRejectModalOpen(true);
@@ -211,10 +212,13 @@ const PurchaseRequestDetailSection = () => {
     return null;
   }
 
-  // 예산 로딩 실패 시 경고 로그 (UI는 fallback 값으로 계속 표시)
+  // 예산 로딩 실패 시 경고 로그 (승인 버튼은 비활성화됨)
   if (budgetError && process.env.NODE_ENV === 'development') {
     // eslint-disable-next-line no-console
-    console.warn('예산 정보를 불러오는 중 오류가 발생했습니다. 기본값을 사용합니다.', budgetError);
+    console.warn(
+      '예산 정보를 불러오는 중 오류가 발생했습니다. 승인이 비활성화됩니다.',
+      budgetError
+    );
   }
 
   return (

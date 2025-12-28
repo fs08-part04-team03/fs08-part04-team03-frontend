@@ -16,10 +16,11 @@ interface HeaderShellProps {
 const AUTH_HEADER_MATCHERS = [
   /^\/$/, // home
   /^\/login(?:\/|$)/,
+  /^\/signup(?:\/|$)/,
   /^\/invite(?:\/|$)/,
 ];
 
-const HIDDEN_HEADER_ROUTES = [/^\/signup(?:\/|$)/];
+const HIDDEN_HEADER_ROUTES: RegExp[] = [];
 
 export const HeaderShell: React.FC<HeaderShellProps> = ({ className }) => {
   const pathname = usePathname();
