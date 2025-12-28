@@ -46,12 +46,12 @@ const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProp
 
   return (
     <div
-      className="flex items-center justify-between h-40 w-327 md:w-696 xl:w-1304"
+      className="flex items-center justify-between h-40 w-327 tablet:w-696 desktop:w-1400"
       role="navigation"
       aria-label="페이지네이션"
     >
       {/* Page info */}
-      <div className="text-gray-primary-500 text-16 font-normal tracking-tight font-suit">
+      <div className="text-gray-primary-500 text-16 tracking-tight font-suit">
         {page} of {total}
       </div>
 
@@ -65,10 +65,10 @@ const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProp
           onClick={handlePrev}
           inactive={isPrevEnd}
           aria-label="이전 페이지로 이동"
-          className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer"
+          className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer font-normal"
         >
           <div className="flex items-center gap-6">
-            <div className={clsx('relative w-24 h-24', { 'opacity-50': isPrevEnd })}>
+            <div className={clsx('relative w-8 h-14', { 'opacity-50': isPrevEnd })}>
               <Image src="/icons/arrow-left.svg" alt="이전 페이지" fill />
             </div>
             <span
@@ -90,7 +90,7 @@ const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProp
           onClick={handleNext}
           inactive={isNextEnd}
           aria-label="다음 페이지로 이동"
-          className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer"
+          className="bg-transparent border-none shadow-none px-0 hover:cursor-pointer font-normal"
         >
           <div className="flex items-center gap-6">
             <span
@@ -101,7 +101,7 @@ const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProp
             >
               Next
             </span>
-            <div className={clsx('relative w-24 h-24', { 'opacity-50': isNextEnd })}>
+            <div className={clsx('relative w-8 h-14', { 'opacity-50': isNextEnd })}>
               <Image src="/icons/arrow-right.svg" alt="다음 페이지" fill />
             </div>
           </div>

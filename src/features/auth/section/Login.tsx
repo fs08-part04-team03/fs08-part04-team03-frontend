@@ -2,8 +2,8 @@
 
 import React from 'react';
 
-import LoginTem from '@/features/auth/template/LoginTem/LoginTem';
+import LoginSection from '@/features/auth/section/LoginSection';
 
-const Login: React.FC = () => <LoginTem />;
+const Login: React.FC = () => <LoginSection />;
 
 export default Login;

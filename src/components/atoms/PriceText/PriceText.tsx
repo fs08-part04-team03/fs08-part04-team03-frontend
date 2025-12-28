@@ -1,4 +1,3 @@
-import React from 'react';
 import { clsx } from '@/utils/clsx';
 
 interface PriceTextProps {
@@ -7,7 +6,7 @@ interface PriceTextProps {
   className?: string;
 }
 
-const PriceText: React.FC<PriceTextProps> = ({ value, showUnit = true, className }) => {
+const PriceText = ({ value, showUnit = true, className }: PriceTextProps) => {
   const isValid = Number.isFinite(value) && value >= 0;
   const formattedValue = isValid ? value.toLocaleString('ko-KR') : '-';
   const displayText = isValid && showUnit ? `${formattedValue}원` : formattedValue;

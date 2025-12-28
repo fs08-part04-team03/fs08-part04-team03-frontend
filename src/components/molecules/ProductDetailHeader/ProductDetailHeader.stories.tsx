@@ -21,6 +21,11 @@ const meta = {
       control: 'number',
       description: '제품 단가 (1개 가격)',
     },
+    type: {
+      control: 'radio',
+      options: ['default', 'simple'],
+      description: '헤더 타입 (simple일 경우 ItemMenu 숨김)',
+    },
     onQuantityChange: {
       action: 'quantity-changed',
       description: '수량 변경 시 호출되는 콜백 함수',
@@ -44,17 +49,46 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** =====================
+ * Default (ItemMenu 표시)
+ ====================== */
 export const Default: Story = {
   args: {
     productName: '코카콜라',
     purchaseCount: 29,
     price: 2000,
+    type: 'default',
+    onMenuClick: (action) => {
+      console.log('menu action:', action);
+    },
   },
   parameters: {
     docs: {
       description: {
         story:
-          '모바일/태블릿과 데스크탑에서 자동으로 적절한 레이아웃을 보여줍니다. 수량 변경 시 총 금액이 자동으로 계산됩니다.',
+          '기본 타입입니다. 모바일/태블릿/데스크탑에서 ItemMenu가 표시되며, 수량 변경 시 총 금액이 자동 계산됩니다.',
+      },
+    },
+  },
+};
+
+/** =====================
+ * Simple (ItemMenu 숨김)
+ ====================== */
+export const Simple: Story = {
+  args: {
+    productName: '코카콜라',
+    purchaseCount: 29,
+    price: 2000,
+    type: 'simple',
+    onMenuClick: (action) => {
+      console.log('menu action:', action);
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'simple 타입입니다. ItemMenu가 숨겨지고 수량 선택과 장바구니 기능만 제공합니다.',
       },
     },
   },

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import DropDown, { Option } from '@/components/atoms/DropDown/DropDown';
@@ -11,55 +11,190 @@ interface ProductModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit: () => void;
+
+  initialName: string;
+  initialPrice: string;
+  initialLink: string;
+  initialImage: string | null;
+  initialCategory: Option | null;
+  initialSubCategory: Option | null;
 }
 
 const categories: Option[] = [
-  { key: '1', label: '대분류' },
-  { key: '2', label: '의류' },
-  { key: '3', label: '디지털' },
+  { key: '1', label: '스낵' },
+  { key: '2', label: '음료' },
+  { key: '3', label: '생수' },
+  { key: '4', label: '간편식' },
+  { key: '5', label: '신선식' },
+  { key: '6', label: '원두커피' },
+  { key: '7', label: '비품' },
 ];
 
-const subCategories: Option[] = [
-  { key: '1', label: '소분류' },
-  { key: '2', label: '상의' },
-  { key: '3', label: '하의' },
-];
+const subCategoriesByCategory: Record<string, Option[]> = {
+  '1': [
+    { key: 'snack-snack', label: '과자' },
+    { key: 'snack-cookie', label: '쿠키' },
+    { key: 'snack-biscuit', label: '비스켓류' },
+    { key: 'snack-chocolate', label: '초콜릿류' },
+    { key: 'snack-candy', label: '캔디류' },
+    { key: 'snack-jelly', label: '젤리류' },
+    { key: 'snack-cereal-bar', label: '시리얼바' },
+    { key: 'snack-nuts', label: '견과류' },
+  ],
+  '2': [
+    { key: 'drink-soda', label: '탄산음료' },
+    { key: 'drink-fruit', label: '과즙음료' },
+    { key: 'drink-energy', label: '에너지음료' },
+    { key: 'drink-ion', label: '이온음료' },
+    { key: 'drink-health', label: '건강음료' },
+    { key: 'drink-tea', label: '차류' },
+  ],
+  '3': [
+    { key: 'water-water', label: '생수' },
+    { key: 'water-sparkling', label: '스파클링' },
+  ],
+  '4': [
+    { key: 'simple-cup-ramen', label: '컵라면' },
+    { key: 'simple-sausage', label: '소시지' },
+    { key: 'simple-egg', label: '계란' },
+    { key: 'simple-cup-rice', label: '컵밥류' },
+    { key: 'simple-cereal', label: '시리얼' },
+  ],
+  '5': [
+    { key: 'fresh-fruit', label: '과일' },
+    { key: 'fresh-salad', label: '샐러드' },
+    { key: 'fresh-bread', label: '빵' },
+    { key: 'fresh-sandwich', label: '샌드위치' },
+    { key: 'fresh-yogurt', label: '요거트류' },
+    { key: 'fresh-dairy', label: '유제품' },
+  ],
+  '6': [
+    { key: 'coffee-drip', label: '드립커피' },
+    { key: 'coffee-beans', label: '원두' },
+    { key: 'coffee-capsule', label: '캡슐커피' },
+  ],
+  '7': [
+    { key: 'supplies-disposable', label: '일회용품' },
+    { key: 'supplies-office', label: '사무용품' },
+    { key: 'supplies-cleaning', label: '청소용품' },
+    { key: 'supplies-hygiene', label: '위생용품' },
+  ],
+};
 
-const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
+const ProductModal = ({
+  open,
+  onClose,
+  onSubmit,
+  initialName,
+  initialPrice,
+  initialLink,
+  initialImage,
+  initialCategory,
+  initialSubCategory,
+}: ProductModalProps) => {
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
   const [link, setLink] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Option | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<Option | null>(null);
-  const previewUrlRef = useRef<string | null>(null);
 
-  // 가격 포맷
+  const previewUrlRef = useRef<string | null>(null);
+  const prevCategoryRef = useRef<Option | null>(null); // ✅ 추가
+
+  const [errors, setErrors] = useState({
+    name: '',
+    price: '',
+    link: '',
+    category: '',
+    subCategory: '',
+    image: '',
+  });
+
+  const filteredSubCategories = selectedCategory
+    ? subCategoriesByCategory[selectedCategory.key] || []
+    : [];
+
   const formatPrice = (value: string) => {
     const numeric = value.replace(/[^0-9]/g, '');
     return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  // URL validation
-  const isValidUrl = (url: string) => {
-    const urlRegex = /^(https?:\/\/|www\.)/;
-    return urlRegex.test(url);
-  };
-
-  // ESC 닫기
+  // 초기값 세팅
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    if (open) {
+      setProductName(initialName);
+      setPrice(formatPrice(initialPrice));
+      setLink(initialLink);
+      setPreview(initialImage);
+      setSelectedCategory(initialCategory);
+      setSelectedSubCategory(initialSubCategory);
+      prevCategoryRef.current = initialCategory; // ✅ 핵심
+      setErrors({ name: '', price: '', link: '', category: '', subCategory: '', image: '' });
+    }
+  }, [
+    open,
+    initialName,
+    initialPrice,
+    initialLink,
+    initialImage,
+    initialCategory,
+    initialSubCategory,
+  ]);
+
+  // ✅ 대분류 변경 시 소분류 초기화 (초기 세팅 제외)
+  useEffect(() => {
+    if (
+      prevCategoryRef.current &&
+      selectedCategory &&
+      prevCategoryRef.current.key !== selectedCategory.key
+    ) {
+      setSelectedSubCategory(null);
+    }
+    prevCategoryRef.current = selectedCategory;
+  }, [selectedCategory]);
+
+  const validate = useCallback(() => {
+    const newErrors = { name: '', price: '', link: '', category: '', subCategory: '', image: '' };
+
+    if (!productName.trim()) newErrors.name = '상품명을 입력해주세요.';
+    if (!price.trim()) newErrors.price = '가격을 입력해주세요.';
+
+    const urlRegex = /^https?:\/\/.+/;
+    if (!link.trim()) newErrors.link = '제품 링크를 입력해주세요.';
+    else if (!urlRegex.test(link))
+      newErrors.link = 'http:// 또는 https://로 시작하는 URL을 입력해주세요.';
+
+    if (!selectedCategory) newErrors.category = '대분류를 선택해주세요.';
+    if (!selectedSubCategory) newErrors.subCategory = '소분류를 선택해주세요.';
+    if (!preview) newErrors.image = '상품 이미지를 등록해주세요.';
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((msg) => msg !== '');
+  }, [productName, price, link, selectedCategory, selectedSubCategory, preview]);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => open && e.key === 'Escape' && onClose();
     if (open) document.addEventListener('keydown', handleEsc);
     return () => document.removeEventListener('keydown', handleEsc);
   }, [open, onClose]);
 
-  // cleanup blob URL on unmount
+  useEffect(() => {
+    if (open) validate();
+  }, [open, validate]);
+
+  useEffect(() => {
+    if (!open && previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+  }, [open]);
+
   useEffect(
     () => () => {
       if (previewUrlRef.current) {
         URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
       }
     },
     []
@@ -69,26 +204,21 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (!productName.trim()) return;
-    if (!price.trim()) return;
-    if (!isValidUrl(link)) return;
-    if (!preview || !selectedCategory || !selectedSubCategory) return;
-
+    if (!validate()) return;
     onSubmit();
   };
 
   const isValid =
-    productName.trim() !== '' &&
-    price.trim() !== '' &&
-    preview !== null &&
-    selectedCategory !== null &&
-    selectedSubCategory !== null &&
-    isValidUrl(link);
+    productName.trim() &&
+    price.trim() &&
+    link.trim() &&
+    preview &&
+    selectedCategory &&
+    selectedSubCategory &&
+    Object.values(errors).every((msg) => msg === '');
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center">
-      {/* Dimmed */}
+    <div className="fixed inset-0 z-30 flex items-center justify-center">
       <button
         type="button"
         aria-label="모달 닫기 영역"
@@ -96,7 +226,6 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div
         role="dialog"
         aria-modal="true"
@@ -113,81 +242,89 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
         </h2>
 
         {/* 이미지 업로드 */}
-        <div
-          className={clsx(
-            'w-140 h-140 border rounded-8 flex items-center justify-center overflow-hidden cursor-pointer relative',
-            preview ? 'border-gray-300' : 'border-red-500'
-          )}
-        >
-          <input
-            type="file"
-            accept="image/*"
-            className="absolute inset-0 opacity-0 cursor-pointer"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              if (previewUrlRef.current) {
-                URL.revokeObjectURL(previewUrlRef.current);
-              }
-              const newUrl = URL.createObjectURL(file);
-              previewUrlRef.current = newUrl;
-              setPreview(newUrl);
-            }}
-          />
-          {preview ? (
-            <Image
-              src={preview}
-              alt="preview"
-              fill
-              className="object-contain pointer-events-none"
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className={clsx(
+              'w-140 h-140 border rounded-8 flex items-center justify-center overflow-hidden cursor-pointer relative',
+              preview ? 'border-gray-300' : 'border-red-500'
+            )}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+                const newUrl = URL.createObjectURL(file);
+                previewUrlRef.current = newUrl;
+                setPreview(newUrl);
+              }}
             />
-          ) : (
-            <Image
-              src="/icons/photo-icon.svg"
-              alt="upload"
-              width={30}
-              height={30}
-              className="opacity-60 pointer-events-none"
-            />
-          )}
+            {preview ? (
+              <Image
+                src={preview}
+                alt="preview"
+                fill
+                className="object-contain pointer-events-none"
+              />
+            ) : (
+              <Image
+                src="/icons/photo-icon.svg"
+                alt="upload"
+                width={30}
+                height={30}
+                className="opacity-60 pointer-events-none"
+              />
+            )}
+          </div>
+          {errors.image && <span className="text-red-500 text-12">{errors.image}</span>}
         </div>
 
         {/* Form */}
         <form className="w-full flex flex-col flex-1 gap-30" onSubmit={handleSubmit}>
           {/* 드롭다운 */}
-          <div className="flex gap-20 mb-6 tablet:mb-8 desktop:mb-8">
-            <DropDown
-              items={categories}
-              placeholder="대분류"
-              variant="medium"
-              buttonClassName={clsx(!selectedCategory && 'border-red-500')}
-              onSelect={(item) => setSelectedCategory(item)}
-            />
-            <DropDown
-              items={subCategories}
-              placeholder="소분류"
-              variant="medium"
-              buttonClassName={clsx(!selectedSubCategory && 'border-red-500')}
-              onSelect={(item) => setSelectedSubCategory(item)}
-            />
+          <div className="flex flex-col gap-2 mb-6 tablet:mb-8 desktop:mb-8">
+            <div className="flex gap-20">
+              <DropDown
+                items={categories}
+                placeholder="대분류"
+                variant="medium"
+                buttonClassName={clsx(!selectedCategory && 'border-red-500')}
+                onSelect={setSelectedCategory}
+                selected={selectedCategory || undefined}
+              />
+              <DropDown
+                items={filteredSubCategories}
+                placeholder="소분류"
+                variant="medium"
+                buttonClassName={clsx(!selectedSubCategory && 'border-red-500')}
+                onSelect={setSelectedSubCategory}
+                selected={selectedSubCategory || undefined}
+              />
+            </div>
+            {errors.category && <span className="text-red-500 text-12">{errors.category}</span>}
+            {errors.subCategory && (
+              <span className="text-red-500 text-12">{errors.subCategory}</span>
+            )}
           </div>
 
           {/* 상품명 */}
-          <div className="w-full">
-            <div className="w-full flex justify-center">
-              <InputField
-                label="상품명"
-                placeholder="상품명을 입력해주세요"
-                value={productName}
-                onChange={setProductName}
-                minLength={1}
-                maxLength={20}
-              />
-            </div>
+          <div className="w-full flex flex-col gap-1">
+            <InputField
+              label="상품명"
+              placeholder="상품명을 입력해주세요"
+              value={productName}
+              onChange={setProductName}
+              minLength={1}
+              maxLength={20}
+            />
+            {errors.name && <span className="text-red-500 text-12">{errors.name}</span>}
           </div>
 
           {/* 가격 */}
-          <div className="w-full flex justify-center">
+          <div className="w-full flex flex-col gap-1">
             <InputField
               label="가격"
               placeholder="가격을 입력해주세요"
@@ -197,10 +334,11 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
               minLength={1}
               maxLength={20}
             />
+            {errors.price && <span className="text-red-500 text-12">{errors.price}</span>}
           </div>
 
-          {/* 링크 */}
-          <div className="w-full flex justify-center">
+          {/* 제품 링크 */}
+          <div className="w-full flex flex-col gap-1">
             <InputField
               label="제품 링크"
               placeholder="제품 링크를 입력해주세요"
@@ -209,9 +347,9 @@ const ProductModal = ({ open, onClose, onSubmit }: ProductModalProps) => {
               type="text"
               maxLength={50}
             />
+            {errors.link && <span className="text-red-500 text-12">{errors.link}</span>}
           </div>
 
-          {/* 버튼 위 자동 여백 */}
           <div className="flex-1" />
 
           {/* 버튼 */}

@@ -1,3 +1,5 @@
+// 사용자: 구매 요청 페이지
+
 import { RoleGuard } from '@/components/guards/RoleGuard';
 
 const PurchaseRequestFormPage = () => (

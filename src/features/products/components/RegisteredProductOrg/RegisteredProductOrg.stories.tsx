@@ -26,20 +26,13 @@ const mockProducts: RegisteredProductOrgItem[] = [
     price: 3200,
     imageSrc: '/images/sample/milk.png',
   },
-  {
-    id: 3,
-    categoryLabel: '유제품',
-    name: '서울우유 1L',
-    price: 3200,
-    imageSrc: '/images/sample/milk.png',
-  },
 ];
 
 /** =====================
  * Meta
  ====================== */
 const meta: Meta<typeof RegisteredProductOrg> = {
-  title: 'Organisms/RegisteredProductOrg',
+  title: 'Features/Products/RegisteredProductOrg',
   component: RegisteredProductOrg,
   tags: ['autodocs'],
   parameters: {
@@ -132,6 +125,7 @@ Product List 내부는 다음 순서로 구성됩니다.
     date: '2024.07.04',
     products: mockProducts,
     address: 'www.codeit.kr',
+    totalCount: mockProducts.length,
   },
 };
 
@@ -152,6 +146,7 @@ export const SingleProduct: Story = {
   name: '단일 상품',
   args: {
     products: [mockProducts[0]!],
+    totalCount: 1,
   },
 };
 
@@ -162,5 +157,6 @@ export const Empty: Story = {
   name: '상품 없음',
   args: {
     products: [],
+    totalCount: 0,
   },
 };

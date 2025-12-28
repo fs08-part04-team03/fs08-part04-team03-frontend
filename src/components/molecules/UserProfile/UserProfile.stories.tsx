@@ -9,7 +9,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '사용자 프로필 컴포넌트입니다. 태블릿과 데스크탑에서 아바타와 이름이 표시되며, 모바일에서는 숨겨집니다. 클릭 시 프로필 페이지로 이동합니다.',
+          '사용자 프로필 컴포넌트입니다. 아바타, 이름, 회사명을 조합하여 사용자 정보를 표시합니다.\n\n**Variant 종류:**\n- `default`: 모든 뷰포트에서 아바타, 이름(text-15), 회사명을 표시합니다.\n- `secondary`: 모바일에서는 숨겨지고, 태블릿/데스크탑에서만 아바타, 이름(text-14), 회사명을 표시합니다.\n- `nameOnly`: 모든 뷰포트에서 아바타와 이름(text-14)만 표시하며, 회사명은 표시하지 않습니다.\n\n**기능:**\n- 클릭 시 profileHref로 지정된 프로필 페이지로 이동합니다 (기본값: /me/profile).\n- 아바타 크기는 32x32로 고정되어 있습니다.\n- hover 시 opacity-80으로 시각적 피드백을 제공합니다.',
       },
     },
   },
@@ -32,8 +32,9 @@ const meta = {
     },
     variant: {
       control: 'select',
-      options: ['default', 'secondary'],
-      description: 'variant: default (모든 뷰포트 표시), secondary (모바일 숨김)',
+      options: ['default', 'secondary', 'nameOnly'],
+      description:
+        'variant: default (모든 뷰포트에서 아바타+이름+회사명 표시), secondary (태블릿/데스크탑에서만 아바타+이름+회사명 표시), nameOnly (모든 뷰포트에서 아바타+이름만 표시)',
     },
     className: {
       control: 'text',
@@ -119,6 +120,45 @@ export const DefaultWithAvatar: Story = {
       description: {
         story:
           'Default variant에 아바타 이미지가 있는 프로필입니다. 모든 뷰포트에서 동일하게 표시됩니다.',
+      },
+    },
+  },
+};
+
+// NameOnly variant (아바타와 이름만 표시)
+export const NameOnly: Story = {
+  args: {
+    name: '홍길동',
+    company: {
+      name: '스낵코리아',
+    },
+    variant: 'nameOnly',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'NameOnly variant입니다. 모든 뷰포트에서 아바타와 이름만 표시되며, 회사명은 표시되지 않습니다. 공간이 제한된 경우나 회사 정보가 불필요한 경우에 사용합니다.',
+      },
+    },
+  },
+};
+
+// NameOnly variant with avatar
+export const NameOnlyWithAvatar: Story = {
+  args: {
+    name: '홍길동',
+    company: {
+      name: '스낵코리아',
+    },
+    avatarSrc: '/images/test-profile-image.jpg',
+    variant: 'nameOnly',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'NameOnly variant에 아바타 이미지가 있는 프로필입니다. 모든 뷰포트에서 아바타와 이름만 표시됩니다.',
       },
     },
   },

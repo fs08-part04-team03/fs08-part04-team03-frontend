@@ -91,9 +91,9 @@ export const OrderItemCardDefaultMobile: React.FC<OrderItemCardDefaultMobileProp
           aria-label={`${name} 선택`}
           className="shrink-0"
         />
-        <div className="overflow-hidden rounded-8 bg-gray-50 w-85 h-85">
+        <div className="overflow-hidden rounded-8 bg-gray-50 w-85 h-85 p-10">
           {imageSrc ? (
-            <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+            <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-50">
               <img
@@ -114,7 +114,7 @@ export const OrderItemCardDefaultMobile: React.FC<OrderItemCardDefaultMobileProp
             <span className="text-black-100 text-13 leading-20">{shippingLabelText}</span>
             <PriceText
               value={shippingCost}
-              className="!font-normal !text-black-100 text-13 leading-20"
+              className="font-normal text-black-100 text-13 leading-20"
             />
           </div>
         </div>
@@ -207,9 +207,9 @@ export const OrderItemCardDefaultTablet: React.FC<OrderItemCardDefaultTabletProp
           aria-label={`${name} 선택`}
           className="shrink-0"
         />
-        <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+        <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140 p-10">
           {imageSrc ? (
-            <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+            <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-50">
               <img
@@ -230,7 +230,7 @@ export const OrderItemCardDefaultTablet: React.FC<OrderItemCardDefaultTabletProp
             <span className="text-black-100 text-14 leading-20">{shippingLabelText}</span>
             <PriceText
               value={shippingCost}
-              className="!font-normal !text-black-100 text-14 leading-20"
+              className="font-normal text-black-100 text-14 leading-20"
             />
           </div>
         </div>
@@ -330,9 +330,9 @@ export const OrderItemCardDefaultDesktop: React.FC<OrderItemCardDefaultDesktopPr
           aria-label={`${name} 선택`}
           className="shrink-0"
         />
-        <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+        <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140 p-10">
           {imageSrc ? (
-            <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+            <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-50">
               <img
@@ -353,7 +353,7 @@ export const OrderItemCardDefaultDesktop: React.FC<OrderItemCardDefaultDesktopPr
             <span className="text-black-100 text-14 leading-20">{shippingLabelText}</span>
             <PriceText
               value={shippingCost}
-              className="!font-normal !text-black-100 text-14 leading-20"
+              className="font-normal text-black-100 text-14 leading-20"
             />
           </div>
         </div>
@@ -495,9 +495,9 @@ const OrderItemCardConfirm: React.FC<OrderItemCardConfirmProps> = ({
       <div className={clsx('tablet:hidden', className)}>
         <div className="flex items-center justify-between w-full rounded-12 bg-white px-12 py-8 gap-8">
           <div className="flex items-center gap-12">
-            <div className="overflow-hidden rounded-8 bg-gray-50 w-85 h-85">
+            <div className="overflow-hidden rounded-8 bg-gray-50 w-85 h-85 p-10">
               {imageSrc ? (
-                <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+                <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-50">
                   <img
@@ -533,9 +533,9 @@ const OrderItemCardConfirm: React.FC<OrderItemCardConfirmProps> = ({
       <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
         <div className="flex items-center justify-between w-full rounded-12 bg-white px-16 py-12 gap-12">
           <div className="flex items-center gap-12">
-            <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+            <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140 p-10">
               {imageSrc ? (
-                <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+                <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-50">
                   <img
@@ -571,9 +571,9 @@ const OrderItemCardConfirm: React.FC<OrderItemCardConfirmProps> = ({
       <div className={clsx('hidden desktop:flex', className)}>
         <div className="flex items-center justify-between w-full rounded-12 bg-white px-20 py-16 gap-16">
           <div className="flex items-center gap-12">
-            <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+            <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140 p-10">
               {imageSrc ? (
-                <img src={imageSrc} alt={name} className="w-full h-full object-cover" />
+                <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-50">
                   <img

@@ -18,9 +18,15 @@ interface RegisteredProductOrgProps {
   date: string;
   products: RegisteredProductOrgItem[];
   address: string;
+  totalCount: number;
 }
 
-const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({ date, products, address }) => {
+const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
+  date,
+  products,
+  address,
+  totalCount,
+}) => {
   const isEmpty = products.length === 0;
 
   return (
@@ -37,7 +43,7 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({ date, produ
             'desktop:hidden'
           )}
         >
-          총 등록한 상품 {products.length}개
+          총 등록한 상품 {totalCount}개
         </p>
 
         {/* Desktop : Table Header (항상 유지) */}

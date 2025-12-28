@@ -3,6 +3,8 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
+import { clearAuthCookies } from '@/utils/cookies';
+import { logout } from '@/features/auth/api/auth.api';
 import GNB from './GNB';
 
 /**
@@ -17,10 +19,27 @@ export const GNBWrapper: React.FC = () => {
   const { user, clearAuth } = useAuthStore();
   const router = useRouter();
 
-  // 로그아웃 핸들러
+  // 로그아웃 핸들러 (비동기 작업을 수행하지만 void를 반환)
   const handleLogout = () => {
-    clearAuth();
-    router.push('/login');
+    // 비동기 작업을 시작하지만 Promise를 반환하지 않음
+    (async () => {
+      try {
+        // 서버 측 쿠키 삭제
+        await clearAuthCookies();
+        // 로그아웃 API 호출 (백엔드 세션 정리)
+        await logout();
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('로그아웃 처리 중 오류:', error);
+        // 에러가 발생해도 클라이언트 상태는 정리
+      } finally {
+        // 클라이언트 상태 정리
+        clearAuth();
+        router.push('/login');
+      }
+    })().catch(() => {
+      // Promise rejection 처리 (이미 catch 블록에서 처리되지만 린터를 위해 추가)
+    });
   };
 
   // TODO: Cart API 연결 후 실제 데이터로 교체
