@@ -134,6 +134,8 @@ export const EmptyList: Story = {
     selectedSortOption: sortOptions[0],
     statusOptions,
     selectedStatusOption: statusOptions[0],
+    currentPage: 1,
+    totalPages: 1,
     budget: 2000000,
     selectedRequestId: null,
     approveModalOpen: false,
