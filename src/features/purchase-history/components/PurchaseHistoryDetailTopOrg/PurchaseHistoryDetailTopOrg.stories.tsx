@@ -25,7 +25,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
   id: '1',
   createdAt: '2025-06-03T00:00:00.000Z',
   updatedAt: '2025-06-03T00:00:00.000Z',
-  totalPrice: 1900,
+  totalPrice: 7900, // 1900 * 1 + 3000 * 2 = 7900
   shippingFee: 0,
   status: 'APPROVED',
   purchaseItems: [

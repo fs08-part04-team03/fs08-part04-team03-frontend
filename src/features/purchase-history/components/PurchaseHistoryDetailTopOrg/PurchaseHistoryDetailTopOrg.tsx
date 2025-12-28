@@ -65,7 +65,7 @@ interface PriceSummaryProps {
 const PriceSummary = ({ orderAmount, shippingFee, totalAmount }: PriceSummaryProps) => (
   <>
     <Divider />
-    <div className="flex flex-col tablet:gap-12 tablet:px-20 desktop:gap-12 desktop:px-20 pt-20">
+    <div className="flex flex-col gap-12 tablet:gap-12 tablet:px-20 desktop:gap-12 desktop:px-20 pt-20">
       <PriceRow label="주문금액" value={orderAmount} />
       <PriceRow label="배송비" value={shippingFee} />
       <div className="pt-8">

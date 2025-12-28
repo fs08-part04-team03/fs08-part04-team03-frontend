@@ -25,7 +25,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
   id: 'req-1',
   createdAt: '2025-07-05T09:30:00.000Z',
   updatedAt: '2025-07-05T14:20:00.000Z',
-  totalPrice: 45000,
+  totalPrice: 63000, // (15000 * 2 + 12000 * 1 + 6000 * 3) + 3000 = 60000 + 3000 = 63000
   shippingFee: 3000,
   status: 'APPROVED',
   purchaseItems: [
@@ -80,7 +80,7 @@ export const Default: Story = {
     docs: {
       description: {
         story:
-          '기본 구매 내역 상세 페이지입니다.\n\n**상단 영역 (PurchaseHistoryDetailTopOrg):**\n- 구매 물품 목록: 3개 상품 (코카콜라 제로 2개, 펩시콜라 1개, 생수 2L 3개)\n- 상품 금액: 45,000원\n- 배송비: 3,000원\n- 총 결제 금액: 48,000원\n\n**하단 영역 (PurchaseHistoryDetailInfoOrg):**\n- 요청 정보: 김스낵, 2025년 7월 5일 09:30, 요청 메시지\n- 승인 정보: 김코드, 2025년 7월 5일 14:20, 승인 상태\n\n**레이아웃:**\n- 상단 여백 `mt-30` (모바일/태블릿), `mt-60` (데스크톱)\n- 두 컴포넌트가 세로로 배치됨',
+          '기본 구매 내역 상세 페이지입니다.\n\n**상단 영역 (PurchaseHistoryDetailTopOrg):**\n- 구매 물품 목록: 3개 상품 (코카콜라 제로 2개, 펩시콜라 1개, 생수 2L 3개)\n- 상품 금액: 60,000원\n- 배송비: 3,000원\n- 총 결제 금액: 63,000원\n\n**하단 영역 (PurchaseHistoryDetailInfoOrg):**\n- 요청 정보: 김스낵, 2025년 7월 5일 09:30, 요청 메시지\n- 승인 정보: 김코드, 2025년 7월 5일 14:20, 승인 상태\n\n**레이아웃:**\n- 상단 여백 `mt-30` (모바일/태블릿), `mt-60` (데스크톱)\n- 두 컴포넌트가 세로로 배치됨',
       },
     },
   },
