@@ -92,7 +92,9 @@ export const PurchaseHistoryListBottomOrg: React.FC<PurchaseHistoryListBottomOrg
               <span className="font-bold text-14 tablet:text-16 text-gray-950">
                 {itemDescription}
               </span>
-              <span className="text-12 tablet:text-14 text-gray-500">총수량 {totalQuantity}개</span>
+              <span className="text-12 tablet:text-14 text-gray-500">
+                총 수량 {totalQuantity}개
+              </span>
             </div>
           </div>
           <PriceText
