@@ -6,7 +6,7 @@ import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import PurchaseHistoryListTopOrg from '../../components/PurchaseHistoryListTopOrg/PurchaseHistoryListTopOrg';
-import PurchaseHistoryListBottomOrg from '../../components/PurchaseHistoryListBottomOrg/PurchaseHistoryListBottomOrg';
+import PurchaseHistoryListOrg from '../../components/PurchaseHistoryListBottomOrg/PurchaseHistoryListBottomOrg';
 
 interface PurchaseHistoryTemProps {
   // TopOrg props
@@ -79,7 +79,7 @@ export const PurchaseHistoryTem: React.FC<PurchaseHistoryTemProps> = ({
         <>
           {/* Desktop: 최대 4개 */}
           <div className="hidden desktop:block">
-            <PurchaseHistoryListBottomOrg
+            <PurchaseHistoryListOrg
               items={desktopItems}
               companyId={companyId}
               currentPage={currentPage}
@@ -89,7 +89,7 @@ export const PurchaseHistoryTem: React.FC<PurchaseHistoryTemProps> = ({
           </div>
           {/* Mobile/Tablet: 최대 3개 */}
           <div className="block desktop:hidden">
-            <PurchaseHistoryListBottomOrg
+            <PurchaseHistoryListOrg
               items={mobileTabletItems}
               companyId={companyId}
               currentPage={currentPage}
