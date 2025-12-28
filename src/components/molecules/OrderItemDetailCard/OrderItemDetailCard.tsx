@@ -42,20 +42,14 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
             )}
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 flex-1">
             <p className="text-black-100 text-14 leading-20">{name}</p>
             <PriceText value={unitPrice} className="text-black-100 text-14 leading-20" />
-            <div className="pt-14">
+            <div className="pt-14 flex items-center justify-between">
               <span className="text-black-100 text-14 leading-20">수량 {quantity}개</span>
+              <PriceText value={displayTotalPrice} className="text-gray-700 font-bold text-16" />
             </div>
           </div>
-        </div>
-
-        <div className="flex justify-end">
-          <PriceText
-            value={displayTotalPrice}
-            className="text-gray-700 font-bold text-16 text-right"
-          />
         </div>
       </div>
     </div>
