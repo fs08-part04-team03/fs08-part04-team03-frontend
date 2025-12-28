@@ -84,7 +84,7 @@ export const PurchaseHistoryListTopOrg: React.FC<PurchaseHistoryListTopOrgProps>
                 className="text-18 tablet:text-18 desktop:text-24"
               />
             </div>
-            <p className="text-14 tablet:text-14 desktop:text-16 text-gray-600 tablet:pt-10 mobile:pt-10">
+            <p className="text-14 tablet:text-14 desktop:text-16 text-gray-600 tablet:pt-10 pt-10">
               지난 달:
               <PriceText value={lastMonthSpending} className="text-gray-600" />
             </p>
