@@ -39,6 +39,10 @@ const PurchaseRequestDetailTem = ({
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
+  if (!companyId) {
+    return <div className="p-20 text-red-600">회사 정보를 불러올 수 없습니다.</div>;
+  }
+
   // BudgetInfo에 필요한 값들을 계산 (my/ 경로가 아닌 경우 BudgetInfo만 표시)
   const budgetInfo = {
     monthlySpending,
@@ -65,12 +69,19 @@ const PurchaseRequestDetailTem = ({
           ? purchaseRequest.requester.avatarSrc
           : undefined,
     },
-    items: purchaseRequest.purchaseItems.map((item) => ({
-      id: Number.parseInt(item.id, 10),
-      title: item.products.name,
-      price: item.priceSnapshot,
-      quantity: item.quantity,
-    })),
+    items: purchaseRequest.purchaseItems.map((item) => {
+      const parsedId = Number.parseInt(item.id, 10);
+      if (Number.isNaN(parsedId)) {
+        // eslint-disable-next-line no-console
+        console.warn('Invalid item id:', item.id);
+      }
+      return {
+        id: Number.isNaN(parsedId) ? 0 : parsedId,
+        title: item.products.name,
+        price: item.priceSnapshot,
+        quantity: item.quantity,
+      };
+    }),
     deliveryFee: purchaseRequest.shippingFee,
     budget,
   };
