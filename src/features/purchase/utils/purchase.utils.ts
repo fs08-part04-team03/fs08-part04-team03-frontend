@@ -1,16 +1,10 @@
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import type { StatusTagVariant } from '@/components/atoms/StatusTag/StatusTag';
+import { formatDate } from '@/utils/formatDate';
 
-/**
- * 날짜를 한국 형식으로 포맷팅 (YYYY. MM. DD)
- */
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}. ${month}. ${day}`;
-}
+// formatDate는 공통 유틸리티로 이동 (src/utils/formatDate.ts)
+// 기존 형식(공백 포함)에서 일관된 형식(공백 없음)으로 변경
+export { formatDate };
 
 /**
  * 구매 아이템 목록에서 첫 번째 아이템 이름과 나머지 개수 반환
