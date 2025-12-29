@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
 import { clearAuthCookies } from '@/utils/cookies';
 import { logout } from '@/features/auth/api/auth.api';
+import { getCompany } from '@/features/profile/api/company.api';
+import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import GNB from './GNB';
 
 /**
@@ -16,8 +18,33 @@ import GNB from './GNB';
  * - Cart count, User profile 등 데이터 주입
  */
 export const GNBWrapper: React.FC = () => {
-  const { user, clearAuth } = useAuthStore();
+  const { user, accessToken, clearAuth } = useAuthStore();
   const router = useRouter();
+  const params = useParams();
+  const [companyName, setCompanyName] = useState<string>('');
+
+  // 회사 정보 조회 (GNB에 표시할 회사명)
+  // Authorization 헤더를 포함하여 API 호출
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      if (!accessToken) return;
+
+      try {
+        const company = await getCompany(accessToken);
+        setCompanyName(company.name);
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[GNBWrapper] 회사 정보 조회 실패:', error);
+        }
+        // 실패 시 기본값 사용
+        setCompanyName('SNACK');
+      }
+    };
+
+    // eslint-disable-next-line no-void
+    void fetchCompanyData();
+  }, [accessToken]);
 
   // 로그아웃 핸들러 (비동기 작업을 수행하지만 void를 반환)
   const handleLogout = () => {
@@ -46,13 +73,15 @@ export const GNBWrapper: React.FC = () => {
   // const { data: cartData } = useCartQuery();
   // const cartCount = cartData?.totalItems || 0;
 
-  // TODO: UserProfile 컴포넌트 구현 후 추가
-  // const userProfile = user ? (
-  //   <UserProfileAvatar
-  //     name={user.name}
-  //     avatar={user.avatar}
-  //   />
-  // ) : null;
+  const companyId = (params?.companyId as string) || user?.companyId || '';
+  const userProfile = user ? (
+    <UserProfile
+      name={user.name}
+      company={{ name: companyName }}
+      profileHref={`/${companyId}/my/profile`}
+      variant="secondary"
+    />
+  ) : null;
 
   // TODO: 상품 페이지에서 Category 관련 로직 추가
   // const pathname = usePathname();
@@ -68,7 +97,7 @@ export const GNBWrapper: React.FC = () => {
       role={user?.role || 'user'}
       cartCount={0}
       onLogout={handleLogout}
-      // userProfile={userProfile}
+      userProfile={userProfile}
       // {...categoryProps}
     />
   );
