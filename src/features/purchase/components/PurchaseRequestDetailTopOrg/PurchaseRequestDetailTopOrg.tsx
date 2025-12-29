@@ -88,8 +88,8 @@ export const PurchaseRequestDetailTopOrg: React.FC<PurchaseRequestDetailTopOrgPr
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
   const { totalPrice, shippingFee } = purchaseRequest;
-  const orderAmount = totalPrice - shippingFee;
-  const totalAmount = totalPrice;
+  const orderAmount = totalPrice;
+  const totalAmount = totalPrice + shippingFee;
 
   return (
     <div className="flex flex-col gap-30">

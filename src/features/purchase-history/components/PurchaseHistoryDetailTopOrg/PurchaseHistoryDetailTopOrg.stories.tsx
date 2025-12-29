@@ -75,7 +75,7 @@ export const MultipleItems: Story = {
   args: {
     purchaseRequest: {
       ...mockPurchaseRequest,
-      totalPrice: 32400,
+      totalPrice: 33400, // (1×1,900) + (2×3,000) + (3×5,000) + (1×2,500) + (2×4,000) = 33,400원
       shippingFee: 3000,
       purchaseItems: [
         {
