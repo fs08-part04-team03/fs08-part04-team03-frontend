@@ -35,7 +35,7 @@ const mockItems: OrderItem[] = [
  * Meta
  ====================== */
 const meta: Meta<typeof CartSummaryBlockOrg> = {
-  title: 'Features/Cart/CartSummaryBlockOrg',
+  title: 'Features/Cart/Organisms/CartSummaryBlockOrg',
   component: CartSummaryBlockOrg,
   tags: ['autodocs'],
   parameters: {

@@ -32,7 +32,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
  * Meta
  ====================== */
 const meta: Meta<typeof RegisteredProductOrg> = {
-  title: 'Features/Products/RegisteredProductOrg',
+  title: 'Features/Products/Organisms/RegisteredProductOrg',
   component: RegisteredProductOrg,
   tags: ['autodocs'],
   parameters: {
