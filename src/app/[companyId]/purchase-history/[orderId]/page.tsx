@@ -1,7 +1,16 @@
-const PurchaseHistoryDetailPage = () => (
-  <div>
-    <p>PurchaseHistoryDetailPage — 구매내역 상세 페이지</p>
-  </div>
+import { RoleGuard } from '@/components/guards/RoleGuard';
+import PurchaseHistoryDetailSection from '@/features/purchase-history/section/PurchaseHistoryDetailSection';
+
+interface PurchaseHistoryDetailPageProps {
+  params: {
+    orderId: string;
+  };
+}
+
+const PurchaseHistoryDetailPage = ({ params }: PurchaseHistoryDetailPageProps) => (
+  <RoleGuard requiredRole="manager">
+    <PurchaseHistoryDetailSection orderId={params.orderId} />
+  </RoleGuard>
 );
 
 export default PurchaseHistoryDetailPage;
