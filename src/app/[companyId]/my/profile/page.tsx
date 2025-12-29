@@ -1,7 +1,5 @@
-const ProfilePage = () => (
-  <div>
-    <p>ProfilePage — 프로필 페이지</p>
-  </div>
-);
+import ProfileEditSection from '@/features/profile/section/ProfileEditSection';
+
+const ProfilePage = () => <ProfileEditSection />;
 
 export default ProfilePage;
