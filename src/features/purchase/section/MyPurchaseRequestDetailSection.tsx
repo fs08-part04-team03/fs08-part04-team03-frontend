@@ -8,6 +8,7 @@ import MyPurchaseRequestDetailTem from '@/features/purchase/template/MyPurchaseR
 const MyPurchaseRequestDetailSection = () => {
   const params = useParams();
   const requestId = params?.requestId as string | undefined;
+  const companyId = params?.companyId ? String(params.companyId) : undefined;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['myPurchaseDetail', requestId],
@@ -36,11 +37,11 @@ const MyPurchaseRequestDetailSection = () => {
     );
   }
 
-  if (!data) {
+  if (!data || !companyId) {
     return null;
   }
 
-  return <MyPurchaseRequestDetailTem purchaseRequest={data} />;
+  return <MyPurchaseRequestDetailTem purchaseRequest={data} companyId={companyId} />;
 };
 
 export default MyPurchaseRequestDetailSection;

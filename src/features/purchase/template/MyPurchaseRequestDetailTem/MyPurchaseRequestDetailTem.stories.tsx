@@ -3,7 +3,7 @@ import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import MyPurchaseRequestDetailTem from './MyPurchaseRequestDetailTem';
 
 const meta = {
-  title: 'Features/Purchase/MyPurchaseRequestDetailTem',
+  title: 'Features/Purchase/Template/MyPurchaseRequestDetailTem',
   component: MyPurchaseRequestDetailTem,
   tags: ['autodocs'],
   parameters: {
@@ -20,7 +20,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '구매 요청 상세 정보를 표시하는 템플릿 컴포넌트입니다. PurchaseRequestDetailTopOrg와 PurchaseRequestDetailOrg를 조합하여 구매 요청의 전체 상세 정보를 표시합니다.\n\n**주요 구성:**\n\n1. **PurchaseRequestDetailTopOrg**: 구매 요청 상단 정보\n   - 구매 요청 내역 제목\n   - 요청 품목 개수 및 토글 버튼\n   - 품목 목록 (토글 가능)\n\n2. **PurchaseRequestDetailOrg**: 구매 요청 상세 정보\n   - 주문 금액 정보\n   - 요청 정보 (요청인, 요청 날짜, 요청 메시지)\n   - 승인 정보 (담당자, 승인 날짜, 상태, 결과 메시지)\n   - 액션 버튼 (목록 보기, 장바구니 다시 담기)\n\n**반응형 레이아웃:**\n- 모바일/태블릿/데스크탑 각각에 최적화된 레이아웃 제공\n- 모바일/태블릿: 액션 버튼 하단 고정\n- 데스크탑: 액션 버튼 일반 배치',
+          '사용자용 내 구매 요청 상세 페이지 템플릿입니다. 내가 요청한 구매 내역과 승인 정보를 확인할 수 있습니다.\n\n**주요 구성:**\n\n1. **PurchaseRequestDetailTopOrg**: 구매품목 목록 및 가격 요약\n   - 구매품목 토글\n   - 주문금액, 배송비, 총 주문금액\n\n2. **PurchaseRequestDetailOrg**: 요청 정보 및 승인 정보\n   - 요청 정보 (요청인, 요청 날짜, 요청 메시지)\n   - 승인 정보 (담당자, 승인 날짜, 상태, 결과 메시지)\n\n3. **PurchaseRequestDetailActionsOrg**: 목록 보기, 장바구니 다시 담기 버튼',
       },
     },
   },
@@ -71,65 +71,73 @@ const mockPurchaseRequest: PurchaseRequestItem = {
   },
 };
 
-export const Default: Story = {
+export const Approved: Story = {
   args: {
     purchaseRequest: mockPurchaseRequest,
+    companyId: 'company-123',
   },
   parameters: {
     docs: {
       description: {
         story:
-          '기본 구매 요청 상세 정보를 표시합니다. 요청 품목 목록은 토글 버튼으로 접고 펼칠 수 있으며, 주문 금액, 요청 정보, 승인 정보가 모두 포함되어 있습니다.',
+          '승인된 구매 요청을 표시합니다. 구매품목, 요청 정보, 승인 정보가 포함되며, 목록 보기와 장바구니 다시 담기 버튼이 표시됩니다.',
       },
     },
   },
 };
 
-export const WithoutRequestMessage: Story = {
-  args: {
-    purchaseRequest: {
-      ...mockPurchaseRequest,
-      requestMessage: undefined,
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: '요청 메시지가 없는 경우를 보여줍니다.',
-      },
-    },
-  },
-};
-
-export const WithRejectReason: Story = {
-  args: {
-    purchaseRequest: {
-      ...mockPurchaseRequest,
-      status: 'REJECTED',
-      rejectReason: '예산 초과로 인한 반려입니다.',
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: '반려된 구매 요청의 경우를 보여줍니다. 결과 메시지에 반려 사유가 표시됩니다.',
-      },
-    },
-  },
-};
-
-export const WithoutApprover: Story = {
+export const Pending: Story = {
   args: {
     purchaseRequest: {
       ...mockPurchaseRequest,
       status: 'PENDING',
       approver: undefined,
     },
+    companyId: 'company-123',
   },
   parameters: {
     docs: {
       description: {
-        story: '승인자가 아직 없는 경우를 보여줍니다.',
+        story:
+          '승인 대기 중인 구매 요청입니다. 담당자가 아직 배정되지 않아 승인 정보의 담당자와 승인 날짜가 "-"로 표시됩니다.',
+      },
+    },
+  },
+};
+
+export const Rejected: Story = {
+  args: {
+    purchaseRequest: {
+      ...mockPurchaseRequest,
+      status: 'REJECTED',
+      rejectReason: '예산 초과로 인해 반려되었습니다. 다음 달에 다시 요청 부탁드립니다.',
+    },
+    companyId: 'company-123',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '반려된 구매 요청입니다. 승인 정보의 상태가 "반려"로 표시되며, 결과 메시지에 반려 사유가 표시됩니다.',
+      },
+    },
+  },
+};
+
+export const LongRequestMessage: Story = {
+  args: {
+    purchaseRequest: {
+      ...mockPurchaseRequest,
+      requestMessage:
+        '이번 프로젝트를 위해 다음 물품들이 필요합니다. 회의실에서 사용할 음료와 간식이 필요하며, 팀원 모두가 함께 즐길 수 있는 품목으로 선정했습니다. 특히 코카콜라 제로는 건강을 생각하는 팀원들을 위한 선택이며, 펩시콜라는 다양한 취향을 고려한 것입니다. 가능한 한 빠른 배송을 부탁드리며, 배송 시 회의실 앞에 직접 배치해 주시면 감사하겠습니다.',
+    },
+    companyId: 'company-123',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '긴 요청 메시지가 포함된 경우입니다. 요청 메시지가 여러 줄로 표시되며 자동 줄바꿈됩니다.',
       },
     },
   },
