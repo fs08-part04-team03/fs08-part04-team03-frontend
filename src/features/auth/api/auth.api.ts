@@ -515,10 +515,6 @@ export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoRespon
     throw new Error(errorMessage);
   }
 
-  if (!result.success) {
-    throw new Error('알 수 없는 오류가 발생했습니다.');
-  }
-
   return result.data;
 }
 
@@ -735,10 +731,6 @@ export async function refreshToken(
       ? result.error.message
       : '토큰 재발급에 실패했습니다.';
     throw new Error(errorMessage);
-  }
-
-  if (!result.success) {
-    throw new Error('알 수 없는 오류가 발생했습니다.');
   }
 
   return {
