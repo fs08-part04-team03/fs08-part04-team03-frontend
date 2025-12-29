@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { inviteSignupSchema, type InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import { inviteSignup } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
+import { setAuthCookies } from '@/utils/cookies';
 
 export const useInviteSignupForm = (email: string, token: string) => {
   const [showToast, setShowToast] = useState(false);
@@ -66,6 +67,23 @@ export const useInviteSignupForm = (email: string, token: string) => {
           role: user.role,
           companyId: user.companyId,
         });
+      }
+
+      // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
+      // accessToken을 함께 전송하여 서버 측에서 검증 가능하도록 함
+      try {
+        await setAuthCookies(user.role, user.companyId, accessToken);
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log('[InviteSignup] 쿠키 저장 완료');
+        }
+      } catch (cookieError) {
+        // 쿠키 설정 실패 시 에러 처리
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[InviteSignup] 쿠키 저장 실패:', cookieError);
+        }
+        throw new Error('인증 정보 저장에 실패했습니다. 다시 시도해주세요.');
       }
 
       // 상품 리스트 페이지로 리다이렉트
