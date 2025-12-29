@@ -6,12 +6,22 @@ import { VALID_ROLES } from '@/constants/roles';
 
 /**
  * 인증된 사용자 정보를 쿠키에서 가져옵니다.
- * HttpOnly 쿠키로 안전하게 저장된 인증 정보를 읽습니다.
+ * 백엔드에서 Set-Cookie로 설정한 HttpOnly 쿠키를 읽습니다.
  */
 function getAuthUser(request: NextRequest): { role: UserRole; companyId: string } | null {
-  // 서버 측에서 설정된 HttpOnly 쿠키에서 인증 정보 가져오기
+  // 백엔드에서 설정한 HttpOnly 쿠키에서 인증 정보 가져오기
   const role = request.cookies.get('auth-role')?.value as UserRole | undefined;
   const companyId = request.cookies.get('auth-company-id')?.value;
+
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[Middleware] 쿠키 확인:', {
+      pathname: request.nextUrl.pathname,
+      role,
+      companyId,
+      allCookies: request.cookies.getAll().map((c) => ({ name: c.name, value: c.value })),
+    });
+  }
 
   if (role && companyId && VALID_ROLES.includes(role)) {
     return { role, companyId };
@@ -35,7 +45,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // [companyId] 스코프 경로인 경우 권한 검증 예: '/123', '/123/products', '/123/admin/users' 등
+  // [companyId] 스코프 경로인 경우 권한 검증
   if (pathname.match(/^\/[^/]+/)) {
     const user = getAuthUser(request);
 
@@ -46,9 +56,9 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // 권한 확인 (hasAccess 내부에서 normalizePath 처리.)
+    // 권한 확인
     if (!hasAccess(user.role, pathname)) {
-      // 권한이 없으면 회사 홈(상품 목록)으로 리다이렉트 (또는 403 페이지로 변경 가능)
+      // 권한이 없으면 회사 홈(상품 목록)으로 리다이렉트
       const homeUrl = new URL(`/${user.companyId}/products`, request.url);
       return NextResponse.redirect(homeUrl);
     }
