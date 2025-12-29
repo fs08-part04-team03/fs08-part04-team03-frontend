@@ -12,7 +12,10 @@ interface InviteMemberModalProps {
   onSubmit: (role: Option, name: string, email: string) => void;
 }
 
-const roleOptions: Option[] = [{ key: 'admin', label: '관리자' }];
+const roleOptions: Option[] = [
+  { key: 'admin', label: '관리자' },
+  { key: 'user', label: '유저' },
+];
 
 const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
