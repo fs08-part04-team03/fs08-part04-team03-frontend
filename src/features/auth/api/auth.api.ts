@@ -241,11 +241,6 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     throw new Error(fullErrorMessage);
   }
 
-  // 성공 응답 처리 (타입 가드로 success: true 보장)
-  if (!result.success) {
-    throw new Error('알 수 없는 오류가 발생했습니다.');
-  }
-
   return {
     user: {
       id: result.data.user.id,
