@@ -2,15 +2,18 @@ import { RoleGuard } from '@/components/guards/RoleGuard';
 import PurchaseHistoryDetailSection from '@/features/purchase-history/section/PurchaseHistoryDetailSection';
 
 interface PurchaseHistoryDetailPageProps {
-  params: {
+  params: Promise<{
     orderId: string;
-  };
+  }>;
 }
 
-const PurchaseHistoryDetailPage = ({ params }: PurchaseHistoryDetailPageProps) => (
-  <RoleGuard requiredRole="manager">
-    <PurchaseHistoryDetailSection orderId={params.orderId} />
-  </RoleGuard>
-);
+const PurchaseHistoryDetailPage = async ({ params }: PurchaseHistoryDetailPageProps) => {
+  const { orderId } = await params;
+  return (
+    <RoleGuard requiredRole="manager">
+      <PurchaseHistoryDetailSection orderId={orderId} />
+    </RoleGuard>
+  );
+};
 
 export default PurchaseHistoryDetailPage;

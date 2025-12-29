@@ -48,7 +48,7 @@ const Logo = ({
     />
   );
 
-  if (href !== undefined) {
+  if (href) {
     return <Link href={href}>{imageElement}</Link>;
   }
 

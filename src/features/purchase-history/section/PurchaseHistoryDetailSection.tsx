@@ -86,10 +86,25 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
   }
 
   // 승인 정보 변환
+  const getStatusLabel = (status: string): string => {
+    switch (status) {
+      case 'APPROVED':
+        return '승인됨';
+      case 'PENDING':
+        return '대기중';
+      case 'REJECTED':
+        return '거부됨';
+      case 'CANCELLED':
+        return '취소됨';
+      default:
+        return status;
+    }
+  };
+
   const approvedInfo = {
     approverName: purchaseDetail.approver?.name || '관리자',
     approvalDate: purchaseDetail.updatedAt,
-    statusLabel: purchaseDetail.status === 'APPROVED' ? '승인됨' : purchaseDetail.status,
+    statusLabel: getStatusLabel(purchaseDetail.status),
     resultMessage:
       purchaseDetail.status === 'APPROVED'
         ? '구매 요청이 승인되었습니다.'

@@ -408,11 +408,6 @@ export async function signup(
     throw new Error(fullErrorMessage);
   }
 
-  // 성공 응답 처리
-  if (!result.success) {
-    throw new Error('알 수 없는 오류가 발생했습니다.');
-  }
-
   return {
     user: {
       id: result.data.user.id,
@@ -645,10 +640,6 @@ export async function inviteSignup(
 
     const fullErrorMessage = errorDetails ? `${errorMessage} (${errorDetails})` : errorMessage;
     throw new Error(fullErrorMessage);
-  }
-
-  if (!result.success) {
-    throw new Error('알 수 없는 오류가 발생했습니다.');
   }
 
   return {
