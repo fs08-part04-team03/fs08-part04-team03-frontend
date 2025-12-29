@@ -11,7 +11,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '구매 요청의 상세 정보를 표시하는 Organism 컴포넌트입니다.\n\n**주요 기능:**\n- 요청 정보(요청인, 요청 날짜, 요청 메시지) 표시\n- 승인 정보(담당자, 승인 날짜, 상태, 결과 메시지) 표시\n- 반응형 레이아웃 지원 (모바일: 단일 열, 태블릿/데스크톱: 2열 그리드)\n\n**반응형 구조:**\n- **모바일**: 각 필드가 별도 행으로 표시 (140px 라벨 + 1fr 값)\n- **태블릿/데스크톱**: 2개 필드가 한 행에 2x2 그리드로 표시 (140px_1fr_140px_1fr)\n- 텍스트 크기: 모바일 14px, 태블릿/데스크톱 16px\n\n**구성 컴포넌트:**\n- `InfoSection`: 섹션 제목과 Divider를 포함한 래퍼\n- `InfoRowTwoColumns`: 2개 필드를 반응형으로 표시하는 행\n- `InfoRowSingle`: 단일 필드를 전체 너비로 표시하는 행',
+          '구매 내역의 상세 정보를 표시하는 Organism 컴포넌트입니다.\n\n**주요 기능:**\n- 요청 정보(요청인, 요청 날짜, 요청 메시지) 표시\n- 승인 정보(담당자, 승인 날짜, 상태, 결과 메시지) 표시\n- 반응형 레이아웃 지원 (모바일: 단일 열, 태블릿/데스크톱: 2열 그리드)\n\n**반응형 구조:**\n- **모바일**: 각 필드가 별도 행으로 표시 (140px 라벨 + 1fr 값)\n- **태블릿/데스크톱**: 2개 필드가 한 행에 2x2 그리드로 표시 (140px_1fr_140px_1fr)\n- 텍스트 크기: 모바일 14px, 태블릿/데스크톱 16px\n\n**구성 컴포넌트:**\n- `InfoSection`: 섹션 제목과 Divider를 포함한 래퍼\n- `InfoRowTwoColumns`: 2개 필드를 반응형으로 표시하는 행\n- `InfoRowSingle`: 단일 필드를 전체 너비로 표시하는 행',
       },
     },
   },
@@ -102,30 +102,6 @@ export const LongRequestMessage: Story = {
       description: {
         story:
           '긴 요청 메시지가 포함된 상세 정보입니다.\n\n**긴 메시지 처리:**\n- 요청 메시지가 여러 줄로 표시됨\n- `wrap-break-word` 클래스로 긴 단어도 자동 줄바꿈\n- fullWidth 옵션으로 `grid-cols-[140px_3fr]` 사용하여 메시지 영역 확보\n\n**레이아웃 특징:**\n- 모바일: 라벨(140px) + 메시지(3fr)\n- 태블릿/데스크톱: 동일하게 140px + 3fr 그리드\n- 메시지 텍스트는 자동 줄바꿈되어 가독성 유지\n\n**사용 시나리오:**\n- 상세한 구매 사유가 필요한 경우\n- 배송 요청사항이 포함된 경우\n- 복잡한 구매 건에 대한 설명이 필요한 경우',
-      },
-    },
-  },
-};
-
-export const WithoutApprover: Story = {
-  args: {
-    purchaseRequest: {
-      ...mockPurchaseRequest,
-      status: 'PENDING',
-      updatedAt: '2025-07-05T09:30:00.000Z',
-    },
-    approvedInfo: {
-      approverName: '-',
-      approvalDate: null,
-      statusLabel: '-',
-      resultMessage: '-',
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '담당자가 아직 배정되지 않은 상태의 구매 요청입니다.\n\n**요청 정보:**\n- 요청인: 김스낵\n- 요청 날짜: 2025년 7월 5일 09:30\n- 요청 메시지: 회의용 음료가 필요합니다. 가능한 빨리 구매 부탁드립니다.\n\n**승인 정보:**\n- 담당자: - (미배정)\n- 승인 날짜: - (null)\n- 상태: - (PENDING)\n- 결과 메시지: - (없음)\n\n**null 처리:**\n- 담당자가 배정되지 않아 모든 필드가 "-"로 표시됨\n- `approvalDate`가 null일 때 DateText 대신 "-" 문자열 표시\n\n**사용 시나리오:**\n- 구매 요청이 접수되었으나 담당자 미배정 상태\n- 승인 대기 중인 초기 단계\n- 담당자 할당 전 상태',
       },
     },
   },

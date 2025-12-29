@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useMemo } from 'react';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import PriceText from '@/components/atoms/PriceText/PriceText';
@@ -16,22 +15,26 @@ import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/Ap
 import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
 
 const TABLE_CELL_BASE_STYLES = {
-  header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 tablet:px-0 desktop:px-40',
-  cell: 'shrink-0 text-left py-20 tablet:px-0 desktop:px-40',
+  header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 pl-20',
+  cell: 'shrink-0 text-left py-20 pl-20',
 } as const;
 
 const COLUMN_WIDTHS = {
-  date: 'tablet:w-100 desktop:w-180',
-  product: 'tablet:w-140 desktop:w-260',
-  price: 'tablet:w-100 desktop:w-180',
-  requester: 'tablet:w-100 desktop:w-180',
+  date: 'tablet:w-100 desktop:w-140',
+  product: 'tablet:w-200 desktop:flex-1',
+  price: 'tablet:w-100 desktop:w-140',
+  requester: 'tablet:w-100 desktop:w-140',
+  actions: 'tablet:w-140 desktop:w-180 desktop:max-w-180',
 } as const;
 
 export interface PurchaseRequestListTemProps {
   purchaseList: PurchaseRequestItem[];
+  companyId: string;
   className?: string;
   onRejectClick?: (purchaseRequestId: string) => void;
   onApproveClick?: (purchaseRequestId: string) => void;
+  onRowClick?: (purchaseRequestId: string) => void;
+  onNavigateToProducts?: () => void;
   selectedRequestId?: string | null;
   approveModalOpen?: boolean;
   rejectModalOpen?: boolean;
@@ -53,8 +56,10 @@ export interface PurchaseRequestListTemProps {
 
 interface PurchaseRequestTableRowProps {
   item: PurchaseRequestItem;
+  companyId: string;
   onRejectClick?: (purchaseRequestId: string) => void;
   onApproveClick?: (purchaseRequestId: string) => void;
+  onRowClick?: (purchaseRequestId: string) => void;
 }
 
 const TableHeaderCell = ({
@@ -66,13 +71,14 @@ const TableHeaderCell = ({
 }) => <div className={clsx(TABLE_CELL_BASE_STYLES.header, widthClass)}>{children}</div>;
 
 const PurchaseRequestTableHeaderTablet = () => (
-  <div className="w-full">
-    <div className="flex items-center w-full gap-16 tablet:gap-24 desktop:gap-32">
+  <div className="w-full tablet:px-24">
+    <Divider variant="thin" className="w-full" />
+    <div className="flex items-center w-full gap-16 tablet:gap-24">
       <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
       <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
       <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
       <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
-      <TableHeaderCell>비고</TableHeaderCell>
+      <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
     </div>
   </div>
 );
@@ -103,7 +109,7 @@ const PurchaseRequestTableHeaderDesktop = ({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full desktop:px-40">
       <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
         <p>구매 요청 내역</p>
         <div className="flex items-center gap-12">
@@ -129,12 +135,13 @@ const PurchaseRequestTableHeaderDesktop = ({
           )}
         </div>
       </div>
+      <Divider variant="thin" className="w-full" />
       <div className="flex items-center w-full gap-16 tablet:gap-24 desktop:gap-32">
         <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
         <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
         <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
         <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
-        <TableHeaderCell>비고</TableHeaderCell>
+        <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
       </div>
     </div>
   );
@@ -142,17 +149,16 @@ const PurchaseRequestTableHeaderDesktop = ({
 
 const PurchaseRequestTableRowDesktop = ({
   item,
+  companyId,
   onRejectClick,
   onApproveClick,
-  companyId,
-}: PurchaseRequestTableRowProps & { companyId?: string }) => {
-  const router = useRouter();
+  onRowClick,
+}: PurchaseRequestTableRowProps) => {
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
   const handleRowClick = () => {
-    if (!companyId) return;
-    router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+    onRowClick?.(item.id);
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
@@ -164,14 +170,12 @@ const PurchaseRequestTableRowDesktop = ({
 
   const handleRejectClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!onRejectClick) return;
-    onRejectClick(item.id);
+    onRejectClick?.(item.id);
   };
 
   const handleApproveClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!onApproveClick) return;
-    onApproveClick(item.id);
+    onApproveClick?.(item.id);
   };
 
   return (
@@ -180,7 +184,7 @@ const PurchaseRequestTableRowDesktop = ({
       tabIndex={0}
       className={clsx(
         'flex items-center w-full gap-16 tablet:gap-24 desktop:gap-32',
-        'cursor-pointer hover:bg-gray-50',
+        'cursor-pointer hover:bg-gray-50 tablet:px-24 desktop:px-40',
         isUrgent && 'bg-red-100'
       )}
       onClick={handleRowClick}
@@ -214,12 +218,12 @@ const PurchaseRequestTableRowDesktop = ({
         <UserProfile
           name={item.requester.name}
           company={{ name: item.requester.company || '' }}
-          profileHref={companyId ? `/${companyId}/my/profile` : undefined}
+          profileHref={`/${companyId}/my/profile`}
           variant="nameOnly"
         />
       </div>
 
-      <div className={clsx(TABLE_CELL_BASE_STYLES.cell, 'flex gap-8')}>
+      <div className={clsx(TABLE_CELL_BASE_STYLES.cell, COLUMN_WIDTHS.actions, 'flex gap-8')}>
         {onRejectClick && onApproveClick && (
           <>
             <Button
@@ -245,9 +249,12 @@ const PurchaseRequestTableRowDesktop = ({
 
 const PurchaseRequestListTem = ({
   purchaseList,
+  companyId,
   className,
   onRejectClick,
   onApproveClick,
+  onRowClick,
+  onNavigateToProducts,
   selectedRequestId,
   approveModalOpen = false,
   rejectModalOpen = false,
@@ -266,16 +273,7 @@ const PurchaseRequestListTem = ({
   selectedStatusOption,
   onStatusChange,
 }: PurchaseRequestListTemProps) => {
-  const router = useRouter();
-  const params = useParams();
-  const companyId = params?.companyId ? String(params.companyId) : undefined;
-
   const finalTotalPages = totalPages ?? 1;
-
-  const handleNavigateToProducts = useCallback(() => {
-    if (!companyId) return;
-    router.push(`/${companyId}/products`);
-  }, [router, companyId]);
 
   const selectedRequest = selectedRequestId
     ? purchaseList.find((item) => item.id === selectedRequestId)
@@ -315,6 +313,7 @@ const PurchaseRequestListTem = ({
 
   return (
     <div className={clsx('w-full desktop:max-w-1400 desktop:mx-auto', className)}>
+      {/* 모바일 뷰 */}
       <div className="tablet:hidden">
         {purchaseList.length === 0 ? (
           <div className="w-full mt-200 flex justify-center">
@@ -322,7 +321,7 @@ const PurchaseRequestListTem = ({
               title="구매 요청한 내역이 없어요"
               description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
               buttonText="상품 리스트로 이동"
-              onButtonClick={handleNavigateToProducts}
+              onButtonClick={onNavigateToProducts}
             />
           </div>
         ) : (
@@ -335,12 +334,13 @@ const PurchaseRequestListTem = ({
         )}
       </div>
 
+      {/* 태블릿/데스크톱 뷰 */}
       <div className="hidden tablet:block overflow-x-auto">
         <div className="w-full">
           {purchaseList.length === 0 ? (
             <>
               <div className="hidden desktop:block">
-                <div className="w-full">
+                <div className="w-full desktop:px-40">
                   <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
                     <p>구매 요청 내역</p>
                     <div className="flex items-center gap-12">
@@ -379,8 +379,9 @@ const PurchaseRequestListTem = ({
                   title="구매 요청한 내역이 없어요"
                   description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
                   buttonText="상품 리스트로 이동"
-                  onButtonClick={handleNavigateToProducts}
+                  onButtonClick={onNavigateToProducts}
                 />
+                <Divider variant="thin" className="w-full" />
               </div>
             </>
           ) : (
@@ -400,16 +401,19 @@ const PurchaseRequestListTem = ({
                 />
               </div>
 
-              <Divider variant="thin" className="w-full" />
+              <div className="tablet:px-24 desktop:px-40">
+                <Divider variant="thin" className="w-full" />
+              </div>
 
               <div className="w-full">
                 {purchaseList.map((item) => (
                   <PurchaseRequestTableRowDesktop
                     key={item.id}
                     item={item}
+                    companyId={companyId}
                     onRejectClick={onRejectClick}
                     onApproveClick={onApproveClick}
-                    companyId={companyId}
+                    onRowClick={onRowClick}
                   />
                 ))}
               </div>
@@ -418,6 +422,7 @@ const PurchaseRequestListTem = ({
         </div>
       </div>
 
+      {/* 페이지네이션 */}
       {purchaseList.length > 0 && finalTotalPages > 0 && onPageChange && (
         <div className="flex justify-start mt-20">
           <PaginationBlock
@@ -429,6 +434,7 @@ const PurchaseRequestListTem = ({
         </div>
       )}
 
+      {/* 승인 모달 */}
       {modalData && (
         <ApprovalRequestModal
           open={approveModalOpen}
@@ -442,6 +448,7 @@ const PurchaseRequestListTem = ({
         />
       )}
 
+      {/* 반려 모달 */}
       {modalData && (
         <ApprovalRequestModal
           open={rejectModalOpen}

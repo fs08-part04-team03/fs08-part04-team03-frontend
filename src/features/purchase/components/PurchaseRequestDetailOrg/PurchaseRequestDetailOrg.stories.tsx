@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import { PURCHASE_REQUEST_STATUS_LABEL } from '@/constants/purchase.constants';
 import PurchaseRequestDetailOrg from './PurchaseRequestDetailOrg';
 
 const meta = {
@@ -9,19 +8,10 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     layout: 'padded',
-    nextjs: {
-      appDirectory: true,
-      navigation: {
-        pathname: '/company-123/my/purchase-requests/1',
-        params: {
-          companyId: 'company-123',
-        },
-      },
-    },
     docs: {
       description: {
         component:
-          '구매 요청의 상세 정보를 표시하는 컴포넌트입니다. 반응형 디자인을 지원하며, 모바일/태블릿/데스크탑 각각에 최적화된 레이아웃을 제공합니다.\n\n**주요 섹션:**\n\n1. **주문 금액 정보**\n   - 주문금액: 상품들의 총 금액 (PriceText 컴포넌트 사용)\n   - 배송비: 배송에 필요한 추가 비용\n   - 총 주문 금액: 주문금액 + 배송비 (더 큰 폰트와 볼드 스타일 적용)\n\n2. **요청 정보**\n   - 요청인: 구매 요청을 한 사용자의 이름\n   - 요청 날짜: 구매 요청이 생성된 날짜 (DateText 컴포넌트로 "YYYY.MM.DD" 형식으로 표시)\n   - 요청 메시지: 사용자가 작성한 요청 메시지 (있을 경우에만 표시)\n\n3. **승인 정보**\n   - 담당자: 승인을 처리한 관리자의 이름 (없을 경우 "-" 표시)\n   - 승인 날짜: 승인이 처리된 날짜 (DateText 컴포넌트 사용, 없을 경우 "-" 표시)\n   - 상태: 구매 요청의 현재 상태 (PENDING, APPROVED, REJECTED, CANCELLED)\n   - 결과 메시지: 반려 사유가 있을 경우 표시 (rejectReason)\n\n**반응형 레이아웃:**\n\n- **모바일 (< 768px)**:\n  - 세로 레이아웃 (flex-col)\n  - 각 필드는 라벨(w-140)과 값이 가로로 배치\n  - 요청 메시지와 결과 메시지는 전체 너비 사용\n  - 텍스트 크기: text-14\n\n- **태블릿 (768px ~ 1023px)**:\n  - 4컬럼 그리드 레이아웃: `grid-cols-[140px_1fr_140px_1fr]`\n  - 첫 번째 행: 요청인 | 값 | 요청 날짜 | 값\n  - 요청 메시지는 별도 그리드로 `grid-cols-[140px_3fr]` 구조\n  - 승인 정보도 동일한 4컬럼 그리드 구조\n  - 텍스트 크기: text-16\n\n- **데스크탑 (≥ 1024px)**:\n  - 태블릿과 동일한 4컬럼 그리드 레이아웃\n  - 요청 메시지는 `grid-cols-[140px_3fr]` 구조\n  - 텍스트 크기: text-16\n\n**사용 컴포넌트:**\n- PriceText: 금액을 표시하는 아톰 컴포넌트 (천 단위 구분, "원" 단위 자동 추가)\n- DateText: 날짜를 "YYYY.MM.DD" 형식으로 표시하는 아톰 컴포넌트\n- Divider: 섹션 간 구분선 (thick: 섹션 제목 아래)\n\n**참고:**\n- 이 컴포넌트는 정보 표시만 담당하며, 액션 버튼은 상위 템플릿 컴포넌트에서 별도로 렌더링됩니다.\n- 승인 정보의 값 계산(상태 한글 변환, 담당자 이름, 승인 날짜 등)은 상위 템플릿 컴포넌트에서 처리됩니다.',
+          '구매 요청의 상세 정보를 표시하는 Organism 컴포넌트입니다.\n\n**주요 기능:**\n- 요청 정보(요청인, 요청 날짜, 요청 메시지) 표시\n- 예산 정보(이번 달 지출액, 남은 예산, 구매 후 예산) 표시 (선택적)\n- 승인 정보(담당자, 승인 날짜, 상태, 결과 메시지) 표시 (선택적)\n- 반응형 레이아웃 지원 (모바일: 단일 열, 태블릿/데스크톱: 2열 그리드)\n\n**반응형 구조:**\n- **모바일**: 각 필드가 별도 행으로 표시 (140px 라벨 + 1fr 값)\n- **태블릿/데스크톱**: 2개 필드가 한 행에 2x2 그리드로 표시 (140px_1fr_140px_1fr)\n- 텍스트 크기: 모바일 14px, 태블릿/데스크톱 16px\n\n**구성 컴포넌트:**\n- `InfoSection`: 섹션 제목과 Divider를 포함한 래퍼\n- `InfoRowTwoColumns`: 2개 필드를 반응형으로 표시하는 행\n- `InfoRowSingle`: 단일 필드를 전체 너비로 표시하는 행',
       },
     },
   },
@@ -32,49 +22,60 @@ export default meta;
 type Story = StoryObj<typeof PurchaseRequestDetailOrg>;
 
 const mockPurchaseRequest: PurchaseRequestItem = {
-  id: '1',
-  createdAt: '2025-06-03T00:00:00.000Z',
-  updatedAt: '2025-06-03T00:00:00.000Z',
-  totalPrice: 15000,
+  id: 'req-1',
+  createdAt: '2025-07-05T09:30:00.000Z',
+  updatedAt: '2025-07-05T09:30:00.000Z',
+  totalPrice: 45000,
   shippingFee: 3000,
-  status: 'APPROVED',
-  requestMessage: '빠른 배송 부탁드립니다.',
-  purchaseItems: [],
+  status: 'PENDING',
+  purchaseItems: [
+    {
+      id: 'item-1',
+      quantity: 2,
+      priceSnapshot: 15000,
+      products: {
+        id: 1,
+        name: '코카콜라 제로',
+      },
+    },
+    {
+      id: 'item-2',
+      quantity: 1,
+      priceSnapshot: 12000,
+      products: {
+        id: 2,
+        name: '펩시콜라',
+      },
+    },
+  ],
   requester: {
-    id: 'requester-1',
-    name: '홍길동',
-    email: 'hong@example.com',
+    id: 'user-1',
+    name: '김스낵',
+    email: 'snack@example.com',
   },
-  approver: {
-    id: 'approver-1',
-    name: '관리자',
-    email: 'admin@example.com',
-  },
+  urgent: false,
+  requestMessage: '회의용 음료가 필요합니다. 가능한 빨리 구매 부탁드립니다.',
 };
-
-const createApprovedInfo = (purchaseRequest: PurchaseRequestItem) => ({
-  approverName: purchaseRequest.approver?.name || '-',
-  approvalDate: purchaseRequest.approver ? purchaseRequest.updatedAt : null,
-  statusLabel: PURCHASE_REQUEST_STATUS_LABEL[purchaseRequest.status],
-  resultMessage: purchaseRequest.rejectReason || '-',
-});
-
-const createBudgetInfo = (purchaseRequest: PurchaseRequestItem) => ({
-  monthlySpending: 500000,
-  remainingBudget: 2000000,
-  budgetAfterPurchase: 2000000 - (purchaseRequest.totalPrice + purchaseRequest.shippingFee),
-});
 
 export const Default: Story = {
   args: {
-    purchaseRequest: mockPurchaseRequest,
-    approvedInfo: createApprovedInfo(mockPurchaseRequest),
+    purchaseRequest: {
+      ...mockPurchaseRequest,
+      status: 'APPROVED',
+      updatedAt: '2025-07-05T14:20:00.000Z',
+    },
+    approvedInfo: {
+      approverName: '김코드',
+      approvalDate: '2025-07-05T14:20:00.000Z',
+      statusLabel: '승인',
+      resultMessage: '승인되었습니다.',
+    },
   },
   parameters: {
     docs: {
       description: {
         story:
-          '기본 구매 요청 상세 정보를 표시합니다 (my/ 경로). 주문 금액, 요청 정보, 승인 정보가 모두 포함되어 있으며, 승인자가 있는 경우 담당자와 승인 날짜가 표시됩니다. 요청 메시지가 있는 경우 해당 메시지도 표시됩니다. 모바일에서는 세로 레이아웃, 태블릿/데스크탑에서는 4컬럼 그리드 레이아웃으로 표시됩니다.',
+          '승인 정보가 포함된 전체 상세 정보를 표시합니다.\n\n**요청 정보:**\n- 요청인: 김스낵\n- 요청 날짜: 2025년 7월 5일 09:30\n- 요청 메시지: 회의용 음료가 필요합니다. 가능한 빨리 구매 부탁드립니다.\n\n**승인 정보:**\n- 담당자: 김코드\n- 승인 날짜: 2025년 7월 5일 14:20 (요청 후 약 5시간 후 승인)\n- 상태: 승인\n- 결과 메시지: 승인되었습니다.',
       },
     },
   },
@@ -83,13 +84,67 @@ export const Default: Story = {
 export const WithBudgetInfo: Story = {
   args: {
     purchaseRequest: mockPurchaseRequest,
-    budgetInfo: createBudgetInfo(mockPurchaseRequest),
+    budgetInfo: {
+      monthlySpending: 500000,
+      remainingBudget: 2000000,
+      budgetAfterPurchase: 1952000,
+    },
   },
   parameters: {
     docs: {
       description: {
         story:
-          '예산 정보가 포함된 구매 요청 상세 정보를 표시합니다 (my/ 경로가 아닌 경우). 주문 금액, 요청 정보, 예산 정보가 모두 포함되어 있습니다. 예산 정보는 3컬럼 그리드 레이아웃으로 표시됩니다.',
+          '예산 정보가 포함된 구매 요청 상세 정보를 표시합니다.\n\n**요청 정보:**\n- 요청인: 김스낵\n- 요청 날짜: 2025년 7월 5일 09:30\n- 요청 메시지: 회의용 음료가 필요합니다. 가능한 빨리 구매 부탁드립니다.\n\n**예산 정보:**\n- 이번 달 지출액: 500,000원\n- 이번 달 남은 예산: 2,000,000원\n- 구매 후 예산: 1,952,000원',
+      },
+    },
+  },
+};
+
+export const LongRequestMessage: Story = {
+  args: {
+    purchaseRequest: {
+      ...mockPurchaseRequest,
+      status: 'APPROVED',
+      updatedAt: '2025-07-05T14:20:00.000Z',
+      requestMessage:
+        '이번 프로젝트를 위해 다음 물품들이 필요합니다. 회의실에서 사용할 음료와 간식이 필요하며, 팀원 모두가 함께 즐길 수 있는 품목으로 선정했습니다. 특히 코카콜라 제로는 건강을 생각하는 팀원들을 위한 선택이며, 펩시콜라는 다양한 취향을 고려한 것입니다. 가능한 한 빠른 배송을 부탁드리며, 배송 시 회의실 앞에 직접 배치해 주시면 감사하겠습니다. 추가로 영수증 발급도 함께 요청드립니다.',
+    },
+    approvedInfo: {
+      approverName: '김코드',
+      approvalDate: '2025-07-05T14:20:00.000Z',
+      statusLabel: '승인',
+      resultMessage: '승인되었습니다.',
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '긴 요청 메시지가 포함된 상세 정보입니다.\n\n**긴 메시지 처리:**\n- 요청 메시지가 여러 줄로 표시됨\n- `break-words` 클래스로 긴 단어도 자동 줄바꿈\n- fullWidth 옵션으로 `grid-cols-[140px_3fr]` 사용하여 메시지 영역 확보',
+      },
+    },
+  },
+};
+
+export const Rejected: Story = {
+  args: {
+    purchaseRequest: {
+      ...mockPurchaseRequest,
+      status: 'REJECTED',
+      updatedAt: '2025-07-05T11:15:00.000Z',
+    },
+    approvedInfo: {
+      approverName: '박관리',
+      approvalDate: '2025-07-05T11:15:00.000Z',
+      statusLabel: '반려',
+      resultMessage: '예산 초과로 인해 반려되었습니다. 다음 달에 다시 요청 부탁드립니다.',
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '반려된 구매 요청의 상세 정보를 표시합니다.\n\n**승인 정보:**\n- 담당자: 박관리\n- 승인 날짜: 2025년 7월 5일 11:15\n- 상태: 반려\n- 결과 메시지: 예산 초과로 인해 반려되었습니다. 다음 달에 다시 요청 부탁드립니다.',
       },
     },
   },

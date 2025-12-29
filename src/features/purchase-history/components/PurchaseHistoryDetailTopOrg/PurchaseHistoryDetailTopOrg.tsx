@@ -37,23 +37,27 @@ interface PurchaseItemsListProps {
   items: PurchaseRequestItem['purchaseItems'];
 }
 
-const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => (
-  <>
-    {items.map((item, index) => (
-      <React.Fragment key={item.id}>
-        <div className="my-16">
-          <OrderItemDetailCard
-            name={item.products.name}
-            unitPrice={item.priceSnapshot}
-            quantity={item.quantity}
-            imageSrc={item.products.image}
-          />
-        </div>
-        {index < items.length - 1 && <Divider />}
-      </React.Fragment>
-    ))}
-  </>
-);
+const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
+  const hasScroll = items.length > 2;
+
+  return (
+    <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
+      {items.map((item, index) => (
+        <React.Fragment key={item.id}>
+          <div className="my-16">
+            <OrderItemDetailCard
+              name={item.products.name}
+              unitPrice={item.priceSnapshot}
+              quantity={item.quantity}
+              imageSrc={item.products.image}
+            />
+          </div>
+          {index < items.length - 1 && <Divider />}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
 
 // 가격 요약 섹션
 interface PriceSummaryProps {
@@ -84,8 +88,8 @@ export const PurchaseHistoryDetailTopOrg: React.FC<PurchaseHistoryDetailTopOrgPr
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
   const { totalPrice, shippingFee } = purchaseRequest;
-  const orderAmount = totalPrice - shippingFee;
-  const totalAmount = totalPrice;
+  const orderAmount = totalPrice;
+  const totalAmount = totalPrice + shippingFee;
 
   return (
     <div className="flex flex-col gap-30">
