@@ -23,7 +23,8 @@ const BudgetFormOrg = ({ onSubmit }: BudgetFormOrgProps) => {
 
       // 안전한 정수 범위 검증
       if (numericValue && Number(numericValue) > Number.MAX_SAFE_INTEGER) {
-        throw new Error('정수 범위를 초과했습니다');
+        // 범위를 초과하는 입력은 무시
+        return;
       }
 
       setter(numericValue);

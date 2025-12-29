@@ -2,12 +2,13 @@
 export const formatNumberToKorean = (value: number): string => {
   // 음수 및 유효하지 않은 입력 검증
   if (!Number.isFinite(value) || value < 0) {
-    throw new Error('양의 정수만 입력 가능합니다');
+    return '양의 정수만 입력 가능합니다';
   }
 
   // 안전한 정수 범위 검증
   if (value && Number(value) > Number.MAX_SAFE_INTEGER) {
-    throw new Error('정수 범위를 초과했습니다');
+    // 범위를 초과하는 입력은 무시
+    return '입력 가능한 범위를 초과했습니다';
   }
 
   // 정수로 변환
