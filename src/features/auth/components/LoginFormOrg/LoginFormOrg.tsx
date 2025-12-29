@@ -8,10 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@/features/auth/schemas/login.schema';
 import { login } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
-import { setAuthCookies } from '@/utils/cookies';
 
 export const useLoginForm = () => {
-  const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const router = useRouter();
@@ -38,8 +36,6 @@ export const useLoginForm = () => {
   });
 
   const onSubmit = async (values: LoginInput): Promise<void> => {
-    setServerError(null);
-
     try {
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
@@ -55,24 +51,16 @@ export const useLoginForm = () => {
         console.log('[Login] 로그인 API 성공:', { hasAccessToken: !!accessToken });
       }
 
-      // 인증 정보 저장 (zustand)
+      // 인증 정보 저장 (zustand - 클라이언트 상태 관리)
       setAuth({ user, accessToken });
 
-      // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
-      // accessToken을 함께 전송하여 서버 측에서 검증 가능하도록 함
-      try {
-        await setAuthCookies(user.role, user.companyId, accessToken);
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('[Login] 쿠키 저장 완료');
-        }
-      } catch (cookieError) {
-        // 쿠키 설정 실패 시 에러 처리
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[Login] 쿠키 저장 실패:', cookieError);
-        }
-        throw new Error('인증 정보 저장에 실패했습니다. 다시 시도해주세요.');
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('[Login] 인증 정보 저장 완료:', {
+          userId: user.id,
+          role: user.role,
+          companyId: user.companyId,
+        });
       }
 
       // 상품 리스트 페이지로 리다이렉트
@@ -87,9 +75,8 @@ export const useLoginForm = () => {
         error instanceof Error ? error.message : '이메일 또는 비밀번호가 올바르지 않습니다.';
       setToastMessage(errorMessage);
       setShowToast(true);
-      setServerError(errorMessage);
     }
   };
 
-  return { ...form, serverError, setServerError, onSubmit, showToast, toastMessage, setShowToast };
+  return { ...form, onSubmit, showToast, toastMessage, setShowToast };
 };
