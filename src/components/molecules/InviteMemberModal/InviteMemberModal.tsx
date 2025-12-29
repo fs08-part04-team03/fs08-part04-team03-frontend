@@ -13,7 +13,7 @@ interface InviteMemberModalProps {
 }
 
 const roleOptions: Option[] = [
-  { key: 'admin', label: '관리자' },
+  { key: 'manager', label: '관리자' },
   { key: 'user', label: '유저' },
 ];
 
