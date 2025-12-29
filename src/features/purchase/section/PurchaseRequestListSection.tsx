@@ -191,6 +191,15 @@ const PurchaseRequestListSection = () => {
     [searchParams, router, pathname]
   );
 
+  // companyId 필수 체크
+  if (!companyId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>잘못된 접근입니다. 회사 ID가 필요합니다.</p>
+      </div>
+    );
+  }
+
   if (isLoading || isBudgetLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -228,6 +237,7 @@ const PurchaseRequestListSection = () => {
     <div className="w-full">
       <PurchaseRequestListTem
         purchaseList={purchaseList}
+        companyId={companyId}
         onRejectClick={handleRejectClick}
         onApproveClick={handleApproveClick}
         selectedRequestId={selectedRequestId}
