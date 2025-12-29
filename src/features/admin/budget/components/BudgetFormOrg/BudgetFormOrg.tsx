@@ -17,8 +17,15 @@ const BudgetFormOrg = ({ onSubmit }: BudgetFormOrgProps) => {
   const handleBudgetChange =
     (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = e.target;
+
       // 숫자만 입력 가능하도록 처리
       const numericValue = value.replace(/[^0-9]/g, '');
+
+      // 안전한 정수 범위 검증
+      if (numericValue && Number(numericValue) > Number.MAX_SAFE_INTEGER) {
+        throw new Error('정수 범위를 초과했습니다');
+      }
+
       setter(numericValue);
     };
 
