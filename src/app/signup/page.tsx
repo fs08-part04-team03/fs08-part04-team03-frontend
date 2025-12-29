@@ -1,5 +1,5 @@
-import Signup from '@/features/auth/section/Signup';
+import SignupSection from '@/features/auth/section/SignupSection';
 
-const SignupPage = () => <Signup />;
+const SignupPage = () => <SignupSection />;
 
 export default SignupPage;

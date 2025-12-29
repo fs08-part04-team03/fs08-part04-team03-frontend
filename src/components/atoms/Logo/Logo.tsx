@@ -7,8 +7,10 @@ import { clsx } from '@/utils/clsx';
 
 type LogoSize = 'sm' | 'md' | 'lg';
 
-export interface LogoProps
-  extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt' | 'width' | 'height'> {
+export interface LogoProps extends Omit<
+  ImgHTMLAttributes<HTMLImageElement>,
+  'src' | 'alt' | 'width' | 'height'
+> {
   size?: LogoSize;
   src?: string;
   alt?: string;
@@ -31,7 +33,7 @@ const Logo = ({
   size = 'md',
   src = '/logo/logo.svg',
   alt = 'Logo',
-  href = '/',
+  href,
   className,
 }: LogoProps) => {
   const { width, height } = sizeValues[size];
@@ -46,7 +48,7 @@ const Logo = ({
     />
   );
 
-  if (href) {
+  if (href !== undefined) {
     return <Link href={href}>{imageElement}</Link>;
   }
 
