@@ -75,6 +75,8 @@ export const MultipleItems: Story = {
   args: {
     purchaseRequest: {
       ...mockPurchaseRequest,
+      totalPrice: 32400,
+      shippingFee: 3000,
       purchaseItems: [
         {
           id: 'item-1',
@@ -116,6 +118,16 @@ export const MultipleItems: Story = {
             image: '/images/zero-cola.svg',
           },
         },
+        {
+          id: 'item-5',
+          quantity: 2,
+          priceSnapshot: 4000,
+          products: {
+            id: 5,
+            name: '밀키스',
+            image: '/images/zero-cola.svg',
+          },
+        },
       ],
     },
   },
@@ -123,7 +135,7 @@ export const MultipleItems: Story = {
     docs: {
       description: {
         story:
-          '여러 품목이 있는 구매 내역입니다. 4개의 품목이 표시되며, 각 품목 사이에 Divider가 표시됩니다. 토글 버튼으로 목록을 접고 펼칠 수 있습니다.',
+          '여러 품목(5개)이 있는 구매 내역입니다. 3개 이상의 품목이 있을 때 스크롤이 생기며, 최대 높이 280px로 제한됩니다. 각 품목 사이에 Divider가 표시되고, 토글 버튼으로 목록을 접고 펼칠 수 있습니다.\n\n**특징:**\n- 5개 품목 표시\n- 스크롤 가능 영역 (max-h-280 overflow-y-auto)\n- 주문금액, 배송비, 총 주문금액 요약',
       },
     },
   },
