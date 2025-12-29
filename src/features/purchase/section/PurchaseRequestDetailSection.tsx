@@ -221,10 +221,19 @@ const PurchaseRequestDetailSection = () => {
     );
   }
 
+  if (!companyId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>회사 정보를 찾을 수 없습니다.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <PurchaseRequestDetailTem
         purchaseRequest={data}
+        companyId={companyId}
         budget={budget}
         monthlySpending={monthlySpending}
         approveModalOpen={approveModalOpen}
