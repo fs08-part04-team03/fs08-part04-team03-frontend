@@ -11,12 +11,35 @@ import { getApiTimeout, getApiUrl } from '@/utils/api';
 type SignupRequest = Omit<SignupInput, 'confirmPassword'>;
 
 /**
- * 백엔드 API 응답 타입
+ * 백엔드 API 응답 타입 (성공)
  */
-interface ApiResponse<T> {
-  success: boolean;
+interface ApiSuccessResponse<T> {
+  success: true;
   data: T;
-  message: string;
+}
+
+/**
+ * 백엔드 API 응답 타입 (실패)
+ */
+interface ApiErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: Array<{ field: string; message: string }>;
+  };
+}
+
+/**
+ * 백엔드 API 응답 타입 (통합)
+ */
+type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+/**
+ * API 응답이 에러인지 확인하는 타입 가드
+ */
+function isApiErrorResponse(response: ApiResponse<unknown>): response is ApiErrorResponse {
+  return !response.success;
 }
 
 /**
@@ -188,6 +211,16 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
   }
 
   if (!result.success || !response.ok) {
+    // 에러 응답 처리
+    const errorMessage = isApiErrorResponse(result)
+      ? result.error.message
+      : '로그인에 실패했습니다.';
+
+    const errorDetails =
+      isApiErrorResponse(result) && result.error.details
+        ? result.error.details.map((d) => `${d.field}: ${d.message}`).join(', ')
+        : undefined;
+
     // 개발 환경에서만 상세 에러 로그
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console
@@ -196,11 +229,16 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
         responseOk: response.ok,
         status: response.status,
         statusText: response.statusText,
-        message: result.message,
-        data: result.data,
+        errorMessage,
+        errorDetails,
+        fullResult: result,
       });
     }
-    throw new Error(result.message || '로그인에 실패했습니다.');
+
+    // 에러 메시지에 상세 정보 포함
+    const fullErrorMessage = errorDetails ? `${errorMessage} (${errorDetails})` : errorMessage;
+
+    throw new Error(fullErrorMessage);
   }
 
   return {
@@ -337,6 +375,16 @@ export async function signup(
   }
 
   if (!result.success || !response.ok) {
+    // 에러 응답 처리
+    const errorMessage = isApiErrorResponse(result)
+      ? result.error.message
+      : '회원가입에 실패했습니다.';
+
+    const errorDetails =
+      isApiErrorResponse(result) && result.error.details
+        ? result.error.details.map((d) => `${d.field}: ${d.message}`).join(', ')
+        : undefined;
+
     // 개발 환경에서만 상세 에러 로그
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console
@@ -345,10 +393,15 @@ export async function signup(
         responseOk: response.ok,
         status: response.status,
         statusText: response.statusText,
-        message: result.message,
+        errorMessage,
+        errorDetails,
+        fullResult: result,
       });
     }
-    throw new Error(result.message || '회원가입에 실패했습니다.');
+
+    const fullErrorMessage = errorDetails ? `${errorMessage} (${errorDetails})` : errorMessage;
+
+    throw new Error(fullErrorMessage);
   }
 
   return {
@@ -373,7 +426,7 @@ interface InviteInfoResponseData {
 
 /**
  * 초대 정보 조회 API 호출
- * @param inviteUrl - 초대 URL (예: "http://localhost:3000/invite?token=...")
+ * @param inviteUrl - 초대 URL (예: "https://your-domain.com/invite?token=...")
  */
 export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoResponseData> {
   // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
@@ -448,7 +501,10 @@ export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoRespon
   }
 
   if (!result.success || !response.ok) {
-    throw new Error(result.message || '초대 정보를 가져오는데 실패했습니다.');
+    const errorMessage = isApiErrorResponse(result)
+      ? result.error.message
+      : '초대 정보를 가져오는데 실패했습니다.';
+    throw new Error(errorMessage);
   }
 
   return result.data;
@@ -556,6 +612,15 @@ export async function inviteSignup(
   }
 
   if (!result.success || !response.ok) {
+    const errorMessage = isApiErrorResponse(result)
+      ? result.error.message
+      : '회원가입에 실패했습니다.';
+
+    const errorDetails =
+      isApiErrorResponse(result) && result.error.details
+        ? result.error.details.map((d) => `${d.field}: ${d.message}`).join(', ')
+        : undefined;
+
     // 개발 환경에서만 상세 에러 로그
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console
@@ -564,10 +629,14 @@ export async function inviteSignup(
         responseOk: response.ok,
         status: response.status,
         statusText: response.statusText,
-        message: result.message,
+        errorMessage,
+        errorDetails,
+        fullResult: result,
       });
     }
-    throw new Error(result.message || '회원가입에 실패했습니다.');
+
+    const fullErrorMessage = errorDetails ? `${errorMessage} (${errorDetails})` : errorMessage;
+    throw new Error(fullErrorMessage);
   }
 
   return {
@@ -647,7 +716,10 @@ export async function refreshToken(
   }
 
   if (!result.success || !response.ok) {
-    throw new Error(result.message || '토큰 재발급에 실패했습니다.');
+    const errorMessage = isApiErrorResponse(result)
+      ? result.error.message
+      : '토큰 재발급에 실패했습니다.';
+    throw new Error(errorMessage);
   }
 
   return {
@@ -704,7 +776,10 @@ export async function logout(): Promise<void> {
     try {
       result = (await response.json()) as ApiResponse<unknown>;
       if (!result.success || !response.ok) {
-        throw new Error(result.message || '로그아웃에 실패했습니다.');
+        const errorMessage = isApiErrorResponse(result)
+          ? result.error.message
+          : '로그아웃에 실패했습니다.';
+        throw new Error(errorMessage);
       }
     } catch (parseError) {
       if (parseError instanceof Error) {
