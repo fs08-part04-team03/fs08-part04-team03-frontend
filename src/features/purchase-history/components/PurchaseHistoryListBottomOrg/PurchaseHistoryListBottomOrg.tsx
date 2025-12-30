@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBlock';
 import PurchaseHistoryRowOrg from '../PurchaseHistoryRowOrg/PurchaseHistoryRowOrg';
@@ -13,13 +12,13 @@ interface PurchaseHistoryListOrgProps {
   onPageChange?: (page: number) => void;
 }
 
-export const PurchaseHistoryListOrg: React.FC<PurchaseHistoryListOrgProps> = ({
+export const PurchaseHistoryListOrg = ({
   items,
   companyId,
   currentPage = 1,
   totalPages = 1,
   onPageChange,
-}) => {
+}: PurchaseHistoryListOrgProps) => {
   const handlePrev = (newPage: number) => {
     onPageChange?.(newPage);
   };

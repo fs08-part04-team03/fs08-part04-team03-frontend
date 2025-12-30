@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { getMyPurchaseDetail, type MyPurchaseDetail } from '@/features/purchase/api/purchase.api';
 import PurchaseHistoryDetailTem from '@/features/purchase-history/template/PurchaseHistoryDetailTem/PurchaseHistoryDetailTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
+import { PURCHASE_REQUEST_STATUS_LABEL } from '@/constants';
+import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logger';
 
 interface PurchaseHistoryDetailSectionProps {
   orderId: string;
@@ -18,20 +21,10 @@ interface PurchaseHistoryDetailSectionProps {
  */
 const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionProps) => {
   const [purchaseDetail, setPurchaseDetail] = useState<MyPurchaseDetail | null>(null);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // 토스트 자동 닫기 (3초 후)
-  useEffect(() => {
-    if (showToast) {
-      const timer = setTimeout(() => {
-        setShowToast(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [showToast]);
+  // useToast 훅 사용
+  const { showToast, toastMessage, triggerToast, closeToast } = useToast();
 
   // 구매 내역 상세 조회
   useEffect(() => {
@@ -39,35 +32,31 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
       try {
         setIsLoading(true);
 
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('[PurchaseHistoryDetail] 구매 내역 상세 조회 시작:', { orderId });
-        }
+        logger.info('[PurchaseHistoryDetail] 구매 내역 상세 조회 시작:', { orderId });
 
         const detail = await getMyPurchaseDetail(orderId);
 
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('[PurchaseHistoryDetail] 구매 내역 상세 조회 성공:', detail);
-        }
+        logger.info('[PurchaseHistoryDetail] 구매 내역 상세 조회 성공:', {
+          id: detail.id,
+          status: detail.status,
+        });
 
         setPurchaseDetail(detail);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[PurchaseHistoryDetail] 구매 내역 상세 조회 실패:', error);
-        }
         const errorMessage =
           error instanceof Error ? error.message : '구매 내역 상세 정보를 불러오는데 실패했습니다.';
-        setToastMessage(errorMessage);
-        setShowToast(true);
+        logger.error('[PurchaseHistoryDetail] 구매 내역 상세 조회 실패:', {
+          message: errorMessage,
+          orderId,
+        });
+        triggerToast('custom', errorMessage);
       } finally {
         setIsLoading(false);
       }
     })().catch(() => {
       // 에러는 이미 catch 블록에서 처리됨
     });
-  }, [orderId]);
+  }, [orderId, triggerToast]);
 
   if (isLoading) {
     return (
@@ -86,25 +75,10 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
   }
 
   // 승인 정보 변환
-  const getStatusLabel = (status: string): string => {
-    switch (status) {
-      case 'APPROVED':
-        return '승인됨';
-      case 'PENDING':
-        return '대기중';
-      case 'REJECTED':
-        return '거부됨';
-      case 'CANCELLED':
-        return '취소됨';
-      default:
-        return status;
-    }
-  };
-
   const approvedInfo = {
     approverName: purchaseDetail.approver?.name || '관리자',
     approvalDate: purchaseDetail.updatedAt,
-    statusLabel: getStatusLabel(purchaseDetail.status),
+    statusLabel: PURCHASE_REQUEST_STATUS_LABEL[purchaseDetail.status],
     resultMessage:
       purchaseDetail.status === 'APPROVED'
         ? '구매 요청이 승인되었습니다.'
@@ -116,7 +90,7 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
       <PurchaseHistoryDetailTem purchaseRequest={purchaseDetail} approvedInfo={approvedInfo} />
       {showToast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-toast">
-          <Toast variant="custom" message={toastMessage} onClose={() => setShowToast(false)} />
+          <Toast variant="custom" message={toastMessage} onClose={closeToast} />
         </div>
       )}
     </>
