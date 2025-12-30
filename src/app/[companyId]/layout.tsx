@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import AuthGuard from '@/components/auth/AuthGuard';
+import HeaderShell from '@/components/organisms/HeaderShell/HeaderShell';
 
 interface Company {
   name: string;
@@ -39,6 +40,7 @@ const CompanyLayout = async ({
 
   return (
     <AuthGuard companyId={companyId}>
+      <HeaderShell />
       <main className="container mx-auto">{children}</main>
     </AuthGuard>
   );
