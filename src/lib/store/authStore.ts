@@ -9,6 +9,7 @@ import { logger } from '@/utils/logger';
 export interface User {
   id: string;
   email: string;
+  name: string;
   role: UserRole;
   companyId: string;
 }

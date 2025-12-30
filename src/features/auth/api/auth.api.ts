@@ -245,6 +245,7 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     user: {
       id: result.data.user.id,
       email: result.data.user.email,
+      name: result.data.user.name,
       role: normalizeRole(result.data.user.role),
       companyId: result.data.user.companyId,
     },
@@ -407,6 +408,7 @@ export async function signup(
     user: {
       id: result.data.user.id,
       email: result.data.user.email,
+      name: result.data.user.name,
       role: normalizeRole(result.data.user.role),
       companyId: result.data.user.companyId,
     },
@@ -641,6 +643,7 @@ export async function inviteSignup(
     user: {
       id: result.data.user.id,
       email: result.data.user.email,
+      name: result.data.user.name,
       role: normalizeRole(result.data.user.role),
       companyId: result.data.user.companyId,
     },
