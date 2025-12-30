@@ -50,6 +50,12 @@ const AdminBudgetSection = () => {
         }
       } catch (error) {
         console.error('예산 정보를 불러오는데 실패했습니다.', error);
+        setToastState({
+          isVisible: true,
+          variant: 'custom',
+          message: '예산 정보를 불러오는데 실패했습니다.',
+        });
+        setTimeout(() => setToastState((prev) => ({ ...prev, isVisible: false })), 3000);
       }
     };
 
@@ -63,11 +69,9 @@ const AdminBudgetSection = () => {
     monthlyStartBudget: number;
   }) => {
     try {
-      // 예산 업데이트
-      await Promise.all([
-        updateBudget(values.thisMonthBudget),
-        updateBudgetCriteria(values.monthlyStartBudget),
-      ]);
+      // 예산 업데이트 - 순차적으로 업데이트하여 부분 실패 시 명확한 에러 처리
+      await updateBudget(values.thisMonthBudget);
+      await updateBudgetCriteria(values.monthlyStartBudget);
 
       // 예산 업데이트 성공
       setToastState({ isVisible: true, variant: 'success' });
