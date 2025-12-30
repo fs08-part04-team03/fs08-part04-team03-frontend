@@ -6,9 +6,12 @@ import { AUTH_API_PATHS, HTTP_HEADERS } from '@/features/auth/utils/constants';
 import { getApiTimeout, getApiUrl } from '@/utils/api';
 
 /**
- * 회원가입 API 요청 타입 (confirmPassword 제외)
+ * 회원가입 API 요청 타입
+ * confirmPassword를 passwordConfirm으로 변환
  */
-type SignupRequest = Omit<SignupInput, 'confirmPassword'>;
+type SignupRequest = Omit<SignupInput, 'confirmPassword'> & {
+  passwordConfirm: string;
+};
 
 /**
  * 백엔드 API 응답 타입 (성공)
@@ -53,6 +56,11 @@ interface LoginResponseData {
     name: string;
     role: string; // 'MANAGER', 'USER', 'ADMIN' 등
   };
+  company?: {
+    id: string;
+    name: string;
+    businessNumber: string;
+  };
   accessToken: string;
 }
 
@@ -66,6 +74,11 @@ interface SignupResponseData {
     email: string;
     name: string;
     role: string;
+  };
+  company: {
+    id: string;
+    name: string;
+    businessNumber: string;
   };
   accessToken: string;
 }
@@ -282,6 +295,7 @@ export async function signup(
         name: signupData.name,
         email: signupData.email,
         password: signupData.password,
+        passwordConfirm: signupData.passwordConfirm,
         companyName: signupData.companyName,
         businessNumber: signupData.businessNumber,
       }),

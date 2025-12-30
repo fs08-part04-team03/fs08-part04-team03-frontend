@@ -110,6 +110,7 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
         name: values.name,
         email: values.email,
         password: values.password,
+        passwordConfirm: values.confirmPassword,
         companyName: values.companyName,
         businessNumber: values.businessNumber,
       });
