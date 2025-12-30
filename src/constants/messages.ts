@@ -49,6 +49,8 @@ export const AUTH_ERROR_MESSAGES = {
   LOGIN_FAILED: '로그인에 실패했습니다.',
   SIGNUP_FAILED: '회원가입에 실패했습니다.',
   INVALID_CREDENTIALS: '이메일 또는 비밀번호가 올바르지 않습니다.',
+  INVALID_INVITE_LINK: '유효하지 않은 초대 링크입니다.',
+  IMAGE_UPLOAD_FAILED: '이미지 업로드에 실패했습니다. 다시 시도해 주세요.',
 } as const;
 
 /**
