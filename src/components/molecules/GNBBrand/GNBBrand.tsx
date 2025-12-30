@@ -13,7 +13,7 @@ const GNBBrand = () => {
 
   return (
     <Link href={href} className="flex items-center">
-      <Logo size="sm" />
+      <Logo size="sm" href={undefined} />
     </Link>
   );
 };

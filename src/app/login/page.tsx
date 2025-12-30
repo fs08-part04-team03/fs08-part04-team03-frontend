@@ -1,5 +1,5 @@
-import Login from '@/features/auth/section/Login';
+import LoginSection from '@/features/auth/section/LoginSection';
 
-const LoginPage = () => <Login />;
+const LoginPage = () => <LoginSection />;
 
 export default LoginPage;

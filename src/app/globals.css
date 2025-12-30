@@ -282,6 +282,7 @@ body {
   --spacing-768: 768px;
   --spacing-938: 938px;
   --spacing-950: 950px;
+  --spacing-960: 960px;
   --spacing-1045: 1045px;
   --spacing-1052: 1052px;
   --spacing-1150: 1150px;
@@ -315,6 +316,7 @@ body {
   --text-24: 24px;
   --text-30: 30px;
   --text-32: 32px;
+  --text-40: 40px;
   --text-44: 44px;
   --text-50: 50px;
 
@@ -335,6 +337,7 @@ body {
 
   --tracking--0.5: -0.5px;
   --tracking--0.8: -0.8px;
+  --tracking--1: -1px;
   --tracking--1.25: -1.25px;
 
   --leading-140: 140%;
