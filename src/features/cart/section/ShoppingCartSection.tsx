@@ -16,6 +16,7 @@ const ShoppingCartSection = () => {
   /** 장바구니 조회 */
   const fetchCart = async () => {
     setIsLoading(true);
+    setErrorMessage(null); // ✅ 이전 에러 초기화
     try {
       const res = await cartApi.getMyCart();
       setItems(res.data.map(adaptCartItemToOrderItem));
@@ -36,6 +37,7 @@ const ShoppingCartSection = () => {
   const handleQuantityChange = async (cartItemId: string, quantity: number) => {
     if (quantity < 1) return;
     setIsLoading(true);
+    setErrorMessage(null); // ✅ 이전 에러 초기화
     try {
       await cartApi.updateQuantity(cartItemId, quantity);
       await fetchCart();
@@ -51,6 +53,7 @@ const ShoppingCartSection = () => {
   const handleDeleteSelected = async (cartItemIds: string[]) => {
     if (cartItemIds.length === 0) return;
     setIsLoading(true);
+    setErrorMessage(null); // ✅ 이전 에러 초기화
     try {
       await cartApi.deleteMultiple(cartItemIds);
       await fetchCart();
@@ -68,6 +71,7 @@ const ShoppingCartSection = () => {
     if (selectedItems.length === 0) return;
 
     setIsLoading(true);
+    setErrorMessage(null); // ✅ 이전 에러 초기화
     try {
       const results = await Promise.all(
         selectedItems.map(async (item) => {
@@ -101,6 +105,9 @@ const ShoppingCartSection = () => {
           }))
         );
         setErrorMessage(`${failedResults.length}건의 구매 요청에 실패했습니다.`);
+      } else {
+        // ✅ 선택사항: 성공 피드백
+        console.log('모든 구매 요청이 성공했습니다.');
       }
 
       await fetchCart();
