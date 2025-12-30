@@ -95,11 +95,11 @@ const InviteSignup = ({ token }: InviteSignupProps) => {
 
   // 에러 상태일 때는 토스트만 표시
   if (error || (!inviteData && inviteUrl)) {
-    return showToast ? (
+    return (
       <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
-        <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
+        {showToast && <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />}
       </div>
-    ) : null;
+    );
   }
 
   // 정상 상태 - inviteData가 있을 때만 렌더링
