@@ -8,6 +8,8 @@ import PriceText from '@/components/atoms/PriceText/PriceText';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 
+import { purchaseNow, urgentRequestPurchase } from '@/features/purchase/api/purchase.api';
+
 export type CartRole = 'user' | 'manager' | 'admin';
 
 export interface OrderItem {
@@ -23,21 +25,18 @@ interface CartSummaryBlockOrgProps {
   cartRole: CartRole;
   items: OrderItem[];
   budget?: number;
+  loading?: boolean; // 🔹 로딩 상태 추가
   onDeleteSelected?: (cartItemIds: string[]) => void;
   onSubmit?: (cartItemIds: string[]) => void;
   onGoBudgetManage?: () => void;
   onQuantityChange?: (cartItemId: string, quantity: number) => void;
 }
 
-interface PurchaseResponse {
-  success: boolean;
-  message?: string;
-}
-
 const CartSummaryBlockOrg = ({
   cartRole,
   items,
   budget = 0,
+  loading = false, // 🔹 기본값 false
   onDeleteSelected,
   onSubmit,
   onGoBudgetManage,
@@ -71,6 +70,12 @@ const CartSummaryBlockOrg = ({
   const remainBudget = budget - totalPrice;
   const isBudgetExceeded = isAdminRole && remainBudget < 0;
 
+  /** 예산 초과 시 토스트 표시 */
+  useEffect(() => {
+    if (!isAdminRole) return;
+    setShowBudgetToast(isBudgetExceeded);
+  }, [isBudgetExceeded, isAdminRole]);
+
   const submitButtonLabel = useMemo(() => {
     if (cartRole === 'admin' && isBudgetExceeded) return '예산 관리';
     if (cartRole === 'manager' && isBudgetExceeded) return '긴급 구매 요청';
@@ -94,30 +99,27 @@ const CartSummaryBlockOrg = ({
   };
 
   const handleDeleteSelected = () => {
-    onDeleteSelected?.(checkedIds);
+    if (!loading && !isPurchasing) onDeleteSelected?.(checkedIds);
     setCheckedIds([]);
   };
 
+  /** 관리자 즉시 구매 */
   const handleAdminPurchaseNow = async (item: OrderItem) => {
-    if (!isAdminRole || !checkedIds.includes(item.cartItemId) || isBudgetExceeded) return;
+    if (
+      !isAdminRole ||
+      !checkedIds.includes(item.cartItemId) ||
+      isBudgetExceeded ||
+      loading ||
+      isPurchasing
+    )
+      return;
 
     try {
       setIsPurchasing(true);
-
-      const response = await fetch('/api/v1/purchase/admin/purchaseNow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: [{ productId: item.productId, quantity: item.quantity }],
-          shippingFee: 0,
-        }),
+      await purchaseNow({
+        productId: String(item.productId),
+        quantity: item.quantity,
       });
-
-      if (!response.ok) throw new Error('즉시 구매 실패');
-
-      const result = (await response.json()) as PurchaseResponse;
-      if (!result.success) throw new Error(result.message ?? '즉시 구매 실패');
-
       onSubmit?.([item.cartItemId]);
     } catch (error) {
       console.error(error);
@@ -127,30 +129,21 @@ const CartSummaryBlockOrg = ({
     }
   };
 
+  /** 매니저 긴급 구매 요청 */
   const handleManagerUrgentPurchase = async () => {
-    if (checkedIds.length === 0) return;
+    if (checkedIds.length === 0 || loading || isPurchasing) return;
 
     try {
       setIsPurchasing(true);
-
-      const response = await fetch('/api/v1/purchase/user/urgentRequestPurchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: selectedItems.map((i) => ({
-            productId: i.productId,
-            quantity: i.quantity,
-          })),
-          shippingFee: 0,
-          requestMessage: '긴급 구매 요청',
-        }),
-      });
-
-      if (!response.ok) throw new Error('긴급 구매 요청 실패');
-
-      const result = (await response.json()) as PurchaseResponse;
-      if (!result.success) throw new Error(result.message ?? '긴급 구매 요청 실패');
-
+      await Promise.all(
+        selectedItems.map((item) =>
+          urgentRequestPurchase({
+            productId: String(item.productId),
+            quantity: item.quantity,
+            reason: '긴급 구매 요청',
+          })
+        )
+      );
       onSubmit?.(checkedIds);
     } catch (error) {
       console.error(error);
@@ -161,6 +154,8 @@ const CartSummaryBlockOrg = ({
   };
 
   const handleSubmit = async () => {
+    if (loading || isPurchasing) return;
+
     if (cartRole === 'admin' && isBudgetExceeded) {
       onGoBudgetManage?.();
       return;
@@ -196,6 +191,7 @@ const CartSummaryBlockOrg = ({
             <button
               type="button"
               onClick={handleDeleteSelected}
+              disabled={loading || isPurchasing} // 🔹 로딩/구매 중 비활성화
               className="text-gray-600 underline text-14 tablet:text-16 tracking--0.35 tablet:tracking--0.4 cursor-pointer"
             >
               선택 삭제
@@ -208,7 +204,7 @@ const CartSummaryBlockOrg = ({
 
               const purchaseButtonLabel = cartRole === 'user' ? '바로 요청' : '즉시 구매';
               const purchaseButtonDisabled =
-                cartRole === 'user' || !isChecked || isBudgetExceeded || isPurchasing;
+                cartRole === 'user' || !isChecked || isBudgetExceeded || isPurchasing || loading; // 🔹 로딩 포함
 
               return (
                 <OrderItemCard
@@ -267,6 +263,7 @@ const CartSummaryBlockOrg = ({
             <Button
               variant="secondary"
               className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
+              inactive={loading || isPurchasing} // 🔹 로딩 시 비활성화
             >
               계속 쇼핑하기
             </Button>
@@ -274,7 +271,7 @@ const CartSummaryBlockOrg = ({
             <Button
               variant="primary"
               className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
-              inactive={checkedIds.length === 0}
+              inactive={checkedIds.length === 0 || loading || isPurchasing} // 🔹 로딩 포함
               onClick={handleSubmitClick}
             >
               {submitButtonLabel}
@@ -295,7 +292,7 @@ const CartSummaryBlockOrg = ({
 
       {errorMessage && (
         <div className="fixed top-60 left-1/2 -translate-x-1/2 z-toast tablet:top-30">
-          <Toast variant="error" amount={errorMessage} onClose={() => setErrorMessage(null)} />
+          <Toast variant="custom" message={errorMessage} onClose={() => setErrorMessage(null)} />
         </div>
       )}
     </>
