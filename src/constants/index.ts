@@ -125,21 +125,21 @@ export const PURCHASE_REQUEST_STATUS_OPTIONS: Option[] = [
   { key: 'CANCELLED', label: '취소됨' },
 ] as const;
 
-// Auth API 관련 상수 re-export
+// Auth API 관련 상수 re-export (Feature-Sliced Design에 따라 features/auth/utils로 이동)
 export {
   AUTH_API_PATHS,
   DEFAULT_API_URL,
   DEFAULT_TIMEOUT,
   ENV_KEYS,
   HTTP_HEADERS,
-} from './auth.constants';
+} from '@/features/auth/utils/constants';
 
-// Purchase API 관련 상수 re-export
+// Purchase API 관련 상수 re-export (Feature-Sliced Design에 따라 features/purchase/utils로 이동)
 export {
   PURCHASE_API_PATHS,
   BUDGET_API_PATHS,
   PURCHASE_REQUEST_STATUS_LABEL,
-} from './purchase.constants';
+} from '@/features/purchase/utils/constants';
 
 // 타이밍 관련 상수 re-export
 export { TOAST_AUTO_CLOSE_DURATION, QUERY_STALE_TIME_BUDGET, MAX_IMAGE_FILE_SIZE } from './timing';
