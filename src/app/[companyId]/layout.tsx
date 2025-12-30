@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AuthGuard from '@/components/auth/AuthGuard';
 
 interface Company {
   name: string;
@@ -40,8 +41,20 @@ export async function generateMetadata({
   };
 }
 
-const CompanyLayout = ({ children }: { children: React.ReactNode }) => (
-  <main className="container mx-auto">{children}</main>
-);
+const CompanyLayout = async ({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ companyId: string }>;
+}) => {
+  const { companyId } = await params;
+
+  return (
+    <AuthGuard companyId={companyId}>
+      <main className="container mx-auto">{children}</main>
+    </AuthGuard>
+  );
+};
 
 export default CompanyLayout;
