@@ -66,7 +66,7 @@ const meta: Meta<typeof CartSummaryBlockOrg> = {
     },
   },
   argTypes: {
-    role: {
+    cartRole: {
       control: 'radio',
       options: ['user', 'manager', 'admin'] satisfies CartRole[],
     },
@@ -81,7 +81,7 @@ type Story = StoryObj<typeof CartSummaryBlockOrg>;
  ====================== */
 export const User: Story = {
   args: {
-    role: 'user',
+    cartRole: 'user',
     items: mockItems,
     onSubmit: (ids) => {
       console.log('User submit:', ids);
@@ -100,7 +100,7 @@ export const User: Story = {
  ====================== */
 export const ManagerWithinBudget: Story = {
   args: {
-    role: 'manager',
+    cartRole: 'manager',
     items: mockItems,
     budget: 2_000_000,
     onSubmit: (ids) => {
@@ -120,7 +120,7 @@ export const ManagerWithinBudget: Story = {
  ====================== */
 export const ManagerBudgetExceeded: Story = {
   args: {
-    role: 'manager',
+    cartRole: 'manager',
     items: mockItems,
     budget: 100_000,
     onSubmit: (ids) => {
@@ -137,7 +137,7 @@ export const ManagerBudgetExceeded: Story = {
  ====================== */
 export const AdminWithinBudget: Story = {
   args: {
-    role: 'admin',
+    cartRole: 'admin',
     items: mockItems,
     budget: 2_000_000,
     onSubmit: (ids) => {
@@ -154,7 +154,7 @@ export const AdminWithinBudget: Story = {
  ====================== */
 export const AdminBudgetExceeded: Story = {
   args: {
-    role: 'admin',
+    cartRole: 'admin',
     items: mockItems,
     budget: 100_000,
     onSubmit: (ids) => {
