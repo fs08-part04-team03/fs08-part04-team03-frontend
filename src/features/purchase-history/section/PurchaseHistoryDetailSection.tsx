@@ -45,7 +45,10 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : '구매 내역 상세 정보를 불러오는데 실패했습니다.';
-        logger.error('[PurchaseHistoryDetail] 구매 내역 상세 조회 실패:', errorMessage);
+        logger.error('[PurchaseHistoryDetail] 구매 내역 상세 조회 실패:', {
+          message: errorMessage,
+          orderId,
+        });
         triggerToast('custom', errorMessage);
       } finally {
         setIsLoading(false);
