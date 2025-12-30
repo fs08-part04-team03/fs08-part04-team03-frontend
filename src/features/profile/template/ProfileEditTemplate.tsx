@@ -88,6 +88,7 @@ const ProfileEditTemplate = ({
   control,
   handleSubmit,
   isValid,
+  serverError,
   onSubmit,
   showToast,
   toastMessage,
@@ -97,6 +98,11 @@ const ProfileEditTemplate = ({
   <>
     {/* Mobile Layout */}
     <div className="flex flex-col px-24 py-45 tablet:hidden desktop:hidden">
+      {serverError && (
+        <div className="mb-20 p-16 bg-red-50 border border-red-200 rounded-default text-red-600 text-14">
+          {serverError}
+        </div>
+      )}
       <ProfileEditForm
         control={control}
         isValid={isValid}
@@ -110,6 +116,11 @@ const ProfileEditTemplate = ({
     {/* Tablet & Desktop Layout */}
     <div className="hidden tablet:flex desktop:flex flex-col items-center pt-171 pb-261">
       <div className="w-600 bg-white rounded-default shadow-[0px_0px_40px_0px_rgba(0,0,0,0.1)] px-60 py-40">
+        {serverError && (
+          <div className="mb-20 p-16 bg-red-50 border border-red-200 rounded-default text-red-600 text-14">
+            {serverError}
+          </div>
+        )}
         <ProfileEditForm
           control={control}
           isValid={isValid}

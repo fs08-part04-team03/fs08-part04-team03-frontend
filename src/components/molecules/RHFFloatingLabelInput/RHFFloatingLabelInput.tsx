@@ -4,9 +4,9 @@ import { type Control, type FieldValues, type Path, Controller } from 'react-hoo
 import FloatingLabelInput from '@/components/atoms/FloatingLabelInput/FloatingLabelInput';
 import { clsx } from '@/utils/clsx';
 
-interface RHFFloatingLabelInputProps<T extends FieldValues> {
+interface RHFFloatingLabelInputProps<T extends FieldValues, TName extends Path<T> = Path<T>> {
   control: Control<T>;
-  name: Path<T>;
+  name: TName;
   label: string;
   type?: 'text' | 'email' | 'password';
   disabled?: boolean;
@@ -41,7 +41,7 @@ const RHFFloatingLabelInput = <T extends FieldValues>({
           <FloatingLabelInput
             label={label}
             type={type}
-            value={(field.value ?? '') as string}
+            value={String(field.value ?? '')}
             onChange={field.onChange}
             onBlur={field.onBlur}
             disabled={disabled}

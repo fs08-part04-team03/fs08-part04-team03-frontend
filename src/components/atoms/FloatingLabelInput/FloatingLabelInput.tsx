@@ -1,6 +1,6 @@
 'use client';
 
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useState, useId } from 'react';
 import { clsx } from '@/utils/clsx';
 
 export interface FloatingLabelInputProps extends Omit<
@@ -27,12 +27,12 @@ const FloatingLabelInput = forwardRef<HTMLInputElement, FloatingLabelInputProps>
     },
     ref
   ) => {
+    const generatedId = useId();
     const [showPassword, setShowPassword] = useState(false);
     const hasValue = value !== undefined && value !== '';
     const isDisabled = props.disabled;
 
-    // Generate a unique ID if one isn't provided
-    const inputId = id || `floating-input-${label.replace(/\s+/g, '-').toLowerCase()}`;
+    const inputId = id || generatedId;
 
     let inputType = type;
     if (showPasswordToggle) {
