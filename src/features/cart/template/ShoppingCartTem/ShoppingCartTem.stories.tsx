@@ -55,7 +55,7 @@ StepBreadcrumb과 CartSummaryBlockOrg를 조합하여
 
 - 페이지 전반의 **레이아웃 및 여백 관리**
 - StepBreadcrumb와 CartSummaryBlockOrg의 **구성 및 배치**
-- role, items, budget 등의 props를 **하위 Organism으로 전달**
+- cartRole, items, budget 등의 props를 **하위 Organism으로 전달**
 
 > ⚠️ 비즈니스 로직 및 상태 관리는 하지 않으며  
 > 모든 구매 규칙 및 예산 로직은 CartSummaryBlockOrg에서 처리합니다.
@@ -64,7 +64,7 @@ StepBreadcrumb과 CartSummaryBlockOrg를 조합하여
     },
   },
   argTypes: {
-    role: {
+    cartRole: {
       control: 'radio',
       options: ['user', 'manager', 'admin'],
     },
@@ -79,7 +79,7 @@ type Story = StoryObj<typeof ShoppingCartTem>;
  ====================== */
 export const User: Story = {
   args: {
-    role: 'user',
+    cartRole: 'user',
     items: mockItems,
     onSubmit: (ids) => {
       console.log('User submit:', ids);
@@ -98,7 +98,7 @@ export const User: Story = {
  ====================== */
 export const ManagerWithinBudget: Story = {
   args: {
-    role: 'manager',
+    cartRole: 'manager',
     items: mockItems,
     budget: 2_000_000,
     onSubmit: (ids) => {
@@ -118,7 +118,7 @@ export const ManagerWithinBudget: Story = {
  ====================== */
 export const ManagerBudgetExceeded: Story = {
   args: {
-    role: 'manager',
+    cartRole: 'manager',
     items: mockItems,
     budget: 100_000,
     onSubmit: (ids) => {
@@ -135,7 +135,7 @@ export const ManagerBudgetExceeded: Story = {
  ====================== */
 export const AdminWithinBudget: Story = {
   args: {
-    role: 'admin',
+    cartRole: 'admin',
     items: mockItems,
     budget: 2_000_000,
     onSubmit: (ids) => {
@@ -152,7 +152,7 @@ export const AdminWithinBudget: Story = {
  ====================== */
 export const AdminBudgetExceeded: Story = {
   args: {
-    role: 'admin',
+    cartRole: 'admin',
     items: mockItems,
     budget: 100_000,
     onSubmit: (ids) => {
