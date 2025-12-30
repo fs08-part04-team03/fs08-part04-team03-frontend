@@ -9,20 +9,16 @@ import CartSummaryBlockOrg, {
 } from '@/features/cart/components/CartSummaryBlockOrg/CartSummaryBlockOrg';
 
 interface ShoppingCartTemProps {
-  role: CartRole;
+  cartRole: CartRole; // 🔥 변경
   items: OrderItem[];
   budget?: number;
 
-  /** ✅ cartItemId(UUID) 기준 */
   onDeleteSelected?: (ids: string[]) => void;
   onSubmit?: (itemIds: string[]) => void;
   onGoBudgetManage?: () => void;
-
-  /** ✅ 수량 변경 */
   onQuantityChange?: (cartItemId: string, quantity: number) => void;
 }
 
-/** StepBreadcrumb 설정 */
 const USER_STEPS: StepBreadcrumbStep[] = [
   { label: 'Shopping Cart' },
   { label: 'Order' },
@@ -35,27 +31,20 @@ const MANAGER_ADMIN_STEPS: StepBreadcrumbStep[] = [
 ];
 
 const ShoppingCartTem = ({
-  role,
+  cartRole,
   items,
   budget,
   onDeleteSelected,
   onSubmit,
   onGoBudgetManage,
-  onQuantityChange, // ✅ 추가
+  onQuantityChange,
 }: ShoppingCartTemProps) => {
-  const isUser = role === 'user';
+  const isUser = cartRole === 'user';
   const currentStep = 1;
 
   return (
     <div className="mx-auto">
-      <div
-        className="
-          mx-auto
-          mt-60 tablet:mt-60 desktop:mt-80
-          w-327 tablet:w-696 desktop:w-1200
-          desktop:px-25
-        "
-      >
+      <div className="mx-auto mt-60 tablet:mt-60 desktop:mt-80 w-327 tablet:w-696 desktop:w-1200 desktop:px-25">
         <div className="flex justify-center mb-40 tablet:mb-70">
           <StepBreadcrumb
             steps={isUser ? USER_STEPS : MANAGER_ADMIN_STEPS}
@@ -64,13 +53,13 @@ const ShoppingCartTem = ({
         </div>
 
         <CartSummaryBlockOrg
-          role={role}
+          cartRole={cartRole} // 🔥 같이 변경 (권장)
           items={items}
           budget={budget}
           onDeleteSelected={onDeleteSelected}
           onSubmit={onSubmit}
           onGoBudgetManage={onGoBudgetManage}
-          onQuantityChange={onQuantityChange} // ✅ 그대로 패스
+          onQuantityChange={onQuantityChange}
         />
       </div>
     </div>
