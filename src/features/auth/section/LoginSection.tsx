@@ -50,14 +50,14 @@ const LoginSection = () => {
       setAuth({ user, accessToken });
 
       logger.info('[Login] 인증 정보 저장 완료:', {
-        userId: user.id,
+        hasUserId: !!user.id,
         role: user.role,
-        companyId: user.companyId,
+        hasCompanyId: !!user.companyId,
       });
 
       // 상품 리스트 페이지로 리다이렉트
       const redirectPath = `/${user.companyId}/products`;
-      logger.info('[Login] 리다이렉트 시도:', redirectPath);
+      logger.info('[Login] 리다이렉트 시도 - 상품 페이지로 이동');
       router.push(redirectPath);
     } catch (error) {
       logger.error('[Login] 로그인 실패:', error);
