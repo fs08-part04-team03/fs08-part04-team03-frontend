@@ -49,6 +49,7 @@ export const useSignupForm = () => {
         name: values.name,
         email: values.email,
         password: values.password,
+        passwordConfirm: values.confirmPassword,
         companyName: values.companyName,
         businessNumber: values.businessNumber,
       });

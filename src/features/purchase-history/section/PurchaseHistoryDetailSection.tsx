@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { getMyPurchaseDetail, type MyPurchaseDetail } from '@/features/purchase/api/purchase.api';
 import PurchaseHistoryDetailTem from '@/features/purchase-history/template/PurchaseHistoryDetailTem/PurchaseHistoryDetailTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
-import { PURCHASE_REQUEST_STATUS_LABEL } from '@/constants';
+import { PURCHASE_REQUEST_STATUS_LABEL } from '@/features/purchase/utils/constants';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
 
@@ -75,14 +75,13 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
   }
 
   // 승인 정보 변환
+  const { status } = purchaseDetail;
   const approvedInfo = {
     approverName: purchaseDetail.approver?.name || '관리자',
     approvalDate: purchaseDetail.updatedAt,
-    statusLabel: PURCHASE_REQUEST_STATUS_LABEL[purchaseDetail.status],
+    statusLabel: PURCHASE_REQUEST_STATUS_LABEL[status],
     resultMessage:
-      purchaseDetail.status === 'APPROVED'
-        ? '구매 요청이 승인되었습니다.'
-        : purchaseDetail.rejectReason || '',
+      status === 'APPROVED' ? '구매 요청이 승인되었습니다.' : purchaseDetail.rejectReason || '',
   };
 
   return (
