@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useRouter } from 'next/navigation';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
@@ -27,7 +26,7 @@ interface PurchaseHistoryTemProps {
   onPageChange?: (page: number) => void;
 }
 
-export const PurchaseHistoryTem: React.FC<PurchaseHistoryTemProps> = ({
+export const PurchaseHistoryTem = ({
   thisMonthBudget,
   lastMonthBudget,
   thisMonthSpending,
@@ -41,7 +40,7 @@ export const PurchaseHistoryTem: React.FC<PurchaseHistoryTemProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-}) => {
+}: PurchaseHistoryTemProps) => {
   const isEmpty = items.length === 0;
   const router = useRouter();
 

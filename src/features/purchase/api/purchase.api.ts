@@ -2,7 +2,7 @@
 
 import { useAuthStore } from '@/lib/store/authStore';
 import { getApiTimeout, getApiUrl } from '@/utils/api';
-import { PURCHASE_API_PATHS, BUDGET_API_PATHS } from '@/constants/purchase.constants';
+import { PURCHASE_API_PATHS, BUDGET_API_PATHS } from '@/features/purchase/utils/constants';
 
 /**
  * 백엔드 API 응답 타입

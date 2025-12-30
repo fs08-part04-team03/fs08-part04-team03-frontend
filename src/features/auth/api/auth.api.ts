@@ -2,7 +2,7 @@ import type { LoginInput, RefreshTokenInput } from '@/features/auth/schemas/logi
 import type { SignupInput, InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import type { User } from '@/lib/store/authStore';
 import { useAuthStore } from '@/lib/store/authStore';
-import { AUTH_API_PATHS, HTTP_HEADERS } from '@/constants/auth.constants';
+import { AUTH_API_PATHS, HTTP_HEADERS } from '@/features/auth/utils/constants';
 import { getApiTimeout, getApiUrl } from '@/utils/api';
 
 /**

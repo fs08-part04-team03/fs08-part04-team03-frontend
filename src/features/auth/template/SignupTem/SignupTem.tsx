@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { type Control, type UseFormHandleSubmit } from 'react-hook-form';
 
 import RHFInputField from '@/components/molecules/RHFInputField/RHFInputField';
@@ -34,7 +33,7 @@ interface SignupTemContentProps extends SignupTemViewProps {
   className?: string;
 }
 
-const SignupTemContent: React.FC<SignupTemContentProps> = ({
+const SignupTemContent = ({
   control,
   isValid,
   onSubmit,
@@ -45,7 +44,7 @@ const SignupTemContent: React.FC<SignupTemContentProps> = ({
   title = '기업 담당자 회원가입',
   subtitle = '* 그룹 내 유저는 기업 담당자의 초대 메일을 통해 가입이 가능합니다.',
   submitButtonText = '회원가입',
-}) => (
+}: SignupTemContentProps) => (
   <form
     onSubmit={(e) => {
       e.preventDefault();
@@ -115,7 +114,7 @@ const SignupTemContent: React.FC<SignupTemContentProps> = ({
   </form>
 );
 
-export const SignupTemMobile: React.FC<SignupTemViewProps> = ({
+export const SignupTemMobile = ({
   control,
   isValid,
   onSubmit,
@@ -125,7 +124,7 @@ export const SignupTemMobile: React.FC<SignupTemViewProps> = ({
   title,
   subtitle,
   submitButtonText,
-}) => (
+}: SignupTemViewProps) => (
   <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
     <div className="m-38">
       <Logo size="lg" />
@@ -151,7 +150,7 @@ export const SignupTemMobile: React.FC<SignupTemViewProps> = ({
   </div>
 );
 
-export const SignupTemDesktop: React.FC<SignupTemViewProps> = ({
+export const SignupTemDesktop = ({
   control,
   isValid,
   onSubmit,
@@ -161,7 +160,7 @@ export const SignupTemDesktop: React.FC<SignupTemViewProps> = ({
   title,
   subtitle,
   submitButtonText,
-}) => (
+}: SignupTemViewProps) => (
   <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
     <div className="mt-120">
       <Logo size="lg" />
@@ -194,7 +193,7 @@ export const SignupTemDesktop: React.FC<SignupTemViewProps> = ({
   </div>
 );
 
-const SignupTem: React.FC<SignupTemProps> = ({
+const SignupTem = ({
   control,
   handleSubmit,
   isValid,
@@ -207,7 +206,7 @@ const SignupTem: React.FC<SignupTemProps> = ({
   title,
   subtitle,
   submitButtonText,
-}) => (
+}: SignupTemProps) => (
   <>
     <SignupTemMobile
       control={control}

@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { type Control, type UseFormHandleSubmit } from 'react-hook-form';
 
 import RHFInputField from '@/components/molecules/RHFInputField/RHFInputField';
@@ -35,7 +34,7 @@ interface InviteSignupTemContentProps extends InviteSignupTemViewProps {
   className?: string;
 }
 
-const InviteSignupTemContent: React.FC<InviteSignupTemContentProps> = ({
+const InviteSignupTemContent = ({
   control,
   isValid,
   onSubmit,
@@ -44,7 +43,7 @@ const InviteSignupTemContent: React.FC<InviteSignupTemContentProps> = ({
   onImageChange,
   name,
   className,
-}) => (
+}: InviteSignupTemContentProps) => (
   <form
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     onSubmit={handleSubmit(onSubmit)}
@@ -111,7 +110,7 @@ const InviteSignupTemContent: React.FC<InviteSignupTemContentProps> = ({
   </form>
 );
 
-export const InviteSignupTemMobile: React.FC<InviteSignupTemViewProps> = ({
+export const InviteSignupTemMobile = ({
   control,
   isValid,
   onSubmit,
@@ -119,7 +118,7 @@ export const InviteSignupTemMobile: React.FC<InviteSignupTemViewProps> = ({
   preview,
   onImageChange,
   name,
-}) => (
+}: InviteSignupTemViewProps) => (
   <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
     <div className="m-38">
       <Logo size="lg" />
@@ -143,7 +142,7 @@ export const InviteSignupTemMobile: React.FC<InviteSignupTemViewProps> = ({
   </div>
 );
 
-export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
+export const InviteSignupTemDesktop = ({
   control,
   isValid,
   onSubmit,
@@ -151,7 +150,7 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
   preview,
   onImageChange,
   name,
-}) => (
+}: InviteSignupTemViewProps) => (
   <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
     <div className="mt-120">
       <Logo size="lg" />
@@ -182,7 +181,7 @@ export const InviteSignupTemDesktop: React.FC<InviteSignupTemViewProps> = ({
   </div>
 );
 
-const InviteSignupTem: React.FC<InviteSignupTemProps> = ({
+const InviteSignupTem = ({
   control,
   handleSubmit,
   isValid,
@@ -193,7 +192,7 @@ const InviteSignupTem: React.FC<InviteSignupTemProps> = ({
   preview,
   onImageChange,
   name,
-}) => (
+}: InviteSignupTemProps) => (
   <>
     <InviteSignupTemMobile
       control={control}
