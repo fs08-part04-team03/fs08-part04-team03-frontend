@@ -54,8 +54,8 @@ const ProfileEditSection = () => {
           // eslint-disable-next-line no-console
           console.error('[ProfileEdit] 회사 정보 조회 실패:', error);
         }
-        // 실패 시 기본값 사용
-        form.setValue('companyName', 'SNACK');
+        // 실패 시 빈 값으로 설정하여 사용자가 직접 입력하도록 유도
+        form.setValue('companyName', '');
       }
     };
 
