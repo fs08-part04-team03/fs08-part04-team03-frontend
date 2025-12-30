@@ -8,6 +8,7 @@ import type { UserRole } from '@/constants/roles';
 export interface User {
   id: string;
   email: string;
+  name: string;
   role: UserRole;
   companyId: string;
 }
