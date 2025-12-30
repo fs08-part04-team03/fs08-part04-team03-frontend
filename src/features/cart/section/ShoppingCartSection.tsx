@@ -68,14 +68,9 @@ const ShoppingCartSection = () => {
     }
   };
 
-  const cartProps = {
-    role: 'user' as const,
-  };
-
   return (
     <ShoppingCartTem
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...cartProps}
+      cartRole="user"
       items={items}
       onQuantityChange={(id, qty) => {
         handleQuantityChange(id, qty).catch(console.error);
