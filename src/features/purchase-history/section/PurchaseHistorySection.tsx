@@ -95,14 +95,18 @@ const PurchaseHistorySection = () => {
 
         logger.info('[PurchaseHistory] 예산 정보 조회 성공:', budgetData);
 
-        // TODO: API 응답에 따라 실제 필드 매핑 필요
-        // 현재는 임시로 설정
+        // 현재 월 데이터 (API에서 제공)
         setThisMonthBudget(budgetData.budget);
         setThisMonthSpending(budgetData.monthlySpending);
-        // lastMonth, thisYear, lastYear 데이터는 추가 API 또는 계산 로직 필요
-        setLastMonthBudget(budgetData.budget);
+
+        // TODO: 아래 데이터는 백엔드 API에서 제공되지 않음
+        // 추후 연간/월간 지출 통계 API가 추가되면 실제 값으로 대체 필요
+        // - lastMonthBudget, lastMonthSpending: 지난 달 예산/지출
+        // - thisYearTotalSpending: 올해 1월~현재월 누적 지출
+        // - lastYearTotalSpending: 작년 동기간 누적 지출
+        setLastMonthBudget(0);
         setLastMonthSpending(0);
-        setThisYearTotalSpending(budgetData.monthlySpending * 12);
+        setThisYearTotalSpending(0);
         setLastYearTotalSpending(0);
       } catch (error) {
         logger.error('[PurchaseHistory] 예산 정보 조회 실패:', error);
