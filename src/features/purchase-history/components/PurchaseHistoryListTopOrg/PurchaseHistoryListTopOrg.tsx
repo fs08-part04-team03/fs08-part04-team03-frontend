@@ -16,7 +16,7 @@ interface PurchaseHistoryListTopOrgProps {
   onSortChange?: (option: Option) => void;
 }
 
-export const PurchaseHistoryListTopOrg: React.FC<PurchaseHistoryListTopOrgProps> = ({
+export const PurchaseHistoryListTopOrg = ({
   thisMonthBudget,
   lastMonthBudget,
   thisMonthSpending,
@@ -25,7 +25,7 @@ export const PurchaseHistoryListTopOrg: React.FC<PurchaseHistoryListTopOrgProps>
   lastYearTotalSpending,
   selectedSort,
   onSortChange,
-}) => {
+}: PurchaseHistoryListTopOrgProps) => {
   // 진행률 계산 (지출액 / 예산 * 100)
   const spendingPercentage =
     thisMonthBudget > 0 ? Math.round((thisMonthSpending / thisMonthBudget) * 100) : 0;

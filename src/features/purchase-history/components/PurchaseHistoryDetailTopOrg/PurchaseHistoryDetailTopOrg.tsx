@@ -80,9 +80,9 @@ const PriceSummary = ({ orderAmount, shippingFee, totalAmount }: PriceSummaryPro
 );
 
 // 메인 컴포넌트
-export const PurchaseHistoryDetailTopOrg: React.FC<PurchaseHistoryDetailTopOrgProps> = ({
+export const PurchaseHistoryDetailTopOrg = ({
   purchaseRequest,
-}) => {
+}: PurchaseHistoryDetailTopOrgProps) => {
   const [isOpen, setIsOpen] = useState(true);
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
