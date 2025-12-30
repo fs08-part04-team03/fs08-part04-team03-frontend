@@ -25,8 +25,9 @@ const BudgetFormOrg = ({
 
   // 초기값 설정
   useEffect(() => {
-    if (initialThisMonthBudget) setThisMonthBudget(initialThisMonthBudget.toString());
-    if (initialMonthlyStartBudget) setMonthlyStartBudget(initialMonthlyStartBudget.toString());
+    if (initialThisMonthBudget !== undefined) setThisMonthBudget(initialThisMonthBudget.toString());
+    if (initialMonthlyStartBudget !== undefined)
+      setMonthlyStartBudget(initialMonthlyStartBudget.toString());
   }, [initialThisMonthBudget, initialMonthlyStartBudget]);
 
   // 입력값이 변경될 때마다 호출 (실시간으로 입력값을 state에 저장)
