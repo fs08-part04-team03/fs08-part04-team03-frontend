@@ -1,6 +1,9 @@
+import AdminBudgetSection from '@/features/admin/budget/section/AdminBudgetSection';
+
+// 어드민 - 예산 관리 페이지
 const BudgetManagementPage = () => (
   <div>
-    <p>BudgetManagementPage-예산관리</p>
+    <AdminBudgetSection />
   </div>
 );
 

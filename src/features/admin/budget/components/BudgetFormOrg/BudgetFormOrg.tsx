@@ -1,17 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Button from '@/components/atoms/Button/Button';
 import Input from '@/components/atoms/Input/Input';
 import { formatNumberToKorean } from '@/features/admin/budget/utils/format';
 
+// 예산 설정 폼
 interface BudgetFormOrgProps {
-  onSubmit?: (values: { thisMonthBudget: string; monthlyStartBudget: string }) => void;
+  initialThisMonthBudget?: number;
+  initialMonthlyStartBudget?: number;
+  onSubmit?: (values: {
+    thisMonthBudget: number;
+    monthlyStartBudget: number;
+  }) => void | Promise<void>;
 }
 
-const BudgetFormOrg = ({ onSubmit }: BudgetFormOrgProps) => {
+const BudgetFormOrg = ({
+  initialThisMonthBudget = 0,
+  initialMonthlyStartBudget = 0,
+  onSubmit,
+}: BudgetFormOrgProps) => {
   const [thisMonthBudget, setThisMonthBudget] = useState<string>('');
   const [monthlyStartBudget, setMonthlyStartBudget] = useState<string>('');
+
+  // 초기값 설정
+  useEffect(() => {
+    if (initialThisMonthBudget) setThisMonthBudget(initialThisMonthBudget.toString());
+    if (initialMonthlyStartBudget) setMonthlyStartBudget(initialMonthlyStartBudget.toString());
+  }, [initialThisMonthBudget, initialMonthlyStartBudget]);
 
   // 입력값이 변경될 때마다 호출 (실시간으로 입력값을 state에 저장)
   const handleBudgetChange =
@@ -32,15 +48,16 @@ const BudgetFormOrg = ({ onSubmit }: BudgetFormOrgProps) => {
 
   const handleSubmit = () => {
     if (onSubmit) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       onSubmit({
-        thisMonthBudget,
-        monthlyStartBudget,
+        thisMonthBudget: Number(thisMonthBudget),
+        monthlyStartBudget: Number(monthlyStartBudget),
       });
     }
   };
 
   return (
-    <div className="w-full max-w-960 bg-white p-24">
+    <div className="w-full max-w-[960px] bg-white p-24">
       {/* 헤더 */}
       <div
         className="
