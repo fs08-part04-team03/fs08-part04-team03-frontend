@@ -11,6 +11,8 @@ import {
 } from '@/features/purchase/api/purchase.api';
 import PurchaseHistoryTem from '@/features/purchase-history/template/PurchaseHistoryTem/PurchaseHistoryTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
+import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logger';
 
 /**
  * PurchaseHistorySection
@@ -23,8 +25,6 @@ import { Toast } from '@/components/molecules/Toast/Toast';
  */
 const PurchaseHistorySection = () => {
   const [items, setItems] = useState<PurchaseRequestItem[]>([]);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedSort, setSelectedSort] = useState<Option>({
@@ -43,28 +43,17 @@ const PurchaseHistorySection = () => {
   const { user } = useAuthStore();
   const companyId = user?.companyId || '';
 
-  // 토스트 자동 닫기 (3초 후)
-  useEffect(() => {
-    if (showToast) {
-      const timer = setTimeout(() => {
-        setShowToast(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [showToast]);
+  // useToast 훅 사용
+  const { showToast, toastMessage, triggerToast, closeToast } = useToast();
 
   // 구매 내역 목록 조회
   useEffect(() => {
     (async () => {
       try {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('[PurchaseHistory] 구매 내역 조회 시작:', {
-            page: currentPage,
-            sort: selectedSort.key,
-          });
-        }
+        logger.info('[PurchaseHistory] 구매 내역 조회 시작:', {
+          page: currentPage,
+          sort: selectedSort.key,
+        });
 
         const params: GetMyPurchasesParams = {
           page: currentPage,
@@ -75,31 +64,24 @@ const PurchaseHistorySection = () => {
 
         const response = await getMyPurchases(params);
 
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('[PurchaseHistory] 구매 내역 조회 성공:', {
-            totalItems: response.totalItems,
-            currentPage: response.currentPage,
-          });
-        }
+        logger.info('[PurchaseHistory] 구매 내역 조회 성공:', {
+          totalItems: response.totalItems,
+          currentPage: response.currentPage,
+        });
 
         setItems(response.purchaseList);
         setCurrentPage(response.currentPage);
         setTotalPages(response.totalPages);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[PurchaseHistory] 구매 내역 조회 실패:', error);
-        }
+        logger.error('[PurchaseHistory] 구매 내역 조회 실패:', error);
         const errorMessage =
           error instanceof Error ? error.message : '구매 내역을 불러오는데 실패했습니다.';
-        setToastMessage(errorMessage);
-        setShowToast(true);
+        triggerToast('custom', errorMessage);
       }
     })().catch(() => {
       // 에러는 이미 catch 블록에서 처리됨
     });
-  }, [currentPage, selectedSort]);
+  }, [currentPage, selectedSort, triggerToast]);
 
   // 예산 정보 조회
   useEffect(() => {
@@ -107,17 +89,11 @@ const PurchaseHistorySection = () => {
       try {
         if (!companyId) return;
 
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('[PurchaseHistory] 예산 정보 조회 시작:', { companyId });
-        }
+        logger.info('[PurchaseHistory] 예산 정보 조회 시작:', { companyId });
 
         const budgetData = await getBudget(companyId);
 
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('[PurchaseHistory] 예산 정보 조회 성공:', budgetData);
-        }
+        logger.info('[PurchaseHistory] 예산 정보 조회 성공:', budgetData);
 
         // TODO: API 응답에 따라 실제 필드 매핑 필요
         // 현재는 임시로 설정
@@ -129,10 +105,7 @@ const PurchaseHistorySection = () => {
         setThisYearTotalSpending(budgetData.monthlySpending * 12);
         setLastYearTotalSpending(0);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[PurchaseHistory] 예산 정보 조회 실패:', error);
-        }
+        logger.error('[PurchaseHistory] 예산 정보 조회 실패:', error);
         // 예산 조회 실패는 토스트를 띄우지 않음 (선택적 정보)
       }
     })().catch(() => {
@@ -168,7 +141,7 @@ const PurchaseHistorySection = () => {
       />
       {showToast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-toast">
-          <Toast variant="custom" message={toastMessage} onClose={() => setShowToast(false)} />
+          <Toast variant="custom" message={toastMessage} onClose={closeToast} />
         </div>
       )}
     </>
