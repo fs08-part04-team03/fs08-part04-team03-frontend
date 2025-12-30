@@ -2,11 +2,9 @@ import { ReactNode } from 'react';
 import { RoleGuard } from '@/components/guards/RoleGuard';
 
 const AdminLayout = ({ children }: { children: ReactNode }) => (
+  // admin role guard
   <RoleGuard requiredRole="admin">
-    <div>
-      <p>AdminLayout- 최고관리자 레이아웃 페이지</p>
-      {children}
-    </div>
+    <div>{children}</div>
   </RoleGuard>
 );
 
