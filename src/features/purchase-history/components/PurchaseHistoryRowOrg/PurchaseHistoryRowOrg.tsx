@@ -60,21 +60,18 @@ const usePurchaseItem = (item: PurchaseRequestItem, companyId: string): UsePurch
   };
 };
 
-const RequesterWithUrgentTag: React.FC<{ name: string; isUrgent: boolean }> = ({
-  name,
-  isUrgent,
-}) => (
+const RequesterWithUrgentTag = ({ name, isUrgent }: { name: string; isUrgent: boolean }) => (
   <span className="flex items-center gap-16">
     {name}
     {isUrgent && <StatusTag variant="urgent" className="text-12" />}
   </span>
 );
 
-export const PurchaseHistoryRowOrg: React.FC<PurchaseHistoryRowOrgProps> = ({
+export const PurchaseHistoryRowOrg = ({
   item,
   companyId,
   isFirst = false,
-}) => {
+}: PurchaseHistoryRowOrgProps) => {
   const { itemDescription, totalQuantity, isUrgent, handleItemClick, handleItemKeyDown } =
     usePurchaseItem(item, companyId);
 
