@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { type Control, type UseFormHandleSubmit } from 'react-hook-form';
 
 import RHFInputField from '@/components/molecules/RHFInputField/RHFInputField';
@@ -30,13 +29,13 @@ interface LoginTemContentProps {
   className?: string;
 }
 
-const LoginTemContent: React.FC<LoginTemContentProps> = ({
+const LoginTemContent = ({
   control,
   isValid,
   onSubmit,
   handleSubmit,
   className,
-}) => (
+}: LoginTemContentProps) => (
   <form
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     onSubmit={handleSubmit(onSubmit)}
@@ -65,9 +64,12 @@ const LoginTemContent: React.FC<LoginTemContentProps> = ({
   </form>
 );
 
-export const LoginTemMobile: React.FC<
-  Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>
-> = ({ control, isValid, onSubmit, handleSubmit }) => (
+export const LoginTemMobile = ({
+  control,
+  isValid,
+  onSubmit,
+  handleSubmit,
+}: Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>) => (
   <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
     <div className="m-38">
       <Logo size="lg" />
@@ -88,9 +90,12 @@ export const LoginTemMobile: React.FC<
   </div>
 );
 
-export const LoginTemDesktop: React.FC<
-  Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>
-> = ({ control, isValid, onSubmit, handleSubmit }) => (
+export const LoginTemDesktop = ({
+  control,
+  isValid,
+  onSubmit,
+  handleSubmit,
+}: Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>) => (
   <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
     <div className="mt-177">
       <Logo size="lg" />
@@ -118,7 +123,7 @@ export const LoginTemDesktop: React.FC<
   </div>
 );
 
-const LoginTem: React.FC<LoginTemProps> = ({
+const LoginTem = ({
   control,
   handleSubmit,
   isValid,
@@ -126,7 +131,7 @@ const LoginTem: React.FC<LoginTemProps> = ({
   showToast,
   toastMessage,
   setShowToast,
-}) => (
+}: LoginTemProps) => (
   <>
     <LoginTemMobile
       control={control}

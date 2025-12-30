@@ -35,13 +35,13 @@ interface PurchaseRequestItemRowProps {
 /**
  * 모바일 레이아웃 아이템 행
  */
-const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
+const PurchaseRequestItemRowMobile = ({
   item,
   onReject,
   onApprove,
   onCancel,
   companyId,
-}) => {
+}: PurchaseRequestItemRowProps) => {
   const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
@@ -171,13 +171,13 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
 /**
  * 태블릿/데스크탑 레이아웃 아이템 행
  */
-const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
+const PurchaseRequestItemRowDesktop = ({
   item,
   onReject,
   onApprove,
   onCancel,
   companyId,
-}) => {
+}: PurchaseRequestItemRowProps) => {
   const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
@@ -353,14 +353,14 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
 /**
  * 구매 요청 아이템 리스트 컴포넌트
  */
-const PurchaseRequestItemListOrg: React.FC<PurchaseRequestItemListOrgProps> = ({
+const PurchaseRequestItemListOrg = ({
   purchaseList,
   className,
   onReject,
   onApprove,
   onCancel,
   companyId,
-}) => (
+}: PurchaseRequestItemListOrgProps) => (
   <div className={clsx('w-full', className)}>
     {purchaseList.map((item) => (
       <React.Fragment key={item.id}>

@@ -26,7 +26,7 @@ import {
  * MyPurchaseRequestListTem Props
  */
 export interface MyPurchaseRequestListTemProps {
-  purchaseList: PurchaseRequestItem[];
+  purchaseList?: PurchaseRequestItem[];
   className?: string;
   onCancelClick?: (purchaseRequestId: string) => void;
   cancelModalOpen?: boolean;
@@ -454,7 +454,7 @@ const MyPurchaseRequestListTem = ({
     router.push(`/${companyId}/products`);
   }, [router, companyId]);
 
-  if (purchaseList.length === 0) {
+  if (!purchaseList || purchaseList.length === 0) {
     return (
       <div className={clsx('w-full mt-200', 'flex justify-center', className)}>
         <StatusNotice
