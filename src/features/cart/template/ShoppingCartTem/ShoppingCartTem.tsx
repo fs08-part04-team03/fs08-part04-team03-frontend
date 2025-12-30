@@ -12,6 +12,7 @@ interface ShoppingCartTemProps {
   cartRole: CartRole; // 🔥 변경
   items: OrderItem[];
   budget?: number;
+  loading?: boolean; // 🔹 로딩 상태 추가
 
   onDeleteSelected?: (ids: string[]) => void;
   onSubmit?: (itemIds: string[]) => void;
@@ -34,6 +35,7 @@ const ShoppingCartTem = ({
   cartRole,
   items,
   budget,
+  loading = false, // 🔹 기본값 false
   onDeleteSelected,
   onSubmit,
   onGoBudgetManage,
@@ -60,6 +62,7 @@ const ShoppingCartTem = ({
           onSubmit={onSubmit}
           onGoBudgetManage={onGoBudgetManage}
           onQuantityChange={onQuantityChange}
+          loading={loading} // 🔹 로딩 상태 전달
         />
       </div>
     </div>
