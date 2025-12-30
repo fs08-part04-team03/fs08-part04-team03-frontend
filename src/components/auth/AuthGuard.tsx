@@ -20,9 +20,12 @@ interface AuthGuardProps {
 export const AuthGuard = ({ children, companyId }: AuthGuardProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAuthStore();
+  const { user, isHydrated } = useAuthStore();
 
   useEffect(() => {
+    // 하이드레이션이 완료되지 않았으면 리다이렉트하지 않음
+    if (!isHydrated) return;
+
     // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
     if (!user) {
       const loginUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
@@ -42,7 +45,12 @@ export const AuthGuard = ({ children, companyId }: AuthGuardProps) => {
       // 권한이 없으면 홈(상품 목록)으로 리다이렉트
       router.push(`/${user.companyId}/products`);
     }
-  }, [user, companyId, pathname, router]);
+  }, [user, companyId, pathname, router, isHydrated]);
+
+  // 하이드레이션 완료 전까지는 로딩 상태 표시
+  if (!isHydrated) {
+    return null;
+  }
 
   // 인증 확인 중이거나 리다이렉트 중일 때는 아무것도 렌더링하지 않음
   if (!user || user.companyId !== companyId) {
