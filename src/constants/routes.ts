@@ -34,6 +34,6 @@ export const ROUTES: Record<AppRouteKey, AppRouteConfig> = {
   },
   management: {
     label: '관리',
-    href: '/[companyId]/admin',
+    href: '/[companyId]/admin/users',
   },
 };
