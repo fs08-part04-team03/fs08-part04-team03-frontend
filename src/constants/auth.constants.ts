@@ -9,7 +9,7 @@ export const ENV_KEYS = {
 } as const;
 
 // 기본값
-export const DEFAULT_TIMEOUT = 10000; // 10초
+export const DEFAULT_TIMEOUT = 30000; // 30초 (Render.com 무료 플랜의 cold start 대응)
 
 // 배포 서버 기본 URL (환경 변수가 없을 때 사용)
 export const DEFAULT_API_URL = 'https://fs08-part04-team03-backend.onrender.com';
