@@ -77,11 +77,21 @@ export const cartApi = {
       credentials: 'include',
     });
 
-    if (!res.ok) {
-      throw new Error('장바구니 조회 실패');
+    let data: GetMyCartResponse;
+    try {
+      data = (await res.json()) as GetMyCartResponse;
+    } catch {
+      throw new Error('서버 응답이 유효하지 않습니다.');
     }
 
-    const data = (await res.json()) as GetMyCartResponse;
+    if (!res.ok) {
+      throw new Error(data.message || '장바구니 조회 실패');
+    }
+
+    if (!data.success || !Array.isArray(data.data)) {
+      throw new Error(data.message || '장바구니 데이터 형식이 올바르지 않습니다.');
+    }
+
     return data;
   },
 
@@ -93,17 +103,24 @@ export const cartApi = {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({
-        cartItemId,
-        quantity,
-      }),
+      body: JSON.stringify({ cartItemId, quantity }),
     });
 
-    if (!res.ok) {
-      throw new Error('수량 수정 실패');
+    let data: UpdateQuantityResponse;
+    try {
+      data = (await res.json()) as UpdateQuantityResponse;
+    } catch {
+      throw new Error('서버 응답이 유효하지 않습니다.');
     }
 
-    const data = (await res.json()) as UpdateQuantityResponse;
+    if (!res.ok) {
+      throw new Error(data.message || '수량 수정 실패');
+    }
+
+    if (!data.success || !data.data) {
+      throw new Error(data.message || '수량 수정 응답 형식이 올바르지 않습니다.');
+    }
+
     return data;
   },
 
@@ -115,16 +132,24 @@ export const cartApi = {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({
-        cartItemIds,
-      }),
+      body: JSON.stringify({ cartItemIds }),
     });
 
-    if (!res.ok) {
-      throw new Error('장바구니 삭제 실패');
+    let data: DeleteMultipleResponse;
+    try {
+      data = (await res.json()) as DeleteMultipleResponse;
+    } catch {
+      throw new Error('서버 응답이 유효하지 않습니다.');
     }
 
-    const data = (await res.json()) as DeleteMultipleResponse;
+    if (!res.ok) {
+      throw new Error(data.message || '장바구니 삭제 실패');
+    }
+
+    if (!data.success || !data.data) {
+      throw new Error(data.message || '장바구니 삭제 응답 형식이 올바르지 않습니다.');
+    }
+
     return data;
   },
 };
