@@ -20,7 +20,7 @@ export interface OrderItem {
 }
 
 interface CartSummaryBlockOrgProps {
-  role: CartRole;
+  cartRole: CartRole;
   items: OrderItem[];
   budget?: number;
   onDeleteSelected?: (cartItemIds: string[]) => void;
@@ -35,7 +35,7 @@ interface PurchaseResponse {
 }
 
 const CartSummaryBlockOrg = ({
-  role,
+  cartRole,
   items,
   budget = 0,
   onDeleteSelected,
@@ -48,7 +48,7 @@ const CartSummaryBlockOrg = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
 
-  const isAdminRole = role === 'manager' || role === 'admin';
+  const isAdminRole = cartRole === 'manager' || cartRole === 'admin';
 
   useEffect(() => {
     setCheckedIds((prev) => prev.filter((id) => items.some((i) => i.cartItemId === id)));
@@ -72,10 +72,10 @@ const CartSummaryBlockOrg = ({
   const isBudgetExceeded = isAdminRole && remainBudget < 0;
 
   const submitButtonLabel = useMemo(() => {
-    if (role === 'admin' && isBudgetExceeded) return '예산 관리';
-    if (role === 'manager' && isBudgetExceeded) return '긴급 구매 요청';
+    if (cartRole === 'admin' && isBudgetExceeded) return '예산 관리';
+    if (cartRole === 'manager' && isBudgetExceeded) return '긴급 구매 요청';
     return '구매 요청';
-  }, [role, isBudgetExceeded]);
+  }, [cartRole, isBudgetExceeded]);
 
   const handleToggleAll = (checked: boolean) => {
     setCheckedIds(checked ? items.map((i) => i.cartItemId) : []);
@@ -161,12 +161,12 @@ const CartSummaryBlockOrg = ({
   };
 
   const handleSubmit = async () => {
-    if (role === 'admin' && isBudgetExceeded) {
+    if (cartRole === 'admin' && isBudgetExceeded) {
       onGoBudgetManage?.();
       return;
     }
 
-    if (role === 'manager' && isBudgetExceeded) {
+    if (cartRole === 'manager' && isBudgetExceeded) {
       await handleManagerUrgentPurchase();
       return;
     }
@@ -206,9 +206,9 @@ const CartSummaryBlockOrg = ({
             {items.map((item) => {
               const isChecked = checkedIds.includes(item.cartItemId);
 
-              const purchaseButtonLabel = role === 'user' ? '바로 요청' : '즉시 구매';
+              const purchaseButtonLabel = cartRole === 'user' ? '바로 요청' : '즉시 구매';
               const purchaseButtonDisabled =
-                role === 'user' || !isChecked || isBudgetExceeded || isPurchasing;
+                cartRole === 'user' || !isChecked || isBudgetExceeded || isPurchasing;
 
               return (
                 <OrderItemCard
@@ -251,7 +251,7 @@ const CartSummaryBlockOrg = ({
               배송비는 {shippingFee.toLocaleString()}원입니다.
             </p>
 
-            {role !== 'user' && (
+            {cartRole !== 'user' && (
               <p className="font-bold text-18 tracking--0.45 text-gray-700">
                 {isBudgetExceeded ? '전체 예산 금액' : '남은 예산 금액'}{' '}
                 <PriceText value={isBudgetExceeded ? budget : remainBudget} />
@@ -261,7 +261,7 @@ const CartSummaryBlockOrg = ({
 
           <div
             className={`flex flex-col items-center gap-16 ${
-              role === 'user' ? 'tablet:gap-20' : 'tablet:gap-34'
+              cartRole === 'user' ? 'tablet:gap-20' : 'tablet:gap-34'
             }`}
           >
             <Button
