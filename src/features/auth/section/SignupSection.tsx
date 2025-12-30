@@ -120,9 +120,9 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
       setAuth({ user, accessToken });
 
       logger.info('[Signup] 인증 정보 저장 완료:', {
-        userId: user.id,
+        hasUserId: !!user.id,
         role: user.role,
-        companyId: user.companyId,
+        hasCompanyId: !!user.companyId,
       });
 
       const redirectPath = `/${user.companyId}/products`;

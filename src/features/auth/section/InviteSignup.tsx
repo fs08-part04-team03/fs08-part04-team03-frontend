@@ -54,39 +54,28 @@ const InviteSignup = ({ token }: InviteSignupProps) => {
     }
   }, [inviteUrl, error, inviteData]);
 
-  // 에러 상태 처리 - 에러 발생 시 토스트 표시 및 리다이렉트
+  // 에러 상태 통합 처리
   useEffect(() => {
+    if (!inviteUrl || isLoading) return undefined;
+
+    const hasError = error || !inviteData;
+    if (!hasError) return undefined;
+
     if (error) {
       logger.error('초대 정보 조회 실패:', error);
-      logger.error(`에러 메시지: ${AUTH_ERROR_MESSAGES.INVALID_INVITE_LINK}`);
-      triggerToast('error', AUTH_ERROR_MESSAGES.INVALID_INVITE_LINK);
-      // 토스트 메시지 표시 후 홈으로 리다이렉트
-      const timer = setTimeout(() => {
-        router.push(PATHNAME.ROOT);
-      }, TOAST_AUTO_CLOSE_DURATION);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-    return undefined;
-  }, [error, triggerToast, router]);
-
-  // inviteData가 없을 때 처리 (에러가 아닌 경우)
-  useEffect(() => {
-    if (!inviteUrl || isLoading || error) return undefined;
-    if (!inviteData) {
+    } else {
       logger.error('초대 정보를 불러올 수 없습니다.');
-      triggerToast('error', AUTH_ERROR_MESSAGES.INVALID_INVITE_LINK);
-      // 토스트 메시지 표시 후 홈으로 리다이렉트
-      const timer = setTimeout(() => {
-        router.push(PATHNAME.ROOT);
-      }, TOAST_AUTO_CLOSE_DURATION);
-      return () => {
-        clearTimeout(timer);
-      };
     }
-    return undefined;
-  }, [inviteData, inviteUrl, isLoading, error, triggerToast, router]);
+
+    triggerToast('error', AUTH_ERROR_MESSAGES.INVALID_INVITE_LINK);
+    const timer = setTimeout(() => {
+      router.push(PATHNAME.ROOT);
+    }, TOAST_AUTO_CLOSE_DURATION);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [inviteUrl, isLoading, error, inviteData, triggerToast, router]);
 
   // 로딩 상태 처리
   if (isLoading) {

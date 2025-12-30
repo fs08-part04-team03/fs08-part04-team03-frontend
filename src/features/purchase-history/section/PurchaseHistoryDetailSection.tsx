@@ -36,7 +36,10 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
 
         const detail = await getMyPurchaseDetail(orderId);
 
-        logger.info('[PurchaseHistoryDetail] 구매 내역 상세 조회 성공:', detail);
+        logger.info('[PurchaseHistoryDetail] 구매 내역 상세 조회 성공:', {
+          id: detail.id,
+          status: detail.status,
+        });
 
         setPurchaseDetail(detail);
       } catch (error) {
