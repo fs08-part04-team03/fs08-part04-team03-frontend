@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { UserRole } from '@/constants/roles';
+import { logger } from '@/utils/logger';
 
 /**
  * 사용자 인증 정보 타입
@@ -60,7 +61,13 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         accessToken: state.accessToken,
       }),
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          // Rehydration 실패 시에도 isHydrated를 true로 설정하여 무한 대기 방지
+          const errorMessage = error instanceof Error ? error.message : 'Rehydration 실패';
+          logger.error('[AuthStore] Rehydration 실패:', errorMessage);
+        }
+        // 성공/실패 여부와 관계없이 항상 isHydrated를 true로 설정
         state?.setHydrated();
       },
     }
