@@ -3,8 +3,8 @@ import { z } from 'zod';
 export const profileEditSchema = z
   .object({
     companyName: z.string().min(1, '기업명을 입력해주세요.'),
-    role: z.string(),
-    name: z.string(),
+    role: z.string().min(1, '권한 정보가 필요합니다.'),
+    name: z.string().min(1, '이름을 입력해주세요.'),
     email: z.string().email(),
     password: z
       .string()

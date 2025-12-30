@@ -61,7 +61,7 @@ const ProfileEditSection = () => {
 
     // eslint-disable-next-line no-void
     void fetchCompanyData();
-  }, [accessToken, form]);
+  }, [accessToken]); // form.setValue는 안정적인 참조를 가짐
 
   useEffect(() => {
     if (showToast) {
