@@ -1,4 +1,4 @@
-import { DEFAULT_API_URL, DEFAULT_TIMEOUT, ENV_KEYS } from '@/constants/auth.constants';
+import { DEFAULT_API_URL, DEFAULT_TIMEOUT, ENV_KEYS } from '@/features/auth/utils/constants';
 
 /**
  * API URL 가져오기 (환경 변수 또는 기본 배포 서버 URL)

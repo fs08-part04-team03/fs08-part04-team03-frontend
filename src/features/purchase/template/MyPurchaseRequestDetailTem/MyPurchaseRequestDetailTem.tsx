@@ -1,7 +1,7 @@
 'use client';
 
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import { PURCHASE_REQUEST_STATUS_LABEL } from '@/constants/purchase.constants';
+import { PURCHASE_REQUEST_STATUS_LABEL } from '@/features/purchase/utils/constants';
 import { PurchaseRequestDetailTopOrg } from '@/features/purchase/components/PurchaseRequestDetailTopOrg/PurchaseRequestDetailTopOrg';
 import PurchaseRequestDetailOrg from '@/features/purchase/components/PurchaseRequestDetailOrg/PurchaseRequestDetailOrg';
 import PurchaseRequestDetailActionsOrg from '../../components/PurchaseRequestDetailActionsOrg/PurchaseRequestDetailActionsOrg';
