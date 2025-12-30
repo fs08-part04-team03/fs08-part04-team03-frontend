@@ -96,13 +96,13 @@ export const AdminSidebarMenuItemDesktop: React.FC<AdminSidebarMenuItemProps> = 
 
 export interface AdminSidebarProps {
   companyId: string;
-  role?: string;
+  userRole?: string;
 }
 
-export const AdminSidebar = ({ companyId, role = 'user' }: AdminSidebarProps) => {
+export const AdminSidebar = ({ companyId, userRole = 'user' }: AdminSidebarProps) => {
   const pathname = usePathname();
 
-  if (role !== 'admin') {
+  if (userRole !== 'admin') {
     return null;
   }
 

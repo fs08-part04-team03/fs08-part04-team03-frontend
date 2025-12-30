@@ -28,7 +28,7 @@ type Story = StoryObj<typeof AdminSidebar>;
 export const Default: Story = {
   args: {
     companyId: 'company-1',
-    role: 'admin',
+    userRole: 'admin',
   },
 };
 
