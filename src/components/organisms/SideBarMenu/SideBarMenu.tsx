@@ -74,7 +74,7 @@ export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuP
           open ? 'translate-x-0' : 'translate-x-full',
           className
         )}
-        style={{ zIndex: 999999 }}
+        style={{ zIndex: 9999 }}
         role="dialog"
         aria-modal="true"
         aria-label="사이드바 메뉴"
