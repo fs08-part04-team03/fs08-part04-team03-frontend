@@ -94,7 +94,7 @@ export const getUsers = async ({
  * 사용자 권한 변경 (ADMIN)
  * PATCH /api/v1/user/admin/{id}/role
  */
-export const updateUserRole = async (userId: string, role: string) =>
+export const updateUserRole = async (userId: string, role: UserRole) =>
   fetchWithAuth<void>(`/api/v1/user/admin/${userId}/role`, {
     method: 'PATCH',
     body: JSON.stringify({ role }),
@@ -114,7 +114,7 @@ export const updateUserStatus = async (userId: string, isActive: boolean) =>
  * 회원 초대
  * POST /api/v1/auth/invitation/create
  */
-export const inviteUser = async (companyId: string, email: string, name: string, role: string) =>
+export const inviteUser = async (companyId: string, email: string, name: string, role: UserRole) =>
   fetchWithAuth<void>(`/api/v1/auth/invitation/create`, {
     method: 'POST',
     body: JSON.stringify({ companyId, email, name, role }),
