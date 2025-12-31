@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { clsx } from '@/utils/clsx';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 
@@ -18,7 +19,7 @@ export interface SideBarMenuProps {
   className?: string;
 }
 
-export const SideBarMenu: React.FC<SideBarMenuProps> = ({ open, onClose, children, className }) => {
+export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuProps) => {
   // Body scroll lock
   useEffect(() => {
     if (open) {
@@ -44,14 +45,15 @@ export const SideBarMenu: React.FC<SideBarMenuProps> = ({ open, onClose, childre
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, onClose]);
 
-  return (
+  const content = (
     <>
       {/* Overlay */}
       <div
         className={clsx(
-          'fixed inset-0 bg-black/40 transition-opacity duration-200 z-modal',
+          'fixed inset-0 bg-black/40 transition-opacity duration-200',
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
+        style={{ zIndex: 999999 }}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -59,12 +61,13 @@ export const SideBarMenu: React.FC<SideBarMenuProps> = ({ open, onClose, childre
       {/* Sidebar Drawer */}
       <aside
         className={clsx(
-          'fixed top-0 right-0 z-modal',
+          'fixed top-0 right-0',
           'w-225 h-full bg-white shadow-lg',
           'transform transition-transform duration-250 ease-out',
           open ? 'translate-x-0' : 'translate-x-full',
           className
         )}
+        style={{ zIndex: 999999 }}
         role="dialog"
         aria-modal="true"
         aria-label="사이드바 메뉴"
@@ -87,4 +90,11 @@ export const SideBarMenu: React.FC<SideBarMenuProps> = ({ open, onClose, childre
       </aside>
     </>
   );
+
+  // Portal을 사용하여 body에 렌더링
+  if (typeof document !== 'undefined') {
+    return createPortal(content, document.body);
+  }
+
+  return null;
 };

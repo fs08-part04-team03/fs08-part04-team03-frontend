@@ -592,17 +592,15 @@ export interface GetBudgetResponse {
 
 /**
  * 주어진 회사의 예산과 지출 요약을 조회합니다.
+ * 토큰에서 회사 정보를 자동으로 추출하므로 companyId는 사용하지 않습니다.
  *
- * @param companyId - 조회할 회사의 식별자
+ * @param _companyId - (사용하지 않음) 호환성을 위해 유지
  * @returns 회사의 총 예산(`budget`), 해당 기간의 월별 지출(`monthlySpending`), 남은 예산(`remainingBudget`)을 포함한 객체
  */
-export async function getBudget(companyId: string): Promise<GetBudgetResponse> {
-  const result = await fetchWithAuth<GetBudgetResponse>(
-    `${BUDGET_API_PATHS.GET_BUDGET}/${companyId}`,
-    {
-      method: 'GET',
-    }
-  );
+export async function getBudget(_companyId: string): Promise<GetBudgetResponse> {
+  const result = await fetchWithAuth<GetBudgetResponse>(BUDGET_API_PATHS.GET_BUDGET, {
+    method: 'GET',
+  });
 
   return result.data;
 }
