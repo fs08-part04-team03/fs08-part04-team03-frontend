@@ -9,7 +9,7 @@ export type TemplateProduct = {
   purchaseCount?: number;
 };
 
-type BackendProduct = {
+export type BackendProduct = {
   id: number;
   name: string;
   price: number;
