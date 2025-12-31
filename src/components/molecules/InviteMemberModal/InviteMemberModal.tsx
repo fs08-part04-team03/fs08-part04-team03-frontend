@@ -10,6 +10,12 @@ interface InviteMemberModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (role: Option, name: string, email: string) => void;
+  // 편집 모드일 때 기본값
+  defaultValues?: {
+    name: string;
+    email: string;
+    role: string;
+  };
 }
 
 const roleOptions: Option[] = [
@@ -17,16 +23,33 @@ const roleOptions: Option[] = [
   { key: 'user', label: '유저' },
 ];
 
-const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) => {
+const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMemberModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState<Option | null>(null);
 
-  // ESC 닫기
+  const isEditMode = !!defaultValues;
+
+  // ESC 닫기 & State reset/init
   useEffect(() => {
-    if (!open) return undefined; // ★ consistent-return 해결
+    if (!open) return undefined;
+
+    if (defaultValues) {
+      setName(defaultValues.name);
+      setEmail(defaultValues.email);
+      // roleOptions에서 defaultValues.role과 일치하는 option 찾기
+      const role = roleOptions.find(
+        (r) => r.key.toUpperCase() === defaultValues.role.toUpperCase()
+      );
+      setSelectedRole(role || null);
+    } else {
+      // 초대 모드일 때 초기화
+      setName('');
+      setEmail('');
+      setSelectedRole(null);
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -34,7 +57,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, defaultValues]);
 
   // 바깥 클릭 닫기
   const handleOutsideClick = () => {
@@ -54,7 +77,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
 
   return (
     <div
-      className={clsx('fixed inset-0 flex items-center justify-center bg-black/60 z-modal')}
+      className={clsx('fixed inset-0 flex items-center justify-center bg-black/60 z-10')}
       aria-modal="true"
       role="dialog"
     >
@@ -85,7 +108,10 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
             'tablet:px-0 tablet:py-0 desktop:px-0 desktop:py-0 tablet:mb-30 desktop:mb-30 h-54'
           )}
         >
-          <span className={clsx('text-18 font-bold text-gray-950')}>회원 초대</span>
+          {/* 편집 모드일 때 '권한 변경', 초대 모드일 때 '회원 초대' */}
+          <span className={clsx('text-18 font-bold text-gray-950')}>
+            {isEditMode ? '권한 변경' : '회원 초대'}
+          </span>
         </div>
 
         <form className="flex flex-col justify-between flex-1" onSubmit={handleSubmit}>
@@ -98,6 +124,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
                 type="text"
                 value={name}
                 onChange={setName}
+                disabled={isEditMode}
               />
             </div>
 
@@ -109,6 +136,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
                 type="email"
                 value={email}
                 onChange={setEmail}
+                disabled={isEditMode}
               />
             </div>
 
@@ -120,6 +148,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
                 variant="large"
                 onSelect={(item) => setSelectedRole(item)}
                 buttonClassName={clsx(!selectedRole ? 'border-red-500' : '')}
+                selected={selectedRole || undefined}
               />
             </div>
           </div>
@@ -157,7 +186,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit }: InviteMemberModalProps) 
               type="submit"
               inactive={!isValid}
             >
-              초대하기
+              {isEditMode ? '변경하기' : '초대하기'}
             </Button>
           </div>
         </form>
