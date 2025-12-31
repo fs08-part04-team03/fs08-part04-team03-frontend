@@ -11,6 +11,7 @@ import {
 } from '@/features/purchase/api/purchase.api';
 import PurchaseHistoryTem from '@/features/purchase-history/template/PurchaseHistoryTem/PurchaseHistoryTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
+import { PURCHASE_REQUEST_STATUS_OPTIONS } from '@/constants';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
 
@@ -31,6 +32,7 @@ const PurchaseHistorySection = () => {
     key: 'createdAt,desc',
     label: '최신순',
   });
+  const [status, setStatus] = useState<string | undefined>(undefined); // undefined = 'ALL'
 
   // Budget data
   const [thisMonthBudget, setThisMonthBudget] = useState(0);
@@ -59,7 +61,7 @@ const PurchaseHistorySection = () => {
           page: currentPage,
           size: 10,
           sort: selectedSort.key,
-          status: 'APPROVED', // 승인된 구매 내역만 조회
+          status,
         };
 
         const response = await getMyPurchases(params);
@@ -81,7 +83,7 @@ const PurchaseHistorySection = () => {
     })().catch(() => {
       // 에러는 이미 catch 블록에서 처리됨
     });
-  }, [currentPage, selectedSort, triggerToast]);
+  }, [currentPage, selectedSort, status, triggerToast]);
 
   // 예산 정보 조회
   useEffect(() => {
@@ -122,9 +124,18 @@ const PurchaseHistorySection = () => {
     setCurrentPage(1); // 정렬 변경 시 첫 페이지로
   };
 
+  const handleStatusChange = (newStatus: string | undefined) => {
+    setStatus(newStatus);
+    setCurrentPage(1); // 상태 변경 시 첫 페이지로
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  const selectedStatusOption = status
+    ? PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === status)
+    : PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === 'ALL');
 
   return (
     <>
@@ -137,6 +148,9 @@ const PurchaseHistorySection = () => {
         lastYearTotalSpending={lastYearTotalSpending}
         selectedSort={selectedSort}
         onSortChange={handleSortChange}
+        statusOptions={PURCHASE_REQUEST_STATUS_OPTIONS}
+        selectedStatusOption={selectedStatusOption}
+        onStatusChange={handleStatusChange}
         items={items}
         companyId={companyId}
         currentPage={currentPage}
