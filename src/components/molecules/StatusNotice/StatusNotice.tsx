@@ -23,18 +23,21 @@ const StatusNotice = ({
 }: StatusNoticeProps) => (
   <div
     className={clsx(
-      'mobile:w-375 mobile:h-300 mobile:px-24 mobile:flex mobile:flex-col mobile:items-center',
-      'tablet:w-310 tablet:h-336 tablet:px-0'
+      'mobile:w-375 mobile:min-h-300 mobile:px-24 mobile:flex mobile:flex-col mobile:items-center',
+      'tablet:w-310 tablet:min-h-336 tablet:px-0'
     )}
   >
     {/* 아이콘 */}
-    <Image
-      src={icon}
-      alt=""
-      width={36}
-      height={43}
-      className={clsx('mobile:mt-30 mobile:mb-41', 'tablet:mb-50')}
-    />
+    <div
+      className={clsx(
+        'flex items-center justify-center rounded-full bg-gray-25',
+        'px-32 pt-30 pb-27',
+        'mobile:mt-30 mobile:mb-41',
+        'tablet:mb-50'
+      )}
+    >
+      <Image src={icon} alt="" width={36} height={43} className="object-contain" />
+    </div>
 
     {/* 제목 */}
     <h2
