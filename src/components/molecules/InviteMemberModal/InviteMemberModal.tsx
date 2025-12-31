@@ -77,7 +77,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMem
 
   return (
     <div
-      className={clsx('fixed inset-0 flex items-center justify-center bg-black/60 z-10')}
+      className={clsx('fixed inset-0 flex items-center justify-center bg-black/60 z-30')}
       aria-modal="true"
       role="dialog"
     >
