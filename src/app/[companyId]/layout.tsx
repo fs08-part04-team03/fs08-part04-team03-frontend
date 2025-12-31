@@ -41,7 +41,9 @@ const CompanyLayout = async ({
   return (
     <AuthGuard companyId={companyId}>
       <HeaderShell />
-      <main className="container mx-auto">{children}</main>
+      <main className="container mx-auto px-16 tablet:px-24 desktop:max-w-1200 min-w-371">
+        {children}
+      </main>
     </AuthGuard>
   );
 };
