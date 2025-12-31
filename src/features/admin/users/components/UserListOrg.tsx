@@ -4,15 +4,7 @@ import { Avatar } from '@/components/atoms/Avatar/Avatar';
 import RoleBadge, { RoleBadgeRole } from '@/components/atoms/RoleBadge/RoleBadge';
 import Button from '@/components/atoms/Button/Button';
 
-// API User Type
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string; // 'USER' | 'MANAGER' | 'ADMIN'
-  avatarUrl?: string;
-  isActive?: boolean;
-}
+import { User } from '@/features/admin/users/api/adminUser.api';
 
 interface UserListProps {
   users: User[];

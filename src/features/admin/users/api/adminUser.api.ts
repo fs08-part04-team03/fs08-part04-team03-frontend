@@ -46,6 +46,7 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
 }
 
 export type UserRole = 'USER' | 'MANAGER' | 'ADMIN';
+export const VALID_USER_ROLES: UserRole[] = ['USER', 'MANAGER', 'ADMIN'];
 
 export interface User {
   id: string;
@@ -53,6 +54,7 @@ export interface User {
   email: string;
   role: UserRole;
   isActive: boolean;
+  avatarUrl?: string;
 }
 
 type GetUsersResponse = User[];
