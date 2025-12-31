@@ -53,9 +53,9 @@ body {
   --z-base: 1;
   --z-header: 10;
   --z-dropdown: 20;
-  --z-modal: 30;
+  --z-tooltip: 30;
   --z-toast: 40;
-  --z-tooltip: 50;
+  --z-modal: 99999;
 
   /* Shadow Tokens */
   --shadow-toast: 0 10px 8px 0 rgba(0, 0, 0, 0.1);
