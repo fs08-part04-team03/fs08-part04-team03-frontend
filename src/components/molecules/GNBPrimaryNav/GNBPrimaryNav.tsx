@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -32,14 +31,14 @@ export interface GNBPrimaryNavDesktopProps {
 }
 
 // Desktop Component
-export const GNBPrimaryNavDesktop: React.FC<GNBPrimaryNavDesktopProps> = ({
+export const GNBPrimaryNavDesktop = ({
   role,
   companyId,
   activePath,
   onItemClick,
   navClassName,
   className,
-}) => {
+}: GNBPrimaryNavDesktopProps) => {
   const pathname = usePathname();
   const currentPath = activePath ?? pathname ?? '';
 
@@ -48,7 +47,7 @@ export const GNBPrimaryNavDesktop: React.FC<GNBPrimaryNavDesktopProps> = ({
   return (
     <nav
       aria-label="주요 페이지"
-      className={clsx('flex items-center gap-32', navClassName, className)}
+      className={clsx('flex justify-center items-center gap-13', navClassName, className)}
     >
       {items.map((item: GNBPrimaryNavItem) => {
         const href = item.href.replace('[companyId]', companyId);
@@ -99,14 +98,14 @@ export interface GNBPrimaryNavProps {
  * 반응형 GNB 상단 네비게이션 컴포넌트
  * - 데스크탑 (1024px ~): 네비게이션 링크들
  */
-const GNBPrimaryNav: React.FC<GNBPrimaryNavProps> = ({
+const GNBPrimaryNav = ({
   role,
   companyId,
   activePath,
   onItemClick,
   navClassName,
   className,
-}) => (
+}: GNBPrimaryNavProps) => (
   <div className={clsx('hidden desktop:flex', className)}>
     <GNBPrimaryNavDesktop
       role={role}
@@ -157,7 +156,7 @@ export interface GNBPrimaryNavSidebarProps {
  * - 마이페이지(프로필)
  * - 로그아웃
  */
-export const GNBPrimaryNavSidebar: React.FC<GNBPrimaryNavSidebarProps> = ({
+export const GNBPrimaryNavSidebar = ({
   role,
   companyId,
   activePath,
@@ -166,7 +165,7 @@ export const GNBPrimaryNavSidebar: React.FC<GNBPrimaryNavSidebarProps> = ({
   onLogout,
   navClassName,
   className,
-}) => {
+}: GNBPrimaryNavSidebarProps) => {
   const pathname = usePathname();
   const currentPath = activePath ?? pathname ?? '';
 

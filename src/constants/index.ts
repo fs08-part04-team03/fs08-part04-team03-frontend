@@ -120,6 +120,7 @@ export type {
 export const PURCHASE_REQUEST_STATUS_OPTIONS: Option[] = [
   { key: 'ALL', label: '전체' },
   { key: 'PENDING', label: '대기중' },
+  { key: 'URGENT', label: '즉시요청' },
   { key: 'APPROVED', label: '승인됨' },
   { key: 'REJECTED', label: '반려됨' },
   { key: 'CANCELLED', label: '취소됨' },

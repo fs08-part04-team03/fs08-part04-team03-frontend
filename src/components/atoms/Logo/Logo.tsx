@@ -45,6 +45,7 @@ const Logo = ({
       width={width}
       height={height}
       className={clsx(sizeClass[size], className)}
+      priority
     />
   );
 

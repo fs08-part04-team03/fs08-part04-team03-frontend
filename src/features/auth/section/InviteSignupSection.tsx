@@ -112,9 +112,8 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
 
       logger.info('[InviteSignup] 초대 회원가입 API 성공:', { hasAccessToken: !!accessToken });
 
-      setAuth({ user, accessToken });
-
-      // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
+      // 쿠키에 인증 정보 저장 (서버 인증 경로에서 사용) - 서버 측에서 안전하게 설정
+      // 쿠키 설정을 먼저 수행하여 실패 시 상태 저장을 방지
       try {
         await setAuthCookies(user.role, user.companyId, accessToken);
         logger.info('[InviteSignup] 쿠키 저장 완료');
@@ -122,6 +121,8 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
         logger.error('[InviteSignup] 쿠키 저장 실패:', cookieError);
         throw new Error('인증 정보 저장에 실패했습니다. 다시 시도해주세요.');
       }
+
+      setAuth({ user, accessToken });
 
       const redirectPath = `/${user.companyId}/products`;
       router.push(redirectPath);
