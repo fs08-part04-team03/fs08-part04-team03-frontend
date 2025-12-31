@@ -52,92 +52,70 @@ interface PurchaseRequestTableRowProps {
 /**
  * 테이블 헤더 (태블릿)
  */
-const PurchaseRequestTableHeaderTablet = () => (
-  <div className={clsx('w-full')}>
-    <div className={clsx('flex items-center', 'w-full', 'gap-16 tablet:gap-24 desktop:gap-32')}>
+const PurchaseRequestTableHeaderTablet = ({
+  sortOptions,
+  selectedSortOption,
+  onSortChange,
+  statusOptions,
+  selectedStatusOption,
+  onStatusChange,
+}: {
+  sortOptions?: Option[];
+  selectedSortOption?: Option;
+  onSortChange?: (sort: string | undefined) => void;
+  statusOptions?: Option[];
+  selectedStatusOption?: Option;
+  onStatusChange?: (status: string | undefined) => void;
+}) => {
+  const handleSortSelect = (option: Option) => {
+    const sort = option.key === 'LATEST' ? undefined : option.key;
+    onSortChange?.(sort);
+  };
+
+  const handleStatusSelect = (option: Option) => {
+    const status = option.key === 'ALL' ? undefined : option.key;
+    onStatusChange?.(status);
+  };
+
+  return (
+    <div className={clsx('w-full', 'tablet:px-24')}>
       <div
         className={clsx(
+          'flex items-center justify-between w-full',
           'text-left',
           'text-gray-700',
-          'text-14',
+          'text-18',
           'font-bold',
-          'shrink-0',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
+          'py-20'
         )}
       >
-        구매 요청일
-      </div>
-      <div
-        className={clsx(
-          'text-left',
-          'text-gray-700',
-          'text-14',
-          'font-bold',
-          'shrink-0',
-          'tablet:w-140',
-          'desktop:w-260',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        상품 정보
-      </div>
-      <div
-        className={clsx(
-          'text-left',
-          'text-gray-700',
-          'text-14',
-          'font-bold',
-          'shrink-0',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        주문 금액
-      </div>
-      <div
-        className={clsx(
-          'text-left',
-          'text-gray-700',
-          'text-14',
-          'font-bold',
-          'shrink-0',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        상태
-      </div>
-      <div
-        className={clsx(
-          'text-left',
-          'text-gray-700',
-          'text-14',
-          'font-bold',
-          'shrink-0',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        비고
+        <p>구매 요청 내역</p>
+        <div className={clsx('flex items-center gap-12')}>
+          {statusOptions && (
+            <div className="relative z-dropdown">
+              <DropDown
+                items={statusOptions}
+                placeholder="전체"
+                selected={selectedStatusOption}
+                onSelect={handleStatusSelect}
+              />
+            </div>
+          )}
+          {sortOptions && (
+            <div className="relative z-dropdown">
+              <DropDown
+                items={sortOptions}
+                placeholder="최신순"
+                selected={selectedSortOption}
+                onSelect={handleSortSelect}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 /**
  * 테이블 헤더 (데스크탑)
@@ -201,88 +179,6 @@ const PurchaseRequestTableHeaderDesktop = ({
               />
             </div>
           )}
-        </div>
-      </div>
-      <div className={clsx('flex items-center', 'w-full', 'gap-16 tablet:gap-24 desktop:gap-32')}>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          구매 요청일
-        </div>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-140',
-            'desktop:w-260',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          상품 정보
-        </div>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          주문 금액
-        </div>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          상태
-        </div>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          비고
         </div>
       </div>
     </div>
@@ -454,39 +350,53 @@ const MyPurchaseRequestListTem = ({
     router.push(`/${companyId}/products`);
   }, [router, companyId]);
 
-  if (!purchaseList || purchaseList.length === 0) {
-    return (
-      <div className={clsx('w-full mt-200', 'flex justify-center', className)}>
-        <StatusNotice
-          title="구매 요청한 내역이 없어요"
-          description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-          buttonText="상품 리스트로 이동"
-          onButtonClick={handleNavigateToProducts}
-        />
-      </div>
-    );
-  }
+  const isEmpty = !purchaseList || purchaseList.length === 0;
 
   return (
     <div className={clsx('w-full', 'desktop:max-w-1400', 'desktop:mx-auto', className)}>
-      {/* 모바일 레이아웃 - PurchaseRequestItemListOrg 재사용 */}
+      {/* 모바일 레이아웃 */}
       <div className={clsx('tablet:hidden')}>
-        <PurchaseRequestItemListOrg
-          purchaseList={purchaseList}
-          onCancel={onCancelClick}
-          companyId={companyId}
-        />
+        {isEmpty ? (
+          <div
+            className={clsx(
+              'w-full',
+              'flex justify-center items-center',
+              'min-h-[calc(100vh-80px)]'
+            )}
+          >
+            <StatusNotice
+              title="구매 요청한 내역이 없어요"
+              description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
+              buttonText="상품 리스트로 이동"
+              onButtonClick={handleNavigateToProducts}
+            />
+          </div>
+        ) : (
+          <PurchaseRequestItemListOrg
+            purchaseList={purchaseList}
+            onCancel={onCancelClick}
+            companyId={companyId}
+          />
+        )}
       </div>
 
       {/* 태블릿/데스크탑 레이아웃 - 테이블 */}
       <div className={clsx('hidden tablet:block', 'overflow-x-auto')}>
         <div className={clsx('w-full')}>
-          {/* 태블릿 헤더 */}
+          {/* 태블릿 헤더 - 항상 표시 */}
           <div className={clsx('hidden tablet:block desktop:hidden')}>
-            <PurchaseRequestTableHeaderTablet />
+            <PurchaseRequestTableHeaderTablet
+              sortOptions={sortOptions}
+              selectedSortOption={selectedSortOption}
+              onSortChange={onSortChange}
+              statusOptions={statusOptions}
+              selectedStatusOption={selectedStatusOption}
+              onStatusChange={onStatusChange}
+            />
+            {!isEmpty && <Divider variant="thin" className="w-full" />}
           </div>
 
-          {/* 데스크탑 헤더 */}
+          {/* 데스크탑 헤더 - 항상 표시 */}
           <div className={clsx('hidden desktop:block')}>
             <PurchaseRequestTableHeaderDesktop
               sortOptions={sortOptions}
@@ -496,22 +406,219 @@ const MyPurchaseRequestListTem = ({
               selectedStatusOption={selectedStatusOption}
               onStatusChange={onStatusChange}
             />
+            {!isEmpty && (
+              <>
+                <Divider variant="thin" className="w-full" />
+                <div
+                  className={clsx(
+                    'flex items-center',
+                    'w-full',
+                    'gap-16 tablet:gap-24 desktop:gap-32'
+                  )}
+                >
+                  <div
+                    className={clsx(
+                      'text-left',
+                      'text-gray-700',
+                      'text-14',
+                      'font-bold',
+                      'shrink-0',
+                      'tablet:w-100',
+                      'desktop:w-180',
+                      'py-20',
+                      'tablet:px-0',
+                      'desktop:px-40'
+                    )}
+                  >
+                    구매 요청일
+                  </div>
+                  <div
+                    className={clsx(
+                      'text-left',
+                      'text-gray-700',
+                      'text-14',
+                      'font-bold',
+                      'shrink-0',
+                      'tablet:w-140',
+                      'desktop:w-260',
+                      'py-20',
+                      'tablet:px-0',
+                      'desktop:px-40'
+                    )}
+                  >
+                    상품 정보
+                  </div>
+                  <div
+                    className={clsx(
+                      'text-left',
+                      'text-gray-700',
+                      'text-14',
+                      'font-bold',
+                      'shrink-0',
+                      'tablet:w-100',
+                      'desktop:w-180',
+                      'py-20',
+                      'tablet:px-0',
+                      'desktop:px-40'
+                    )}
+                  >
+                    주문 금액
+                  </div>
+                  <div
+                    className={clsx(
+                      'text-left',
+                      'text-gray-700',
+                      'text-14',
+                      'font-bold',
+                      'shrink-0',
+                      'tablet:w-100',
+                      'desktop:w-180',
+                      'py-20',
+                      'tablet:px-0',
+                      'desktop:px-40'
+                    )}
+                  >
+                    상태
+                  </div>
+                  <div
+                    className={clsx(
+                      'text-left',
+                      'text-gray-700',
+                      'text-14',
+                      'font-bold',
+                      'shrink-0',
+                      'tablet:w-100',
+                      'desktop:w-180',
+                      'py-20',
+                      'tablet:px-0',
+                      'desktop:px-40'
+                    )}
+                  >
+                    비고
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Divider */}
-          <Divider variant="thin" className="w-full" />
-
-          {/* 테이블 바디 */}
-          <div className={clsx('w-full')}>
-            {purchaseList.map((item) => (
-              <PurchaseRequestTableRowDesktop
-                key={item.id}
-                item={item}
-                onCancelClick={onCancelClick}
-                companyId={companyId}
+          {isEmpty ? (
+            <div className={clsx('w-full', 'mt-200', 'flex justify-center')}>
+              <StatusNotice
+                title="구매 요청한 내역이 없어요"
+                description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
+                buttonText="상품 리스트로 이동"
+                onButtonClick={handleNavigateToProducts}
               />
-            ))}
-          </div>
+            </div>
+          ) : (
+            <>
+              {/* 태블릿 테이블 헤더 */}
+              <div className={clsx('hidden tablet:block desktop:hidden')}>
+                <div className={clsx('w-full', 'tablet:px-24')}>
+                  <div
+                    className={clsx(
+                      'flex items-center',
+                      'w-full',
+                      'gap-16 tablet:gap-24 desktop:gap-32'
+                    )}
+                  >
+                    <div
+                      className={clsx(
+                        'text-left',
+                        'text-gray-700',
+                        'text-14',
+                        'font-bold',
+                        'shrink-0',
+                        'tablet:w-100',
+                        'desktop:w-180',
+                        'py-20',
+                        'tablet:px-0',
+                        'desktop:px-40'
+                      )}
+                    >
+                      구매 요청일
+                    </div>
+                    <div
+                      className={clsx(
+                        'text-left',
+                        'text-gray-700',
+                        'text-14',
+                        'font-bold',
+                        'shrink-0',
+                        'tablet:w-140',
+                        'desktop:w-260',
+                        'py-20',
+                        'tablet:px-0',
+                        'desktop:px-40'
+                      )}
+                    >
+                      상품 정보
+                    </div>
+                    <div
+                      className={clsx(
+                        'text-left',
+                        'text-gray-700',
+                        'text-14',
+                        'font-bold',
+                        'shrink-0',
+                        'tablet:w-100',
+                        'desktop:w-180',
+                        'py-20',
+                        'tablet:px-0',
+                        'desktop:px-40'
+                      )}
+                    >
+                      주문 금액
+                    </div>
+                    <div
+                      className={clsx(
+                        'text-left',
+                        'text-gray-700',
+                        'text-14',
+                        'font-bold',
+                        'shrink-0',
+                        'tablet:w-100',
+                        'desktop:w-180',
+                        'py-20',
+                        'tablet:px-0',
+                        'desktop:px-40'
+                      )}
+                    >
+                      상태
+                    </div>
+                    <div
+                      className={clsx(
+                        'text-left',
+                        'text-gray-700',
+                        'text-14',
+                        'font-bold',
+                        'shrink-0',
+                        'tablet:w-100',
+                        'desktop:w-180',
+                        'py-20',
+                        'tablet:px-0',
+                        'desktop:px-40'
+                      )}
+                    >
+                      비고
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 테이블 바디 */}
+              <div className={clsx('w-full')}>
+                {purchaseList.map((item) => (
+                  <PurchaseRequestTableRowDesktop
+                    key={item.id}
+                    item={item}
+                    onCancelClick={onCancelClick}
+                    companyId={companyId}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
