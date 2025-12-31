@@ -5,13 +5,14 @@ import Image from 'next/image';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
 
-type ModalType = 'delete' | 'cancel' | 'approved' | 'rejected' | 'budget-shortage';
+type ModalType = 'delete' | 'cancel' | 'approved' | 'rejected' | 'budget-shortage' | 'user-delete';
 
 interface CustomModalProps {
   open: boolean;
   productName?: string;
   cancelCount?: number;
   type: ModalType;
+  description?: string;
   onClose: () => void;
   onConfirm?: () => void | Promise<void>;
   onHome?: () => void;
@@ -24,6 +25,7 @@ const CustomModal = ({
   productName,
   cancelCount = 0,
   type,
+  description,
   onClose,
   onConfirm,
   onHome,
@@ -105,6 +107,13 @@ const CustomModal = ({
       buttonRight: '예산 증액 요청',
       icon: '/icons/red-i.svg',
     },
+    'user-delete': {
+      title: '계정 탈퇴',
+      description: description || '계정을 탈퇴시킬까요?',
+      buttonLeft: '더 생각해볼게요',
+      buttonRight: '탈퇴시키기',
+      icon: '/icons/red-i.svg',
+    },
   };
 
   const content = modalContent[type];
@@ -141,8 +150,11 @@ const CustomModal = ({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* approved / rejected / budget-shortage */}
-        {type === 'approved' || type === 'rejected' || type === 'budget-shortage' ? (
+        {/* approved / rejected / budget-shortage / user-delete */}
+        {type === 'approved' ||
+        type === 'rejected' ||
+        type === 'budget-shortage' ||
+        type === 'user-delete' ? (
           <div className="flex flex-col items-center gap-5 mb-36">
             <h2 className={clsx('text-16 text-center tablet:text-18 desktop:text-18', 'font-bold')}>
               {content.title}
