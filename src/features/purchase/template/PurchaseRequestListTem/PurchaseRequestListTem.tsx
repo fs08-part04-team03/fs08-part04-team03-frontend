@@ -70,83 +70,6 @@ const TableHeaderCell = ({
   widthClass?: string;
 }) => <div className={clsx(TABLE_CELL_BASE_STYLES.header, widthClass)}>{children}</div>;
 
-const PurchaseRequestTableHeaderTablet = () => (
-  <div className="w-full tablet:px-24">
-    <Divider variant="thin" className="w-full" />
-    <div className="flex items-center w-full gap-16 tablet:gap-24">
-      <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
-      <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
-      <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
-      <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
-      <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
-    </div>
-  </div>
-);
-
-const PurchaseRequestTableHeaderDesktop = ({
-  sortOptions,
-  selectedSortOption,
-  onSortChange,
-  statusOptions,
-  selectedStatusOption,
-  onStatusChange,
-}: {
-  sortOptions?: Option[];
-  selectedSortOption?: Option;
-  onSortChange?: (sort: string | undefined) => void;
-  statusOptions?: Option[];
-  selectedStatusOption?: Option;
-  onStatusChange?: (status: string | undefined) => void;
-}) => {
-  const handleSortSelect = (option: Option) => {
-    const sort = option.key === 'LATEST' ? undefined : option.key;
-    onSortChange?.(sort);
-  };
-
-  const handleStatusSelect = (option: Option) => {
-    const status = option.key === 'ALL' ? undefined : option.key;
-    onStatusChange?.(status);
-  };
-
-  return (
-    <div className="w-full desktop:px-40">
-      <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
-        <p>구매 요청 내역</p>
-        <div className="flex items-center gap-12">
-          {statusOptions && (
-            <div className="relative z-dropdown">
-              <DropDown
-                items={statusOptions}
-                placeholder="전체"
-                selected={selectedStatusOption}
-                onSelect={handleStatusSelect}
-              />
-            </div>
-          )}
-          {sortOptions && (
-            <div className="relative z-dropdown">
-              <DropDown
-                items={sortOptions}
-                placeholder="최신순"
-                selected={selectedSortOption}
-                onSelect={handleSortSelect}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-      <Divider variant="thin" className="w-full" />
-      <div className="flex items-center w-full gap-16 tablet:gap-24 desktop:gap-32">
-        <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
-        <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
-        <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
-        <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
-        <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
-      </div>
-    </div>
-  );
-};
-
 const PurchaseRequestTableRowDesktop = ({
   item,
   companyId,
@@ -337,72 +260,115 @@ const PurchaseRequestListTem = ({
       {/* 태블릿/데스크톱 뷰 */}
       <div className="hidden tablet:block overflow-x-auto">
         <div className="w-full">
-          {purchaseList.length === 0 ? (
-            <>
-              <div className="hidden desktop:block">
-                <div className="w-full desktop:px-40">
-                  <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
-                    <p>구매 요청 내역</p>
-                    <div className="flex items-center gap-12">
-                      {statusOptions && (
-                        <div className="relative z-dropdown">
-                          <DropDown
-                            items={statusOptions}
-                            placeholder="전체"
-                            selected={selectedStatusOption}
-                            onSelect={(option) => {
-                              const status = option.key === 'ALL' ? undefined : option.key;
-                              onStatusChange?.(status);
-                            }}
-                          />
-                        </div>
-                      )}
-                      {sortOptions && (
-                        <div className="relative z-dropdown">
-                          <DropDown
-                            items={sortOptions}
-                            placeholder="최신순"
-                            selected={selectedSortOption}
-                            onSelect={(option) => {
-                              const sort = option.key === 'LATEST' ? undefined : option.key;
-                              onSortChange?.(sort);
-                            }}
-                          />
-                        </div>
-                      )}
+          {/* 헤더 - 항상 표시 (빈 리스트일 때는 제목과 드롭다운만) */}
+          <div className="hidden tablet:block desktop:hidden">
+            <div className="w-full tablet:px-24">
+              <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
+                <p>구매 요청 내역</p>
+                <div className="flex items-center gap-12">
+                  {statusOptions && (
+                    <div className="relative z-dropdown">
+                      <DropDown
+                        items={statusOptions}
+                        placeholder="전체"
+                        selected={selectedStatusOption}
+                        onSelect={(option) => {
+                          const status = option.key === 'ALL' ? undefined : option.key;
+                          onStatusChange?.(status);
+                        }}
+                      />
                     </div>
-                  </div>
+                  )}
+                  {sortOptions && (
+                    <div className="relative z-dropdown">
+                      <DropDown
+                        items={sortOptions}
+                        placeholder="최신순"
+                        selected={selectedSortOption}
+                        onSelect={(option) => {
+                          const sort = option.key === 'LATEST' ? undefined : option.key;
+                          onSortChange?.(sort);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="w-full mt-200 flex justify-center">
-                <StatusNotice
-                  title="구매 요청한 내역이 없어요"
-                  description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-                  buttonText="상품 리스트로 이동"
-                  onButtonClick={onNavigateToProducts}
-                />
-                <Divider variant="thin" className="w-full" />
+              {purchaseList.length > 0 && <Divider variant="thin" className="w-full" />}
+            </div>
+          </div>
+          <div className="hidden desktop:block">
+            <div className="w-full desktop:px-40">
+              <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
+                <p>구매 요청 내역</p>
+                <div className="flex items-center gap-12">
+                  {statusOptions && (
+                    <div className="relative z-dropdown">
+                      <DropDown
+                        items={statusOptions}
+                        placeholder="전체"
+                        selected={selectedStatusOption}
+                        onSelect={(option) => {
+                          const status = option.key === 'ALL' ? undefined : option.key;
+                          onStatusChange?.(status);
+                        }}
+                      />
+                    </div>
+                  )}
+                  {sortOptions && (
+                    <div className="relative z-dropdown">
+                      <DropDown
+                        items={sortOptions}
+                        placeholder="최신순"
+                        selected={selectedSortOption}
+                        onSelect={(option) => {
+                          const sort = option.key === 'LATEST' ? undefined : option.key;
+                          onSortChange?.(sort);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            </>
+              {purchaseList.length > 0 && (
+                <>
+                  <Divider variant="thin" className="w-full" />
+                  <div className="flex items-center w-full gap-16 tablet:gap-24 desktop:gap-32">
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {purchaseList.length === 0 ? (
+            <div className="w-full mt-200 flex justify-center">
+              <StatusNotice
+                title="요청 내역이 없어요"
+                description="상품 리스트를 둘러보고
+상품을 담아보세요"
+                buttonText="상품 리스트로 이동"
+                onButtonClick={onNavigateToProducts}
+              />
+            </div>
           ) : (
             <>
+              {/* 태블릿 테이블 헤더 */}
               <div className="hidden tablet:block desktop:hidden">
-                <PurchaseRequestTableHeaderTablet />
-              </div>
-
-              <div className="hidden desktop:block">
-                <PurchaseRequestTableHeaderDesktop
-                  sortOptions={sortOptions}
-                  selectedSortOption={selectedSortOption}
-                  onSortChange={onSortChange}
-                  statusOptions={statusOptions}
-                  selectedStatusOption={selectedStatusOption}
-                  onStatusChange={onStatusChange}
-                />
-              </div>
-
-              <div className="tablet:px-24 desktop:px-40">
-                <Divider variant="thin" className="w-full" />
+                <div className="w-full tablet:px-24">
+                  <Divider variant="thin" className="w-full" />
+                  <div className="flex items-center w-full gap-16 tablet:gap-24">
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
+                  </div>
+                </div>
               </div>
 
               <div className="w-full">
