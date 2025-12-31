@@ -113,7 +113,12 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
   const { accessToken } = useAuthStore();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['products', selectedCategoryId, selectedSort.key],
+    queryKey: [
+      'products',
+      selectedCategoryId,
+      selectedSort.key,
+      accessToken, // ✅ 토큰 변경 시 refetch
+    ],
     queryFn: () =>
       fetchAllProducts({
         sort: selectedSort.key,
