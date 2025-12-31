@@ -1,4 +1,5 @@
 import { getApiUrl, getApiTimeout } from '@/utils/api';
+import { useAuthStore } from '@/lib/store/authStore';
 
 /**
  * 회사 정보 인터페이스
@@ -41,11 +42,24 @@ export async function getCompany(accessToken: string): Promise<Company> {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
+      credentials: 'include', // 쿠키 기반 인증을 위해 필요
       signal: controller.signal,
-      credentials: 'include',
     });
 
     clearTimeout(timeoutId);
+
+    // 401 Unauthorized 에러 처리
+    if (response.status === 401) {
+      const { clearAuth } = useAuthStore.getState();
+      clearAuth();
+      // 리다이렉트를 약간 지연시켜 React Query가 에러를 처리할 수 있도록 함
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 100);
+      }
+      throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
+    }
 
     if (!response.ok) {
       throw new Error('회사 정보를 가져오는데 실패했습니다.');

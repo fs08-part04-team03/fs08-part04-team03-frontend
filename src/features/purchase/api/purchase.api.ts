@@ -40,6 +40,7 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
         Authorization: `Bearer ${accessToken}`,
         ...options.headers,
       },
+      credentials: 'include', // 쿠키 기반 인증을 위해 필요
       signal: controller.signal,
     });
   } catch (error) {
@@ -51,6 +52,20 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
   }
 
   clearTimeout(timeoutId);
+
+  // 401 Unauthorized 에러 처리
+  if (response.status === 401) {
+    const { clearAuth } = useAuthStore.getState();
+    clearAuth();
+    // 로그인 페이지로 리다이렉트 (비동기로 처리하여 React Query가 에러를 처리할 수 있도록)
+    if (typeof window !== 'undefined') {
+      // 리다이렉트를 약간 지연시켜 React Query가 에러를 처리할 수 있도록 함
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 100);
+    }
+    throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
+  }
 
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes('application/json')) {
