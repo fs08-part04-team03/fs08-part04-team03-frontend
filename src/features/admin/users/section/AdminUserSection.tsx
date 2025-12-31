@@ -11,6 +11,7 @@ import {
   updateUserRole,
   updateUserStatus,
   inviteUser,
+  UserRole,
 } from '@/features/admin/users/api/adminUser.api';
 import { Option } from '@/components/atoms/DropDown/DropDown';
 
@@ -91,10 +92,10 @@ const UserListSection = () => {
     try {
       if (selectedUser) {
         // Role Update
-        await updateUserRole(selectedUser.id, roleOption.key.toUpperCase());
+        await updateUserRole(selectedUser.id, roleOption.key.toUpperCase() as UserRole);
       } else {
         // Invite Member
-        await inviteUser(companyId, email, name, roleOption.key.toUpperCase());
+        await inviteUser(companyId, email, name, roleOption.key.toUpperCase() as UserRole);
       }
       await fetchUserList();
     } catch (error) {
