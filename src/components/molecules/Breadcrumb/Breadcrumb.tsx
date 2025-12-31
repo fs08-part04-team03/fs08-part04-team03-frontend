@@ -20,7 +20,7 @@ const Breadcrumb = ({ items, className }: BreadcrumbProps) => (
         const isLast = index === items.length - 1;
 
         return (
-          <li key={item.href || item.label} className="flex items-center gap-8">
+          <li key={`${item.href ?? ''}-${item.label}`} className="flex items-center gap-8">
             {item.href && !isLast ? (
               <Link
                 href={item.href}
