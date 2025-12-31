@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { User } from '@/features/admin/users/components/UserListOrg';
+import { useState, useEffect, useMemo } from 'react';
+
 import AdminUsersTemplate from '@/features/admin/users/template/AdminUserTem';
 import InviteMemberModal from '@/components/molecules/InviteMemberModal/InviteMemberModal';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
@@ -12,12 +12,14 @@ import {
   updateUserStatus,
   inviteUser,
   UserRole,
+  VALID_USER_ROLES,
+  type User,
 } from '@/features/admin/users/api/adminUser.api';
 import { Option } from '@/components/atoms/DropDown/DropDown';
 
 const UserListSection = () => {
   const params = useParams();
-  const companyId = params.companyId as string;
+  const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState<User[]>([]);
@@ -89,13 +91,24 @@ const UserListSection = () => {
 
   // 사용자 초대 submit
   const handleInviteSubmit = async (roleOption: Option, name: string, email: string) => {
+    const normalizedRole = roleOption.key.toUpperCase();
+    if (!VALID_USER_ROLES.includes(normalizedRole as UserRole)) {
+      console.error('Invalid role selected:', roleOption.key);
+      return;
+    }
+    const role = normalizedRole as UserRole;
+
     try {
       if (selectedUser) {
         // Role Update
-        await updateUserRole(selectedUser.id, roleOption.key.toUpperCase() as UserRole);
+        await updateUserRole(selectedUser.id, role);
       } else {
+        if (!companyId) {
+          console.error('Company ID is missing');
+          return;
+        }
         // Invite Member
-        await inviteUser(companyId, email, name, roleOption.key.toUpperCase() as UserRole);
+        await inviteUser(companyId, email, name, role);
       }
       await fetchUserList();
     } catch (error) {
@@ -105,6 +118,18 @@ const UserListSection = () => {
     setIsInviteModalOpen(false);
     setSelectedUser(null);
   };
+
+  const inviteModalDefaultValues = useMemo(
+    () =>
+      selectedUser
+        ? {
+            name: selectedUser.name,
+            email: selectedUser.email,
+            role: selectedUser.role,
+          }
+        : undefined,
+    [selectedUser]
+  );
 
   return (
     <>
@@ -127,15 +152,7 @@ const UserListSection = () => {
             console.error(err);
           });
         }}
-        defaultValues={
-          selectedUser
-            ? {
-                name: selectedUser.name,
-                email: selectedUser.email,
-                role: selectedUser.role,
-              }
-            : undefined
-        }
+        defaultValues={inviteModalDefaultValues}
       />
       <CustomModal
         open={isDeleteModalOpen}

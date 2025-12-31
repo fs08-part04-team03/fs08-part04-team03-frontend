@@ -57,7 +57,8 @@ const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMem
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose, defaultValues]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, onClose, defaultValues?.name, defaultValues?.email, defaultValues?.role]);
 
   // 바깥 클릭 닫기
   const handleOutsideClick = () => {
