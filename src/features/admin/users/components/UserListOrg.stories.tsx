@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import UserList, { User } from './UserListOrg';
+import { User } from '@/features/admin/users/api/adminUser.api';
+import UserList from './UserListOrg';
 
 /**
  * 사용자 목록을 표시하는 컴포넌트입니다.
