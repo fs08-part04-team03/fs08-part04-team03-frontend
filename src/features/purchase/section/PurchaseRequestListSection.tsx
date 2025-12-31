@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   managePurchaseRequests,
   approvePurchaseRequest,
@@ -11,7 +11,6 @@ import {
 } from '@/features/purchase/api/purchase.api';
 import PurchaseRequestListTem from '@/features/purchase/template/PurchaseRequestListTem/PurchaseRequestListTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
-import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import {
   PURCHASE_REQUEST_STATUS_OPTIONS,
   QUERY_STALE_TIME_BUDGET,
@@ -28,6 +27,7 @@ import { logger } from '@/utils/logger';
 
 const PurchaseRequestListSection = () => {
   const params = useParams();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
@@ -65,6 +65,8 @@ const PurchaseRequestListSection = () => {
   } = useQuery({
     queryKey: ['purchaseRequests', page, size, status, sort],
     queryFn: () => managePurchaseRequests({ page, size, status, sort }),
+    retry: false, // 401 에러 시 재시도 방지
+    refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
   });
 
   // 예산 조회
@@ -83,7 +85,41 @@ const PurchaseRequestListSection = () => {
     },
     enabled: !!companyId,
     staleTime: QUERY_STALE_TIME_BUDGET,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
+
+  // 디버깅: 로딩 상태와 에러 상태 로깅
+  useEffect(() => {
+    logger.info('[PurchaseRequestList] 상태:', {
+      isLoading,
+      isBudgetLoading,
+      hasData: !!data,
+      hasBudgetData: !!budgetData,
+      hasError: !!queryError,
+      hasBudgetError: !!budgetError,
+      errorMessage: queryError instanceof Error ? queryError.message : undefined,
+      budgetErrorMessage: budgetError instanceof Error ? budgetError.message : undefined,
+    });
+  }, [isLoading, isBudgetLoading, data, budgetData, queryError, budgetError]);
+
+  // 401 에러 처리 (리다이렉트는 fetchWithAuth에서 처리됨)
+  useEffect(() => {
+    if (queryError instanceof Error && queryError.message.includes('인증이 만료되었습니다')) {
+      logger.info('[PurchaseRequestList] 인증 만료로 리다이렉트됨');
+    } else if (queryError) {
+      logger.error('[PurchaseRequestList] 구매 요청 조회 실패:', queryError);
+    }
+  }, [queryError]);
+
+  // 예산 조회 에러 처리
+  useEffect(() => {
+    if (budgetError instanceof Error && budgetError.message.includes('인증이 만료되었습니다')) {
+      logger.info('[PurchaseRequestList] 예산 조회 중 인증 만료로 리다이렉트됨');
+    } else if (budgetError) {
+      logger.error('[PurchaseRequestList] 예산 조회 실패:', budgetError);
+    }
+  }, [budgetError]);
 
   const handleRejectClick = useCallback((purchaseRequestId: string) => {
     setSelectedRequestId(purchaseRequestId);
@@ -139,6 +175,12 @@ const PurchaseRequestListSection = () => {
     [selectedRequestId, queryClient, triggerToast]
   );
 
+  const handleProductNavigation = useCallback(() => {
+    if (companyId) {
+      router.push(`/${companyId}/products`);
+    }
+  }, [companyId, router]);
+
   // companyId 필수 체크
   if (!companyId) {
     return (
@@ -148,7 +190,34 @@ const PurchaseRequestListSection = () => {
     );
   }
 
-  if (isLoading || isBudgetLoading) {
+  // 에러가 발생하면 먼저 표시 (401 에러는 리다이렉트되므로 제외)
+  if (queryError || budgetError) {
+    const isAuthError =
+      (queryError instanceof Error && queryError.message.includes('인증이 만료되었습니다')) ||
+      (budgetError instanceof Error && budgetError.message.includes('인증이 만료되었습니다'));
+
+    // 401 에러는 이미 리다이렉트 처리 중이므로 표시하지 않음
+    if (isAuthError) {
+      return null;
+    }
+
+    logger.error('[PurchaseRequestList] 에러 발생:', { queryError, budgetError });
+    let errorMessage: string = ERROR_MESSAGES.FETCH_ERROR;
+    if (queryError instanceof Error) {
+      errorMessage = queryError.message;
+    } else if (budgetError instanceof Error) {
+      errorMessage = budgetError.message;
+    }
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>{errorMessage}</p>
+      </div>
+    );
+  }
+
+  // 메인 데이터(구매 요청 목록)가 로딩 중이면 대기
+  // 예산 데이터는 선택적이므로 로딩 중이어도 메인 데이터 표시 가능
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>{LOADING_MESSAGES.DEFAULT}</p>
@@ -156,7 +225,8 @@ const PurchaseRequestListSection = () => {
     );
   }
 
-  if (queryError || budgetError) {
+  // 데이터가 없으면 에러 상태로 표시 (isLoading이 false인 경우)
+  if (!data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>{ERROR_MESSAGES.FETCH_ERROR}</p>
@@ -164,22 +234,7 @@ const PurchaseRequestListSection = () => {
     );
   }
 
-  if (data === undefined || data.purchaseRequests === undefined) {
-    return null;
-  }
-
-  const purchaseList = data.purchaseRequests;
-
-  if (purchaseList.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <StatusNotice
-          title="구매 요청 내역이 없습니다"
-          description="아직 승인 대기 중인 구매 요청이 없습니다"
-        />
-      </div>
-    );
-  }
+  const purchaseList = data.purchaseRequests || [];
 
   return (
     <div className="w-full">
@@ -205,6 +260,7 @@ const PurchaseRequestListSection = () => {
         statusOptions={PURCHASE_REQUEST_STATUS_OPTIONS}
         selectedStatusOption={selectedStatusOption}
         onStatusChange={handleStatusChange}
+        onNavigateToProducts={handleProductNavigation}
       />
       {/* Toast */}
       {showToast && (
