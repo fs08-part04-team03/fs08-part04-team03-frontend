@@ -1,6 +1,9 @@
+import AdminUserSection from '@/features/admin/users/section/AdminUserSection';
+
+// 어드민 - 사용자 관리 페이지
 const UserManagementPage = () => (
   <div>
-    <p>UserManagementPage — 회원관리 페이지</p>
+    <AdminUserSection />
   </div>
 );
 
