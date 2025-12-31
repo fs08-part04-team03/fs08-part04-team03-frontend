@@ -47,6 +47,7 @@ function isApiErrorResponse(response: ApiResponse<unknown>): response is ApiErro
 
 /**
  * 로그인 응답 데이터 타입
+ * Note: company 필드는 선택적입니다. 로그인 시 회사 정보가 포함되지 않을 수 있습니다.
  */
 interface LoginResponseData {
   user: {
@@ -66,6 +67,7 @@ interface LoginResponseData {
 
 /**
  * 회원가입 응답 데이터 타입
+ * Note: 회원가입 시에는 항상 company 정보가 포함됩니다.
  */
 interface SignupResponseData {
   user: {

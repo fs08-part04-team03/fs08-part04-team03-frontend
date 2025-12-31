@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { clsx } from '@/utils/clsx';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
@@ -20,6 +20,13 @@ export interface SideBarMenuProps {
 }
 
 export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuProps) => {
+  // 클라이언트 마운트 상태 추적 (SSR-safe)
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Body scroll lock
   useEffect(() => {
     if (open) {
@@ -91,10 +98,11 @@ export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuP
     </>
   );
 
-  // Portal을 사용하여 body에 렌더링
-  if (typeof document !== 'undefined') {
-    return createPortal(content, document.body);
+  // 클라이언트 마운트 전에는 렌더링하지 않음 (hydration mismatch 방지)
+  if (!isMounted) {
+    return null;
   }
 
-  return null;
+  // Portal을 사용하여 body에 렌더링
+  return createPortal(content, document.body);
 };
