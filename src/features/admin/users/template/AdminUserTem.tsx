@@ -2,7 +2,8 @@ import { useParams } from 'next/navigation';
 import { AdminSidebar } from '@/components/molecules/AdminSideBar/AdminSideBar';
 import Button from '@/components/atoms/Button/Button';
 import SearchBar from '@/components/molecules/SearchBar/SearchBar';
-import UserList, { User } from '@/features/admin/users/components/UserListOrg';
+import UserList from '@/features/admin/users/components/UserListOrg';
+import { User } from '@/features/admin/users/api/adminUser.api';
 import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBlock';
 
 interface AdminUsersTemplateProps {
