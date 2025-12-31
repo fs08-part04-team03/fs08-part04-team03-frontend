@@ -57,19 +57,8 @@ export const useInviteSignupForm = (email: string, token: string) => {
         });
       }
 
-      // 인증 정보 저장 (zustand - 클라이언트 상태 관리)
-      setAuth({ user, accessToken });
-
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[InviteSignup] 인증 정보 저장 완료:', {
-          userId: user.id,
-          role: user.role,
-          companyId: user.companyId,
-        });
-      }
-
-      // 쿠키에 인증 정보 저장 (middleware에서 사용) - 서버 측에서 안전하게 설정
+      // 쿠키에 인증 정보 저장 (서버 인증 경로에서 사용) - 서버 측에서 안전하게 설정
+      // 쿠키 설정을 먼저 수행하여 실패 시 상태 저장을 방지
       // accessToken을 함께 전송하여 서버 측에서 검증 가능하도록 함
       try {
         await setAuthCookies(user.role, user.companyId, accessToken);
@@ -84,6 +73,18 @@ export const useInviteSignupForm = (email: string, token: string) => {
           console.error('[InviteSignup] 쿠키 저장 실패:', cookieError);
         }
         throw new Error('인증 정보 저장에 실패했습니다. 다시 시도해주세요.');
+      }
+
+      // 인증 정보 저장 (zustand - 클라이언트 상태 관리)
+      setAuth({ user, accessToken });
+
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('[InviteSignup] 인증 정보 저장 완료:', {
+          userId: user.id,
+          role: user.role,
+          companyId: user.companyId,
+        });
       }
 
       // 상품 리스트 페이지로 리다이렉트

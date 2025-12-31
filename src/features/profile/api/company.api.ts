@@ -1,4 +1,4 @@
-import { getApiUrl, getApiTimeout } from '@/utils/api';
+import { fetchWithAuth } from '@/utils/api';
 
 /**
  * 회사 정보 인터페이스
@@ -28,36 +28,19 @@ interface CompanyApiResponse {
  * @throws {Error} 인증 실패 또는 서버 오류 시
  */
 export async function getCompany(accessToken: string): Promise<Company> {
-  const apiUrl = getApiUrl();
-  const timeout = getApiTimeout();
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    const response = await fetch(`${apiUrl}/api/v1/company`, {
+  const response = await fetchWithAuth(
+    '/api/v1/company',
+    {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      signal: controller.signal,
-      credentials: 'include',
-    });
+    },
+    accessToken
+  );
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error('회사 정보를 가져오는데 실패했습니다.');
-    }
-
-    const result = (await response.json()) as CompanyApiResponse;
-    return result.data;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('요청 시간이 초과되었습니다.');
-    }
-    throw error;
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(errorData?.message || '회사 정보를 가져오는데 실패했습니다.');
   }
+
+  const result = (await response.json()) as CompanyApiResponse;
+  return result.data;
 }

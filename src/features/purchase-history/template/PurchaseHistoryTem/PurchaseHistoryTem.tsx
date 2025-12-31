@@ -17,6 +17,9 @@ interface PurchaseHistoryTemProps {
   lastYearTotalSpending: number;
   selectedSort?: Option;
   onSortChange?: (option: Option) => void;
+  statusOptions?: Option[];
+  selectedStatusOption?: Option;
+  onStatusChange?: (status: string | undefined) => void;
 
   // BottomOrg props
   items: PurchaseRequestItem[];
@@ -35,13 +38,17 @@ export const PurchaseHistoryTem = ({
   lastYearTotalSpending,
   selectedSort,
   onSortChange,
+  statusOptions,
+  selectedStatusOption,
+  onStatusChange,
   items,
   companyId,
   currentPage,
   totalPages,
   onPageChange,
 }: PurchaseHistoryTemProps) => {
-  const isEmpty = items.length === 0;
+  const safeItems = items || [];
+  const isEmpty = safeItems.length === 0;
   const router = useRouter();
 
   const handleProductNavigation = () => {
@@ -49,11 +56,11 @@ export const PurchaseHistoryTem = ({
   };
 
   // 데스크톱: 최대 4개, 태블릿/모바일: 최대 3개
-  const desktopItems = items.slice(0, 4);
-  const mobileTabletItems = items.slice(0, 3);
+  const desktopItems = safeItems.slice(0, 4);
+  const mobileTabletItems = safeItems.slice(0, 3);
 
   return (
-    <div className="flex flex-col gap-34 tablet:gap-25 desktop:mt-71">
+    <div className="flex flex-col gap-34 tablet:gap-25 mt-24 tablet:mt-14 desktop:mt-71">
       <PurchaseHistoryListTopOrg
         thisMonthBudget={thisMonthBudget}
         lastMonthBudget={lastMonthBudget}
@@ -63,6 +70,9 @@ export const PurchaseHistoryTem = ({
         lastYearTotalSpending={lastYearTotalSpending}
         selectedSort={selectedSort}
         onSortChange={onSortChange}
+        statusOptions={statusOptions}
+        selectedStatusOption={selectedStatusOption}
+        onStatusChange={onStatusChange}
       />
       {isEmpty ? (
         <div className="flex justify-center items-center min-h-[calc(100vh-400px)]">
