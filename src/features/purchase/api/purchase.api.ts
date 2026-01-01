@@ -1,8 +1,7 @@
 'use client';
 
-import { useAuthStore } from '@/lib/store/authStore';
-import { getApiTimeout, getApiUrl } from '@/utils/api';
-import { PURCHASE_API_PATHS, BUDGET_API_PATHS } from '@/constants/purchase.constants';
+import { getApiUrl, fetchWithAuth as fetchWithAuthUtil } from '@/utils/api';
+import { PURCHASE_API_PATHS, BUDGET_API_PATHS } from '@/features/purchase/utils/constants';
 
 /**
  * 백엔드 API 응답 타입
@@ -11,46 +10,38 @@ interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 /**
  * 공통 API 요청 헬퍼 함수
+ * refreshToken 자동 갱신 로직이 포함된 utils/api.ts의 fetchWithAuth 사용
  */
 async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
-  const apiUrl = getApiUrl();
+  // utils/api.ts의 fetchWithAuth 사용 (refreshToken 자동 갱신 포함)
+  const response = await fetchWithAuthUtil(url, options);
 
-  const { accessToken } = useAuthStore.getState();
-  if (!accessToken) {
-    throw new Error('인증 토큰이 없습니다. 로그인이 필요합니다.');
-  }
+  // 429 Too Many Requests 에러 처리
+  if (response.status === 429) {
+    const retryAfter = response.headers.get('Retry-After');
+    let errorMessage = '너무 많은 요청입니다. 잠시 후 다시 시도해주세요.';
 
-  const timeout = getApiTimeout();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, timeout);
-
-  let response: Response;
-  try {
-    response = await fetch(`${apiUrl}${url}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-        ...options.headers,
-      },
-      signal: controller.signal,
-    });
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+    // Retry-After 헤더가 있으면 더 구체적인 안내 제공
+    if (retryAfter) {
+      const retrySeconds = Number.parseInt(retryAfter, 10);
+      if (Number.isFinite(retrySeconds)) {
+        const retryMinutes = Math.ceil(retrySeconds / 60);
+        errorMessage += ` (약 ${retryMinutes}분 후 재시도 가능)`;
+      }
     }
-    throw error;
-  }
 
-  clearTimeout(timeoutId);
+    throw new Error(errorMessage);
+  }
 
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes('application/json')) {
@@ -79,7 +70,32 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
   }
 
   if (!result.success || !response.ok) {
-    throw new Error(result.message || '요청에 실패했습니다.');
+    // 400 Bad Request 등 클라이언트 에러의 경우 상세 정보 로깅
+    if (process.env.NODE_ENV === 'development') {
+      const apiUrl = getApiUrl();
+      // eslint-disable-next-line no-console
+      console.error('API 요청 실패:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: `${apiUrl}${url}`,
+        method: options.method || 'GET',
+        requestBody: options.body,
+        result,
+        message: result.message,
+        fullResponse: result,
+      });
+    }
+
+    // 에러 메시지 추출 (백엔드에서 보내는 상세 메시지 사용)
+    // result.error?.message 또는 result.message 확인
+    const errorMessage =
+      (result as { error?: { message?: string } }).error?.message ||
+      result.message ||
+      (response.status === 400
+        ? '잘못된 요청입니다. 입력값을 확인해주세요.'
+        : '요청에 실패했습니다.');
+
+    throw new Error(errorMessage);
   }
 
   return result;
@@ -254,34 +270,62 @@ export async function managePurchaseRequests(
   const queryString = queryParams.toString();
   const url = `${PURCHASE_API_PATHS.ADMIN_MANAGE_PURCHASE_REQUESTS}${queryString ? `?${queryString}` : ''}`;
 
-  const result = await fetchWithAuth<ManagePurchaseRequestsResponse>(url, {
+  const result = await fetchWithAuth<PurchaseRequestItem[]>(url, {
     method: 'GET',
   });
 
-  return result.data;
+  // 백엔드 응답 구조: { success, data: [], pagination: { page, limit, total, totalPages } }
+  // 프론트엔드 응답 구조로 변환
+  return {
+    purchaseRequests: result.data,
+    currentPage: result.pagination?.page || 1,
+    totalPages: result.pagination?.totalPages || 1,
+    totalItems: result.pagination?.total || 0,
+    itemsPerPage: result.pagination?.limit || 10,
+    hasNextPage: result.pagination ? result.pagination.page < result.pagination.totalPages : false,
+    hasPreviousPage: result.pagination ? result.pagination.page > 1 : false,
+  };
 }
 
 /**
  * 구매 요청 상세 조회 (관리자)
+ * 백엔드 API 문서에 따르면 별도의 상세 조회 엔드포인트가 없으므로,
+ * managePurchaseRequests API를 사용하여 해당 ID의 항목을 조회합니다.
  */
 export async function getPurchaseRequestDetail(
   purchaseRequestId: string
 ): Promise<PurchaseRequestItem> {
-  const result = await fetchWithAuth<PurchaseRequestItem>(
-    `${PURCHASE_API_PATHS.ADMIN_GET_PURCHASE_REQUEST_DETAIL}/${purchaseRequestId}`,
-    {
+  // managePurchaseRequests API를 사용하여 여러 페이지를 순회하며 해당 ID의 항목을 찾습니다.
+  // TODO: 백엔드에서 상세 조회 엔드포인트가 추가되면 해당 엔드포인트를 사용하도록 변경 필요
+  const pageSize = 50; // 페이지당 50개씩 조회
+  let currentPage = 1;
+  let totalPages = 1;
+
+  do {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', currentPage.toString());
+    queryParams.append('size', pageSize.toString());
+
+    const url = `${PURCHASE_API_PATHS.ADMIN_MANAGE_PURCHASE_REQUESTS}?${queryParams.toString()}`;
+
+    // eslint-disable-next-line no-await-in-loop
+    const result = await fetchWithAuth<PurchaseRequestItem[]>(url, {
       method: 'GET',
+    });
+
+    // 배열에서 해당 ID의 항목 찾기
+    const foundItem = result.data?.find((item) => item.id === purchaseRequestId);
+
+    if (foundItem) {
+      return foundItem;
     }
-  );
 
-  return result.data;
-}
+    // 다음 페이지가 있는지 확인
+    totalPages = result.pagination?.totalPages || 1;
+    currentPage += 1;
+  } while (currentPage <= totalPages);
 
-/**
- * 구매 요청 승인 (관리자)
- */
-export interface ApprovePurchaseRequestResponse {
-  data: PurchaseRequestItem;
+  throw new Error('구매 요청을 찾을 수 없습니다.');
 }
 
 /**
@@ -292,8 +336,8 @@ export interface ApprovePurchaseRequestResponse {
  */
 export async function approvePurchaseRequest(
   purchaseRequestId: string
-): Promise<ApprovePurchaseRequestResponse> {
-  const result = await fetchWithAuth<ApprovePurchaseRequestResponse>(
+): Promise<PurchaseRequestItem> {
+  const result = await fetchWithAuth<PurchaseRequestItem>(
     `${PURCHASE_API_PATHS.ADMIN_APPROVE_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',
@@ -426,17 +470,42 @@ export async function getMyPurchases(
   const queryParams = new URLSearchParams();
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
-  if (params?.status) queryParams.append('status', params.status);
+  // status가 undefined이거나 'ALL'일 때는 파라미터를 포함하지 않음 (모든 상태 조회)
+  // 백엔드가 status 없을 때 모든 상태를 반환하도록 설계되어 있다고 가정
+  if (params?.status && params.status !== 'ALL' && params.status !== undefined) {
+    queryParams.append('status', params.status);
+  }
   if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
   const url = `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASES}${queryString ? `?${queryString}` : ''}`;
 
-  const result = await fetchWithAuth<GetMyPurchasesResponse>(url, {
+  // 개발 환경에서 요청 정보 로깅
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[getMyPurchases] 요청 정보:', {
+      url,
+      params,
+      status: params?.status,
+      hasStatusParam: !!params?.status,
+    });
+  }
+
+  const result = await fetchWithAuth<PurchaseRequestItem[]>(url, {
     method: 'GET',
   });
 
-  return result.data;
+  // 백엔드 응답 구조: { success, data: [], pagination: { page, limit, total, totalPages } }
+  // 프론트엔드 응답 구조로 변환
+  return {
+    purchaseList: result.data,
+    currentPage: result.pagination?.page || 1,
+    totalPages: result.pagination?.totalPages || 1,
+    totalItems: result.pagination?.total || 0,
+    itemsPerPage: result.pagination?.limit || 10,
+    hasNextPage: result.pagination ? result.pagination.page < result.pagination.totalPages : false,
+    hasPreviousPage: result.pagination ? result.pagination.page > 1 : false,
+  };
 }
 
 /**
@@ -582,7 +651,20 @@ export async function cancelPurchaseRequest(
 }
 
 /**
- * 예산 조회
+ * 예산 조회 API 응답 타입 (배열)
+ * 백엔드 API는 월별 예산 목록을 배열로 반환합니다.
+ */
+export interface BudgetItem {
+  id: string;
+  companyId: string;
+  year: number;
+  month: number;
+  amount: number;
+  updatedAt: string;
+}
+
+/**
+ * 예산 조회 응답 타입
  */
 export interface GetBudgetResponse {
   budget: number;
@@ -592,17 +674,142 @@ export interface GetBudgetResponse {
 
 /**
  * 주어진 회사의 예산과 지출 요약을 조회합니다.
+ * 백엔드에서 예산 배열을 받아 현재 월 예산을 찾고,
+ * 승인된 구매 요청을 조회하여 월별 지출액을 계산합니다.
  *
- * @param companyId - 조회할 회사의 식별자
+ * @param _companyId - (사용하지 않음) 호환성을 위해 유지, 토큰에서 회사 정보를 자동으로 추출
  * @returns 회사의 총 예산(`budget`), 해당 기간의 월별 지출(`monthlySpending`), 남은 예산(`remainingBudget`)을 포함한 객체
  */
-export async function getBudget(companyId: string): Promise<GetBudgetResponse> {
-  const result = await fetchWithAuth<GetBudgetResponse>(
-    `${BUDGET_API_PATHS.GET_BUDGET}/${companyId}`,
-    {
-      method: 'GET',
+export async function getBudget(_companyId: string): Promise<GetBudgetResponse> {
+  // 1. 예산 목록 조회
+  const budgetResult = await fetchWithAuth<BudgetItem[]>(BUDGET_API_PATHS.GET_BUDGET, {
+    method: 'GET',
+  });
+
+  // 실제 API 응답 구조 확인을 위한 로깅
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[getBudget] 예산 API 응답:', {
+      success: budgetResult.success,
+      dataLength: Array.isArray(budgetResult.data) ? budgetResult.data.length : 0,
+      data: budgetResult.data,
+    });
+  }
+
+  // 현재 월의 예산 찾기
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+
+  if (!Array.isArray(budgetResult.data)) {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('[getBudget] 예산 데이터가 배열이 아닙니다:', budgetResult.data);
     }
+    return {
+      budget: 0,
+      monthlySpending: 0,
+      remainingBudget: 0,
+    };
+  }
+
+  const currentBudgetItem = budgetResult.data.find(
+    (item) => item.year === currentYear && item.month === currentMonth
   );
 
-  return result.data;
+  const budget = currentBudgetItem?.amount || 0;
+
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[getBudget] 현재 월 예산 찾기:', {
+      currentYear,
+      currentMonth,
+      found: !!currentBudgetItem,
+      budgetAmount: budget,
+      allBudgetItems: budgetResult.data.map((item) => ({
+        year: item.year,
+        month: item.month,
+        amount: item.amount,
+      })),
+    });
+  }
+
+  // 2. 승인된 구매 요청 조회하여 월별 지출액 계산
+  let monthlySpending = 0;
+  try {
+    // 현재 월의 시작일과 종료일 계산
+    const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
+    const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
+
+    // 승인된 구매 요청 조회 (모든 페이지를 가져와야 정확한 계산)
+    let page = 1;
+    let hasMore = true;
+    const allApprovedRequests: PurchaseRequestItem[] = [];
+
+    // eslint-disable-next-line no-await-in-loop
+    while (hasMore) {
+      // eslint-disable-next-line no-await-in-loop
+      const purchaseResult = await managePurchaseRequests({
+        page,
+        size: 100,
+        status: 'APPROVED',
+      });
+
+      allApprovedRequests.push(...purchaseResult.purchaseRequests);
+
+      hasMore = purchaseResult.hasNextPage;
+      page += 1;
+
+      // 무한 루프 방지 (최대 100페이지)
+      if (page > 100) {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.warn('[getBudget] 승인된 구매 요청이 너무 많아 일부만 계산합니다.');
+        }
+        break;
+      }
+    }
+
+    // 현재 월에 승인된 구매 요청만 필터링하여 지출액 합산
+    monthlySpending = allApprovedRequests
+      .filter((request) => {
+        // approver가 있으면 승인된 것으로 간주하고 updatedAt을 승인일로 사용
+        if (!request.approver?.id) return false;
+
+        const approvedDate = new Date(request.updatedAt);
+        return approvedDate >= startOfMonth && approvedDate <= endOfMonth;
+      })
+      .reduce((sum, request) => {
+        const totalPrice = request.totalPrice || 0;
+        const shippingFee = request.shippingFee || 0;
+        return sum + totalPrice + shippingFee;
+      }, 0);
+  } catch (error) {
+    // 월별 지출액 계산 실패 시 0으로 처리 (예산 정보는 표시)
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('[getBudget] 월별 지출액 계산 실패:', error);
+    }
+    monthlySpending = 0;
+  }
+
+  const remainingBudget = budget - monthlySpending;
+
+  // 실제 API 응답 구조 확인을 위한 로깅
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[getBudget] 예산 정보:', {
+      budget,
+      monthlySpending,
+      remainingBudget,
+      currentYear,
+      currentMonth,
+    });
+  }
+
+  return {
+    budget,
+    monthlySpending,
+    remainingBudget,
+  };
 }
