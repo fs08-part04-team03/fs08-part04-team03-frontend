@@ -21,6 +21,7 @@ export interface PurchaseRequestItemListOrgProps {
   onReject?: (purchaseRequestId: string) => void;
   onApprove?: (purchaseRequestId: string) => void;
   onCancel?: (purchaseRequestId: string) => void;
+  onRowClick?: (purchaseRequestId: string) => void;
   companyId?: string;
 }
 
@@ -29,26 +30,31 @@ interface PurchaseRequestItemRowProps {
   onReject?: (purchaseRequestId: string) => void;
   onApprove?: (purchaseRequestId: string) => void;
   onCancel?: (purchaseRequestId: string) => void;
+  onRowClick?: (purchaseRequestId: string) => void;
   companyId?: string;
 }
 
 /**
  * 모바일 레이아웃 아이템 행
  */
-const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
+const PurchaseRequestItemRowMobile = ({
   item,
   onReject,
   onApprove,
   onCancel,
+  onRowClick,
   companyId,
-}) => {
+}: PurchaseRequestItemRowProps) => {
   const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
   const handleRowClick = () => {
-    if (companyId) {
+    if (onRowClick) {
+      onRowClick(item.id);
+    } else if (companyId) {
+      // 기본값: 사용자용 경로 (onRowClick이 없을 때만)
       router.push(`/${companyId}/my/purchase-requests/${item.id}`);
     }
   };
@@ -121,9 +127,9 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
         {/* 오른쪽 컬럼: 요청인 */}
         <div className={clsx('shrink-0')}>
           <UserProfile
-            name={item.requester.name}
-            company={{ name: item.requester.company || '' }}
-            avatarSrc={item.requester.avatarSrc}
+            name={item.requester?.name || '-'}
+            company={{ name: item.requester?.company || '' }}
+            avatarSrc={item.requester?.avatarSrc}
             profileHref={companyId ? `/${companyId}/my/profile` : undefined}
             variant="nameOnly"
           />
@@ -171,20 +177,24 @@ const PurchaseRequestItemRowMobile: React.FC<PurchaseRequestItemRowProps> = ({
 /**
  * 태블릿/데스크탑 레이아웃 아이템 행
  */
-const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
+const PurchaseRequestItemRowDesktop = ({
   item,
   onReject,
   onApprove,
   onCancel,
+  onRowClick,
   companyId,
-}) => {
+}: PurchaseRequestItemRowProps) => {
   const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
   const handleRowClick = () => {
-    if (companyId) {
+    if (onRowClick) {
+      onRowClick(item.id);
+    } else if (companyId) {
+      // 기본값: 사용자용 경로 (onRowClick이 없을 때만)
       router.push(`/${companyId}/my/purchase-requests/${item.id}`);
     }
   };
@@ -295,9 +305,9 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
         )}
       >
         <UserProfile
-          name={item.requester.name}
-          company={{ name: item.requester.company || '' }}
-          avatarSrc={item.requester.avatarSrc}
+          name={item.requester?.name || '-'}
+          company={{ name: item.requester?.company || '' }}
+          avatarSrc={item.requester?.avatarSrc}
           profileHref={companyId ? `/${companyId}/my/profile` : undefined}
           variant="secondary"
         />
@@ -353,14 +363,15 @@ const PurchaseRequestItemRowDesktop: React.FC<PurchaseRequestItemRowProps> = ({
 /**
  * 구매 요청 아이템 리스트 컴포넌트
  */
-const PurchaseRequestItemListOrg: React.FC<PurchaseRequestItemListOrgProps> = ({
+const PurchaseRequestItemListOrg = ({
   purchaseList,
   className,
   onReject,
   onApprove,
   onCancel,
+  onRowClick,
   companyId,
-}) => (
+}: PurchaseRequestItemListOrgProps) => (
   <div className={clsx('w-full', className)}>
     {purchaseList.map((item) => (
       <React.Fragment key={item.id}>
@@ -371,6 +382,7 @@ const PurchaseRequestItemListOrg: React.FC<PurchaseRequestItemListOrgProps> = ({
             onReject={onReject}
             onApprove={onApprove}
             onCancel={onCancel}
+            onRowClick={onRowClick}
             companyId={companyId}
           />
         </div>
@@ -382,6 +394,7 @@ const PurchaseRequestItemListOrg: React.FC<PurchaseRequestItemListOrgProps> = ({
             onReject={onReject}
             onApprove={onApprove}
             onCancel={onCancel}
+            onRowClick={onRowClick}
             companyId={companyId}
           />
         </div>
