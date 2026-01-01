@@ -1,7 +1,16 @@
+import type { Metadata } from 'next';
+
+import { RoleGuard } from '@/components/guards/RoleGuard';
+import PurchaseHistorySection from '@/features/purchase-history/section/PurchaseHistorySection';
+
+export const metadata: Metadata = {
+  title: '구매 내역',
+};
+
 const PurchaseHistoryPage = () => (
-  <div>
-    <p>PurchaseHistoryPage — 구매내역 확인 페이지</p>
-  </div>
+  <RoleGuard requiredRole="manager">
+    <PurchaseHistorySection />
+  </RoleGuard>
 );
 
 export default PurchaseHistoryPage;
