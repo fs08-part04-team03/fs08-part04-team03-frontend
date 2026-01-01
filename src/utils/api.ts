@@ -81,9 +81,8 @@ async function tryRefreshToken(): Promise<string | null> {
       signal: controller.signal,
     });
 
-    clearTimeout(timeoutId);
-
     if (response.ok) {
+      clearTimeout(timeoutId);
       const result = (await response.json()) as {
         success: boolean;
         data?: { accessToken: string };
@@ -96,6 +95,8 @@ async function tryRefreshToken(): Promise<string | null> {
           return result.data.accessToken;
         }
       }
+    } else {
+      clearTimeout(timeoutId);
     }
   } catch {
     clearTimeout(timeoutId);

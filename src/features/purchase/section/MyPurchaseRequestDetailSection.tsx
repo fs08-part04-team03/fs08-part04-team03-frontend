@@ -27,7 +27,9 @@ const MyPurchaseRequestDetailSection = () => {
       return getMyPurchaseDetail(requestId);
     },
     enabled: !!requestId,
+    // 401 에러 시 재시도 방지
     retry: false,
+    // 창 포커스 시 재요청 방지 (구매 요청 상세 데이터는 승인/거절 상태 변경 가능하므로 자동 갱신 비활성화)
     refetchOnWindowFocus: false,
   });
 

@@ -91,6 +91,9 @@ const MyPurchaseRequestListSection = () => {
         ...response,
         purchaseList: sortedList,
         totalItems: filteredList.length, // 필터링된 개수로 업데이트
+        // 클라이언트 필터링 시 페이지네이션도 재계산
+        totalPages: Math.ceil(filteredList.length / size) || 1,
+        currentPage: 1, // 필터링 후 첫 페이지로 리셋
       };
     },
   });
