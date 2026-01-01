@@ -56,7 +56,6 @@ const LoginTemWithForm = (args: Partial<Story['args']>) => {
       control={form.control}
       handleSubmit={form.handleSubmit}
       isValid={form.formState.isValid}
-      serverError={args?.serverError ?? null}
       onSubmit={args?.onSubmit ?? fn()}
       showToast={args?.showToast ?? false}
       toastMessage={args?.toastMessage ?? ''}
@@ -74,7 +73,6 @@ const LoginTemWithForm = (args: Partial<Story['args']>) => {
 export const Default: Story = {
   render: (args) => <LoginTemWithForm {...args} />,
   args: {
-    serverError: null,
     showToast: false,
     toastMessage: '',
     onSubmit: fn(),
@@ -83,51 +81,31 @@ export const Default: Story = {
 };
 
 /**
- * 서버 에러 상태
+ * Toast 알림 - 로그인 실패
  *
- * 로그인 실패 시 서버에서 반환된 에러 메시지가 표시됩니다.
- * 에러 박스는 레이아웃 점프를 방지하기 위해 항상 공간을 확보합니다.
- */
-export const WithServerError: Story = {
-  render: (args) => <LoginTemWithForm {...args} />,
-  args: {
-    serverError: '이메일 또는 비밀번호가 올바르지 않습니다.',
-    showToast: false,
-    toastMessage: '',
-    onSubmit: fn(),
-    setShowToast: fn(),
-  },
-};
-
-/**
- * Toast 알림 표시
- *
- * 로그인 성공/실패 시 Toast 알림이 화면 상단에 표시됩니다.
+ * 로그인 실패 시 Toast 알림이 화면 상단에 표시됩니다.
  * Toast는 3초 후 자동으로 사라집니다.
  */
-export const WithToast: Story = {
+export const WithErrorToast: Story = {
   render: (args) => <LoginTemWithForm {...args} />,
   args: {
-    serverError: null,
     showToast: true,
-    toastMessage: '로그인에 실패했습니다. 다시 시도해 주세요.',
+    toastMessage: '이메일 또는 비밀번호가 올바르지 않습니다.',
     onSubmit: fn(),
     setShowToast: fn(),
   },
 };
 
 /**
- * 에러와 Toast 동시 표시
+ * Toast 알림 - 네트워크 오류
  *
- * 서버 에러와 Toast 알림이 동시에 표시되는 상태입니다.
- * 일반적으로 로그인 실패 직후의 상태를 나타냅니다.
+ * 네트워크 오류 발생 시 Toast 알림이 표시됩니다.
  */
-export const WithErrorAndToast: Story = {
+export const WithNetworkErrorToast: Story = {
   render: (args) => <LoginTemWithForm {...args} />,
   args: {
-    serverError: '요청 시간이 초과되었습니다. 다시 시도해주세요.',
     showToast: true,
-    toastMessage: '네트워크 오류가 발생했습니다.',
+    toastMessage: '네트워크 오류가 발생했습니다. 다시 시도해 주세요.',
     onSubmit: fn(),
     setShowToast: fn(),
   },
