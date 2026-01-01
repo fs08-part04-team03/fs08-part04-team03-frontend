@@ -82,29 +82,32 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       Image 처리
   ====================== */
   let imageContent;
-  if (imageUrl && !imgError) {
-    imageContent = (
-      <Image
-        src={imageUrl}
-        alt={name}
-        width={54}
-        height={93}
-        onError={() => setImgError(true)}
-        className={clsx('object-cover', 'tablet:w-54 tablet:h-94', 'desktop:w-128 desktop:h-222')}
-      />
-    );
+  if (imageUrl) {
+    if (!imgError) {
+      imageContent = (
+        <Image
+          src={imageUrl}
+          alt={name}
+          width={54}
+          height={93}
+          onError={() => setImgError(true)}
+          className={clsx('object-cover', 'tablet:w-54 tablet:h-94', 'desktop:w-128 desktop:h-222')}
+        />
+      );
+    } else {
+      imageContent = (
+        <Image
+          src="/images/test-profile-image.jpg"
+          alt="fallback"
+          width={54}
+          height={93}
+          className={clsx('object-cover', 'tablet:w-54 tablet:h-94', 'desktop:w-128 desktop:h-222')}
+          unoptimized
+        />
+      );
+    }
   } else {
-    // 이미지가 없거나 로딩 실패 시 no-image.svg 표시
-    imageContent = (
-      <Image
-        src="/icons/no-image.svg"
-        alt="이미지 없음"
-        width={54}
-        height={93}
-        className={clsx('object-cover', 'tablet:w-54 tablet:h-94', 'desktop:w-128 desktop:h-222')}
-        unoptimized
-      />
-    );
+    imageContent = <span className="text-12 text-gray-500">이미지 없음</span>;
   }
 
   /** =====================
