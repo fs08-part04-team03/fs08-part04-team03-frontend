@@ -18,8 +18,7 @@ interface RoleGuardProps {
 export const RoleGuard: React.FC<RoleGuardProps> = ({ children, requiredRole, fallback }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const user = useAuthStore((state) => state.user);
-  const isLoading = useAuthStore((state) => state.isLoading);
+  const { user, isHydrated } = useAuthStore();
 
   const isRoleKnown = (role: UserRole | undefined): role is UserRole =>
     !!role && role in ROLE_LEVEL;
@@ -46,7 +45,8 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, requiredRole, fa
   }, [user?.role, pathname]);
 
   useEffect(() => {
-    if (isLoading) return;
+    // 하이드레이션이 완료되지 않았으면 리다이렉트하지 않음
+    if (!isHydrated) return;
 
     if (!user) {
       router.replace(PATHNAME.LOGIN);
@@ -63,9 +63,23 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, requiredRole, fa
     if (!passesRoutePolicy()) {
       redirectToSafePage();
     }
-  }, [isLoading, user, router, hasRequiredRole, passesRoutePolicy, redirectToSafePage]);
+  }, [isHydrated, user, router, hasRequiredRole, passesRoutePolicy, redirectToSafePage]);
 
-  if (isLoading) return null;
+  // 하이드레이션 완료 전까지는 로딩 상태 표시
+  if (!isHydrated) {
+    return (
+      <div
+        className="flex items-center justify-center min-h-screen"
+        aria-busy="true"
+        aria-live="polite"
+        role="status"
+        aria-label="인증 정보 확인 중"
+      >
+        <div className="w-24 h-24 border-2 border-gray-200 border-t-secondary-500 rounded-full animate-spin" />
+        <span className="sr-only">인증 정보 확인 중</span>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
