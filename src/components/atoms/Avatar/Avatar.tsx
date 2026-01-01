@@ -71,6 +71,15 @@ export const Avatar: React.FC<AvatarProps> = ({
         </span>
       );
     }
+    if (name) {
+      const firstChar = name.charAt(0).toUpperCase();
+      const fontSize = size === 24 ? 'text-10' : 'text-14';
+      return (
+        <span className={clsx('font-medium text-gray-950 tracking--0.25', fontSize)}>
+          {firstChar}
+        </span>
+      );
+    }
     return (
       <Image
         src="/icons/user-default.svg"
