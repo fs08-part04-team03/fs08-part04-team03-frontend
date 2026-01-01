@@ -169,7 +169,7 @@ const ApprovalRequestModal = ({
         ref={modalRef}
         role="presentation"
         className={clsx(
-          'relative bg-white flex flex-col z-10 w-375 h-920',
+          'relative bg-white flex flex-col z-10 w-full h-full',
           'tablet:w-600 tablet:h-976',
           'desktop:w-600 desktop:h-976'
         )}
