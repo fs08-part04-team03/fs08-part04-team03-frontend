@@ -9,12 +9,6 @@ const nextConfig: NextConfig = {
     // allow direct remote fetch (for diagnostics) and same-origin local proxy
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'snock.tplinkdns.com',
-        port: '4000',
-        pathname: '/uploads/**',
-      },
-      {
         protocol: 'https',
         hostname: process.env.BACKEND_HOST || 'fs08-part04-team03-backend.onrender.com',
         pathname: '/uploads/**',
