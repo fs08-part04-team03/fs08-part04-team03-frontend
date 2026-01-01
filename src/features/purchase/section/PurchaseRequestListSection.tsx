@@ -44,6 +44,9 @@ const PurchaseRequestListSection = () => {
 
   const { page, size, status, sort } = paginationParams;
 
+  // 기본적으로 PENDING 상태만 조회 (이미 처리된 요청 제외)
+  const effectiveStatus = status || 'PENDING';
+
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -54,17 +57,17 @@ const PurchaseRequestListSection = () => {
       : COMMON_SORT_OPTIONS.find((opt) => opt.key === DEFAULT_SORT_KEY);
 
   const selectedStatusOption =
-    status && status !== 'ALL'
-      ? PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === status)
-      : PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === 'ALL');
+    effectiveStatus && effectiveStatus !== 'ALL'
+      ? PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === effectiveStatus)
+      : PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === 'PENDING');
 
   const {
     data,
     isLoading,
     error: queryError,
   } = useQuery({
-    queryKey: ['purchaseRequests', page, size, status, sort],
-    queryFn: () => managePurchaseRequests({ page, size, status, sort }),
+    queryKey: ['purchaseRequests', page, size, effectiveStatus, sort],
+    queryFn: () => managePurchaseRequests({ page, size, status: effectiveStatus, sort }),
     retry: false, // 401 에러 시 재시도 방지
     refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
   });
@@ -163,7 +166,9 @@ const PurchaseRequestListSection = () => {
       if (!selectedRequestId) return;
       try {
         await approvePurchaseRequest(selectedRequestId);
+        // 구매 요청 목록과 예산 데이터 모두 갱신
         await queryClient.invalidateQueries({ queryKey: ['purchaseRequests'] });
+        await queryClient.invalidateQueries({ queryKey: ['budget', companyId] });
         setApproveModalOpen(false);
         setSelectedRequestId(null);
         triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_APPROVED);
@@ -172,7 +177,7 @@ const PurchaseRequestListSection = () => {
         triggerToast('error', PURCHASE_ERROR_MESSAGES.APPROVE_FAILED);
       }
     },
-    [selectedRequestId, queryClient, triggerToast]
+    [selectedRequestId, companyId, queryClient, triggerToast]
   );
 
   const handleProductNavigation = useCallback(() => {
@@ -180,6 +185,15 @@ const PurchaseRequestListSection = () => {
       router.push(`/${companyId}/products`);
     }
   }, [companyId, router]);
+
+  const handleRowClick = useCallback(
+    (purchaseRequestId: string) => {
+      if (companyId) {
+        router.push(`/${companyId}/requests/${purchaseRequestId}`);
+      }
+    },
+    [companyId, router]
+  );
 
   // companyId 필수 체크
   if (!companyId) {
@@ -235,14 +249,17 @@ const PurchaseRequestListSection = () => {
   }
 
   const purchaseList = data.purchaseRequests || [];
+  // 무조건 6개까지만 표시
+  const displayList = purchaseList.slice(0, 6);
 
   return (
-    <div className="w-full">
+    <div className="w-full mt-20 tablet:mt-20 desktop:mt-80">
       <PurchaseRequestListTem
-        purchaseList={purchaseList}
+        purchaseList={displayList}
         companyId={companyId}
         onRejectClick={handleRejectClick}
         onApproveClick={handleApproveClick}
+        onRowClick={handleRowClick}
         selectedRequestId={selectedRequestId}
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}

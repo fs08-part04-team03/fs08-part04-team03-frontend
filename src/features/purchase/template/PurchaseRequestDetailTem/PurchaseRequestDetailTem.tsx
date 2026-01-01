@@ -11,6 +11,7 @@ interface PurchaseRequestDetailTemProps {
   companyId: string;
   budget: number;
   monthlySpending: number;
+  remainingBudget: number;
   approveModalOpen: boolean;
   rejectModalOpen: boolean;
   onApproveClick: () => void;
@@ -27,6 +28,7 @@ const PurchaseRequestDetailTem = ({
   companyId,
   budget,
   monthlySpending,
+  remainingBudget,
   approveModalOpen,
   rejectModalOpen,
   onApproveClick,
@@ -40,8 +42,9 @@ const PurchaseRequestDetailTem = ({
   // BudgetInfo 계산
   const budgetInfo = {
     monthlySpending,
-    remainingBudget: budget,
-    budgetAfterPurchase: budget - (purchaseRequest.totalPrice + purchaseRequest.shippingFee),
+    remainingBudget,
+    budgetAfterPurchase:
+      remainingBudget - (purchaseRequest.totalPrice + purchaseRequest.shippingFee),
   };
 
   // 모달 데이터 변환

@@ -106,8 +106,10 @@ const PurchaseRequestTableRowDesktop = ({
       role="button"
       tabIndex={0}
       className={clsx(
-        'flex items-center w-full gap-16 tablet:gap-24 desktop:gap-32',
-        'cursor-pointer hover:bg-gray-50 tablet:px-24 desktop:px-40',
+        'flex items-center w-full justify-between',
+        'cursor-pointer hover:bg-gray-50',
+        'tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200',
+        'h-100',
         isUrgent && 'bg-red-100'
       )}
       onClick={handleRowClick}
@@ -152,14 +154,14 @@ const PurchaseRequestTableRowDesktop = ({
             <Button
               variant="secondary"
               onClick={handleRejectClick}
-              className="h-44 tablet:w-80 desktop:w-80"
+              className="w-60 py-8 px-0 text-12"
             >
               반려
             </Button>
             <Button
               variant="primary"
               onClick={handleApproveClick}
-              className="h-44 tablet:w-80 desktop:w-80"
+              className="w-60 py-8 px-0 text-12"
             >
               승인
             </Button>
@@ -235,7 +237,7 @@ const PurchaseRequestListTem = ({
   }, [selectedRequest, budget]);
 
   return (
-    <div className={clsx('w-full desktop:max-w-1400 desktop:mx-auto', className)}>
+    <div className={clsx('w-full', className)}>
       {/* 모바일 뷰 */}
       <div className="tablet:hidden">
         {purchaseList.length === 0 ? (
@@ -252,6 +254,7 @@ const PurchaseRequestListTem = ({
             purchaseList={purchaseList}
             onReject={onRejectClick}
             onApprove={onApproveClick}
+            onRowClick={onRowClick}
             companyId={companyId}
           />
         )}
@@ -262,7 +265,7 @@ const PurchaseRequestListTem = ({
         <div className="w-full">
           {/* 헤더 - 항상 표시 (빈 리스트일 때는 제목과 드롭다운만) */}
           <div className="hidden tablet:block desktop:hidden">
-            <div className="w-full tablet:px-24">
+            <div className="w-full">
               <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
                 <p>구매 요청 내역</p>
                 <div className="flex items-center gap-12">
@@ -298,7 +301,7 @@ const PurchaseRequestListTem = ({
             </div>
           </div>
           <div className="hidden desktop:block">
-            <div className="w-full desktop:px-40">
+            <div className="w-full">
               <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
                 <p>구매 요청 내역</p>
                 <div className="flex items-center gap-12">
@@ -333,7 +336,7 @@ const PurchaseRequestListTem = ({
               {purchaseList.length > 0 && (
                 <>
                   <Divider variant="thin" className="w-full" />
-                  <div className="flex items-center w-full gap-16 tablet:gap-24 desktop:gap-32">
+                  <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200">
                     <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
                     <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
                     <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
@@ -359,9 +362,9 @@ const PurchaseRequestListTem = ({
             <>
               {/* 태블릿 테이블 헤더 */}
               <div className="hidden tablet:block desktop:hidden">
-                <div className="w-full tablet:px-24">
+                <div className="w-full">
                   <Divider variant="thin" className="w-full" />
-                  <div className="flex items-center w-full gap-16 tablet:gap-24">
+                  <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200">
                     <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
                     <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
                     <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>

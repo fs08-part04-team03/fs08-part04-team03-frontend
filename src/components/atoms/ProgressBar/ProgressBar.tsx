@@ -15,8 +15,12 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   lastBudget,
   className,
 }) => {
+  // NaN, undefined, null 체크 및 기본값 0 처리
+  const safeCurrentBudget = Number.isFinite(currentBudget) ? currentBudget : 0;
+  const safeLastBudget = Number.isFinite(lastBudget) ? lastBudget : 0;
+
   const clampedValue = Math.max(0, Math.min(100, value));
-  const diff = currentBudget - lastBudget; // 양수면 "덜 사용", 음수면 "더 사용"
+  const diff = safeCurrentBudget - safeLastBudget; // 양수면 "덜 사용", 음수면 "더 사용"
 
   // 중첩 삼항 연산 제거
   let diffText = '';
@@ -99,12 +103,12 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
       >
         {/* 1줄 */}
         <p className="text-14 font-extrabold tracking-tight">
-          이번 달 남은 예산: {currentBudget.toLocaleString()}원
+          이번 달 남은 예산: {safeCurrentBudget.toLocaleString()}원
         </p>
 
         {/* 2줄 */}
         <p className="text-12 font-normal tracking--0.35">
-          지난 달 남은 예산: {lastBudget.toLocaleString()}원
+          지난 달 남은 예산: {safeLastBudget.toLocaleString()}원
         </p>
 
         {/* 3줄 */}

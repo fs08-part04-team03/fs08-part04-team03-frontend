@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getMyPurchaseDetail, type MyPurchaseDetail } from '@/features/purchase/api/purchase.api';
+import {
+  getPurchaseRequestDetail,
+  type PurchaseRequestItem,
+} from '@/features/purchase/api/purchase.api';
 import PurchaseHistoryDetailTem from '@/features/purchase-history/template/PurchaseHistoryDetailTem/PurchaseHistoryDetailTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import { PURCHASE_REQUEST_STATUS_LABEL } from '@/features/purchase/utils/constants';
@@ -20,13 +23,13 @@ interface PurchaseHistoryDetailSectionProps {
  * - Toast 관리
  */
 const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionProps) => {
-  const [purchaseDetail, setPurchaseDetail] = useState<MyPurchaseDetail | null>(null);
+  const [purchaseDetail, setPurchaseDetail] = useState<PurchaseRequestItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // useToast 훅 사용
   const { showToast, toastMessage, triggerToast, closeToast } = useToast();
 
-  // 구매 내역 상세 조회
+  // 구매 내역 상세 조회 (관리자용 API 사용)
   useEffect(() => {
     (async () => {
       try {
@@ -34,7 +37,7 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
 
         logger.info('[PurchaseHistoryDetail] 구매 내역 상세 조회 시작:', { orderId });
 
-        const detail = await getMyPurchaseDetail(orderId);
+        const detail = await getPurchaseRequestDetail(orderId);
 
         logger.info('[PurchaseHistoryDetail] 구매 내역 상세 조회 성공:', {
           id: detail.id,
@@ -48,6 +51,11 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
         logger.error('[PurchaseHistoryDetail] 구매 내역 상세 조회 실패:', {
           message: errorMessage,
           orderId,
+          error: error instanceof Error ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          } : error,
         });
         triggerToast('custom', errorMessage);
       } finally {

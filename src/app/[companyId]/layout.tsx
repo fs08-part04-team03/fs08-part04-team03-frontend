@@ -1,31 +1,106 @@
+// src/app/[companyId]/layout.tsx
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+
 import AuthGuard from '@/components/auth/AuthGuard';
 import HeaderShell from '@/components/organisms/HeaderShell/HeaderShell';
+import { getApiUrl } from '@/utils/api';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface Company {
   name: string;
 }
 
-// 회사 정보 fetch 함수
-function fetchCompanyById(): Company {
-  // TODO: 백엔드 API는 인증 토큰이 필요하지만, 서버 컴포넌트에서는 쿠키 기반 인증 불가
-  // 현재는 fallback 사용, 추후 클라이언트 컴포넌트로 변경하거나 별도 API 필요
-  return { name: 'SNACK' }; // fallback
+/**
+ * 회사 정보 API 응답 타입
+ * GET /api/v1/company 응답 형식
+ */
+interface CompanyApiResponse {
+  success: boolean;
+  data: {
+    id: string;
+    name: string;
+  };
+  message: string;
 }
 
-// 동적 메타데이터 생성
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ companyId: string }>;
-}): Promise<Metadata> {
-  await params; // params는 사용하지 않지만 Next.js 규칙상 받아야 함
-  // 백엔드에서 회사 정보 가져오기
-  const company = fetchCompanyById();
+/**
+ * 현재 로그인 컨텍스트(쿠키 accessToken) 기준으로 회사 정보 조회
+ * - 서버 컴포넌트에서 쿠키를 읽어 인증된 사용자의 회사 정보를 가져옵니다.
+ */
+async function fetchMyCompany(): Promise<Company> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
+
+  if (!accessToken) {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('[fetchMyCompany] accessToken 쿠키가 없습니다.');
+    }
+    return { name: '회사' };
+  }
+
+  try {
+    const apiUrl = getApiUrl();
+
+    const response = await fetch(`${apiUrl}/api/v1/company`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      // 서버 컴포넌트 캐시 비활성화
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[fetchMyCompany] API 호출 실패:', {
+          status: response.status,
+          statusText: response.statusText,
+        });
+      }
+      return { name: '회사' };
+    }
+
+    const result = (await response.json()) as CompanyApiResponse;
+
+    // API 응답 형식: { success: true, data: { id, name }, message }
+    if (result.success && result.data?.name) {
+      return { name: result.data.name };
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.warn('[fetchMyCompany] 예상치 못한 응답 형식:', result);
+    }
+    return { name: '회사' };
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('[fetchMyCompany] 예외 발생:', error);
+    }
+    return { name: '회사' };
+  }
+}
+
+/**
+ * companyId 스코프 전체에 적용되는 메타데이터 템플릿
+ * - 하위 페이지에서 metadata.title = '상품관리'를 주면,
+ *   `${companyName} · 상품관리 | SNACK`로 자동 조합됩니다.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const company = await fetchMyCompany();
 
   return {
-    title: `${company.name}의 SNACK - 회사 간식 구매 관리 솔루션`,
-    description: `${company.name}의 간식 구매 내역을 한 곳에서 통합 관리하세요. 구매 기록, 예산, 카테고리별 상품 데이터를 손쉽게 확인할 수 있습니다`,
+    title: {
+      template: `${company.name} · %s | SNACK`,
+      default: `${company.name} | SNACK`,
+    },
+    description: `${company.name}의 간식 구매 내역을 한 곳에서 통합 관리하세요. 구매 기록, 예산, 카테고리별 상품 데이터를 손쉽게 확인할 수 있습니다.`,
   };
 }
 

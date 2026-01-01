@@ -106,7 +106,10 @@ export const PurchaseHistoryRowOrg = ({
           <div className="grid grid-cols-[140px_1fr] border-b border-gray-100">
             <p className="text-14 border-r border-gray-100 p-16">요청인</p>
             <p className="text-14 p-16">
-              <RequesterWithUrgentTag name={item.requester.name} isUrgent={isUrgent} />
+              <RequesterWithUrgentTag
+                name={item.requester?.name || '-'}
+                isUrgent={isUrgent}
+              />
             </p>
           </div>
           <div className="grid grid-cols-[140px_1fr] border-b border-gray-100">
@@ -153,7 +156,10 @@ export const PurchaseHistoryRowOrg = ({
               요청인
             </div>
             <div className="text-16 border-b border-gray-100 flex items-center px-20 py-15">
-              <RequesterWithUrgentTag name={item.requester.name} isUrgent={isUrgent} />
+              <RequesterWithUrgentTag
+                name={item.requester?.name || '-'}
+                isUrgent={isUrgent}
+              />
             </div>
           </div>
           <div className="grid grid-cols-[140px_1fr_140px_1fr]">
@@ -177,7 +183,7 @@ export const PurchaseHistoryRowOrg = ({
       <div className="hidden desktop:grid desktop:grid-cols-[130px_160px_1fr_140px_120px_100px] desktop:gap-16 desktop:items-center desktop:h-100 w-full border-b border-gray-200">
         <DateText date={item.createdAt} className="flex items-center h-100 text-16 px-40" />
         <div className="flex items-center gap-8">
-          <span className="text-16 text-gray-950">{item.requester.name}</span>
+          <span className="text-16 text-gray-950">{item.requester?.name || '-'}</span>
           {isUrgent && <StatusTag variant="urgent" className="text-12" />}
         </div>
         <div

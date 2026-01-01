@@ -60,10 +60,19 @@ const LoginSection = () => {
       // 인증 정보 저장 (zustand - 클라이언트 상태 관리)
       setAuth({ user, accessToken });
 
+      // localStorage에 저장되었는지 확인 (보안을 위해 실제 데이터는 로깅하지 않음)
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+        const stored = localStorage.getItem('auth-storage');
+        logger.info('[Login] localStorage 저장 확인:', {
+          hasStored: !!stored,
+        });
+      }
+
       logger.info('[Login] 인증 정보 저장 완료:', {
         hasUserId: !!user.id,
         role: user.role,
         hasCompanyId: !!user.companyId,
+        hasAccessToken: !!accessToken,
       });
 
       // 상품 리스트 페이지로 리다이렉트

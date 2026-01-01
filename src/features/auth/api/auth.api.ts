@@ -143,7 +143,10 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     // 타임아웃 또는 중단 에러 처리
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+      const timeoutSeconds = Math.ceil(timeout / 1000);
+      throw new Error(
+        `요청 시간이 초과되었습니다. (${timeoutSeconds}초) 서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.`
+      );
     }
     // 개발 환경에서만 에러 로그
     if (process.env.NODE_ENV === 'development') {
@@ -171,6 +174,23 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
 
   // 응답을 받은 후 타임아웃 타이머 정리
   clearTimeout(timeoutId);
+
+  // 429 Too Many Requests 에러는 상태 코드를 먼저 확인 (응답 본문 파싱 전)
+  if (response.status === 429) {
+    const retryAfter = response.headers.get('Retry-After');
+    let errorMessage = '너무 많은 요청입니다. 잠시 후 다시 시도해주세요.';
+
+    // Retry-After 헤더가 있으면 더 구체적인 안내 제공
+    if (retryAfter) {
+      const retrySeconds = Number.parseInt(retryAfter, 10);
+      if (Number.isFinite(retrySeconds)) {
+        const retryMinutes = Math.ceil(retrySeconds / 60);
+        errorMessage += ` (약 ${retryMinutes}분 후 재시도 가능)`;
+      }
+    }
+
+    throw new Error(errorMessage);
+  }
 
   // 응답 본문을 먼저 읽어서 확인
   const responseText = await response.text();

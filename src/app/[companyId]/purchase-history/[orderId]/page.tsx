@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
+
 import { RoleGuard } from '@/components/guards/RoleGuard';
 import PurchaseHistoryDetailSection from '@/features/purchase-history/section/PurchaseHistoryDetailSection';
+
+export const metadata: Metadata = {
+  title: '구매 내역 상세',
+};
 
 interface PurchaseHistoryDetailPageProps {
   params: Promise<{
