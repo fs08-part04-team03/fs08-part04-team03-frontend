@@ -53,20 +53,18 @@ export const useAuthStore = create<AuthState>()(
           userEmail: user?.email,
         });
         set({ user, accessToken });
-        // set 호출 후 localStorage 확인 (비동기이므로 약간의 지연 후 확인)
+        // Zustand persist는 동기적으로 localStorage에 저장하므로 즉시 확인 가능
         if (typeof window !== 'undefined') {
-          setTimeout(() => {
-            const stored = localStorage.getItem('auth-storage');
-            try {
-              const parsedData = stored ? (JSON.parse(stored) as unknown) : null;
-              logger.info('[AuthStore] setAuth 후 localStorage 확인:', {
-                hasStored: !!stored,
-                storedData: parsedData,
-              });
-            } catch (parseError) {
-              logger.error('[AuthStore] localStorage 파싱 실패:', parseError);
-            }
-          }, 100);
+          const stored = localStorage.getItem('auth-storage');
+          try {
+            const parsedData = stored ? (JSON.parse(stored) as unknown) : null;
+            logger.info('[AuthStore] setAuth 후 localStorage 확인:', {
+              hasStored: !!stored,
+              storedData: parsedData,
+            });
+          } catch (parseError) {
+            logger.error('[AuthStore] localStorage 파싱 실패:', parseError);
+          }
         }
       },
       setUser: (user) => set({ user }),

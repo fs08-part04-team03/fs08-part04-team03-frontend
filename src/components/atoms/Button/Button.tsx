@@ -49,7 +49,7 @@ const sizeClass: Record<ButtonSize, string> = {
 
 const Button = ({
   variant = 'primary',
-  size,
+  size = 'md',
   fullWidth = false,
   inactive,
   rightIcon,

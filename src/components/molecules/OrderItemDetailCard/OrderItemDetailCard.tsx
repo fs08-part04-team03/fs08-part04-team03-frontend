@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 
@@ -23,6 +23,11 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   const displayTotalPrice = unitPrice * quantity;
   const [imageError, setImageError] = useState(false);
   const hasValidImage = imageSrc && imageSrc.trim() !== '' && !imageError;
+
+  // imageSrc 변경 시 imageError 상태 초기화
+  useEffect(() => {
+    setImageError(false);
+  }, [imageSrc]);
 
   return (
     <div className={clsx('tablet:hidden', className)}>
@@ -68,6 +73,11 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   const displayTotalPrice = unitPrice * quantity;
   const [imageError, setImageError] = useState(false);
   const hasValidImage = imageSrc && imageSrc.trim() !== '' && !imageError;
+
+  // imageSrc 변경 시 imageError 상태 초기화
+  useEffect(() => {
+    setImageError(false);
+  }, [imageSrc]);
 
   return (
     <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
@@ -119,6 +129,11 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   const displayTotalPrice = unitPrice * quantity;
   const [imageError, setImageError] = useState(false);
   const hasValidImage = imageSrc && imageSrc.trim() !== '' && !imageError;
+
+  // imageSrc 변경 시 imageError 상태 초기화
+  useEffect(() => {
+    setImageError(false);
+  }, [imageSrc]);
 
   return (
     <div className={clsx('hidden desktop:flex', className)}>
