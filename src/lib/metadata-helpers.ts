@@ -47,6 +47,23 @@ async function getAccessToken(): Promise<string | undefined> {
 }
 
 /**
+ * base64url을 base64로 변환하는 헬퍼 함수
+ * JWT는 base64url 인코딩을 사용하므로 표준 base64로 변환 필요
+ */
+function base64UrlToBase64(base64url: string): string {
+  // base64url을 base64로 변환
+  // -를 +로, _를 /로 변환
+  let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+
+  // 패딩 추가 (필요한 경우)
+  while (base64.length % 4) {
+    base64 += '=';
+  }
+
+  return base64;
+}
+
+/**
  * 서버 컴포넌트에서 회사 정보를 가져오는 함수
  * - 메타데이터 생성에 사용
  */
@@ -127,15 +144,25 @@ export async function fetchUserForMetadata(): Promise<{ name: string } | null> {
     const apiUrl = getApiUrl();
 
     // JWT 토큰 디코딩하여 사용자 정보 추출 (간단한 방법)
-    // JWT는 Base64로 인코딩되어 있으므로 디코딩해서 사용자 정보를 얻을 수 있습니다
+    // JWT는 base64url 인코딩을 사용하므로 표준 base64로 변환 후 디코딩
     const tokenParts = accessToken.split('.');
     if (tokenParts.length !== 3 || !tokenParts[1]) {
       return null;
     }
 
-    const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString('utf-8')) as {
-      name?: string;
-    };
+    let payload: { name?: string };
+    try {
+      const base64Payload = base64UrlToBase64(tokenParts[1]);
+      payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('utf-8')) as {
+        name?: string;
+      };
+    } catch (decodeError) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[fetchUserForMetadata] JWT 디코딩 실패:', decodeError);
+      }
+      return null;
+    }
 
     // JWT payload에 사용자 이름이 있다면 반환
     if (payload.name) {
