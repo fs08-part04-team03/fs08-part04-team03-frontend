@@ -103,13 +103,13 @@ export async function fetchUserForMetadata(): Promise<{ name: string } | null> {
     // JWT 토큰 디코딩하여 사용자 정보 추출 (간단한 방법)
     // JWT는 Base64로 인코딩되어 있으므로 디코딩해서 사용자 정보를 얻을 수 있습니다
     const tokenParts = accessToken.split('.');
-    if (tokenParts.length !== 3) {
+    if (tokenParts.length !== 3 || !tokenParts[1]) {
       return null;
     }
 
-    const payload = JSON.parse(
-      Buffer.from(tokenParts[1], 'base64').toString('utf-8')
-    ) as { name?: string };
+    const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString('utf-8')) as {
+      name?: string;
+    };
 
     // JWT payload에 사용자 이름이 있다면 반환
     if (payload.name) {
