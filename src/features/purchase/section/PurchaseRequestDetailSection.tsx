@@ -110,8 +110,10 @@ const PurchaseRequestDetailSection = () => {
       if (!requestId) return;
       try {
         await approvePurchaseRequest(requestId);
+        // 구매 요청 상세, 목록, 예산 데이터 모두 갱신
         await queryClient.invalidateQueries({ queryKey: ['purchaseRequestDetail', requestId] });
         await queryClient.invalidateQueries({ queryKey: ['purchaseRequests'] });
+        await queryClient.invalidateQueries({ queryKey: ['budget', companyId] });
         setApproveModalOpen(false);
         setSuccessModalType('approved');
         setSuccessModalOpen(true);
@@ -120,7 +122,7 @@ const PurchaseRequestDetailSection = () => {
         triggerToast('error', PURCHASE_ERROR_MESSAGES.APPROVE_FAILED);
       }
     },
-    [requestId, queryClient, triggerToast]
+    [requestId, companyId, queryClient, triggerToast]
   );
 
   const handleRejectSubmit = useCallback(
@@ -153,7 +155,7 @@ const PurchaseRequestDetailSection = () => {
 
   const handleGoToPurchaseHistory = useCallback(() => {
     if (companyId) {
-      router.push(`/${companyId}/my/orders`);
+      router.push(`/${companyId}/purchase-history`);
     }
   }, [companyId, router]);
 
@@ -212,6 +214,7 @@ const PurchaseRequestDetailSection = () => {
         companyId={companyId}
         budget={budget}
         monthlySpending={monthlySpending}
+        remainingBudget={remainingBudget}
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}
         onApproveClick={handleApproveClick}

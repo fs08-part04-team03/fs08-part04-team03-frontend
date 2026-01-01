@@ -43,8 +43,8 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
   return (
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
       {items.map((item, index) => (
-        <React.Fragment key={item.id}>
-          <div className="my-16">
+        <React.Fragment key={item.id || `item-${index}`}>
+          <div className="my-16 mx-10">
             <OrderItemDetailCard
               name={item.products.name}
               unitPrice={item.priceSnapshot}
@@ -52,7 +52,11 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
               imageSrc={item.products.image}
             />
           </div>
-          {index < items.length - 1 && <Divider />}
+          {index < items.length - 1 && (
+            <div className="mx-10">
+              <Divider />
+            </div>
+          )}
         </React.Fragment>
       ))}
     </div>

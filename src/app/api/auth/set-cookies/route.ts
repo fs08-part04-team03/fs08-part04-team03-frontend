@@ -137,6 +137,16 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
+    // accessToken도 쿠키에 저장 (서버 컴포넌트에서 사용하기 위해)
+    // 보안: HttpOnly로 설정하여 JavaScript에서 접근 불가
+    response.cookies.set('accessToken', accessToken, {
+      httpOnly: true,
+      secure: isProduction, // 프로덕션에서만 Secure 플래그 사용
+      sameSite: 'lax',
+      maxAge,
+      path: '/',
+    });
+
     return response;
   } catch (error) {
     // eslint-disable-next-line no-console

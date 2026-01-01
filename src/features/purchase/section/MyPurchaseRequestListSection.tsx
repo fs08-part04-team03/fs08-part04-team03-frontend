@@ -28,7 +28,7 @@ const MyPurchaseRequestListSection = () => {
     handlePageChange,
     handleSortChange,
     handleStatusChange,
-  } = usePaginationParams({ defaultSize: 10, defaultSortKey: DEFAULT_SORT_KEY });
+  } = usePaginationParams({ defaultSize: 6, defaultSortKey: 'LATEST' });
 
   const { page, size, status, sort } = paginationParams;
 
@@ -52,7 +52,50 @@ const MyPurchaseRequestListSection = () => {
     refetch,
   } = useQuery({
     queryKey: ['myPurchases', page, size, status, sort],
-    queryFn: () => getMyPurchases({ page, size, status, sort }),
+    queryFn: async () => {
+      const response = await getMyPurchases({ page, size, status, sort });
+
+      logger.info('[MyPurchaseRequestList] API 응답:', {
+        totalItems: response.totalItems,
+        purchaseListLength: response.purchaseList.length,
+        status,
+        requestedStatus: status,
+      });
+
+      // 클라이언트 측에서 상태 필터링 적용 (백엔드 필터링이 제대로 작동하지 않을 수 있으므로)
+      let filteredList = [...response.purchaseList];
+      if (status && status !== 'ALL') {
+        filteredList = filteredList.filter((item) => item.status === status);
+        logger.info('[MyPurchaseRequestList] 상태 필터링 적용:', {
+          originalCount: response.purchaseList.length,
+          filteredCount: filteredList.length,
+          status,
+        });
+      }
+
+      // 클라이언트 측에서 정렬 적용 (백엔드 정렬이 제대로 작동하지 않을 수 있으므로)
+      const sortedList = [...filteredList];
+      if (sort === 'PRICE_LOW') {
+        sortedList.sort((a, b) => a.totalPrice - b.totalPrice);
+      } else if (sort === 'PRICE_HIGH') {
+        sortedList.sort((a, b) => b.totalPrice - a.totalPrice);
+      } else {
+        // LATEST 또는 기본값: createdAt 기준 내림차순 (최신순)
+        // 날짜가 늦은 것(최신)부터 오래된 것 순서로 정렬
+        sortedList.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      }
+
+      return {
+        ...response,
+        purchaseList: sortedList,
+        totalItems: filteredList.length, // 필터링된 개수로 업데이트
+        // 클라이언트 필터링 시 페이지네이션도 재계산
+        totalPages: Math.ceil(filteredList.length / size) || 1,
+        currentPage: 1, // 필터링 후 첫 페이지로 리셋
+      };
+    },
   });
 
   const handleCancelClick = useCallback(
@@ -109,10 +152,13 @@ const MyPurchaseRequestListSection = () => {
     return null;
   }
 
+  // 페이지당 6개만 표시
+  const displayList = data.purchaseList.slice(0, 6);
+
   return (
     <div className="w-full">
       <MyPurchaseRequestListTem
-        purchaseList={data.purchaseList}
+        purchaseList={displayList}
         onCancelClick={handleCancelClick}
         cancelModalOpen={cancelModalOpen}
         cancelTargetItem={cancelTargetItem}

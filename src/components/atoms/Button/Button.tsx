@@ -68,7 +68,7 @@ const Button = ({
       className={clsx(
         baseClass,
         inactive ? inactiveClass : variantClass[variant],
-        !isSignup && sizeClass[size],
+        !isSignup && size && sizeClass[size],
         isSignup && 'w-160 h-44 text-14 px-20 rounded-100',
         fullWidth && 'w-full',
         className

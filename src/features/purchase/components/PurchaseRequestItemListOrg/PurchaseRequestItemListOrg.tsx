@@ -21,6 +21,7 @@ export interface PurchaseRequestItemListOrgProps {
   onReject?: (purchaseRequestId: string) => void;
   onApprove?: (purchaseRequestId: string) => void;
   onCancel?: (purchaseRequestId: string) => void;
+  onRowClick?: (purchaseRequestId: string) => void;
   companyId?: string;
 }
 
@@ -29,6 +30,7 @@ interface PurchaseRequestItemRowProps {
   onReject?: (purchaseRequestId: string) => void;
   onApprove?: (purchaseRequestId: string) => void;
   onCancel?: (purchaseRequestId: string) => void;
+  onRowClick?: (purchaseRequestId: string) => void;
   companyId?: string;
 }
 
@@ -40,6 +42,7 @@ const PurchaseRequestItemRowMobile = ({
   onReject,
   onApprove,
   onCancel,
+  onRowClick,
   companyId,
 }: PurchaseRequestItemRowProps) => {
   const router = useRouter();
@@ -48,7 +51,10 @@ const PurchaseRequestItemRowMobile = ({
   const totalPrice = item.totalPrice + item.shippingFee;
 
   const handleRowClick = () => {
-    if (companyId) {
+    if (onRowClick) {
+      onRowClick(item.id);
+    } else if (companyId) {
+      // 기본값: 사용자용 경로 (onRowClick이 없을 때만)
       router.push(`/${companyId}/my/purchase-requests/${item.id}`);
     }
   };
@@ -121,9 +127,9 @@ const PurchaseRequestItemRowMobile = ({
         {/* 오른쪽 컬럼: 요청인 */}
         <div className={clsx('shrink-0')}>
           <UserProfile
-            name={item.requester.name}
-            company={{ name: item.requester.company || '' }}
-            avatarSrc={item.requester.avatarSrc}
+            name={item.requester?.name || '-'}
+            company={{ name: item.requester?.company || '' }}
+            avatarSrc={item.requester?.avatarSrc}
             profileHref={companyId ? `/${companyId}/my/profile` : undefined}
             variant="nameOnly"
           />
@@ -176,6 +182,7 @@ const PurchaseRequestItemRowDesktop = ({
   onReject,
   onApprove,
   onCancel,
+  onRowClick,
   companyId,
 }: PurchaseRequestItemRowProps) => {
   const router = useRouter();
@@ -184,7 +191,10 @@ const PurchaseRequestItemRowDesktop = ({
   const totalPrice = item.totalPrice + item.shippingFee;
 
   const handleRowClick = () => {
-    if (companyId) {
+    if (onRowClick) {
+      onRowClick(item.id);
+    } else if (companyId) {
+      // 기본값: 사용자용 경로 (onRowClick이 없을 때만)
       router.push(`/${companyId}/my/purchase-requests/${item.id}`);
     }
   };
@@ -295,9 +305,9 @@ const PurchaseRequestItemRowDesktop = ({
         )}
       >
         <UserProfile
-          name={item.requester.name}
-          company={{ name: item.requester.company || '' }}
-          avatarSrc={item.requester.avatarSrc}
+          name={item.requester?.name || '-'}
+          company={{ name: item.requester?.company || '' }}
+          avatarSrc={item.requester?.avatarSrc}
           profileHref={companyId ? `/${companyId}/my/profile` : undefined}
           variant="secondary"
         />
@@ -359,6 +369,7 @@ const PurchaseRequestItemListOrg = ({
   onReject,
   onApprove,
   onCancel,
+  onRowClick,
   companyId,
 }: PurchaseRequestItemListOrgProps) => (
   <div className={clsx('w-full', className)}>
@@ -371,6 +382,7 @@ const PurchaseRequestItemListOrg = ({
             onReject={onReject}
             onApprove={onApprove}
             onCancel={onCancel}
+            onRowClick={onRowClick}
             companyId={companyId}
           />
         </div>
@@ -382,6 +394,7 @@ const PurchaseRequestItemListOrg = ({
             onReject={onReject}
             onApprove={onApprove}
             onCancel={onCancel}
+            onRowClick={onRowClick}
             companyId={companyId}
           />
         </div>

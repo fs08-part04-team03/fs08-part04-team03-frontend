@@ -5,9 +5,10 @@ interface PriceTextProps {
 }
 
 const PriceText = ({ value, showUnit = true, className }: PriceTextProps) => {
-  const isValid = Number.isFinite(value) && value >= 0;
-  const formattedValue = isValid ? value.toLocaleString('ko-KR') : '-';
-  const displayText = isValid && showUnit ? `${formattedValue}원` : formattedValue;
+  // NaN 체크 및 음수 값을 0으로 처리
+  const safeValue = Number.isFinite(value) && value >= 0 ? value : 0;
+  const formattedValue = safeValue.toLocaleString('ko-KR');
+  const displayText = showUnit ? `${formattedValue}원` : formattedValue;
 
   return <span className={className}>{displayText}</span>;
 };

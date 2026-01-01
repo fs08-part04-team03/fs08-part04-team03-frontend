@@ -17,9 +17,6 @@ interface PurchaseHistoryTemProps {
   lastYearTotalSpending: number;
   selectedSort?: Option;
   onSortChange?: (option: Option) => void;
-  statusOptions?: Option[];
-  selectedStatusOption?: Option;
-  onStatusChange?: (status: string | undefined) => void;
 
   // BottomOrg props
   items: PurchaseRequestItem[];
@@ -38,9 +35,6 @@ export const PurchaseHistoryTem = ({
   lastYearTotalSpending,
   selectedSort,
   onSortChange,
-  statusOptions,
-  selectedStatusOption,
-  onStatusChange,
   items,
   companyId,
   currentPage,
@@ -55,9 +49,8 @@ export const PurchaseHistoryTem = ({
     router.push(`/${companyId}/products`);
   };
 
-  // 데스크톱: 최대 4개, 태블릿/모바일: 최대 3개
-  const desktopItems = safeItems.slice(0, 4);
-  const mobileTabletItems = safeItems.slice(0, 3);
+  // 화면에 최대 4개만 표시
+  const displayItems = safeItems.slice(0, 4);
 
   return (
     <div className="flex flex-col gap-34 tablet:gap-25 mt-24 tablet:mt-14 desktop:mt-71">
@@ -70,9 +63,6 @@ export const PurchaseHistoryTem = ({
         lastYearTotalSpending={lastYearTotalSpending}
         selectedSort={selectedSort}
         onSortChange={onSortChange}
-        statusOptions={statusOptions}
-        selectedStatusOption={selectedStatusOption}
-        onStatusChange={onStatusChange}
       />
       {isEmpty ? (
         <div className="flex justify-center items-center min-h-[calc(100vh-400px)]">
@@ -85,28 +75,13 @@ export const PurchaseHistoryTem = ({
           />
         </div>
       ) : (
-        <>
-          {/* Desktop: 최대 4개 */}
-          <div className="hidden desktop:block">
-            <PurchaseHistoryListOrg
-              items={desktopItems}
-              companyId={companyId}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-            />
-          </div>
-          {/* Mobile/Tablet: 최대 3개 */}
-          <div className="block desktop:hidden">
-            <PurchaseHistoryListOrg
-              items={mobileTabletItems}
-              companyId={companyId}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-            />
-          </div>
-        </>
+        <PurchaseHistoryListOrg
+          items={displayItems}
+          companyId={companyId}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       )}
     </div>
   );

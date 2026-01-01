@@ -37,6 +37,7 @@ const Logo = ({
   className,
 }: LogoProps) => {
   const { width, height } = sizeValues[size];
+  const isSvg = src.endsWith('.svg');
 
   const imageElement = (
     <Image
@@ -46,6 +47,7 @@ const Logo = ({
       height={height}
       className={clsx(sizeClass[size], className)}
       priority
+      unoptimized={isSvg}
     />
   );
 

@@ -54,7 +54,13 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   const renderContent = () => {
     if (src) {
-      return <img src={src} alt={alt} className="h-full w-full object-cover rounded-full" />;
+      return (
+        <img
+          src={src}
+          alt={alt}
+          className="h-full w-full object-cover rounded-full aspect-square"
+        />
+      );
     }
     if (name) {
       const firstChar = name.charAt(0).toUpperCase();
@@ -77,7 +83,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   };
 
   const baseClassName = clsx(
-    'relative flex items-center justify-center overflow-hidden rounded-full',
+    'relative flex items-center justify-center overflow-hidden rounded-full flex-shrink-0',
     sizeClass[size],
     bgColorClass[bgColor],
     className

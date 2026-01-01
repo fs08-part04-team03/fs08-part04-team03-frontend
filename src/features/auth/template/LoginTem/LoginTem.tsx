@@ -58,7 +58,7 @@ const LoginTemContent = ({
       />
     ))}
 
-    <Button type="submit" variant="primary" className="mt-8" fullWidth inactive={!isValid}>
+    <Button type="submit" variant="primary" size="md" className="mt-8" fullWidth inactive={!isValid}>
       로그인
     </Button>
   </form>

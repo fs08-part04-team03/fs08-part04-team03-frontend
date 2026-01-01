@@ -78,6 +78,7 @@ export const Default: Story = {
     companyId: 'company-123',
     budget: 2000000,
     monthlySpending: 500000,
+    remainingBudget: 1500000,
     approveModalOpen: false,
     rejectModalOpen: false,
     onApproveClick: () => {
@@ -121,6 +122,7 @@ export const InsufficientBudget: Story = {
     companyId: 'company-123',
     budget: 2000000,
     monthlySpending: 1990000,
+    remainingBudget: 10000,
     approveModalOpen: false,
     rejectModalOpen: false,
     onApproveClick: () => {
@@ -153,6 +155,7 @@ export const WithApproveModal: Story = {
     companyId: 'company-123',
     budget: 2000000,
     monthlySpending: 500000,
+    remainingBudget: 1500000,
     approveModalOpen: true,
     rejectModalOpen: false,
     onApproveClick: () => {},
@@ -184,6 +187,7 @@ export const WithRejectModal: Story = {
     companyId: 'company-123',
     budget: 2000000,
     monthlySpending: 500000,
+    remainingBudget: 1500000,
     approveModalOpen: false,
     rejectModalOpen: true,
     onApproveClick: () => {},
@@ -222,6 +226,7 @@ export const Interactive: Story = {
         companyId={args.companyId}
         budget={args.budget}
         monthlySpending={args.monthlySpending}
+        remainingBudget={args.remainingBudget}
         isBudgetSufficient={args.isBudgetSufficient}
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}
@@ -265,6 +270,7 @@ export const Interactive: Story = {
     companyId: 'company-123',
     budget: 2000000,
     monthlySpending: 500000,
+    remainingBudget: 1500000,
     isBudgetSufficient: true,
   },
   parameters: {

@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     const backendUrl =
-      process.env.BACKEND_API_URL || 'https://fs08-part04-team03-backend.onrender.com';
+      process.env.BACKEND_API_URL || 'http://snock.tplinkdns.com:4000';
     return [
       {
         source: '/api/:path*',

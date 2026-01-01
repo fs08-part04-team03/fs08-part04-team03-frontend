@@ -14,9 +14,6 @@ interface PurchaseHistoryListTopOrgProps {
   lastYearTotalSpending: number;
   selectedSort?: Option;
   onSortChange?: (option: Option) => void;
-  statusOptions?: Option[];
-  selectedStatusOption?: Option;
-  onStatusChange?: (status: string | undefined) => void;
 }
 
 export const PurchaseHistoryListTopOrg = ({
@@ -28,9 +25,6 @@ export const PurchaseHistoryListTopOrg = ({
   lastYearTotalSpending,
   selectedSort,
   onSortChange,
-  statusOptions,
-  selectedStatusOption,
-  onStatusChange,
 }: PurchaseHistoryListTopOrgProps) => {
   // 진행률 계산 (지출액 / 예산 * 100)
   const spendingPercentage =
@@ -48,21 +42,7 @@ export const PurchaseHistoryListTopOrg = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="font-bold text-18">구매 내역 확인</h1>
-        <div className="flex items-center gap-12">
-          {statusOptions && (
-            <div className="relative z-dropdown">
-              <DropDown
-                items={statusOptions}
-                placeholder="전체"
-                variant="small"
-                selected={selectedStatusOption}
-                onSelect={(option) => {
-                  const status = option.key === 'ALL' ? undefined : option.key;
-                  onStatusChange?.(status);
-                }}
-              />
-            </div>
-          )}
+        {selectedSort && onSortChange && (
           <DropDown
             items={COMMON_SORT_OPTIONS}
             placeholder="정렬"
@@ -70,7 +50,7 @@ export const PurchaseHistoryListTopOrg = ({
             selected={selectedSort}
             onSelect={onSortChange}
           />
-        </div>
+        )}
       </div>
 
       {/* Cards Grid */}
@@ -107,8 +87,7 @@ export const PurchaseHistoryListTopOrg = ({
               />
             </div>
             <p className="text-14 tablet:text-14 desktop:text-16 text-gray-600 tablet:pt-10 pt-10">
-              지난 달:
-              <PriceText value={lastMonthSpending} className="text-gray-600" />
+              지난 달: <PriceText value={lastMonthSpending} className="text-gray-600" />
             </p>
             <div className="mt-4 tablet:mt-6 desktop:mt-8 w-full">
               <ProgressBar
