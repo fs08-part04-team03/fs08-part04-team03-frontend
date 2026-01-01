@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { getApiUrl } from '@/utils/api';
+import { getApiUrl, getApiTimeout } from '@/utils/api';
 
 /**
  * 회사 정보 타입
@@ -59,28 +59,54 @@ export async function fetchCompanyForMetadata(): Promise<{ name: string }> {
 
   try {
     const apiUrl = getApiUrl();
+    const timeout = getApiTimeout();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    const response = await fetch(`${apiUrl}/api/v1/company`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      cache: 'no-store',
-    });
+    try {
+      const response = await fetch(`${apiUrl}/api/v1/company`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
 
-    if (!response.ok) {
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[fetchCompanyForMetadata] API 응답 실패:', {
+            status: response.status,
+            statusText: response.statusText,
+          });
+        }
+        return { name: '회사' };
+      }
+
+      const result = (await response.json()) as CompanyApiResponse;
+
+      if (result.success && result.data?.name) {
+        return { name: result.data.name };
+      }
+
+      return { name: '회사' };
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[fetchCompanyForMetadata] fetch 실패:', fetchError);
+      }
       return { name: '회사' };
     }
-
-    const result = (await response.json()) as CompanyApiResponse;
-
-    if (result.success && result.data?.name) {
-      return { name: result.data.name };
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('[fetchCompanyForMetadata] 예외 발생:', error);
     }
-
-    return { name: '회사' };
-  } catch {
     return { name: '회사' };
   }
 }
@@ -103,13 +129,13 @@ export async function fetchUserForMetadata(): Promise<{ name: string } | null> {
     // JWT 토큰 디코딩하여 사용자 정보 추출 (간단한 방법)
     // JWT는 Base64로 인코딩되어 있으므로 디코딩해서 사용자 정보를 얻을 수 있습니다
     const tokenParts = accessToken.split('.');
-    if (tokenParts.length !== 3) {
+    if (tokenParts.length !== 3 || !tokenParts[1]) {
       return null;
     }
 
-    const payload = JSON.parse(
-      Buffer.from(tokenParts[1], 'base64').toString('utf-8')
-    ) as { name?: string };
+    const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString('utf-8')) as {
+      name?: string;
+    };
 
     // JWT payload에 사용자 이름이 있다면 반환
     if (payload.name) {
@@ -117,27 +143,54 @@ export async function fetchUserForMetadata(): Promise<{ name: string } | null> {
     }
 
     // JWT에 이름이 없다면 API 호출 (백엔드에 GET /api/v1/user/me 같은 엔드포인트가 있다고 가정)
-    const response = await fetch(`${apiUrl}/api/v1/user/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      cache: 'no-store',
-    });
+    const timeout = getApiTimeout();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    if (!response.ok) {
+    try {
+      const response = await fetch(`${apiUrl}/api/v1/user/me`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[fetchUserForMetadata] API 응답 실패:', {
+            status: response.status,
+            statusText: response.statusText,
+          });
+        }
+        return null;
+      }
+
+      const result = (await response.json()) as UserApiResponse;
+
+      if (result.success && result.data?.name) {
+        return { name: result.data.name };
+      }
+
+      return null;
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[fetchUserForMetadata] fetch 실패:', fetchError);
+      }
       return null;
     }
-
-    const result = (await response.json()) as UserApiResponse;
-
-    if (result.success && result.data?.name) {
-      return { name: result.data.name };
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('[fetchUserForMetadata] 예외 발생:', error);
     }
-
-    return null;
-  } catch {
     return null;
   }
 }

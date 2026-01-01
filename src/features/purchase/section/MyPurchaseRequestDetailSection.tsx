@@ -23,7 +23,10 @@ const MyPurchaseRequestDetailSection = () => {
       if (!requestId) {
         throw new Error('Request ID is required');
       }
-      logger.info('[MyPurchaseRequestDetail] 구매 요청 상세 조회 시작:', { requestId });
+      // 개발 환경에서만 로깅 (보안)
+      if (process.env.NODE_ENV === 'development') {
+        logger.info('[MyPurchaseRequestDetail] 구매 요청 상세 조회 시작:', { requestId });
+      }
       return getMyPurchaseDetail(requestId);
     },
     enabled: !!requestId,
@@ -33,9 +36,9 @@ const MyPurchaseRequestDetailSection = () => {
     refetchOnWindowFocus: false,
   });
 
-  // 에러 로깅
+  // 에러 로깅 (개발 환경에서만)
   useEffect(() => {
-    if (queryError) {
+    if (queryError && process.env.NODE_ENV === 'development') {
       logger.error('[MyPurchaseRequestDetail] 구매 요청 상세 조회 실패:', {
         error: queryError,
         errorName: queryError instanceof Error ? queryError.name : undefined,
@@ -56,13 +59,11 @@ const MyPurchaseRequestDetailSection = () => {
   }
 
   if (queryError) {
-    const errorMessage =
-      queryError instanceof Error ? queryError.message : ERROR_MESSAGES.FETCH_ERROR;
+    // 사용자에게는 일관된 사용자 친화적 메시지만 표시 (보안)
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-red-500 mb-4">{ERROR_MESSAGES.FETCH_ERROR}</p>
-          <p className="text-sm text-gray-600">{errorMessage}</p>
         </div>
       </div>
     );
