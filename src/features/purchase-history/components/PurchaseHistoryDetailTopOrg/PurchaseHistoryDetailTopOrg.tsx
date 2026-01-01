@@ -9,7 +9,7 @@ import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { Divider } from '@/components/atoms/Divider/Divider';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 
-interface PurchaseRequestDetailTopOrgProps {
+interface PurchaseHistoryDetailTopOrgProps {
   purchaseRequest: PurchaseRequestItem;
 }
 
@@ -44,7 +44,7 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
       {items.map((item, index) => (
         <React.Fragment key={item.id || `item-${index}`}>
-          <div className="my-16 mx-10">
+          <div className="my-16">
             <OrderItemDetailCard
               name={item.products.name}
               unitPrice={item.priceSnapshot}
@@ -52,11 +52,7 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
               imageSrc={item.products.image}
             />
           </div>
-          {index < items.length - 1 && (
-            <div className="mx-10">
-              <Divider />
-            </div>
-          )}
+          {index < items.length - 1 && <Divider />}
         </React.Fragment>
       ))}
     </div>
@@ -84,9 +80,9 @@ const PriceSummary = ({ orderAmount, shippingFee, totalAmount }: PriceSummaryPro
 );
 
 // 메인 컴포넌트
-export const PurchaseRequestDetailTopOrg = ({
+export const PurchaseHistoryDetailTopOrg = ({
   purchaseRequest,
-}: PurchaseRequestDetailTopOrgProps) => {
+}: PurchaseHistoryDetailTopOrgProps) => {
   const [isOpen, setIsOpen] = useState(true);
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
@@ -127,4 +123,4 @@ export const PurchaseRequestDetailTopOrg = ({
   );
 };
 
-export default PurchaseRequestDetailTopOrg;
+export default PurchaseHistoryDetailTopOrg;

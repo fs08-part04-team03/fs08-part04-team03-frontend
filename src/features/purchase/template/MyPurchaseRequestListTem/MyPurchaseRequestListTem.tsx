@@ -22,11 +22,24 @@ import {
   getStatusTagVariant,
 } from '@/features/purchase/utils/purchase.utils';
 
+const TABLE_CELL_BASE_STYLES = {
+  header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 pl-20',
+  cell: 'shrink-0 text-left py-20 pl-20',
+} as const;
+
+const COLUMN_WIDTHS = {
+  date: 'tablet:w-100 desktop:w-140',
+  product: 'tablet:w-200 desktop:flex-1',
+  price: 'tablet:w-100 desktop:w-140',
+  status: 'tablet:w-100 desktop:w-140',
+  actions: 'tablet:w-140 desktop:w-180 desktop:max-w-180',
+} as const;
+
 /**
  * MyPurchaseRequestListTem Props
  */
 export interface MyPurchaseRequestListTemProps {
-  purchaseList: PurchaseRequestItem[];
+  purchaseList?: PurchaseRequestItem[];
   className?: string;
   onCancelClick?: (purchaseRequestId: string) => void;
   cancelModalOpen?: boolean;
@@ -49,95 +62,81 @@ interface PurchaseRequestTableRowProps {
   onCancelClick?: (purchaseRequestId: string) => void;
 }
 
+const TableHeaderCell = ({
+  children,
+  widthClass,
+}: {
+  children: React.ReactNode;
+  widthClass?: string;
+}) => <div className={clsx(TABLE_CELL_BASE_STYLES.header, widthClass)}>{children}</div>;
+
 /**
  * 테이블 헤더 (태블릿)
  */
-const PurchaseRequestTableHeaderTablet = () => (
-  <div className={clsx('w-full')}>
-    <div className={clsx('flex items-center', 'w-full', 'gap-16 tablet:gap-24 desktop:gap-32')}>
+const PurchaseRequestTableHeaderTablet = ({
+  sortOptions,
+  selectedSortOption,
+  onSortChange,
+  statusOptions,
+  selectedStatusOption,
+  onStatusChange,
+}: {
+  sortOptions?: Option[];
+  selectedSortOption?: Option;
+  onSortChange?: (sort: string | undefined) => void;
+  statusOptions?: Option[];
+  selectedStatusOption?: Option;
+  onStatusChange?: (status: string | undefined) => void;
+}) => {
+  const handleSortSelect = (option: Option) => {
+    const sort = option.key === 'LATEST' ? undefined : option.key;
+    onSortChange?.(sort);
+  };
+
+  const handleStatusSelect = (option: Option) => {
+    const status = option.key === 'ALL' ? undefined : option.key;
+    onStatusChange?.(status);
+  };
+
+  return (
+    <div className={clsx('w-full', 'tablet:px-24')}>
       <div
         className={clsx(
+          'flex items-center justify-between w-full',
           'text-left',
           'text-gray-700',
-          'text-14',
+          'text-18',
           'font-bold',
-          'shrink-0',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
+          'py-20'
         )}
       >
-        구매 요청일
-      </div>
-      <div
-        className={clsx(
-          'text-left',
-          'text-gray-700',
-          'text-14',
-          'font-bold',
-          'shrink-0',
-          'tablet:w-140',
-          'desktop:w-260',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        상품 정보
-      </div>
-      <div
-        className={clsx(
-          'text-left',
-          'text-gray-700',
-          'text-14',
-          'font-bold',
-          'shrink-0',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        주문 금액
-      </div>
-      <div
-        className={clsx(
-          'text-left',
-          'text-gray-700',
-          'text-14',
-          'font-bold',
-          'shrink-0',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        상태
-      </div>
-      <div
-        className={clsx(
-          'text-left',
-          'text-gray-700',
-          'text-14',
-          'font-bold',
-          'shrink-0',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        비고
+        <p>구매 요청 내역</p>
+        <div className={clsx('flex items-center gap-12')}>
+          {statusOptions && (
+            <div className="relative z-dropdown">
+              <DropDown
+                items={statusOptions}
+                placeholder="전체"
+                selected={selectedStatusOption}
+                onSelect={handleStatusSelect}
+              />
+            </div>
+          )}
+          {sortOptions && (
+            <div className="relative z-dropdown">
+              <DropDown
+                items={sortOptions}
+                placeholder="최신순"
+                selected={selectedSortOption}
+                onSelect={handleSortSelect}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 /**
  * 테이블 헤더 (데스크탑)
@@ -203,88 +202,6 @@ const PurchaseRequestTableHeaderDesktop = ({
           )}
         </div>
       </div>
-      <div className={clsx('flex items-center', 'w-full', 'gap-16 tablet:gap-24 desktop:gap-32')}>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          구매 요청일
-        </div>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-140',
-            'desktop:w-260',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          상품 정보
-        </div>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          주문 금액
-        </div>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          상태
-        </div>
-        <div
-          className={clsx(
-            'text-left',
-            'text-gray-700',
-            'text-14',
-            'font-bold',
-            'shrink-0',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          비고
-        </div>
-      </div>
     </div>
   );
 };
@@ -300,7 +217,14 @@ const PurchaseRequestTableRowDesktop = ({
   const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
-  const totalPrice = item.totalPrice + item.shippingFee;
+  // totalPrice가 0이거나 없을 경우 purchaseItems에서 계산
+  const calculatedTotalPrice = item.purchaseItems.reduce(
+    (sum, purchaseItem) => sum + purchaseItem.priceSnapshot * purchaseItem.quantity,
+    0
+  );
+  const totalPrice =
+    (item.totalPrice && item.totalPrice > 0 ? item.totalPrice : calculatedTotalPrice) +
+    (item.shippingFee ?? 0);
 
   const handleRowClick = () => {
     if (!companyId) return;
@@ -325,101 +249,50 @@ const PurchaseRequestTableRowDesktop = ({
       role="button"
       tabIndex={0}
       className={clsx(
-        'flex items-center',
-        'w-full',
-        'gap-16 tablet:gap-24 desktop:gap-32',
-        isUrgent && 'bg-red-100',
-        'cursor-pointer hover:bg-gray-50'
+        'flex items-center w-full justify-between',
+        'cursor-pointer hover:bg-gray-50',
+        'tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200',
+        'h-100',
+        isUrgent && 'bg-red-100'
       )}
       onClick={handleRowClick}
       onKeyDown={handleRowKeyDown}
     >
-      {/* 구매 요청일 */}
       <div
         className={clsx(
-          'text-gray-700',
-          'text-14',
-          'font-bold',
-          'shrink-0',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
+          TABLE_CELL_BASE_STYLES.cell,
+          COLUMN_WIDTHS.date,
+          'text-gray-700 text-14 font-bold'
         )}
       >
         {formatDate(item.createdAt)}
       </div>
 
-      {/* 상품 정보 */}
       <div
         className={clsx(
-          'text-gray-700',
-          'text-14',
-          'shrink-0',
-          'tablet:w-140',
-          'desktop:w-260',
-          'min-w-0',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
+          TABLE_CELL_BASE_STYLES.cell,
+          COLUMN_WIDTHS.product,
+          'text-gray-700 text-14 min-w-0 line-clamp-2 wrap-break-word'
         )}
       >
         {formatItemDescription(item.purchaseItems)}
       </div>
 
-      {/* 주문 금액 */}
-      <div
-        className={clsx(
-          'shrink-0',
-          'text-left',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        <PriceText
-          value={totalPrice}
-          showUnit
-          className={clsx('text-gray-700', 'text-14', 'font-normal')}
-        />
+      <div className={clsx(TABLE_CELL_BASE_STYLES.cell, COLUMN_WIDTHS.price)}>
+        <PriceText value={totalPrice} showUnit className="text-gray-700 text-14 font-normal" />
       </div>
 
-      {/* 상태 */}
-      <div
-        className={clsx(
-          'shrink-0',
-          'text-left',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
+      <div className={clsx(TABLE_CELL_BASE_STYLES.cell, COLUMN_WIDTHS.status)}>
         <StatusTag variant={getStatusTagVariant(item.status)} />
       </div>
 
-      {/* 비고 */}
-      {isPending && (
-        <div
-          className={clsx(
-            'shrink-0',
-            'text-left',
-            'tablet:w-100',
-            'desktop:w-180',
-            'py-20',
-            'tablet:px-0',
-            'desktop:px-40'
-          )}
-        >
-          <Button variant="secondary" onClick={handleCancelClick} className="w-126 h-44">
+      <div className={clsx(TABLE_CELL_BASE_STYLES.cell, COLUMN_WIDTHS.actions)}>
+        {isPending && (
+          <Button variant="secondary" onClick={handleCancelClick} className="w-126 h-40 text-12">
             요청 취소
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
@@ -454,39 +327,63 @@ const MyPurchaseRequestListTem = ({
     router.push(`/${companyId}/products`);
   }, [router, companyId]);
 
-  if (purchaseList.length === 0) {
-    return (
-      <div className={clsx('w-full mt-200', 'flex justify-center', className)}>
-        <StatusNotice
-          title="구매 요청한 내역이 없어요"
-          description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-          buttonText="상품 리스트로 이동"
-          onButtonClick={handleNavigateToProducts}
-        />
-      </div>
-    );
-  }
+  const isEmpty = !purchaseList || purchaseList.length === 0;
 
   return (
-    <div className={clsx('w-full', 'desktop:max-w-1400', 'desktop:mx-auto', className)}>
-      {/* 모바일 레이아웃 - PurchaseRequestItemListOrg 재사용 */}
+    <div
+      className={clsx(
+        'w-full',
+        'mt-30',
+        'tablet:mt-20',
+        'desktop:max-w-1400',
+        'desktop:mx-auto',
+        'desktop:mt-80',
+        className
+      )}
+    >
+      {/* 모바일 레이아웃 */}
       <div className={clsx('tablet:hidden')}>
-        <PurchaseRequestItemListOrg
-          purchaseList={purchaseList}
-          onCancel={onCancelClick}
-          companyId={companyId}
-        />
+        {isEmpty ? (
+          <div
+            className={clsx(
+              'w-full',
+              'flex justify-center items-center',
+              'min-h-[calc(100vh-80px)]'
+            )}
+          >
+            <StatusNotice
+              title="구매 요청한 내역이 없어요"
+              description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
+              buttonText="상품 리스트로 이동"
+              onButtonClick={handleNavigateToProducts}
+            />
+          </div>
+        ) : (
+          <PurchaseRequestItemListOrg
+            purchaseList={purchaseList}
+            onCancel={onCancelClick}
+            companyId={companyId}
+          />
+        )}
       </div>
 
       {/* 태블릿/데스크탑 레이아웃 - 테이블 */}
       <div className={clsx('hidden tablet:block', 'overflow-x-auto')}>
         <div className={clsx('w-full')}>
-          {/* 태블릿 헤더 */}
+          {/* 태블릿 헤더 - 항상 표시 */}
           <div className={clsx('hidden tablet:block desktop:hidden')}>
-            <PurchaseRequestTableHeaderTablet />
+            <PurchaseRequestTableHeaderTablet
+              sortOptions={sortOptions}
+              selectedSortOption={selectedSortOption}
+              onSortChange={onSortChange}
+              statusOptions={statusOptions}
+              selectedStatusOption={selectedStatusOption}
+              onStatusChange={onStatusChange}
+            />
+            {!isEmpty && <Divider variant="thin" className="w-full" />}
           </div>
 
-          {/* 데스크탑 헤더 */}
+          {/* 데스크탑 헤더 - 항상 표시 */}
           <div className={clsx('hidden desktop:block')}>
             <PurchaseRequestTableHeaderDesktop
               sortOptions={sortOptions}
@@ -496,22 +393,58 @@ const MyPurchaseRequestListTem = ({
               selectedStatusOption={selectedStatusOption}
               onStatusChange={onStatusChange}
             />
+            {!isEmpty && (
+              <>
+                <Divider variant="thin" className="w-full" />
+                <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200">
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.status}>상태</TableHeaderCell>
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Divider */}
-          <Divider variant="thin" className="w-full" />
-
-          {/* 테이블 바디 */}
-          <div className={clsx('w-full')}>
-            {purchaseList.map((item) => (
-              <PurchaseRequestTableRowDesktop
-                key={item.id}
-                item={item}
-                onCancelClick={onCancelClick}
-                companyId={companyId}
+          {isEmpty ? (
+            <div className={clsx('w-full', 'mt-200', 'flex justify-center')}>
+              <StatusNotice
+                title="구매 요청한 내역이 없어요"
+                description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
+                buttonText="상품 리스트로 이동"
+                onButtonClick={handleNavigateToProducts}
               />
-            ))}
-          </div>
+            </div>
+          ) : (
+            <>
+              {/* 태블릿 테이블 헤더 */}
+              <div className="hidden tablet:block desktop:hidden">
+                <div className="w-full">
+                  <Divider variant="thin" className="w-full" />
+                  <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200">
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.status}>상태</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
+                  </div>
+                </div>
+              </div>
+
+              {/* 테이블 바디 */}
+              <div className={clsx('w-full')}>
+                {purchaseList.map((item) => (
+                  <PurchaseRequestTableRowDesktop
+                    key={item.id}
+                    item={item}
+                    onCancelClick={onCancelClick}
+                    companyId={companyId}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 

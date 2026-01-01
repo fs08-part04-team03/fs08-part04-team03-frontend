@@ -1,6 +1,5 @@
 'use client';
 
-import { useParams } from 'next/navigation';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import { PurchaseRequestDetailTopOrg } from '@/features/purchase/components/PurchaseRequestDetailTopOrg/PurchaseRequestDetailTopOrg';
 import PurchaseRequestDetailOrg from '@/features/purchase/components/PurchaseRequestDetailOrg/PurchaseRequestDetailOrg';
@@ -9,8 +8,10 @@ import PurchaseRequestDetailActionsOrg from '../../components/PurchaseRequestDet
 
 interface PurchaseRequestDetailTemProps {
   purchaseRequest: PurchaseRequestItem;
+  companyId: string;
   budget: number;
   monthlySpending: number;
+  remainingBudget: number;
   approveModalOpen: boolean;
   rejectModalOpen: boolean;
   onApproveClick: () => void;
@@ -24,8 +25,10 @@ interface PurchaseRequestDetailTemProps {
 
 const PurchaseRequestDetailTem = ({
   purchaseRequest,
+  companyId,
   budget,
   monthlySpending,
+  remainingBudget,
   approveModalOpen,
   rejectModalOpen,
   onApproveClick,
@@ -36,17 +39,15 @@ const PurchaseRequestDetailTem = ({
   onRejectSubmit,
   isBudgetSufficient = true,
 }: PurchaseRequestDetailTemProps) => {
-  const params = useParams();
-  const companyId = params?.companyId ? String(params.companyId) : undefined;
-
-  // BudgetInfo에 필요한 값들을 계산 (my/ 경로가 아닌 경우 BudgetInfo만 표시)
+  // BudgetInfo 계산
   const budgetInfo = {
     monthlySpending,
-    remainingBudget: budget,
-    budgetAfterPurchase: budget - (purchaseRequest.totalPrice + purchaseRequest.shippingFee), // 구매 후 예산
+    remainingBudget,
+    budgetAfterPurchase:
+      remainingBudget - (purchaseRequest.totalPrice + purchaseRequest.shippingFee),
   };
 
-  // 모달에 필요한 데이터 변환
+  // 모달 데이터 변환
   const modalData = {
     user: {
       name: purchaseRequest.requester.name,
@@ -65,27 +66,39 @@ const PurchaseRequestDetailTem = ({
           ? purchaseRequest.requester.avatarSrc
           : undefined,
     },
-    items: purchaseRequest.purchaseItems.map((item) => ({
-      id: Number.parseInt(item.id, 10),
-      title: item.products.name,
-      price: item.priceSnapshot,
-      quantity: item.quantity,
-    })),
+    items: purchaseRequest.purchaseItems.map((item) => {
+      const parsedId = Number.parseInt(item.id, 10);
+      if (Number.isNaN(parsedId)) {
+        // eslint-disable-next-line no-console
+        console.warn('Invalid item id:', item.id);
+      }
+      return {
+        id: Number.isNaN(parsedId) ? 0 : parsedId,
+        title: item.products.name,
+        price: item.priceSnapshot,
+        quantity: item.quantity,
+      };
+    }),
     deliveryFee: purchaseRequest.shippingFee,
     budget,
   };
 
   return (
-    <div className="flex flex-col mt-30 tablet:mt-30 desktop:mt-60">
-      <PurchaseRequestDetailTopOrg purchaseRequest={purchaseRequest} />
-      <PurchaseRequestDetailOrg purchaseRequest={purchaseRequest} budgetInfo={budgetInfo} />
-      <PurchaseRequestDetailActionsOrg
-        companyId={companyId}
-        actionType="admin"
-        onApproveClick={onApproveClick}
-        onRejectClick={onRejectClick}
-        isBudgetSufficient={isBudgetSufficient}
-      />
+    <>
+      <div className="flex flex-col items-center gap-30 mt-30">
+        <div className="tablet:mt-30 desktop:mt-60 mb-54 desktop:mb-254 tablet:mb-132">
+          <PurchaseRequestDetailTopOrg purchaseRequest={purchaseRequest} />
+          <PurchaseRequestDetailOrg purchaseRequest={purchaseRequest} budgetInfo={budgetInfo} />
+          <PurchaseRequestDetailActionsOrg
+            companyId={companyId}
+            actionType="admin"
+            onApproveClick={onApproveClick}
+            onRejectClick={onRejectClick}
+            isBudgetSufficient={isBudgetSufficient}
+          />
+        </div>
+      </div>
+
       {/* 승인 모달 */}
       <ApprovalRequestModal
         open={approveModalOpen}
@@ -97,6 +110,7 @@ const PurchaseRequestDetailTem = ({
         budget={modalData.budget}
         action="approve"
       />
+
       {/* 반려 모달 */}
       <ApprovalRequestModal
         open={rejectModalOpen}
@@ -108,7 +122,7 @@ const PurchaseRequestDetailTem = ({
         budget={modalData.budget}
         action="reject"
       />
-    </div>
+    </>
   );
 };
 
