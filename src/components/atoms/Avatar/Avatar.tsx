@@ -8,6 +8,7 @@ type AvatarBgColor = 'gray-100' | 'gray-50';
 export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
   alt?: string;
+  name?: string;
   size?: AvatarSize;
   bgColor?: AvatarBgColor;
 }
@@ -30,6 +31,7 @@ const bgColorClass: Record<AvatarBgColor, string> = {
 export const Avatar: React.FC<AvatarProps> = ({
   src,
   alt = 'avatar',
+  name,
   size = 32,
   bgColor = 'gray-100',
   className,
@@ -52,7 +54,22 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   const renderContent = () => {
     if (src) {
-      return <img src={src} alt={alt} className="h-full w-full object-cover rounded-full" />;
+      return (
+        <img
+          src={src}
+          alt={alt}
+          className="h-full w-full object-cover rounded-full aspect-square"
+        />
+      );
+    }
+    if (name) {
+      const firstChar = name.charAt(0).toUpperCase();
+      const fontSize = size === 24 ? 'text-10' : 'text-14';
+      return (
+        <span className={clsx('font-medium text-gray-950 tracking--0.25', fontSize)}>
+          {firstChar}
+        </span>
+      );
     }
     return (
       <Image
@@ -66,7 +83,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   };
 
   const baseClassName = clsx(
-    'relative flex items-center justify-center overflow-hidden rounded-full',
+    'relative flex items-center justify-center overflow-hidden rounded-full flex-shrink-0',
     sizeClass[size],
     bgColorClass[bgColor],
     className

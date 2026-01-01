@@ -36,6 +36,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
 }) => {
   const [liked, setLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const isWishlist = variant === 'wishlist';
   const isLiked = isWishlist ? true : liked;
@@ -77,6 +78,62 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
     setLiked((prev) => !prev);
   };
 
+  /** =====================
+      Image 처리
+  ====================== */
+  let imageContent;
+  if (imageUrl && !imgError) {
+    imageContent = (
+      <Image
+        src={imageUrl}
+        alt={name}
+        width={54}
+        height={93}
+        onError={() => setImgError(true)}
+        className={clsx('object-cover', 'tablet:w-54 tablet:h-94', 'desktop:w-128 desktop:h-222')}
+      />
+    );
+  } else {
+    // 이미지가 없거나 로딩 실패 시 no-image.svg 표시
+    imageContent = (
+      <Image
+        src="/icons/no-image.svg"
+        alt="이미지 없음"
+        width={54}
+        height={93}
+        className={clsx('object-cover', 'tablet:w-54 tablet:h-94', 'desktop:w-128 desktop:h-222')}
+        unoptimized
+      />
+    );
+  }
+
+  /** =====================
+      ProductTile 처리
+  ====================== */
+  let productTileContent;
+  if (variant === 'product' || variant === 'wishlist') {
+    productTileContent = (
+      <ProductTile
+        variant="product"
+        name={name}
+        price={price}
+        purchaseCount={purchaseCount}
+        size="md"
+      />
+    );
+  } else {
+    productTileContent = (
+      <ProductTile
+        variant="order"
+        name={name}
+        price={price}
+        quantity={quantity}
+        shippingFee={shippingFee}
+        size="md"
+      />
+    );
+  }
+
   return (
     <div
       role="link"
@@ -101,23 +158,9 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
             'w-155 h-155 tablet:w-219 tablet:h-219 desktop:w-373 desktop:h-373'
         )}
       >
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={name}
-            width={54}
-            height={93}
-            className={clsx(
-              'object-cover',
-              'tablet:w-54 tablet:h-94',
-              'desktop:w-128 desktop:h-222'
-            )}
-          />
-        ) : (
-          <span className="text-12 text-gray-500">이미지 없음</span>
-        )}
+        {imageContent}
 
-        {/* Heart */}
+        {/* Heart 버튼 */}
         <button
           type="button"
           aria-pressed={isLiked}
@@ -138,26 +181,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       {/* =====================
           Text
       ====================== */}
-      <div className="flex flex-col flex-1 min-w-0 px-8 pt-8 pb-12 gap-2">
-        {variant === 'product' || variant === 'wishlist' ? (
-          <ProductTile
-            variant="product"
-            name={name}
-            price={price}
-            purchaseCount={purchaseCount}
-            size="md"
-          />
-        ) : (
-          <ProductTile
-            variant="order"
-            name={name}
-            price={price}
-            quantity={quantity}
-            shippingFee={shippingFee}
-            size="md"
-          />
-        )}
-      </div>
+      <div className="flex flex-col flex-1 min-w-0 px-8 pt-8 pb-12 gap-2">{productTileContent}</div>
     </div>
   );
 };
