@@ -119,7 +119,9 @@ const ProductModal = ({
   }, [productName, price, link, selectedCategory, selectedSubCategory, preview]);
 
   const submitProduct = async (): Promise<void> => {
-    if (!validate()) return;
+    if (!validate()) {
+      throw new Error('유효성 검사 실패');
+    }
 
     const body = {
       categoryId: Number(selectedSubCategory?.key ?? selectedCategory?.key ?? 0),
@@ -154,7 +156,7 @@ const ProductModal = ({
       if (!res.ok || !result.success) {
         const message = result.error?.message ?? result.message ?? '상품 등록에 실패했습니다.';
         triggerToast('error', message);
-        return;
+        throw new Error(message);
       }
 
       triggerToast('success', '상품이 등록되었습니다.');
@@ -228,8 +230,12 @@ const ProductModal = ({
     if (!validate()) return;
 
     submitProduct()
-      .then(onSubmit)
-      .catch(() => {});
+      .then(() => {
+        onSubmit();
+      })
+      .catch(() => {
+        // submitProduct 실패 시 onSubmit 호출하지 않음
+      });
   };
 
   const isValid =
