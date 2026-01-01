@@ -1,25 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import PurchaseRequestDetailTopOrg from './PurchaseRequestDetailTopOrg';
+import PurchaseHistoryDetailTopOrg from './PurchaseHistoryDetailTopOrg';
 
 const meta = {
-  title: 'Features/Purchase/Organisms/PurchaseRequestDetailTopOrg',
-  component: PurchaseRequestDetailTopOrg,
+  title: 'Features/PurchaseHistory/Organisms/PurchaseHistoryDetailTopOrg',
+  component: PurchaseHistoryDetailTopOrg,
   tags: ['autodocs'],
   parameters: {
     layout: 'padded',
     docs: {
       description: {
         component:
-          '구매 내역 상세 정보를 표시하는 컴포넌트입니다. 구매한 품목 목록을 토글 버튼으로 접고 펼칠 수 있으며, 각 품목은 OrderItemDetailCard 컴포넌트를 사용하여 표시됩니다.\n\n**주요 기능:**\n- 구매 내역 제목 표시\n- 구매 품목 개수 표시 및 토글 버튼\n- 화살표 아이콘 회전 애니메이션 (열림/닫힘 상태에 따라 180도 회전)\n- 품목 목록 접기/펼치기 기능\n- 각 품목 간 Divider로 구분\n- 가격 요약 (주문금액, 배송비, 총 주문금액)\n\n**사용 컴포넌트:**\n- OrderItemDetailCard: 각 구매 품목을 표시하는 카드 컴포넌트 (반응형 레이아웃 지원)\n- IconButton: 토글 버튼\n- Divider: 품목 간 구분선\n- PriceText: 가격 표시 컴포넌트',
+          '구매 내역 상세 정보를 표시하는 컴포넌트입니다. 구매한 품목 목록을 토글 버튼으로 접고 펼칠 수 있으며, 각 품목은 OrderItemDetailCard 컴포넌트를 사용하여 표시됩니다.\n\n**주요 기능:**\n- 구매 내역 제목 표시\n- 구매 품목 개수 표시 및 토글 버튼\n- 화살표 아이콘 회전 애니메이션 (열림/닫힘 상태에 따라 180도 회전)\n- 품목 목록 접기/펼치기 기능\n- 각 품목 간 Divider로 구분\n\n**사용 컴포넌트:**\n- OrderItemDetailCard: 각 구매 품목을 표시하는 카드 컴포넌트 (반응형 레이아웃 지원)\n- IconButton: 토글 버튼\n- Divider: 품목 간 구분선',
       },
     },
   },
-} satisfies Meta<typeof PurchaseRequestDetailTopOrg>;
+} satisfies Meta<typeof PurchaseHistoryDetailTopOrg>;
 
 export default meta;
 
-type Story = StoryObj<typeof PurchaseRequestDetailTopOrg>;
+type Story = StoryObj<typeof PurchaseHistoryDetailTopOrg>;
 
 const mockPurchaseRequest: PurchaseRequestItem = {
   id: '1',

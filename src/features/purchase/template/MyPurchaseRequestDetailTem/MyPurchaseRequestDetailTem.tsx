@@ -1,24 +1,21 @@
 'use client';
 
-import React from 'react';
-import { useParams } from 'next/navigation';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import { PURCHASE_REQUEST_STATUS_LABEL } from '@/constants/purchase.constants';
+import { PURCHASE_REQUEST_STATUS_LABEL } from '@/features/purchase/utils/constants';
 import { PurchaseRequestDetailTopOrg } from '@/features/purchase/components/PurchaseRequestDetailTopOrg/PurchaseRequestDetailTopOrg';
 import PurchaseRequestDetailOrg from '@/features/purchase/components/PurchaseRequestDetailOrg/PurchaseRequestDetailOrg';
 import PurchaseRequestDetailActionsOrg from '../../components/PurchaseRequestDetailActionsOrg/PurchaseRequestDetailActionsOrg';
 
 interface MyPurchaseRequestDetailTemProps {
   purchaseRequest: PurchaseRequestItem;
+  companyId: string;
 }
 
-const MyPurchaseRequestDetailTem: React.FC<MyPurchaseRequestDetailTemProps> = ({
+const MyPurchaseRequestDetailTem = ({
   purchaseRequest,
-}) => {
-  const params = useParams();
-  const companyId = params?.companyId ? String(params.companyId) : undefined;
-
-  // ApprovedInfo에 필요한 값들을 계산 (my/ 경로에서는 ApprovedInfo만 표시)
+  companyId,
+}: MyPurchaseRequestDetailTemProps) => {
+  // ApprovedInfo 계산
   let resultMessage = '-';
   if (purchaseRequest.status === 'REJECTED' && purchaseRequest.rejectReason) {
     resultMessage = purchaseRequest.rejectReason;
@@ -34,10 +31,12 @@ const MyPurchaseRequestDetailTem: React.FC<MyPurchaseRequestDetailTemProps> = ({
   };
 
   return (
-    <div className="flex flex-col mt-30 tablet:mt-30 desktop:mt-60">
-      <PurchaseRequestDetailTopOrg purchaseRequest={purchaseRequest} />
-      <PurchaseRequestDetailOrg purchaseRequest={purchaseRequest} approvedInfo={approvedInfo} />
-      <PurchaseRequestDetailActionsOrg companyId={companyId} actionType="user" />
+    <div className="flex flex-col items-center gap-30 mt-30">
+      <div className="tablet:mt-30 desktop:mt-60 mb-54 desktop:mb-254 tablet:mb-132">
+        <PurchaseRequestDetailTopOrg purchaseRequest={purchaseRequest} />
+        <PurchaseRequestDetailOrg purchaseRequest={purchaseRequest} approvedInfo={approvedInfo} />
+        <PurchaseRequestDetailActionsOrg companyId={companyId} actionType="user" />
+      </div>
     </div>
   );
 };
