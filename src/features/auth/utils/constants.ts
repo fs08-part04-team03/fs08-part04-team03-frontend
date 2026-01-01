@@ -11,7 +11,7 @@ export const ENV_KEYS = {
 // 기본값
 export const DEFAULT_TIMEOUT = 30000; // 30초 (Render.com 무료 플랜의 cold start 대응)
 
-// 배포 서버 기본 URL (환경 변수가 없을 때 사용)
+// 개발 환경 기본 URL (환경 변수가 없을 때 사용)
 export const DEFAULT_API_URL = 'http://snock.tplinkdns.com:4000';
 
 // API 경로

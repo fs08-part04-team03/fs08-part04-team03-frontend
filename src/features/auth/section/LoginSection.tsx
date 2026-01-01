@@ -60,12 +60,11 @@ const LoginSection = () => {
       // 인증 정보 저장 (zustand - 클라이언트 상태 관리)
       setAuth({ user, accessToken });
 
-      // localStorage에 저장되었는지 확인
-      if (typeof window !== 'undefined') {
+      // localStorage에 저장되었는지 확인 (보안을 위해 실제 데이터는 로깅하지 않음)
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         const stored = localStorage.getItem('auth-storage');
         logger.info('[Login] localStorage 저장 확인:', {
           hasStored: !!stored,
-          storedData: stored ? (JSON.parse(stored) as unknown) : null,
         });
       }
 
