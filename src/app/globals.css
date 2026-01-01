@@ -45,6 +45,7 @@ body {
 /* stylelint-disable-next-line at-rule-no-unknown */
 @theme {
   /* Breakpoints */
+  --breakpoint-mobile: 0px;
   --breakpoint-tablet: 744px;
   --breakpoint-desktop: 1024px;
 
@@ -52,9 +53,9 @@ body {
   --z-base: 1;
   --z-header: 10;
   --z-dropdown: 20;
-  --z-modal: 30;
+  --z-tooltip: 30;
   --z-toast: 40;
-  --z-tooltip: 50;
+  --z-modal: 99999;
 
   /* Shadow Tokens */
   --shadow-toast: 0 10px 8px 0 rgba(0, 0, 0, 0.1);
@@ -281,6 +282,7 @@ body {
   --spacing-768: 768px;
   --spacing-938: 938px;
   --spacing-950: 950px;
+  --spacing-960: 960px;
   --spacing-1045: 1045px;
   --spacing-1052: 1052px;
   --spacing-1150: 1150px;
@@ -314,6 +316,7 @@ body {
   --text-24: 24px;
   --text-30: 30px;
   --text-32: 32px;
+  --text-40: 40px;
   --text-44: 44px;
   --text-50: 50px;
 
@@ -334,6 +337,7 @@ body {
 
   --tracking--0.5: -0.5px;
   --tracking--0.8: -0.8px;
+  --tracking--1: -1px;
   --tracking--1.25: -1.25px;
 
   --leading-140: 140%;
@@ -395,22 +399,4 @@ body {
   .animate-marquee {
     animation: marquee 50s linear infinite;
   }
-
-  /* .gap-8 {
-    gap: 8px;
-  }
-}
-
-.p-24 {
-  padding: 24px !important;
-}
-.mt-5 {
-  margin-top: 5px !important;
-}
-.gap-8 {
-  gap: 8px !important;
-}
-  .left-8 {
-    left: 8px !important;
-  } */
 }
