@@ -223,7 +223,7 @@ const DetailPageLayoutTablet: React.FC<InternalLayoutProps> = ({
         price={price}
         type={type}
         onQuantityChange={onQuantityChange}
-        onMenuClick={type === 'default' ? onMenuClick : undefined}
+        onMenuClick={onMenuClick}
         onAddToCart={onAddToCart}
         className={headerClassName}
       />

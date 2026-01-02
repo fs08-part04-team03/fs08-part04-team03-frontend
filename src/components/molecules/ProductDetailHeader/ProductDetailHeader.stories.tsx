@@ -7,22 +7,23 @@ import ProductDetailHeader from './ProductDetailHeader';
 // 인증 상태를 모킹하는 decorator
 const withAuth = (role: UserRole | null) => {
   const AuthDecorator = (Story: React.ComponentType) => {
-    const { setAuth } = useAuthStore.getState();
-
-    if (role) {
-      setAuth({
-        user: {
-          id: '1',
-          email: 'test@example.com',
-          name: '테스트 사용자',
-          role,
-          companyId: '1',
-        },
-        accessToken: 'mock-token',
-      });
-    } else {
-      useAuthStore.getState().clearAuth();
-    }
+    React.useEffect(() => {
+      if (role) {
+        useAuthStore.getState().setAuth({
+          user: {
+            id: '1',
+            email: 'test@example.com',
+            name: '테스트 사용자',
+            role,
+            companyId: '1',
+          },
+          accessToken: 'mock-token',
+        });
+      } else {
+        useAuthStore.getState().clearAuth();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return <Story />;
   };
