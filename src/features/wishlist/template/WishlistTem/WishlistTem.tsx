@@ -21,6 +21,9 @@ export interface WishlistItem {
 
 interface WishlistTemProps {
   items: WishlistItem[];
+  onRemove?: (id: number) => void;
+  onProductClick?: (id: number) => void;
+  onGoToProducts?: () => void;
 }
 
 /* =====================
@@ -51,9 +54,19 @@ const useItemsPerPage = () => {
 /* =====================
  * Component
  ====================== */
-const WishlistTem: React.FC<WishlistTemProps> = ({ items }) => {
+const WishlistTem: React.FC<WishlistTemProps> = ({
+  items,
+  onRemove,
+  onProductClick,
+  onGoToProducts,
+}) => {
   const [likedItems, setLikedItems] = useState(items);
   const [page, setPage] = useState(1);
+
+  // items가 변경되면 내부 상태 업데이트
+  useEffect(() => {
+    setLikedItems(items);
+  }, [items]);
 
   const itemsPerPage = useItemsPerPage();
   const totalPage = Math.max(1, Math.ceil(likedItems.length / itemsPerPage));
@@ -74,7 +87,11 @@ const WishlistTem: React.FC<WishlistTemProps> = ({ items }) => {
 
   /** 찜 해제 */
   const handleRemove = (id: number) => {
-    setLikedItems((prev) => prev.filter((item) => item.id !== id));
+    if (onRemove) {
+      onRemove(id);
+    } else {
+      setLikedItems((prev) => prev.filter((item) => item.id !== id));
+    }
   };
 
   return (
@@ -120,9 +137,7 @@ const WishlistTem: React.FC<WishlistTemProps> = ({ items }) => {
             title="찜한 상품이 없습니다"
             description={`마음에 드는 상품을 찜해보세요.\n나중에 한 번에 확인할 수 있어요.`}
             buttonText="상품 보러가기"
-            onButtonClick={() => {
-              // 라우팅 연결 예정
-            }}
+            onButtonClick={onGoToProducts}
           />
         </div>
       ) : (
@@ -146,7 +161,7 @@ const WishlistTem: React.FC<WishlistTemProps> = ({ items }) => {
                 price={item.price}
                 purchaseCount={item.purchaseCount}
                 imageUrl={item.imageUrl}
-                onClick={() => {}}
+                onClick={onProductClick ? () => onProductClick(item.id) : undefined}
                 onUnlike={() => handleRemove(item.id)}
               />
             </div>

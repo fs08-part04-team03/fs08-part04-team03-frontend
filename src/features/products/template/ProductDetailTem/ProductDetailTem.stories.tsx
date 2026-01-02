@@ -100,7 +100,9 @@ const mockDetailPageProps: DetailPageLayoutProps = {
     onMenuClick: (action) => {
       console.log('menu action:', action);
     },
-    onAddToCart: () => {},
+    onAddToCart: (quantity: number) => {
+      console.log('add to cart:', quantity);
+    },
   },
 };
 

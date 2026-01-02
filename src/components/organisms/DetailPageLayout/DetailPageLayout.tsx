@@ -27,10 +27,12 @@ export interface DetailPageLayoutProps {
   accordionPanels?: Array<{
     id?: string | number;
     label: string;
-    content?: string;
-    subContent?: string;
+    content?: string | React.ReactNode;
+    subContent?: string | React.ReactNode;
   }>;
   className?: string;
+  liked?: boolean;
+  onToggleLike?: () => void;
 }
 
 type InternalLayoutProps = {
@@ -62,26 +64,46 @@ const ProductImageBox = ({
   productImage?: { src: string; alt: string };
   liked: boolean;
   onToggleLike: () => void;
-}) => (
-  <div className={clsx('relative aspect-square bg-gray-100 rounded-8', sizeClass)}>
-    {productImage ? (
-      <div className="absolute inset-0 bg-white rounded-8 p-[73px_120px]">
-        <div className="relative w-full h-full">
-          <Image src={productImage.src} alt={productImage.alt} fill className="object-contain" />
-        </div>
-      </div>
-    ) : (
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-gray-400 text-14">상품 이미지</span>
-      </div>
-    )}
+}) => {
+  const [imgError, setImgError] = useState(false);
 
-    <button
-      type="button"
-      aria-pressed={liked}
-      aria-label={liked ? '찜하기 취소' : '찜하기'}
-      onClick={onToggleLike}
-      className="
+  const imageSrc = productImage && !imgError ? productImage.src : '/icons/no-image.svg';
+  const imageAlt = productImage?.alt || '이미지 없음';
+
+  const isNoImage = imageSrc === '/icons/no-image.svg';
+
+  return (
+    <div className={clsx('relative bg-gray-100 rounded-8 shadow-lg', sizeClass)}>
+      <div className="absolute inset-0 bg-white rounded-8 p-[73px_120px]">
+        {isNoImage ? (
+          <div className="relative w-full h-full flex items-center justify-center">
+            <Image
+              src="/icons/photo-icon.svg"
+              alt="이미지 없음"
+              width={50}
+              height={50}
+              unoptimized
+            />
+          </div>
+        ) : (
+          <div className="relative w-full h-full">
+            <Image
+              src={imageSrc}
+              alt={imageAlt}
+              fill
+              className="object-contain"
+              onError={() => setImgError(true)}
+            />
+          </div>
+        )}
+      </div>
+
+      <button
+        type="button"
+        aria-pressed={liked}
+        aria-label={liked ? '찜하기 취소' : '찜하기'}
+        onClick={onToggleLike}
+        className="
         absolute bottom-20 right-20
         w-30 h-30
         bg-transparent p-0
@@ -93,16 +115,17 @@ const ProductImageBox = ({
         focus-visible:ring-primary-500
         focus-visible:ring-offset-2
       "
-    >
-      <Image
-        src={liked ? '/icons/heart.svg' : '/icons/heart-outline.svg'}
-        alt="찜하기"
-        width={30}
-        height={30}
-      />
-    </button>
-  </div>
-);
+      >
+        <Image
+          src={liked ? '/icons/heart.svg' : '/icons/heart-outline.svg'}
+          alt="찜하기"
+          width={30}
+          height={30}
+        />
+      </button>
+    </div>
+  );
+};
 
 /* =====================
  * Mobile
@@ -130,7 +153,7 @@ const DetailPageLayoutMobile: React.FC<InternalLayoutProps> = ({
 
       <div className="mb-30 flex justify-center">
         <ProductImageBox
-          sizeClass="w-328"
+          sizeClass="w-328 h-328"
           productImage={productImage}
           liked={liked}
           onToggleLike={onToggleLike}
@@ -144,7 +167,7 @@ const DetailPageLayoutMobile: React.FC<InternalLayoutProps> = ({
           price={price}
           type={type}
           onQuantityChange={onQuantityChange}
-          onMenuClick={type === 'default' ? onMenuClick : undefined}
+          onMenuClick={onMenuClick}
           onAddToCart={onAddToCart}
           className={headerClassName}
         />
@@ -187,7 +210,7 @@ const DetailPageLayoutTablet: React.FC<InternalLayoutProps> = ({
 
       <div className="mb-30 flex justify-center">
         <ProductImageBox
-          sizeClass="w-496"
+          sizeClass="w-496 h-496"
           productImage={productImage}
           liked={liked}
           onToggleLike={onToggleLike}
@@ -241,9 +264,9 @@ const DetailPageLayoutDesktop: React.FC<InternalLayoutProps> = ({
     </div>
     <Divider className="w-1180 mb-60" />
 
-    <div className="w-1180 grid grid-cols-[530px_610px] gap-40">
+    <div className="w-1180 grid grid-cols-[540px_610px] gap-40">
       <ProductImageBox
-        sizeClass="w-530"
+        sizeClass="w-540 h-540"
         productImage={productImage}
         liked={liked}
         onToggleLike={onToggleLike}
@@ -256,7 +279,7 @@ const DetailPageLayoutDesktop: React.FC<InternalLayoutProps> = ({
           price={price}
           type={type}
           onQuantityChange={onQuantityChange}
-          onMenuClick={type === 'default' ? onMenuClick : undefined}
+          onMenuClick={onMenuClick}
           onAddToCart={onAddToCart}
           className={headerClassName}
         />
@@ -283,18 +306,26 @@ const DetailPageLayout: React.FC<DetailPageLayoutProps> = ({
   productDetailHeader,
   accordionPanels,
   className,
+  liked: externalLiked,
+  onToggleLike: externalOnToggleLike,
 }) => {
-  const [liked, setLiked] = useState(false);
+  const [internalLiked, setInternalLiked] = useState(false);
+
+  const liked = externalLiked !== undefined ? externalLiked : internalLiked;
 
   const handleToggleLike = () => {
-    setLiked((v) => !v);
+    if (externalOnToggleLike) {
+      externalOnToggleLike();
+    } else {
+      setInternalLiked((v) => !v);
+    }
   };
 
   const {
     productName,
     purchaseCount,
     price,
-    type = 'default',
+    type,
     onQuantityChange,
     onMenuClick,
     onAddToCart,
@@ -312,7 +343,7 @@ const DetailPageLayout: React.FC<DetailPageLayoutProps> = ({
         productName={productName}
         purchaseCount={purchaseCount}
         price={price}
-        type={type}
+        type={type || 'default'}
         onQuantityChange={onQuantityChange}
         onMenuClick={onMenuClick}
         onAddToCart={onAddToCart}
@@ -328,7 +359,7 @@ const DetailPageLayout: React.FC<DetailPageLayoutProps> = ({
         productName={productName}
         purchaseCount={purchaseCount}
         price={price}
-        type={type}
+        type={type || 'default'}
         onQuantityChange={onQuantityChange}
         onMenuClick={onMenuClick}
         onAddToCart={onAddToCart}
@@ -344,7 +375,7 @@ const DetailPageLayout: React.FC<DetailPageLayoutProps> = ({
         productName={productName}
         purchaseCount={purchaseCount}
         price={price}
-        type={type}
+        type={type || 'default'}
         onQuantityChange={onQuantityChange}
         onMenuClick={onMenuClick}
         onAddToCart={onAddToCart}

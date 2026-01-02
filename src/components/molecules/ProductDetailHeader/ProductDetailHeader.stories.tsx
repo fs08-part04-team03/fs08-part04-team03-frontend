@@ -1,5 +1,34 @@
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import { useAuthStore } from '@/lib/store/authStore';
+import type { UserRole } from '@/constants/roles';
 import ProductDetailHeader from './ProductDetailHeader';
+
+// 인증 상태를 모킹하는 decorator
+const withAuth = (role: UserRole | null) => {
+  const AuthDecorator = (Story: React.ComponentType) => {
+    const { setAuth } = useAuthStore.getState();
+
+    if (role) {
+      setAuth({
+        user: {
+          id: '1',
+          email: 'test@example.com',
+          name: '테스트 사용자',
+          role,
+          companyId: '1',
+        },
+        accessToken: 'mock-token',
+      });
+    } else {
+      useAuthStore.getState().clearAuth();
+    }
+
+    return <Story />;
+  };
+  AuthDecorator.displayName = `withAuth(${role || 'null'})`;
+  return AuthDecorator;
+};
 
 const meta = {
   title: 'Molecules/ProductDetailHeader',
@@ -50,9 +79,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** =====================
- * Default (ItemMenu 표시)
+ * Default with Manager (ItemMenu 표시)
  ====================== */
-export const Default: Story = {
+export const DefaultWithManager: Story = {
   args: {
     productName: '코카콜라',
     purchaseCount: 29,
@@ -62,11 +91,60 @@ export const Default: Story = {
       console.log('menu action:', action);
     },
   },
+  decorators: [withAuth('manager')],
   parameters: {
     docs: {
       description: {
         story:
-          '기본 타입입니다. 모바일/태블릿/데스크탑에서 ItemMenu가 표시되며, 수량 변경 시 총 금액이 자동 계산됩니다.',
+          '기본 타입입니다. 매니저 역할의 사용자에게는 ItemMenu가 표시되며, 수량 변경 시 총 금액이 자동 계산됩니다.',
+      },
+    },
+  },
+};
+
+/** =====================
+ * Default with Admin (ItemMenu 표시)
+ ====================== */
+export const DefaultWithAdmin: Story = {
+  args: {
+    productName: '코카콜라',
+    purchaseCount: 29,
+    price: 2000,
+    type: 'default',
+    onMenuClick: (action) => {
+      console.log('menu action:', action);
+    },
+  },
+  decorators: [withAuth('admin')],
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '기본 타입입니다. 관리자 역할의 사용자에게는 ItemMenu가 표시되며, 수량 변경 시 총 금액이 자동 계산됩니다.',
+      },
+    },
+  },
+};
+
+/** =====================
+ * Default with User (ItemMenu 숨김)
+ ====================== */
+export const DefaultWithUser: Story = {
+  args: {
+    productName: '코카콜라',
+    purchaseCount: 29,
+    price: 2000,
+    type: 'default',
+    onMenuClick: (action) => {
+      console.log('menu action:', action);
+    },
+  },
+  decorators: [withAuth('user')],
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '기본 타입이지만 일반 사용자(user) 역할의 사용자에게는 ItemMenu가 표시되지 않습니다. 수량 변경 시 총 금액이 자동 계산됩니다.',
       },
     },
   },
@@ -85,10 +163,12 @@ export const Simple: Story = {
       console.log('menu action:', action);
     },
   },
+  decorators: [withAuth('manager')],
   parameters: {
     docs: {
       description: {
-        story: 'simple 타입입니다. ItemMenu가 숨겨지고 수량 선택과 장바구니 기능만 제공합니다.',
+        story:
+          'simple 타입입니다. type이 simple이면 역할과 관계없이 ItemMenu가 숨겨지고 수량 선택과 장바구니 기능만 제공합니다.',
       },
     },
   },

@@ -4,6 +4,7 @@ import { useState, useRef, FormEvent } from 'react';
 import OrderItemCard from '@/components/molecules/OrderItemCard/OrderItemCard';
 import Button from '@/components/atoms/Button/Button';
 import PriceText from '@/components/atoms/PriceText/PriceText';
+import Checkbox from '@/components/atoms/Checkbox/Checkbox';
 import { clsx } from '@/utils/clsx';
 
 export interface OrderCompletedItem {
@@ -25,6 +26,7 @@ interface OrderCompletedSummaryOrgProps {
   requestMessage?: string;
   onGoCart?: () => void;
   onGoOrderHistory?: () => void;
+  onPurchaseRequest?: (requestMessage: string, isUrgent?: boolean) => void;
 }
 
 const MAX_LENGTH = 50;
@@ -37,6 +39,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
   requestMessage = '',
   onGoCart,
   onGoOrderHistory,
+  onPurchaseRequest,
 }) => {
   const isUser = cartRole === 'user';
   const isRequestUser = isUser && userType === 'request';
@@ -44,6 +47,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
 
   const [message, setMessage] = useState('');
   const [touched, setTouched] = useState(false);
+  const [isUrgent, setIsUrgent] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const orderPrice = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
@@ -61,7 +65,11 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
       return;
     }
 
-    onGoOrderHistory?.();
+    if (isRequestUser && onPurchaseRequest) {
+      onPurchaseRequest(message, isUrgent);
+    } else {
+      onGoOrderHistory?.();
+    }
   };
 
   const renderButtons = () => (
@@ -146,7 +154,26 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
 
       {isRequestUser && (
         <form onSubmit={handleSubmit}>
-          <div className="mx-auto mt-40">
+          {/* 긴급 요청 토글 */}
+          <div className="mx-auto mt-40 mb-20 flex items-center gap-12">
+            <Checkbox checked={isUrgent} onChange={setIsUrgent} aria-label="긴급 요청" />
+            <span
+              className="text-16 font-bold text-gray-950 tracking-tight cursor-pointer"
+              onClick={() => setIsUrgent(!isUrgent)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsUrgent(!isUrgent);
+                }
+              }}
+            >
+              긴급 요청
+            </span>
+          </div>
+
+          <div className="mx-auto">
             <span
               id="order-request-label"
               className="block text-16 font-bold text-gray-950 tracking-tight mb-14 tablet:mb-20"

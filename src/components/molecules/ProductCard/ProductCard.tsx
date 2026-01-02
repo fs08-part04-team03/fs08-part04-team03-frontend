@@ -20,6 +20,10 @@ interface BaseProductCardProps {
 
   /** ✅ wishlist 전용 */
   onUnlike?: () => void;
+
+  /** ✅ 위시리스트 상태 */
+  liked?: boolean;
+  onToggleLike?: () => void;
 }
 
 const ProductCard: React.FC<BaseProductCardProps> = ({
@@ -33,12 +37,16 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   className,
   onClick,
   onUnlike,
+  liked: externalLiked,
+  onToggleLike,
 }) => {
-  const [liked, setLiked] = useState(variant === 'wishlist');
+  const [internalLiked, setInternalLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
   const [imgError, setImgError] = useState(false);
 
   const isWishlist = variant === 'wishlist';
+  // 외부에서 liked prop이 전달되면 그것을 사용, 없으면 내부 state 사용
+  const liked = externalLiked !== undefined ? externalLiked : internalLiked;
   const isLiked = isWishlist ? true : liked;
 
   const rootClasses = clsx(
@@ -75,39 +83,39 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       return;
     }
 
-    setLiked((prev) => !prev);
+    // 외부에서 onToggleLike가 전달되면 그것을 사용, 없으면 내부 state 업데이트
+    if (onToggleLike) {
+      onToggleLike();
+    } else {
+      setInternalLiked((prev) => !prev);
+    }
   };
 
   /** =====================
       Image 처리
   ====================== */
   let imageContent;
-  if (imageUrl) {
-    if (!imgError) {
-      imageContent = (
-        <Image
-          src={imageUrl}
-          alt={name}
-          width={54}
-          height={93}
-          onError={() => setImgError(true)}
-          className={clsx('object-cover', 'tablet:w-54 tablet:h-94', 'desktop:w-128 desktop:h-222')}
-        />
-      );
-    } else {
-      imageContent = (
-        <Image
-          src="/images/test-profile-image.jpg"
-          alt="fallback"
-          width={54}
-          height={93}
-          className={clsx('object-cover', 'tablet:w-54 tablet:h-94', 'desktop:w-128 desktop:h-222')}
-          unoptimized
-        />
-      );
-    }
+  if (imageUrl && !imgError) {
+    imageContent = (
+      <Image
+        src={imageUrl}
+        alt={name}
+        fill
+        onError={() => setImgError(true)}
+        className="object-cover"
+      />
+    );
   } else {
-    imageContent = <span className="text-12 text-gray-500">이미지 없음</span>;
+    // 이미지가 없거나 로딩 실패 시 no-image.svg 표시
+    imageContent = (
+      <Image
+        src="/icons/no-image.svg"
+        alt="이미지 없음"
+        fill
+        className="object-contain"
+        unoptimized
+      />
+    );
   }
 
   /** =====================
@@ -161,7 +169,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
             'w-155 h-155 tablet:w-219 tablet:h-219 desktop:w-373 desktop:h-373'
         )}
       >
-        {imageContent}
+        <div className="relative w-full h-full">{imageContent}</div>
 
         {/* Heart 버튼 */}
         <button
