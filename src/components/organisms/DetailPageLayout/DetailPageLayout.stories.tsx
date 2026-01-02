@@ -58,7 +58,9 @@ export const Default: Story = {
       onMenuClick: (action) => {
         console.log('menu action:', action);
       },
-      onAddToCart: () => {},
+      onAddToCart: (quantity: number) => {
+        console.log('add to cart:', quantity);
+      },
     },
     accordionPanels: [
       {
@@ -100,7 +102,9 @@ export const WithoutImage: Story = {
       onMenuClick: (action) => {
         console.log('menu action:', action);
       },
-      onAddToCart: () => {},
+      onAddToCart: (quantity: number) => {
+        console.log('add to cart:', quantity);
+      },
     },
     accordionPanels: [
       {
@@ -137,7 +141,9 @@ export const MultipleAccordionPanels: Story = {
       onMenuClick: (action) => {
         console.log('menu action:', action);
       },
-      onAddToCart: () => {},
+      onAddToCart: (quantity: number) => {
+        console.log('add to cart:', quantity);
+      },
     },
     accordionPanels: [
       {

@@ -143,15 +143,17 @@ const PurchaseRequestItemRowMobile = ({
             <div className={clsx('w-full', 'flex gap-8')}>
               <Button
                 variant="secondary"
+                size="sm"
                 onClick={handleRejectClick}
-                className="flex-1 h-40 tablet:w-auto tablet:h-44"
+                className="flex-1 h-40 tablet:w-auto tablet:h-44 text-10!"
               >
                 반려
               </Button>
               <Button
                 variant="primary"
+                size="sm"
                 onClick={handleApproveClick}
-                className="flex-1 h-40 tablet:w-auto tablet:h-44"
+                className="flex-1 h-40 tablet:w-auto tablet:h-44 text-10!"
               >
                 승인
               </Button>
@@ -329,10 +331,10 @@ const PurchaseRequestItemRowDesktop = ({
                 'flex gap-8'
               )}
             >
-              <Button variant="secondary" onClick={handleRejectClick} className="h-44">
+              <Button variant="secondary" size="sm" onClick={handleRejectClick} className="">
                 반려
               </Button>
-              <Button variant="primary" onClick={handleApproveClick} className="h-44">
+              <Button variant="primary" size="sm" onClick={handleApproveClick} className="">
                 승인
               </Button>
             </div>

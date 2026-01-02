@@ -18,6 +18,7 @@ interface ShoppingCartTemProps {
   onSubmit?: (itemIds: string[]) => void;
   onGoBudgetManage?: () => void;
   onQuantityChange?: (cartItemId: string, quantity: number) => void;
+  onContinueShopping?: () => void;
 }
 
 const USER_STEPS: StepBreadcrumbStep[] = [
@@ -40,6 +41,7 @@ const ShoppingCartTem = ({
   onSubmit,
   onGoBudgetManage,
   onQuantityChange,
+  onContinueShopping,
 }: ShoppingCartTemProps) => {
   const isUser = cartRole === 'user';
   const currentStep = 1;
@@ -63,6 +65,7 @@ const ShoppingCartTem = ({
           onGoBudgetManage={onGoBudgetManage}
           onQuantityChange={onQuantityChange}
           loading={loading} // 🔹 로딩 상태 전달
+          onContinueShopping={onContinueShopping}
         />
       </div>
     </div>

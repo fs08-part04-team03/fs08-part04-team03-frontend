@@ -1,7 +1,7 @@
 'use client';
 
 import { getApiUrl, fetchWithAuth as fetchWithAuthUtil } from '@/utils/api';
-import { PURCHASE_API_PATHS, BUDGET_API_PATHS } from '@/features/purchase/utils/constants';
+import { PURCHASE_API_PATHS } from '@/features/purchase/utils/constants';
 
 /**
  * 백엔드 API 응답 타입
@@ -412,17 +412,23 @@ export async function getExpenseStatistics(): Promise<ExpenseStatisticsResponse>
  * 구매 관리 대시보드 (관리자)
  */
 export interface PurchaseDashboardResponse {
-  pendingRequests: number;
-  approvedRequests: number;
-  rejectedRequests: number;
-  totalExpense: number;
-  monthlyExpense: number;
-  recentPurchases: PurchaseItem[];
-  topProducts: Array<{
-    productId: string;
-    productName: string;
-    purchaseCount: number;
-  }>;
+  expenses: {
+    thisMonth: number;
+    lastMonth: number;
+    thisYear: number;
+    lastYear: number;
+  };
+  budget: {
+    thisMonthBudget: number;
+    remainingBudget: number;
+  };
+  purchaseList: PurchaseRequestItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 /**
@@ -541,23 +547,73 @@ export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<My
 }
 
 /**
- * 구매 요청
+ * 구매 요청 아이템
  */
-export interface RequestPurchaseRequest {
-  productId: string;
+export interface RequestPurchaseItem {
+  productId: number;
   quantity: number;
-  reason?: string;
 }
 
+/**
+ * 구매 요청 요청 본문
+ */
+export interface RequestPurchaseRequest {
+  items: RequestPurchaseItem[];
+  shippingFee: number;
+  requestMessage?: string;
+}
+
+/**
+ * 구매 요청 응답 데이터
+ */
+export interface RequestPurchaseResponseData {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  totalPrice: number;
+  shippingFee: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  requestMessage: string;
+  rejectReason?: string;
+  purchaseItems: Array<{
+    id: string;
+    quantity: number;
+    priceSnapshot: number;
+    products: {
+      id: number;
+      name: string;
+      image: string;
+      link: string;
+    };
+  }>;
+  requester: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  approver?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+/**
+ * 구매 요청 응답
+ */
 export interface RequestPurchaseResponse {
-  purchaseRequestId: string;
+  success: boolean;
+  data: RequestPurchaseResponseData;
   message: string;
 }
 
+/**
+ * 구매 요청
+ */
 export async function requestPurchase(
   request: RequestPurchaseRequest
-): Promise<RequestPurchaseResponse> {
-  const result = await fetchWithAuth<RequestPurchaseResponse>(
+): Promise<RequestPurchaseResponseData> {
+  const result = await fetchWithAuth<RequestPurchaseResponseData>(
     PURCHASE_API_PATHS.USER_REQUEST_PURCHASE,
     {
       method: 'POST',
@@ -572,20 +628,21 @@ export async function requestPurchase(
  * 긴급 구매 요청 (예산 체크 우회)
  */
 export interface UrgentRequestPurchaseRequest {
-  productId: string;
-  quantity: number;
-  reason: string; // 긴급 사유 필수
+  items: RequestPurchaseItem[];
+  shippingFee?: number;
+  requestMessage?: string;
 }
 
 export interface UrgentRequestPurchaseResponse {
-  purchaseRequestId: string;
+  success: boolean;
+  data: RequestPurchaseResponseData;
   message: string;
 }
 
 export async function urgentRequestPurchase(
   request: UrgentRequestPurchaseRequest
-): Promise<UrgentRequestPurchaseResponse> {
-  const result = await fetchWithAuth<UrgentRequestPurchaseResponse>(
+): Promise<RequestPurchaseResponseData> {
+  const result = await fetchWithAuth<RequestPurchaseResponseData>(
     PURCHASE_API_PATHS.USER_URGENT_REQUEST_PURCHASE,
     {
       method: 'POST',
@@ -665,151 +722,58 @@ export interface BudgetItem {
 
 /**
  * 예산 조회 응답 타입
+ * 백엔드에서 계산된 모든 값들을 포함합니다.
  */
 export interface GetBudgetResponse {
-  budget: number;
-  monthlySpending: number;
-  remainingBudget: number;
+  budget: number; // 이번 달 예산
+  monthlySpending: number; // 이번 달 지출액
+  remainingBudget: number; // 남은 예산
+  spendingPercentage: number; // 진행률 (%)
+  lastMonthBudget: number; // 지난 달 예산
+  lastMonthSpending: number; // 지난 달 지출액
+  lastBudget: number; // 지난 달 남은 예산
+  thisYearTotalSpending: number; // 올해 총 지출액
+  lastYearTotalSpending: number; // 작년 총 지출액
 }
 
 /**
  * 주어진 회사의 예산과 지출 요약을 조회합니다.
- * 백엔드에서 예산 배열을 받아 현재 월 예산을 찾고,
- * 승인된 구매 요청을 조회하여 월별 지출액을 계산합니다.
+ * 백엔드에서 계산된 모든 값들을 그대로 반환합니다.
+ *
+ * purchaseDashboard 엔드포인트를 사용하여 예산 정보를 조회합니다.
  *
  * @param _companyId - (사용하지 않음) 호환성을 위해 유지, 토큰에서 회사 정보를 자동으로 추출
- * @returns 회사의 총 예산(`budget`), 해당 기간의 월별 지출(`monthlySpending`), 남은 예산(`remainingBudget`)을 포함한 객체
+ * @returns 백엔드에서 계산된 예산 및 지출 정보를 포함한 객체
  */
 export async function getBudget(_companyId: string): Promise<GetBudgetResponse> {
-  // 1. 예산 목록 조회
-  const budgetResult = await fetchWithAuth<BudgetItem[]>(BUDGET_API_PATHS.GET_BUDGET, {
-    method: 'GET',
-  });
-
-  // 실제 API 응답 구조 확인을 위한 로깅
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[getBudget] 예산 API 응답:', {
-      success: budgetResult.success,
-      dataLength: Array.isArray(budgetResult.data) ? budgetResult.data.length : 0,
-      data: budgetResult.data,
-    });
-  }
-
-  // 현재 월의 예산 찾기
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
-
-  if (!Array.isArray(budgetResult.data)) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[getBudget] 예산 데이터가 배열이 아닙니다:', budgetResult.data);
+  // purchaseDashboard 엔드포인트 사용
+  const dashboardResult = await fetchWithAuth<PurchaseDashboardResponse>(
+    PURCHASE_API_PATHS.ADMIN_PURCHASE_DASHBOARD,
+    {
+      method: 'GET',
     }
-    return {
-      budget: 0,
-      monthlySpending: 0,
-      remainingBudget: 0,
-    };
-  }
-
-  const currentBudgetItem = budgetResult.data.find(
-    (item) => item.year === currentYear && item.month === currentMonth
   );
 
-  const budget = currentBudgetItem?.amount || 0;
+  const dashboard = dashboardResult.data;
 
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[getBudget] 현재 월 예산 찾기:', {
-      currentYear,
-      currentMonth,
-      found: !!currentBudgetItem,
-      budgetAmount: budget,
-      allBudgetItems: budgetResult.data.map((item) => ({
-        year: item.year,
-        month: item.month,
-        amount: item.amount,
-      })),
-    });
-  }
+  // 진행률 계산 (이번 달 지출액 / 이번 달 예산 * 100)
+  const spendingPercentage =
+    dashboard.budget.thisMonthBudget > 0
+      ? (dashboard.expenses.thisMonth / dashboard.budget.thisMonthBudget) * 100
+      : 0;
 
-  // 2. 승인된 구매 요청 조회하여 월별 지출액 계산
-  let monthlySpending = 0;
-  try {
-    // 현재 월의 시작일과 종료일 계산
-    const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
-    const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
-
-    // 승인된 구매 요청 조회 (모든 페이지를 가져와야 정확한 계산)
-    let page = 1;
-    let hasMore = true;
-    const allApprovedRequests: PurchaseRequestItem[] = [];
-
-    // eslint-disable-next-line no-await-in-loop
-    while (hasMore) {
-      // eslint-disable-next-line no-await-in-loop
-      const purchaseResult = await managePurchaseRequests({
-        page,
-        size: 100,
-        status: 'APPROVED',
-      });
-
-      allApprovedRequests.push(...purchaseResult.purchaseRequests);
-
-      hasMore = purchaseResult.hasNextPage;
-      page += 1;
-
-      // 무한 루프 방지 (최대 100페이지)
-      if (page > 100) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.warn('[getBudget] 승인된 구매 요청이 너무 많아 일부만 계산합니다.');
-        }
-        break;
-      }
-    }
-
-    // 현재 월에 승인된 구매 요청만 필터링하여 지출액 합산
-    monthlySpending = allApprovedRequests
-      .filter((request) => {
-        // approver가 있으면 승인된 것으로 간주하고 updatedAt을 승인일로 사용
-        if (!request.approver?.id) return false;
-
-        const approvedDate = new Date(request.updatedAt);
-        return approvedDate >= startOfMonth && approvedDate <= endOfMonth;
-      })
-      .reduce((sum, request) => {
-        const totalPrice = request.totalPrice || 0;
-        const shippingFee = request.shippingFee || 0;
-        return sum + totalPrice + shippingFee;
-      }, 0);
-  } catch (error) {
-    // 월별 지출액 계산 실패 시 0으로 처리 (예산 정보는 표시)
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[getBudget] 월별 지출액 계산 실패:', error);
-    }
-    monthlySpending = 0;
-  }
-
-  const remainingBudget = budget - monthlySpending;
-
-  // 실제 API 응답 구조 확인을 위한 로깅
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[getBudget] 예산 정보:', {
-      budget,
-      monthlySpending,
-      remainingBudget,
-      currentYear,
-      currentMonth,
-    });
-  }
-
-  return {
-    budget,
-    monthlySpending,
-    remainingBudget,
+  // PurchaseDashboardResponse를 GetBudgetResponse로 변환
+  const budgetResponse: GetBudgetResponse = {
+    budget: dashboard.budget.thisMonthBudget, // 이번 달 예산
+    monthlySpending: dashboard.expenses.thisMonth, // 이번 달 지출액
+    remainingBudget: dashboard.budget.remainingBudget, // 남은 예산
+    spendingPercentage, // 진행률 (계산)
+    lastMonthBudget: 0, // 지난 달 예산 (백엔드에서 제공하지 않음)
+    lastMonthSpending: dashboard.expenses.lastMonth, // 지난 달 지출액
+    lastBudget: 0, // 지난 달 남은 예산 (백엔드에서 제공하지 않음)
+    thisYearTotalSpending: dashboard.expenses.thisYear, // 올해 총 지출액
+    lastYearTotalSpending: dashboard.expenses.lastYear, // 작년 총 지출액
   };
+
+  return budgetResponse;
 }

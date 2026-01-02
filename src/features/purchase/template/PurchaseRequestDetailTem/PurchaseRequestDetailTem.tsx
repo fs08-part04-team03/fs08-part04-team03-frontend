@@ -4,6 +4,7 @@ import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import { PurchaseRequestDetailTopOrg } from '@/features/purchase/components/PurchaseRequestDetailTopOrg/PurchaseRequestDetailTopOrg';
 import PurchaseRequestDetailOrg from '@/features/purchase/components/PurchaseRequestDetailOrg/PurchaseRequestDetailOrg';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
+import { getApiUrl } from '@/utils/api';
 import PurchaseRequestDetailActionsOrg from '../../components/PurchaseRequestDetailActionsOrg/PurchaseRequestDetailActionsOrg';
 
 interface PurchaseRequestDetailTemProps {
@@ -77,6 +78,7 @@ const PurchaseRequestDetailTem = ({
         title: item.products.name,
         price: item.priceSnapshot,
         quantity: item.quantity,
+        imageSrc: item.products.image ? `${getApiUrl()}/uploads/${item.products.image}` : undefined,
       };
     }),
     deliveryFee: purchaseRequest.shippingFee,

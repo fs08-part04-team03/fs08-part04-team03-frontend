@@ -15,6 +15,9 @@ interface PurchaseHistoryTemProps {
   lastMonthSpending: number;
   thisYearTotalSpending: number;
   lastYearTotalSpending: number;
+  spendingPercentage?: number; // 백엔드에서 계산된 진행률
+  currentBudget?: number; // 백엔드에서 계산된 남은 예산
+  lastBudget?: number; // 백엔드에서 계산된 지난 달 남은 예산
   selectedSort?: Option;
   onSortChange?: (option: Option) => void;
 
@@ -33,6 +36,9 @@ export const PurchaseHistoryTem = ({
   lastMonthSpending,
   thisYearTotalSpending,
   lastYearTotalSpending,
+  spendingPercentage,
+  currentBudget,
+  lastBudget,
   selectedSort,
   onSortChange,
   items,
@@ -61,6 +67,9 @@ export const PurchaseHistoryTem = ({
         lastMonthSpending={lastMonthSpending}
         thisYearTotalSpending={thisYearTotalSpending}
         lastYearTotalSpending={lastYearTotalSpending}
+        spendingPercentage={spendingPercentage}
+        currentBudget={currentBudget}
+        lastBudget={lastBudget}
         selectedSort={selectedSort}
         onSortChange={onSortChange}
       />

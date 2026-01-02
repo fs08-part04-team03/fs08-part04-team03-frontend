@@ -6,11 +6,20 @@ import { clsx } from '@/utils/clsx';
 import DropDown, { Option } from '@/components/atoms/DropDown/DropDown';
 import Button from '@/components/atoms/Button/Button';
 import InputField from '@/components/molecules/InputField/InputField';
+import { CHILD_CATEGORIES, PARENT_CATEGORIES } from '@/constants/categories/categories.constants';
+
+export interface ProductEditFormData {
+  name: string;
+  price: number;
+  link: string;
+  categoryId: number;
+  image?: string;
+}
 
 interface ProductEditModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (data: ProductEditFormData) => void | Promise<void>;
 
   initialName: string;
   initialPrice: string;
@@ -19,6 +28,25 @@ interface ProductEditModalProps {
   initialCategory: Option | null;
   initialSubCategory: Option | null;
 }
+
+/**
+ * 카테고리 키를 숫자 ID로 변환하는 함수
+ * @param key - 카테고리 키 (예: 'snack-cookie', '1')
+ * @returns 숫자 ID (소분류 우선, 없으면 대분류 ID, 없으면 0)
+ */
+const getCategoryIdByKey = (key: string | null | undefined): number => {
+  if (!key) return 0;
+
+  // 소분류에서 찾기
+  const childCategory = CHILD_CATEGORIES.find((cat) => cat.key === key);
+  if (childCategory) return childCategory.id;
+
+  // 대분류에서 찾기
+  const parentCategory = PARENT_CATEGORIES.find((cat) => cat.key === key || String(cat.id) === key);
+  if (parentCategory) return parentCategory.id;
+
+  return 0;
+};
 
 const categories: Option[] = [
   { key: '1', label: '스낵' },
@@ -188,7 +216,44 @@ const ProductEditModal = ({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
-    onSubmit();
+
+    // 카테고리 키를 숫자 ID로 변환
+    const categoryId = getCategoryIdByKey(selectedSubCategory?.key ?? selectedCategory?.key);
+
+    if (!categoryId) {
+      setErrors((prev) => ({ ...prev, category: '카테고리를 선택해주세요.' }));
+      return;
+    }
+
+    const formData: ProductEditFormData = {
+      name: productName.trim(),
+      price: Number(price.replace(/,/g, '')),
+      link: link.trim(),
+      categoryId,
+    };
+
+    // 이미지가 새로 업로드된 경우 (preview가 blob URL인 경우)
+    if (preview && preview.startsWith('blob:') && previewUrlRef.current) {
+      // 파일명 추출 (실제로는 서버에 업로드 후 파일명을 받아야 함)
+      const fileName = `product_${Date.now()}.jpg`;
+      formData.image = fileName;
+    } else if (
+      preview &&
+      preview === initialImage &&
+      initialImage &&
+      !initialImage.includes('no-image')
+    ) {
+      // 기존 이미지 유지 (URL에서 파일명 추출)
+      const urlParts = initialImage.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      if (fileName) {
+        formData.image = fileName;
+      }
+    }
+
+    Promise.resolve(onSubmit(formData)).catch(() => {
+      // 에러는 상위에서 처리됨
+    });
   };
 
   const isValid =

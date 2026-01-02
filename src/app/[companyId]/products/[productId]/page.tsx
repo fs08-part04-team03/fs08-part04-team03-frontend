@@ -1,13 +1,10 @@
 import type { Metadata } from 'next';
+import ProductDetailSection from '@/features/products/section/ProductDetailSection';
 
 export const metadata: Metadata = {
   title: '상품 상세',
 };
 
-const ProductDetailPage = () => (
-  <div>
-    <p>ProductDetailPage — 상품 상세 페이지</p>
-  </div>
-);
+const ProductDetailPage = () => <ProductDetailSection />;
 
 export default ProductDetailPage;
