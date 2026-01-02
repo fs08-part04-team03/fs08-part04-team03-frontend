@@ -50,9 +50,6 @@ export interface PurchaseRequestListTemProps {
   sortOptions?: Option[];
   selectedSortOption?: Option;
   onSortChange?: (sort: string | undefined) => void;
-  statusOptions?: Option[];
-  selectedStatusOption?: Option;
-  onStatusChange?: (status: string | undefined) => void;
 }
 
 interface PurchaseRequestTableRowProps {
@@ -197,9 +194,6 @@ const PurchaseRequestListTem = ({
   sortOptions,
   selectedSortOption,
   onSortChange,
-  statusOptions: _statusOptions,
-  selectedStatusOption: _selectedStatusOption,
-  onStatusChange: _onStatusChange,
 }: PurchaseRequestListTemProps) => {
   const finalTotalPages = totalPages ?? 1;
 

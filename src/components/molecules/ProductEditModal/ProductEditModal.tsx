@@ -251,8 +251,11 @@ const ProductEditModal = ({
       }
     }
 
-    Promise.resolve(onSubmit(formData)).catch(() => {
-      // 에러는 상위에서 처리됨
+    Promise.resolve(onSubmit(formData)).catch((error) => {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[ProductEditModal] 제출 실패:', error);
+      }
     });
   };
 

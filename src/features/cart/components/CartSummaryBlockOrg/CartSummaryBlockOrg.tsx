@@ -165,6 +165,7 @@ const CartSummaryBlockOrg = ({
         // purchase ID가 없으면 장바구니로 이동
         router.push(`/${companyId}/cart`);
       }
+      setIsPurchasing(false);
     } catch (error) {
       console.error(error);
       setErrorMessage('긴급 구매 요청에 실패했습니다.');
