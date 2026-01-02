@@ -40,12 +40,15 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
   const hasMore = visibleCount < items.length;
   const visibleItems = items.slice(0, visibleCount);
 
+  /** 읽지 않은 알림 개수 */
+  const unreadCount = items.filter((item) => !(item.isRead ?? false)).length;
+
   useEffect(() => {
     if (open) {
       setVisibleCount(PAGE_SIZE);
       setItems(sortByRead(notifications));
     }
-    return undefined; // ✅ consistent-return
+    return undefined;
   }, [open, notifications]);
 
   useEffect(() => {
@@ -85,9 +88,17 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
     );
   };
 
+  /**
+   * 삭제 시 visibleCount가 실제 아이템 수를 초과하지 않도록 보정
+   */
   const handleDelete = (id: NotificationItem['id']) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-    setVisibleCount((prev) => Math.max(PAGE_SIZE, prev - 1));
+    setItems((prevItems) => {
+      const filtered = prevItems.filter((item) => item.id !== id);
+
+      setVisibleCount((prevVisible) => Math.max(0, Math.min(prevVisible - 1, filtered.length)));
+
+      return filtered;
+    });
   };
 
   return (
@@ -95,7 +106,7 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
       {/* Notification Button */}
       <div
         className={clsx(
-          'inline-flex items-center justify-center',
+          'relative inline-flex items-center justify-center',
           sizeClass[size],
           'rounded-full cursor-pointer',
           'hover:bg-gray-100 active:bg-gray-200',
@@ -104,6 +115,7 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
         )}
         role="button"
         tabIndex={0}
+        aria-label={`알림${unreadCount > 0 ? `, 읽지 않은 알림 ${unreadCount}개` : ''}`}
         onClick={() => setOpen((prev) => !prev)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -119,6 +131,23 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
           height={size}
           aria-hidden="true"
         />
+
+        {/* Unread Badge */}
+        {unreadCount > 0 && (
+          <span
+            className={clsx(
+              'absolute -top-2 -right-2',
+              'min-w-20 h-20 px-4',
+              'rounded-full',
+              'bg-red-500 text-white',
+              'text-12 font-bold',
+              'flex items-center justify-center'
+            )}
+            aria-hidden="true"
+          >
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
       </div>
 
       {open && (
@@ -198,6 +227,7 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
 
                           <button
                             type="button"
+                            aria-label="알림 삭제"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(item.id);
