@@ -91,7 +91,7 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
 
   /**
    * 삭제 시 visibleCount 보정
-   * etState 중첩 제거
+   * setState 중첩 제거
    */
   const handleDelete = (id: NotificationItem['id']) => {
     const filtered = items.filter((item) => item.id !== id);
