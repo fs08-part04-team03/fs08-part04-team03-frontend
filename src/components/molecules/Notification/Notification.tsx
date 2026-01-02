@@ -44,15 +44,16 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
   const unreadCount = items.filter((item) => !(item.isRead ?? false)).length;
 
   useEffect(() => {
-    if (open) {
-      setVisibleCount(PAGE_SIZE);
-      setItems(sortByRead(notifications));
-    }
-    return undefined;
+    if (!open) return;
+
+    setVisibleCount(PAGE_SIZE);
+    setItems(sortByRead(notifications));
   }, [open, notifications]);
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open) {
+      return undefined; // ✅ consistent-return 대응
+    }
 
     const handleOutsideClick = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -89,11 +90,12 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
   };
 
   /**
-   * 삭제 시 visibleCount가 실제 아이템 수를 초과하지 않도록 보정
+   * 삭제 시 visibleCount 보정
+   * ❗ setState 중첩 호출 제거
    */
   const handleDelete = (id: NotificationItem['id']) => {
-    setItems((prevItems) => {
-      const filtered = prevItems.filter((item) => item.id !== id);
+    setItems((prev) => {
+      const filtered = prev.filter((item) => item.id !== id);
 
       setVisibleCount((prevVisible) => Math.max(0, Math.min(prevVisible - 1, filtered.length)));
 
@@ -132,7 +134,6 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
           aria-hidden="true"
         />
 
-        {/* Unread Badge */}
         {unreadCount > 0 && (
           <span
             className={clsx(
@@ -165,7 +166,7 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
           <div className="flex items-center justify-between px-34 py-25">
             <span className="text-18 font-bold text-gray-950">알림</span>
 
-            <IconButton size="md" onClick={() => setOpen(false)}>
+            <IconButton size="md" onClick={() => setOpen(false)} aria-label="알림 닫기">
               <Image
                 src="/icons/close-white.svg"
                 alt=""
