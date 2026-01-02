@@ -182,6 +182,7 @@ const Template = ({
       onChangeSort={setSelectedSort}
       selectedCategoryId={selectedCategoryId}
       onChangeCategory={setSelectedCategoryId}
+      companyId="test-company-id"
     />
   );
 };

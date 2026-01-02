@@ -100,7 +100,9 @@ const mockDetailPageProps: DetailPageLayoutProps = {
     onMenuClick: (action) => {
       console.log('menu action:', action);
     },
-    onAddToCart: () => {},
+    onAddToCart: (quantity: number) => {
+      console.log('add to cart:', quantity);
+    },
   },
 };
 
@@ -112,9 +114,9 @@ const meta: Meta<typeof MyProductDetailTem> = {
   component: MyProductDetailTem,
   tags: ['autodocs'],
   argTypes: {
-    productRole: {
-      control: 'radio',
-      options: ['user', 'manager', 'admin'],
+    canUseMenu: {
+      control: 'boolean',
+      description: 'ItemMenu 사용 가능 여부 (manager 이상)',
     },
   },
 };
@@ -127,7 +129,9 @@ type Story = StoryObj<typeof MyProductDetailTem>;
  ====================== */
 export const User: Story = {
   args: {
-    productRole: 'user',
+    canUseMenu: false,
+    productId: '1',
+    companyId: 'test-company-id',
     categorySections: mockCategorySections,
     detailPageProps: mockDetailPageProps,
   },
@@ -138,7 +142,9 @@ export const User: Story = {
  ====================== */
 export const Manager: Story = {
   args: {
-    productRole: 'manager',
+    canUseMenu: true,
+    productId: '1',
+    companyId: 'test-company-id',
     categorySections: mockCategorySections,
     detailPageProps: mockDetailPageProps,
   },
@@ -149,7 +155,9 @@ export const Manager: Story = {
  ====================== */
 export const Admin: Story = {
   args: {
-    productRole: 'admin',
+    canUseMenu: true,
+    productId: '1',
+    companyId: 'test-company-id',
     categorySections: mockCategorySections,
     detailPageProps: mockDetailPageProps,
   },

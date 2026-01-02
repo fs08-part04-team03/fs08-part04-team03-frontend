@@ -1,5 +1,6 @@
 // cart/api/cart.api.ts
 import { CART_API } from '@/constants/cart.constants';
+import { fetchWithAuth } from '@/utils/api';
 
 /* =====================
  * Types
@@ -66,27 +67,86 @@ export interface DeleteMultipleResponse {
   message: string;
 }
 
+/** POST /addToCart 응답 */
+export interface AddToCartResponse {
+  success: boolean;
+  data: CartItem;
+  message: string;
+}
+
+/** DELETE /deleteFromCart 응답 */
+export interface DeleteFromCartResponse {
+  success: boolean;
+  data: {
+    productId: number;
+  };
+  message: string;
+}
+
 /* =====================
  * API
  ===================== */
 
 export const cartApi = {
-  /** 내 장바구니 조회 */
-  getMyCart: async (page: number = 1, limit: number = 10): Promise<GetMyCartResponse> => {
-    const res = await fetch(`${CART_API.GET_MY_CART}?page=${page}&limit=${limit}`, {
-      credentials: 'include',
+  /** 장바구니에 상품 추가 */
+  addToCart: async (productId: number, quantity: number = 1): Promise<AddToCartResponse> => {
+    const response = await fetchWithAuth(CART_API.ADD_TO_CART, {
+      method: 'POST',
+      body: JSON.stringify({ productId, quantity }),
     });
 
-    let data: GetMyCartResponse;
-    try {
-      data = (await res.json()) as GetMyCartResponse;
-    } catch {
-      throw new Error('서버 응답이 유효하지 않습니다.');
+    if (!response.ok) {
+      let errorMessage = '장바구니 추가 실패';
+      try {
+        const errorData = (await response.json()) as { message?: string };
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // JSON 파싱 실패 시 기본 메시지 사용
+      }
+      throw new Error(errorMessage);
     }
 
-    if (!res.ok) {
-      throw new Error(data.message || '장바구니 조회 실패');
+    const data = (await response.json()) as AddToCartResponse;
+
+    if (!data.success || !data.data) {
+      throw new Error(data.message || '장바구니 추가 응답 형식이 올바르지 않습니다.');
     }
+
+    return data;
+  },
+
+  /** 내 장바구니 조회 */
+  getMyCart: async (page: number = 1, limit: number = 10): Promise<GetMyCartResponse> => {
+    const response = await fetchWithAuth(`${CART_API.GET_MY_CART}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      let errorMessage = '장바구니 조회 실패';
+      try {
+        const errorText = await response.text();
+        if (errorText) {
+          try {
+            const errorData = JSON.parse(errorText) as { message?: string };
+            errorMessage = errorData.message || errorMessage;
+          } catch {
+            // JSON 파싱 실패 시 텍스트 그대로 사용
+            errorMessage = errorText || errorMessage;
+          }
+        }
+      } catch {
+        // 텍스트 읽기 실패 시 기본 메시지 사용
+      }
+
+      // 401 에러의 경우 특별 처리
+      if (response.status === 401) {
+        throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    const data = (await response.json()) as GetMyCartResponse;
 
     if (!data.success || !Array.isArray(data.data)) {
       throw new Error(data.message || '장바구니 데이터 형식이 올바르지 않습니다.');
@@ -97,25 +157,17 @@ export const cartApi = {
 
   /** 장바구니 상품 수량 수정 */
   updateQuantity: async (cartItemId: string, quantity: number): Promise<UpdateQuantityResponse> => {
-    const res = await fetch(CART_API.UPDATE_QUANTITY, {
+    const response = await fetchWithAuth(CART_API.UPDATE_QUANTITY, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
       body: JSON.stringify({ cartItemId, quantity }),
     });
 
-    let data: UpdateQuantityResponse;
-    try {
-      data = (await res.json()) as UpdateQuantityResponse;
-    } catch {
-      throw new Error('서버 응답이 유효하지 않습니다.');
+    if (!response.ok) {
+      const errorData = (await response.json()) as { message?: string };
+      throw new Error(errorData.message || '수량 수정 실패');
     }
 
-    if (!res.ok) {
-      throw new Error(data.message || '수량 수정 실패');
-    }
+    const data = (await response.json()) as UpdateQuantityResponse;
 
     if (!data.success || !data.data) {
       throw new Error(data.message || '수량 수정 응답 형식이 올바르지 않습니다.');
@@ -124,27 +176,40 @@ export const cartApi = {
     return data;
   },
 
+  /** 장바구니에서 상품 삭제 */
+  deleteFromCart: async (cartItemId: string): Promise<DeleteFromCartResponse> => {
+    const response = await fetchWithAuth(CART_API.DELETE_FROM_CART, {
+      method: 'DELETE',
+      body: JSON.stringify({ cartItemId }),
+    });
+
+    if (!response.ok) {
+      const errorData = (await response.json()) as { message?: string };
+      throw new Error(errorData.message || '장바구니 삭제 실패');
+    }
+
+    const data = (await response.json()) as DeleteFromCartResponse;
+
+    if (!data.success || !data.data) {
+      throw new Error(data.message || '장바구니 삭제 응답 형식이 올바르지 않습니다.');
+    }
+
+    return data;
+  },
+
   /** 장바구니 여러 상품 삭제 */
   deleteMultiple: async (cartItemIds: string[]): Promise<DeleteMultipleResponse> => {
-    const res = await fetch(CART_API.DELETE_MULTIPLE, {
+    const response = await fetchWithAuth(CART_API.DELETE_MULTIPLE, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
       body: JSON.stringify({ cartItemIds }),
     });
 
-    let data: DeleteMultipleResponse;
-    try {
-      data = (await res.json()) as DeleteMultipleResponse;
-    } catch {
-      throw new Error('서버 응답이 유효하지 않습니다.');
+    if (!response.ok) {
+      const errorData = (await response.json()) as { message?: string };
+      throw new Error(errorData.message || '장바구니 삭제 실패');
     }
 
-    if (!res.ok) {
-      throw new Error(data.message || '장바구니 삭제 실패');
-    }
+    const data = (await response.json()) as DeleteMultipleResponse;
 
     if (!data.success || !data.data) {
       throw new Error(data.message || '장바구니 삭제 응답 형식이 올바르지 않습니다.');

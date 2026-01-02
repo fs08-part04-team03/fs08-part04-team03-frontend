@@ -44,6 +44,16 @@ export const GNBPrimaryNavDesktop = ({
 
   const items = getGNBPrimaryNavConfig(role);
 
+  // 더 구체적인 경로가 우선되도록 정렬 (긴 경로가 먼저)
+  const sortedItems = [...items].sort((a, b) => b.href.length - a.href.length);
+
+  // 활성화된 메뉴 찾기 (가장 구체적인 매칭만 활성화)
+  const activeKeys = new Set<AppRouteKey>();
+  const activeItem = sortedItems.find((item) => isNavActive(currentPath, item.href));
+  if (activeItem) {
+    activeKeys.add(activeItem.key);
+  }
+
   return (
     <nav
       aria-label="주요 페이지"
@@ -51,7 +61,7 @@ export const GNBPrimaryNavDesktop = ({
     >
       {items.map((item: GNBPrimaryNavItem) => {
         const href = item.href.replace('[companyId]', companyId);
-        const active = isNavActive(currentPath, item.href);
+        const active = activeKeys.has(item.key);
 
         return (
           <Link
@@ -173,6 +183,16 @@ export const GNBPrimaryNavSidebar = ({
   const profileHref = PATHNAME.PROFILE(companyId);
   const isProfileActive = isNavActive(currentPath, '/[companyId]/my/profile');
 
+  // 더 구체적인 경로가 우선되도록 정렬 (긴 경로가 먼저)
+  const sortedItems = [...items].sort((a, b) => b.href.length - a.href.length);
+
+  // 활성화된 메뉴 찾기 (가장 구체적인 매칭만 활성화)
+  const activeKeys = new Set<AppRouteKey>();
+  const activeItem = sortedItems.find((item) => isNavActive(currentPath, item.href));
+  if (activeItem) {
+    activeKeys.add(activeItem.key);
+  }
+
   return (
     <nav
       aria-label="주요 페이지"
@@ -181,7 +201,7 @@ export const GNBPrimaryNavSidebar = ({
       {/* 기본 네비게이션 아이템들 */}
       {items.map((item: GNBPrimaryNavItem) => {
         const href = item.href.replace('[companyId]', companyId);
-        const active = isNavActive(currentPath, item.href);
+        const active = activeKeys.has(item.key);
 
         return (
           <Link

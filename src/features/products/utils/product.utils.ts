@@ -16,6 +16,10 @@ export type BackendProduct = {
   categoryId?: number | null;
   image?: string | null;
   salesCount?: number | null;
+  link?: string | null;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export const mapBackendProductToTemplate = (p: BackendProduct): TemplateProduct => ({

@@ -8,8 +8,8 @@ import { clsx } from '@/utils/clsx';
 
 interface AccordionPanelProps {
   label: string;
-  content?: string;
-  subContent?: string;
+  content?: string | React.ReactNode;
+  subContent?: string | React.ReactNode;
   className?: string;
 }
 

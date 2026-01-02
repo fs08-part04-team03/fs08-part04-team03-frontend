@@ -8,6 +8,7 @@ import RegisteredProductOrg, {
 } from '@/features/products/components/RegisteredProductOrg/RegisteredProductOrg';
 import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBlock';
 import { clsx } from '@/utils/clsx';
+import { REGISTERED_PRODUCT_SORT_OPTIONS, DEFAULT_REGISTERED_PRODUCT_SORT } from '@/constants/sort';
 
 /** =====================
  * Props
@@ -15,15 +16,8 @@ import { clsx } from '@/utils/clsx';
 interface RegisteredProductTemProps {
   date: string;
   products: RegisteredProductOrgItem[];
-  address: string;
+  companyId: string;
 }
-
-const sortOptions: Option[] = [
-  { key: 'all', label: '전체' },
-  { key: 'latest', label: '최신순' },
-  { key: 'lowprice', label: '낮은 가격순' },
-  { key: 'highprice', label: '높은 가격순' },
-];
 
 const getPageSize = () => {
   if (typeof window === 'undefined') return 4;
@@ -31,11 +25,11 @@ const getPageSize = () => {
   return 4; // mobile & tablet
 };
 
-const RegisteredProductTem = ({ date, products, address }: RegisteredProductTemProps) => {
+const RegisteredProductTem = ({ date, products, companyId }: RegisteredProductTemProps) => {
   const totalCount = products.length;
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSort, setSelectedSort] = useState<Option>(sortOptions[0]!);
+  const [selectedSort, setSelectedSort] = useState<Option>(DEFAULT_REGISTERED_PRODUCT_SORT);
   const [pageSize, setPageSize] = useState(4);
 
   /* =====================
@@ -92,7 +86,7 @@ const RegisteredProductTem = ({ date, products, address }: RegisteredProductTemP
             'mx-auto flex items-center justify-between',
             'px-24 pt-10 pb-20 max-w-375',
             'tablet:max-w-744',
-            'desktop:max-w-1400 desktop:px-0 desktop:mt-80 desktop:mb-40'
+            'desktop:max-w-1200 desktop:px-0 desktop:mt-80 desktop:mb-40'
           )}
         >
           <h2 className="text-gray-950 font-suit text-18 font-bold tracking--0.45">
@@ -100,7 +94,7 @@ const RegisteredProductTem = ({ date, products, address }: RegisteredProductTemP
           </h2>
 
           <DropDown
-            items={sortOptions}
+            items={REGISTERED_PRODUCT_SORT_OPTIONS}
             selected={selectedSort}
             onSelect={(item) => {
               setSelectedSort(item);
@@ -121,8 +115,8 @@ const RegisteredProductTem = ({ date, products, address }: RegisteredProductTemP
         <RegisteredProductOrg
           date={date}
           products={pagedProducts}
-          address={address}
           totalCount={totalCount}
+          companyId={companyId}
         />
       </div>
 

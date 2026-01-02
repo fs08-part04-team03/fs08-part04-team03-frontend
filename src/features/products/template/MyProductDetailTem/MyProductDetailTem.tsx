@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   CategoryPanel,
   type CategoryPanelSection,
@@ -8,36 +10,28 @@ import {
 import DetailPageLayout, {
   type DetailPageLayoutProps,
 } from '@/components/organisms/DetailPageLayout/DetailPageLayout';
-import ProductEditModal from '@/components/molecules/ProductEditModal/ProductEditModal';
+import ProductEditModal, {
+  type ProductEditFormData,
+} from '@/components/molecules/ProductEditModal/ProductEditModal';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import { Option } from '@/components/atoms/DropDown/DropDown';
-
-/* =====================
- * Role
- ====================== */
-export type ProductRole = 'user' | 'manager' | 'admin';
+import { updateMyProduct, deleteMyProduct } from '@/features/products/api/products.api';
+import { useToast } from '@/hooks/useToast';
 
 /* =====================
  * Props
- ====================== */
+ * ====================== */
 interface MyProductDetailTemProps {
-  productRole: ProductRole;
   categorySections: CategoryPanelSection[];
   detailPageProps: DetailPageLayoutProps;
+  productId: string;
+  companyId: string;
+  canUseMenu: boolean;
 }
 
 /* =====================
- * Role → HeaderType 정책
- ====================== */
-const ROLE_HEADER_TYPE_MAP: Record<ProductRole, 'default' | 'simple'> = {
-  user: 'simple',
-  manager: 'default',
-  admin: 'default',
-};
-
-/* =====================
  * Mock categories
- ====================== */
+ * ====================== */
 const categories: Option[] = [
   { key: '1', label: '스낵' },
   { key: '2', label: '음료' },
@@ -87,13 +81,16 @@ const subCategories: Option[] = [
 
 /* =====================
  * MyProductDetailTem
- ====================== */
+ * ====================== */
 const MyProductDetailTem = ({
-  productRole,
   categorySections,
   detailPageProps,
+  productId,
+  companyId,
+  canUseMenu,
 }: MyProductDetailTemProps) => {
-  const headerType = ROLE_HEADER_TYPE_MAP[productRole];
+  // type을 전달하지 않으면 ProductDetailHeader에서 역할에 따라 자동 결정
+  // canUseMenu는 이미 MyProductDetailSection에서 계산되어 전달됨
 
   const initialSelectedCategory = useMemo(() => {
     const lastLabel =
@@ -113,6 +110,10 @@ const MyProductDetailTem = ({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { triggerToast } = useToast();
+
   const initialCategoryOption = useMemo(() => {
     const label = detailPageProps.breadcrumbItems?.[0]?.label;
     return categories.find((cat) => cat.label === label) ?? null;
@@ -122,6 +123,42 @@ const MyProductDetailTem = ({
     const label = detailPageProps.breadcrumbItems?.[1]?.label;
     return subCategories.find((sub) => sub.label === label) ?? null;
   }, [detailPageProps.breadcrumbItems]);
+
+  const initialLink = useMemo(() => {
+    const linkPanel = detailPageProps.accordionPanels?.find((panel) => panel.id === 'link');
+    if (!linkPanel || linkPanel.content === '링크 없음') {
+      return '';
+    }
+    return typeof linkPanel.content === 'string' ? linkPanel.content : '';
+  }, [detailPageProps.accordionPanels]);
+
+  const handleEditSubmit = async (data: ProductEditFormData): Promise<void> => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      await updateMyProduct(productId, data);
+      triggerToast('success', '상품이 수정되었습니다.');
+      await queryClient.invalidateQueries({ queryKey: ['myProduct', productId] });
+      await queryClient.invalidateQueries({ queryKey: ['myRegisteredProducts'] });
+      setEditModalOpen(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '상품 수정에 실패했습니다.';
+      triggerToast('error', message);
+    }
+  };
+
+  const handleDeleteConfirm = async (): Promise<void> => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      await deleteMyProduct(productId);
+      triggerToast('success', '상품이 삭제되었습니다.');
+      await queryClient.invalidateQueries({ queryKey: ['myRegisteredProducts'] });
+      setDeleteModalOpen(false);
+      router.push(`/${companyId}/products/my`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '상품 삭제에 실패했습니다.';
+      triggerToast('error', message);
+    }
+  };
 
   return (
     <div className="flex justify-center w-full desktop:mt-80">
@@ -141,12 +178,17 @@ const MyProductDetailTem = ({
                 productName: detailPageProps.productDetailHeader.productName,
                 price: detailPageProps.productDetailHeader.price,
                 purchaseCount: detailPageProps.productDetailHeader.purchaseCount,
-                type: headerType,
-                onMenuClick: (action) => {
-                  if (action === 'edit') setEditModalOpen(true);
-                  if (action === 'delete') setDeleteModalOpen(true);
-                },
+                // type을 전달하지 않으면 ProductDetailHeader에서 역할에 따라 자동 결정
+                type: undefined,
+                onMenuClick: canUseMenu
+                  ? (action) => {
+                      if (action === 'edit') setEditModalOpen(true);
+                      if (action === 'delete') setDeleteModalOpen(true);
+                    }
+                  : undefined,
               }}
+              liked={detailPageProps.liked}
+              onToggleLike={detailPageProps.onToggleLike}
             />
           </div>
         </div>
@@ -155,14 +197,10 @@ const MyProductDetailTem = ({
       <ProductEditModal
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
-        onSubmit={() => {
-          console.log('상품 수정 완료');
-          // TODO: 실제 상품 수정 API 호출
-          setEditModalOpen(false);
-        }}
+        onSubmit={handleEditSubmit}
         initialName={detailPageProps.productDetailHeader.productName}
         initialPrice={String(detailPageProps.productDetailHeader.price)}
-        initialLink=""
+        initialLink={initialLink}
         initialImage={detailPageProps.productImage?.src ?? null}
         initialCategory={initialCategoryOption}
         initialSubCategory={initialSubCategoryOption}
@@ -173,11 +211,7 @@ const MyProductDetailTem = ({
         type="delete"
         productName={detailPageProps.productDetailHeader.productName}
         onClose={() => setDeleteModalOpen(false)}
-        onConfirm={() => {
-          console.log('상품 삭제 완료');
-          // TODO: 실제 상품 삭제 API 호출
-          setDeleteModalOpen(false);
-        }}
+        onConfirm={handleDeleteConfirm}
       />
     </div>
   );

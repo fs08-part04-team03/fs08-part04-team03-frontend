@@ -70,14 +70,6 @@ const sortOptions: Option[] = [
   { key: 'PRICE_HIGH', label: '높은 가격순' },
 ];
 
-const statusOptions: Option[] = [
-  { key: 'ALL', label: '전체' },
-  { key: 'PENDING', label: '대기중' },
-  { key: 'APPROVED', label: '승인됨' },
-  { key: 'REJECTED', label: '반려됨' },
-  { key: 'CANCELLED', label: '취소됨' },
-];
-
 export const Default: Story = {
   args: {
     purchaseList: [
@@ -88,8 +80,6 @@ export const Default: Story = {
     companyId: 'company-123',
     sortOptions,
     selectedSortOption: sortOptions[0],
-    statusOptions,
-    selectedStatusOption: statusOptions[0],
     currentPage: 1,
     totalPages: 1,
     budget: 2000000,
@@ -135,10 +125,6 @@ export const Default: Story = {
     onSortChange: (sort) => {
       // eslint-disable-next-line no-console
       console.log('정렬 변경:', sort);
-    },
-    onStatusChange: (status) => {
-      // eslint-disable-next-line no-console
-      console.log('상태 변경:', status);
     },
   },
   parameters: {
@@ -157,8 +143,6 @@ export const EmptyList: Story = {
     companyId: 'company-123',
     sortOptions,
     selectedSortOption: sortOptions[0],
-    statusOptions,
-    selectedStatusOption: statusOptions[0],
     currentPage: 1,
     totalPages: 1,
     budget: 2000000,
@@ -204,10 +188,6 @@ export const EmptyList: Story = {
     onSortChange: (sort) => {
       // eslint-disable-next-line no-console
       console.log('정렬 변경:', sort);
-    },
-    onStatusChange: (status) => {
-      // eslint-disable-next-line no-console
-      console.log('상태 변경:', status);
     },
   },
   parameters: {
@@ -231,8 +211,6 @@ export const WithPagination: Story = {
     companyId: 'company-123',
     sortOptions,
     selectedSortOption: sortOptions[0],
-    statusOptions,
-    selectedStatusOption: statusOptions[0],
     currentPage: 2,
     totalPages: 5,
     budget: 2000000,
@@ -279,10 +257,6 @@ export const WithPagination: Story = {
       // eslint-disable-next-line no-console
       console.log('정렬 변경:', sort);
     },
-    onStatusChange: (status) => {
-      // eslint-disable-next-line no-console
-      console.log('상태 변경:', status);
-    },
   },
   parameters: {
     docs: {
@@ -309,14 +283,11 @@ export const Interactive: Story = {
         companyId={args.companyId}
         sortOptions={args.sortOptions}
         selectedSortOption={args.selectedSortOption}
-        statusOptions={args.statusOptions}
-        selectedStatusOption={args.selectedStatusOption}
         currentPage={args.currentPage}
         totalPages={args.totalPages}
         budget={args.budget}
         onPageChange={args.onPageChange}
         onSortChange={args.onSortChange}
-        onStatusChange={args.onStatusChange}
         selectedRequestId={selectedRequestId}
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}
@@ -379,8 +350,6 @@ export const Interactive: Story = {
     companyId: 'company-123',
     sortOptions,
     selectedSortOption: sortOptions[0],
-    statusOptions,
-    selectedStatusOption: statusOptions[0],
     currentPage: 1,
     totalPages: 1,
     budget: 2000000,
@@ -391,10 +360,6 @@ export const Interactive: Story = {
     onSortChange: (sort) => {
       // eslint-disable-next-line no-console
       console.log('정렬 변경:', sort);
-    },
-    onStatusChange: (status) => {
-      // eslint-disable-next-line no-console
-      console.log('상태 변경:', status);
     },
   },
   parameters: {

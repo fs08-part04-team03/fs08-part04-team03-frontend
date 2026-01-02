@@ -38,13 +38,13 @@ export const UserProfileMobile: React.FC<UserProfileBaseProps> = ({
   </Link>
 );
 
-// 태블릿 전용
+// 태블릿 전용 (아바타만 표시)
 export const UserProfileTablet: React.FC<UserProfileBaseProps> = ({
   name,
-  company,
   avatarSrc,
   profileHref = '/me/profile',
   className,
+  company: _company, // 태블릿에서 사용하지 않지만 props 타입 일관성을 위해 유지
 }) => (
   <Link
     href={profileHref}
@@ -52,12 +52,6 @@ export const UserProfileTablet: React.FC<UserProfileBaseProps> = ({
     className={clsx('flex items-center gap-8 hover:opacity-80 transition-opacity', className)}
   >
     <Avatar src={avatarSrc} alt={name} name={name} size={32} />
-    <div className={clsx('flex flex-col leading-tight')}>
-      <span className={clsx('text-14 font-normal text-gray-900')}>{name}</span>
-      <span className={clsx('text-12 font-normal text-gray-900 truncate max-w-120')}>
-        {company.name}
-      </span>
-    </div>
   </Link>
 );
 
