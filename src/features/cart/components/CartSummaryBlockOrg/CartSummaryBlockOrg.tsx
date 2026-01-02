@@ -159,16 +159,27 @@ const CartSummaryBlockOrg = ({
       triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
 
       // Order Completed 페이지로 이동
-      if (companyId && result?.id) {
-        router.push(`/${companyId}/order/completed?id=${result.id}`);
-      } else if (companyId) {
-        // purchase ID가 없으면 장바구니로 이동
-        router.push(`/${companyId}/cart`);
+      try {
+        if (companyId && result?.id) {
+          router.push(`/${companyId}/order/completed?id=${result.id}`);
+        } else if (companyId) {
+          // purchase ID가 없으면 장바구니로 이동
+          router.push(`/${companyId}/cart`);
+        }
+      } catch (navError) {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[CartSummaryBlockOrg] 네비게이션 실패:', navError);
+        }
+        // 네비게이션 실패는 무시 (구매는 성공했으므로)
       }
-      setIsPurchasing(false);
     } catch (error) {
-      console.error(error);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[CartSummaryBlockOrg] 긴급 구매 요청 실패:', error);
+      }
       setErrorMessage('긴급 구매 요청에 실패했습니다.');
+    } finally {
       setIsPurchasing(false);
     }
   };

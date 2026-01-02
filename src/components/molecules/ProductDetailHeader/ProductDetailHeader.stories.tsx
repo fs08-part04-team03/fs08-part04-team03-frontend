@@ -22,6 +22,10 @@ const withAuth = (role: UserRole | null) => {
       } else {
         useAuthStore.getState().clearAuth();
       }
+
+      return () => {
+        useAuthStore.getState().clearAuth();
+      };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

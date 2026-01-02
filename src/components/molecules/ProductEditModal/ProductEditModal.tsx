@@ -256,6 +256,8 @@ const ProductEditModal = ({
         // eslint-disable-next-line no-console
         console.error('[ProductEditModal] 제출 실패:', error);
       }
+      // 에러를 상위로 전파하여 호출자가 처리할 수 있도록 함
+      throw error;
     });
   };
 

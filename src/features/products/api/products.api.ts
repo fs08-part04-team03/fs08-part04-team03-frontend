@@ -53,7 +53,10 @@ const getCategoryLabel = (categoryId: number | null | undefined): string => {
 
     return `${parentCategory.name} > ${childCategory.name}`;
   } catch (error) {
-    console.error('[getCategoryLabel] 카테고리 라벨 생성 오류:', error, { categoryId });
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('[getCategoryLabel] 카테고리 라벨 생성 오류:', error, { categoryId });
+    }
     return '미분류';
   }
 };
