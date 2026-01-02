@@ -52,7 +52,7 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
 
   useEffect(() => {
     if (!open) {
-      return undefined; // ✅ consistent-return 대응
+      return undefined; // consistent-return 대응
     }
 
     const handleOutsideClick = (e: MouseEvent) => {
@@ -91,16 +91,12 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
 
   /**
    * 삭제 시 visibleCount 보정
-   * ❗ setState 중첩 호출 제거
+   * etState 중첩 제거
    */
   const handleDelete = (id: NotificationItem['id']) => {
-    setItems((prev) => {
-      const filtered = prev.filter((item) => item.id !== id);
-
-      setVisibleCount((prevVisible) => Math.max(0, Math.min(prevVisible - 1, filtered.length)));
-
-      return filtered;
-    });
+    const filtered = items.filter((item) => item.id !== id);
+    setItems(filtered);
+    setVisibleCount((prev) => Math.min(prev, filtered.length));
   };
 
   return (
