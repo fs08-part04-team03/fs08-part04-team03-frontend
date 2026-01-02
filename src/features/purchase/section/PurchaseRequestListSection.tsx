@@ -12,7 +12,6 @@ import {
 import PurchaseRequestListTem from '@/features/purchase/template/PurchaseRequestListTem/PurchaseRequestListTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import {
-  PURCHASE_REQUEST_STATUS_OPTIONS,
   QUERY_STALE_TIME_BUDGET,
   SUCCESS_MESSAGES,
   PURCHASE_ERROR_MESSAGES,
@@ -39,7 +38,6 @@ const PurchaseRequestListSection = () => {
     params: paginationParams,
     handlePageChange,
     handleSortChange,
-    handleStatusChange,
   } = usePaginationParams({ defaultSize: 6, defaultSortKey: DEFAULT_SORT_KEY });
 
   const { page, size, status, sort } = paginationParams;
@@ -55,11 +53,6 @@ const PurchaseRequestListSection = () => {
     sort && sort !== DEFAULT_SORT_KEY
       ? COMMON_SORT_OPTIONS.find((opt) => opt.key === sort)
       : COMMON_SORT_OPTIONS.find((opt) => opt.key === DEFAULT_SORT_KEY);
-
-  const selectedStatusOption =
-    effectiveStatus && effectiveStatus !== 'ALL'
-      ? PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === effectiveStatus)
-      : PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === 'PENDING');
 
   const {
     data,
@@ -274,9 +267,6 @@ const PurchaseRequestListSection = () => {
         sortOptions={COMMON_SORT_OPTIONS}
         selectedSortOption={selectedSortOption}
         onSortChange={handleSortChange}
-        statusOptions={PURCHASE_REQUEST_STATUS_OPTIONS}
-        selectedStatusOption={selectedStatusOption}
-        onStatusChange={handleStatusChange}
         onNavigateToProducts={handleProductNavigation}
       />
       {/* Toast */}
