@@ -11,6 +11,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
     name: '코카콜라 제로',
     price: 2000,
     imageSrc: '/images/sample/coke-zero.png',
+    link: 'https://www.coca-cola.com/products/coke-zero',
   },
   {
     id: 2,
@@ -18,6 +19,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
     name: '아메리카노',
     price: 4500,
     imageSrc: '/images/sample/americano.png',
+    link: 'https://www.starbucks.com/products/americano',
   },
   {
     id: 3,
@@ -25,6 +27,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
     name: '서울우유 1L',
     price: 3200,
     imageSrc: '/images/sample/milk.png',
+    link: 'https://www.seoulmilk.co.kr/products/milk-1l',
   },
 ];
 
@@ -116,15 +119,15 @@ Product List 내부는 다음 순서로 구성됩니다.
       control: 'object',
       description: '해당 날짜에 등록된 상품 목록',
     },
-    address: {
+    companyId: {
       control: 'text',
-      description: '상품 등록 출처 주소',
+      description: '회사 ID',
     },
   },
   args: {
     date: '2024.07.04',
     products: mockProducts,
-    address: 'www.codeit.kr',
+    companyId: 'test-company-id',
     totalCount: mockProducts.length,
   },
 };

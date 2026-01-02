@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
 import Button from '@/components/atoms/Button/Button';
 import OrderItemCard from '@/components/molecules/OrderItemCard/OrderItemCard';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
+import { useToast } from '@/hooks/useToast';
 
 import { purchaseNow, urgentRequestPurchase } from '@/features/purchase/api/purchase.api';
 
@@ -30,6 +33,7 @@ interface CartSummaryBlockOrgProps {
   onSubmit?: (cartItemIds: string[]) => void;
   onGoBudgetManage?: () => void;
   onQuantityChange?: (cartItemId: string, quantity: number) => void;
+  onContinueShopping?: () => void;
 }
 
 const CartSummaryBlockOrg = ({
@@ -41,7 +45,13 @@ const CartSummaryBlockOrg = ({
   onSubmit,
   onGoBudgetManage,
   onQuantityChange,
+  onContinueShopping,
 }: CartSummaryBlockOrgProps) => {
+  const router = useRouter();
+  const params = useParams();
+  const queryClient = useQueryClient();
+  const { triggerToast } = useToast();
+  const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
   const [showBudgetToast, setShowBudgetToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -135,18 +145,39 @@ const CartSummaryBlockOrg = ({
 
     try {
       setIsPurchasing(true);
-      await Promise.all(
-        selectedItems.map((item) =>
-          urgentRequestPurchase({
-            productId: String(item.productId),
-            quantity: item.quantity,
-            reason: '긴급 구매 요청',
-          })
-        )
-      );
-      onSubmit?.(checkedIds);
+      const result = await urgentRequestPurchase({
+        items: selectedItems.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        shippingFee: 0,
+        requestMessage: '긴급 구매 요청',
+      });
+
+      // 장바구니 무효화
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+      triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
+
+      // Order Completed 페이지로 이동
+      try {
+        if (companyId && result?.id) {
+          router.push(`/${companyId}/order/completed?id=${result.id}`);
+        } else if (companyId) {
+          // purchase ID가 없으면 장바구니로 이동
+          router.push(`/${companyId}/cart`);
+        }
+      } catch (navError) {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[CartSummaryBlockOrg] 네비게이션 실패:', navError);
+        }
+        // 네비게이션 실패는 무시 (구매는 성공했으므로)
+      }
     } catch (error) {
-      console.error(error);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[CartSummaryBlockOrg] 긴급 구매 요청 실패:', error);
+      }
       setErrorMessage('긴급 구매 요청에 실패했습니다.');
     } finally {
       setIsPurchasing(false);
@@ -247,7 +278,7 @@ const CartSummaryBlockOrg = ({
               배송비는 {shippingFee.toLocaleString()}원입니다.
             </p>
 
-            {cartRole !== 'user' && (
+            {cartRole !== 'user' && budget > 0 && (
               <p className="font-bold text-18 tracking--0.45 text-gray-700">
                 {isBudgetExceeded ? '전체 예산 금액' : '남은 예산 금액'}{' '}
                 <PriceText value={isBudgetExceeded ? budget : remainBudget} />
@@ -264,6 +295,7 @@ const CartSummaryBlockOrg = ({
               variant="secondary"
               className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
               inactive={loading || isPurchasing} // 🔹 로딩 시 비활성화
+              onClick={onContinueShopping}
             >
               계속 쇼핑하기
             </Button>

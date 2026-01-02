@@ -13,6 +13,7 @@ import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
 import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
+import { getApiUrl } from '@/utils/api';
 
 const TABLE_CELL_BASE_STYLES = {
   header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 pl-20',
@@ -49,9 +50,6 @@ export interface PurchaseRequestListTemProps {
   sortOptions?: Option[];
   selectedSortOption?: Option;
   onSortChange?: (sort: string | undefined) => void;
-  statusOptions?: Option[];
-  selectedStatusOption?: Option;
-  onStatusChange?: (status: string | undefined) => void;
 }
 
 interface PurchaseRequestTableRowProps {
@@ -153,15 +151,17 @@ const PurchaseRequestTableRowDesktop = ({
           <>
             <Button
               variant="secondary"
+              size="sm"
               onClick={handleRejectClick}
-              className="w-60 py-8 px-0 text-12"
+              className="w-60 py-8 px-0 text-10!"
             >
               반려
             </Button>
             <Button
               variant="primary"
+              size="sm"
               onClick={handleApproveClick}
-              className="w-60 py-8 px-0 text-12"
+              className="w-60 py-8 px-0 text-10!"
             >
               승인
             </Button>
@@ -194,9 +194,6 @@ const PurchaseRequestListTem = ({
   sortOptions,
   selectedSortOption,
   onSortChange,
-  statusOptions,
-  selectedStatusOption,
-  onStatusChange,
 }: PurchaseRequestListTemProps) => {
   const finalTotalPages = totalPages ?? 1;
 
@@ -230,6 +227,7 @@ const PurchaseRequestListTem = ({
         title: item.products.name,
         price: item.priceSnapshot,
         quantity: item.quantity,
+        imageSrc: item.products.image ? `${getApiUrl()}/uploads/${item.products.image}` : undefined,
       })),
       deliveryFee: selectedRequest.shippingFee,
       budget,
@@ -269,19 +267,6 @@ const PurchaseRequestListTem = ({
               <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
                 <p>구매 요청 내역</p>
                 <div className="flex items-center gap-12">
-                  {statusOptions && (
-                    <div className="relative z-dropdown">
-                      <DropDown
-                        items={statusOptions}
-                        placeholder="전체"
-                        selected={selectedStatusOption}
-                        onSelect={(option) => {
-                          const status = option.key === 'ALL' ? undefined : option.key;
-                          onStatusChange?.(status);
-                        }}
-                      />
-                    </div>
-                  )}
                   {sortOptions && (
                     <div className="relative z-dropdown">
                       <DropDown
@@ -305,19 +290,6 @@ const PurchaseRequestListTem = ({
               <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
                 <p>구매 요청 내역</p>
                 <div className="flex items-center gap-12">
-                  {statusOptions && (
-                    <div className="relative z-dropdown">
-                      <DropDown
-                        items={statusOptions}
-                        placeholder="전체"
-                        selected={selectedStatusOption}
-                        onSelect={(option) => {
-                          const status = option.key === 'ALL' ? undefined : option.key;
-                          onStatusChange?.(status);
-                        }}
-                      />
-                    </div>
-                  )}
                   {sortOptions && (
                     <div className="relative z-dropdown">
                       <DropDown

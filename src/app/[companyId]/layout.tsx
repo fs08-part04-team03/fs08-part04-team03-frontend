@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 import AuthGuard from '@/components/auth/AuthGuard';
 import HeaderShell from '@/components/organisms/HeaderShell/HeaderShell';
-import { getApiUrl } from '@/utils/api';
+import { getApiUrl, getApiTimeout } from '@/utils/api';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -44,40 +44,57 @@ async function fetchMyCompany(): Promise<Company> {
 
   try {
     const apiUrl = getApiUrl();
+    const timeout = getApiTimeout();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    const response = await fetch(`${apiUrl}/api/v1/company`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      // 서버 컴포넌트 캐시 비활성화
-      cache: 'no-store',
-    });
+    try {
+      const response = await fetch(`${apiUrl}/api/v1/company`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        // 서버 컴포넌트 캐시 비활성화
+        cache: 'no-store',
+        signal: controller.signal,
+      });
 
-    if (!response.ok) {
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[fetchMyCompany] API 호출 실패:', {
+            status: response.status,
+            statusText: response.statusText,
+          });
+        }
+        return { name: '회사' };
+      }
+
+      const result = (await response.json()) as CompanyApiResponse;
+
+      // API 응답 형식: { success: true, data: { id, name }, message }
+      if (result.success && result.data?.name) {
+        return { name: result.data.name };
+      }
+
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.error('[fetchMyCompany] API 호출 실패:', {
-          status: response.status,
-          statusText: response.statusText,
-        });
+        console.warn('[fetchMyCompany] 예상치 못한 응답 형식:', result);
       }
       return { name: '회사' };
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      // 네트워크 에러는 조용히 처리 (개발 환경에서만 로그)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[fetchMyCompany] fetch 실패:', fetchError);
+      }
+      // 네트워크 에러 시 기본값 반환 (사용자에게는 에러를 표시하지 않음)
+      return { name: '회사' };
     }
-
-    const result = (await response.json()) as CompanyApiResponse;
-
-    // API 응답 형식: { success: true, data: { id, name }, message }
-    if (result.success && result.data?.name) {
-      return { name: result.data.name };
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.warn('[fetchMyCompany] 예상치 못한 응답 형식:', result);
-    }
-    return { name: '회사' };
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console

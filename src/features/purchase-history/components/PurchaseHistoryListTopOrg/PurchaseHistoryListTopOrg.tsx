@@ -12,6 +12,9 @@ interface PurchaseHistoryListTopOrgProps {
   lastMonthSpending: number;
   thisYearTotalSpending: number;
   lastYearTotalSpending: number;
+  spendingPercentage?: number; // 백엔드에서 계산된 진행률
+  currentBudget?: number; // 백엔드에서 계산된 남은 예산
+  lastBudget?: number; // 백엔드에서 계산된 지난 달 남은 예산
   selectedSort?: Option;
   onSortChange?: (option: Option) => void;
 }
@@ -23,17 +26,12 @@ export const PurchaseHistoryListTopOrg = ({
   lastMonthSpending,
   thisYearTotalSpending,
   lastYearTotalSpending,
+  spendingPercentage = 0, // 백엔드에서 계산된 진행률
+  currentBudget = 0, // 백엔드에서 계산된 남은 예산
+  lastBudget = 0, // 백엔드에서 계산된 지난 달 남은 예산
   selectedSort,
   onSortChange,
 }: PurchaseHistoryListTopOrgProps) => {
-  // 진행률 계산 (지출액 / 예산 * 100)
-  const spendingPercentage =
-    thisMonthBudget > 0 ? Math.round((thisMonthSpending / thisMonthBudget) * 100) : 0;
-
-  // 남은 예산 계산 (음수 방지)
-  const currentBudget = Math.max(0, thisMonthBudget - thisMonthSpending);
-  const lastBudget = Math.max(0, lastMonthBudget - lastMonthSpending);
-
   // 작년 대비 지출 차이
   const yearOverYearDiff = thisYearTotalSpending - lastYearTotalSpending;
 

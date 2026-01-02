@@ -33,11 +33,12 @@ export const GNBWrapper: React.FC = () => {
         const company = await getCompany(accessToken);
         setCompanyName(company.name);
       } catch (error) {
+        // 네트워크 에러는 조용히 처리 (개발 환경에서만 로그)
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
           console.error('[GNBWrapper] 회사 정보 조회 실패:', error);
         }
-        // 실패 시 기본값 사용
+        // 실패 시 기본값 사용 (사용자에게는 에러를 표시하지 않음)
         setCompanyName('SNACK');
       }
     };

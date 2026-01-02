@@ -64,8 +64,15 @@ const ProductModal = ({
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Option | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<Option | null>(null);
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [touched, setTouched] = useState({
+    name: false,
+    price: false,
+    link: false,
+    category: false,
+    subCategory: false,
+  });
 
   const previewUrlRef = useRef<string | null>(null);
   const prevCategoryRef = useRef<Option | null>(null);
@@ -112,24 +119,28 @@ const ProductModal = ({
 
     if (!selectedCategory) newErrors.category = '대분류를 선택해주세요.';
     if (!selectedSubCategory) newErrors.subCategory = '소분류를 선택해주세요.';
-    if (!preview) newErrors.image = '상품 이미지를 등록해주세요.';
+    // 이미지는 선택사항이므로 검증 제거
 
     setErrors(newErrors);
     return !Object.values(newErrors).some((msg) => msg !== '');
-  }, [productName, price, link, selectedCategory, selectedSubCategory, preview]);
+  }, [productName, price, link, selectedCategory, selectedSubCategory]);
 
   const submitProduct = async (): Promise<void> => {
     if (!validate()) {
       throw new Error('유효성 검사 실패');
     }
 
-    const body = {
+    const body: Record<string, unknown> = {
       categoryId: Number(selectedSubCategory?.key ?? selectedCategory?.key ?? 0),
       name: productName.trim(),
       price: Number(price.replace(/,/g, '')),
-      image: selectedFileName ?? undefined,
       link: link.trim(),
     };
+
+    // 이미지가 있을 때만 필드 추가 (파일명만 전송)
+    if (selectedFile) {
+      body.image = selectedFile.name;
+    }
 
     setIsSubmitting(true);
 
@@ -179,7 +190,7 @@ const ProductModal = ({
       setSelectedCategory(initialCategory);
       setSelectedSubCategory(initialSubCategory);
       prevCategoryRef.current = initialCategory;
-      setSelectedFileName(null);
+      setSelectedFile(null);
       setErrors({
         name: '',
         price: '',
@@ -187,6 +198,13 @@ const ProductModal = ({
         category: '',
         subCategory: '',
         image: '',
+      });
+      setTouched({
+        name: false,
+        price: false,
+        link: false,
+        category: false,
+        subCategory: false,
       });
     }
   }, [
@@ -210,11 +228,7 @@ const ProductModal = ({
     prevCategoryRef.current = selectedCategory;
   }, [selectedCategory]);
 
-  useEffect(() => {
-    if (open) {
-      validate();
-    }
-  }, [open, validate]);
+  // 모달이 열릴 때 자동으로 validate하지 않음 (사용자가 입력하거나 submit 시에만 검증)
 
   useEffect(() => {
     if (!open && previewUrlRef.current) {
@@ -227,6 +241,14 @@ const ProductModal = ({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // submit 시 모든 필드를 touched로 표시
+    setTouched({
+      name: true,
+      price: true,
+      link: true,
+      category: true,
+      subCategory: true,
+    });
     if (!validate()) return;
 
     submitProduct()
@@ -242,7 +264,6 @@ const ProductModal = ({
     productName.trim() &&
     price.trim() &&
     link.trim() &&
-    preview &&
     selectedCategory &&
     selectedSubCategory &&
     Object.values(errors).every((msg) => msg === '');
@@ -270,7 +291,7 @@ const ProductModal = ({
           <div
             className={clsx(
               'w-140 h-140 border rounded-8 flex items-center justify-center overflow-hidden cursor-pointer relative',
-              preview ? 'border-gray-300' : 'border-red-500'
+              'border-gray-300'
             )}
           >
             <input
@@ -284,7 +305,7 @@ const ProductModal = ({
                 const newUrl = URL.createObjectURL(file);
                 previewUrlRef.current = newUrl;
                 setPreview(newUrl);
-                setSelectedFileName(file.name);
+                setSelectedFile(file);
               }}
             />
             {preview ? (
@@ -293,7 +314,6 @@ const ProductModal = ({
               <Image src="/icons/photo-icon.svg" alt="upload" width={30} height={30} />
             )}
           </div>
-          {errors.image && <span className="text-red-500 text-12">{errors.image}</span>}
         </div>
 
         <form className="w-full flex flex-col flex-1 gap-30" onSubmit={handleSubmit}>
@@ -303,21 +323,31 @@ const ProductModal = ({
                 items={categories}
                 placeholder="대분류"
                 variant="medium"
-                buttonClassName={clsx(!selectedCategory && 'border-red-500')}
-                onSelect={setSelectedCategory}
+                buttonClassName={clsx(touched.category && !selectedCategory && 'border-red-500')}
+                onSelect={(option) => {
+                  setSelectedCategory(option);
+                  setTouched((prev) => ({ ...prev, category: true }));
+                }}
                 selected={selectedCategory || undefined}
               />
               <DropDown
                 items={filteredSubCategories}
                 placeholder="소분류"
                 variant="medium"
-                buttonClassName={clsx(!selectedSubCategory && 'border-red-500')}
-                onSelect={setSelectedSubCategory}
+                buttonClassName={clsx(
+                  touched.subCategory && !selectedSubCategory && 'border-red-500'
+                )}
+                onSelect={(option) => {
+                  setSelectedSubCategory(option);
+                  setTouched((prev) => ({ ...prev, subCategory: true }));
+                }}
                 selected={selectedSubCategory || undefined}
               />
             </div>
-            {errors.category && <span className="text-red-500 text-12">{errors.category}</span>}
-            {errors.subCategory && (
+            {touched.category && errors.category && (
+              <span className="text-red-500 text-12">{errors.category}</span>
+            )}
+            {touched.subCategory && errors.subCategory && (
               <span className="text-red-500 text-12">{errors.subCategory}</span>
             )}
           </div>
@@ -327,11 +357,16 @@ const ProductModal = ({
               label="상품명"
               placeholder="상품명을 입력해주세요"
               value={productName}
-              onChange={setProductName}
+              onChange={(value) => {
+                setProductName(value);
+                setTouched((prev) => ({ ...prev, name: true }));
+              }}
               minLength={1}
               maxLength={20}
             />
-            {errors.name && <span className="text-red-500 text-12">{errors.name}</span>}
+            {touched.name && errors.name && (
+              <span className="text-red-500 text-12">{errors.name}</span>
+            )}
           </div>
 
           <div className="w-full flex flex-col gap-1">
@@ -339,12 +374,17 @@ const ProductModal = ({
               label="가격"
               placeholder="가격을 입력해주세요"
               value={price}
-              onChange={(v) => setPrice(formatPrice(v))}
+              onChange={(v) => {
+                setPrice(formatPrice(v));
+                setTouched((prev) => ({ ...prev, price: true }));
+              }}
               type="text"
               minLength={1}
               maxLength={20}
             />
-            {errors.price && <span className="text-red-500 text-12">{errors.price}</span>}
+            {touched.price && errors.price && (
+              <span className="text-red-500 text-12">{errors.price}</span>
+            )}
           </div>
 
           <div className="w-full flex flex-col gap-1">
@@ -352,11 +392,16 @@ const ProductModal = ({
               label="제품 링크"
               placeholder="제품 링크를 입력해주세요"
               value={link}
-              onChange={setLink}
+              onChange={(value) => {
+                setLink(value);
+                setTouched((prev) => ({ ...prev, link: true }));
+              }}
               type="text"
               maxLength={50}
             />
-            {errors.link && <span className="text-red-500 text-12">{errors.link}</span>}
+            {touched.link && errors.link && (
+              <span className="text-red-500 text-12">{errors.link}</span>
+            )}
           </div>
 
           <div className="flex-1" />

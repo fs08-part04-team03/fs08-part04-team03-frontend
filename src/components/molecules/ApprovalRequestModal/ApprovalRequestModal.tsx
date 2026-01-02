@@ -13,6 +13,7 @@ interface Item {
   price: number;
   quantity: number;
   icon?: React.ReactNode;
+  imageSrc?: string;
 }
 
 type ModalAction = 'approve' | 'reject';
@@ -52,11 +53,11 @@ const ApprovalRequestModal = ({
     totalPrice: item.price * item.quantity,
     icon: (
       <Image
-        src="/images/zero-cola.svg"
+        src={item.imageSrc || '/icons/no-image-small.svg'}
         width={40}
         height={40}
-        alt="아이템 아이콘"
-        className="w-40 h-40 flex-shrink-0"
+        alt={item.title}
+        className="w-40 h-40 flex-shrink-0 object-cover"
       />
     ),
   }));

@@ -1,147 +1,175 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { requestPurchase } from '@/features/purchase/api/purchase.api';
-import type { OrderItem } from '@/features/cart/components/CartSummaryBlockOrg/CartSummaryBlockOrg';
-import { Toast } from '@/components/molecules/Toast/Toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import type {
+  OrderItem,
+  CartRole,
+} from '@/features/cart/components/CartSummaryBlockOrg/CartSummaryBlockOrg';
+import { useToast } from '@/hooks/useToast';
+import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
+import { useAuthStore } from '@/lib/store/authStore';
+import { ROLE_LEVEL } from '@/utils/auth';
+import { fetchWithAuth } from '@/utils/api';
+import { adaptCartItemToOrderItem } from '../utils/cart.utils';
 import ShoppingCartTem from '../template/ShoppingCartTem/ShoppingCartTem';
 import { cartApi } from '../api/cart.api';
-import { adaptCartItemToOrderItem } from '../utils/cart.utils';
 
 const ShoppingCartSection = () => {
-  const [items, setItems] = useState<OrderItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const params = useParams();
+  const router = useRouter();
+  const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
+  const queryClient = useQueryClient();
+  const { triggerToast } = useToast();
+  const { user } = useAuthStore();
+  const [currentPage] = useState(1);
+  const [pageSize] = useState(10);
 
-  /** 장바구니 조회 */
-  const fetchCart = async () => {
-    setIsLoading(true);
-    setErrorMessage(null); // ✅ 이전 에러 초기화
-    try {
-      const res = await cartApi.getMyCart();
-      setItems(res.data.map(adaptCartItemToOrderItem));
-    } catch (err) {
-      console.error('장바구니 조회 실패', err);
-      setErrorMessage('장바구니 조회에 실패했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // 사용자 역할에 따른 cartRole 결정
+  const cartRole: CartRole = useMemo(() => {
+    if (!user?.role) return 'user';
+    return ROLE_LEVEL[user.role] >= ROLE_LEVEL.manager ? 'manager' : 'user';
+  }, [user?.role]);
 
-  /** 초기 로드 */
-  useEffect(() => {
-    fetchCart().catch(console.error);
-  }, []);
+  // 장바구니 조회
+  const {
+    data: cartData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['cart', currentPage, pageSize],
+    queryFn: () => cartApi.getMyCart(currentPage, pageSize),
+  });
 
-  /** 수량 변경 */
-  const handleQuantityChange = async (cartItemId: string, quantity: number) => {
-    if (quantity < 1) return;
-    setIsLoading(true);
-    setErrorMessage(null); // ✅ 이전 에러 초기화
-    try {
-      await cartApi.updateQuantity(cartItemId, quantity);
-      await fetchCart();
-    } catch (err) {
-      console.error('수량 변경 실패', err);
-      setErrorMessage('수량 변경에 실패했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // 월 예산 조회 (manager만)
+  const isAdminRole = cartRole === 'manager';
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
 
-  /** 선택 삭제 */
-  const handleDeleteSelected = async (cartItemIds: string[]) => {
-    if (cartItemIds.length === 0) return;
-    setIsLoading(true);
-    setErrorMessage(null); // ✅ 이전 에러 초기화
-    try {
-      await cartApi.deleteMultiple(cartItemIds);
-      await fetchCart();
-    } catch (err) {
-      console.error('선택 삭제 실패', err);
-      setErrorMessage('선택 삭제에 실패했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /** 구매 요청 */
-  const handleSubmit = async (cartItemIds: string[]) => {
-    const selectedItems = items.filter((item) => cartItemIds.includes(item.cartItemId));
-    if (selectedItems.length === 0) return;
-
-    setIsLoading(true);
-    setErrorMessage(null); // ✅ 이전 에러 초기화
-    try {
-      const results = await Promise.all(
-        selectedItems.map(async (item) => {
-          try {
-            await requestPurchase({
-              productId: String(item.productId),
-              quantity: item.quantity,
-            });
-            return { success: true, item };
-          } catch (error) {
-            return {
-              success: false,
-              item,
-              error: error instanceof Error ? error.message : String(error),
-            };
-          }
-        })
-      );
-
-      const failedResults = results.filter(
-        (r): r is { success: false; item: OrderItem; error: string } => !r.success
-      );
-
-      if (failedResults.length > 0) {
-        console.error(
-          `${failedResults.length}건의 구매 요청 실패`,
-          failedResults.map((r) => ({
-            cartItemId: r.item.cartItemId,
-            productId: r.item.productId,
-            reason: r.error,
-          }))
-        );
-        setErrorMessage(`${failedResults.length}건의 구매 요청에 실패했습니다.`);
-      } else {
-        // ✅ 선택사항: 성공 피드백
-        console.log('모든 구매 요청이 성공했습니다.');
+  const { data: budgetData, isLoading: isBudgetLoading } = useQuery({
+    queryKey: ['budget', year, month],
+    queryFn: async () => {
+      const response = await fetchWithAuth(`/api/v1/budget?year=${year}&month=${month}`, {
+        method: 'GET',
+      });
+      if (!response.ok) {
+        return 0;
       }
+      const result = (await response.json()) as {
+        success: boolean;
+        data?: Array<{ amount: number }>;
+      };
+      // 현재 월 예산이 있으면 첫 번째 항목의 amount를 반환, 없으면 0
+      if (result.success && result.data && result.data.length > 0) {
+        const firstItem = result.data[0];
+        return firstItem ? firstItem.amount : 0;
+      }
+      return 0;
+    },
+    enabled: isAdminRole,
+    staleTime: 60 * 1000, // 1분간 캐시
+  });
 
-      await fetchCart();
-    } catch (err) {
-      console.error('구매 요청 처리 중 예외 발생', err);
-      setErrorMessage('구매 요청 처리 중 오류가 발생했습니다.');
-    } finally {
-      setIsLoading(false);
+  const budget = budgetData ?? 0;
+
+  // 수량 변경 mutation
+  const updateQuantityMutation = useMutation({
+    mutationFn: ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) =>
+      cartApi.updateQuantity(cartItemId, quantity),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+      triggerToast('success', '수량이 변경되었습니다.');
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : '수량 변경에 실패했습니다.';
+      triggerToast('error', message);
+    },
+  });
+
+  // 선택 삭제 mutation
+  const deleteMultipleMutation = useMutation({
+    mutationFn: (cartItemIds: string[]) => cartApi.deleteMultiple(cartItemIds),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+      triggerToast('success', '선택한 상품이 삭제되었습니다.');
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : '삭제에 실패했습니다.';
+      triggerToast('error', message);
+    },
+  });
+
+  // 수량 변경 핸들러
+  const handleQuantityChange = (cartItemId: string, quantity: number) => {
+    if (quantity < 1) return;
+    updateQuantityMutation.mutate({ cartItemId, quantity });
+  };
+
+  // 선택 삭제 핸들러
+  const handleDeleteSelected = (cartItemIds: string[]) => {
+    if (cartItemIds.length === 0) return;
+    deleteMultipleMutation.mutate(cartItemIds);
+  };
+
+  // 구매 요청 핸들러 - OrderPage로 이동
+  const handleSubmit = (cartItemIds: string[]) => {
+    if (cartItemIds.length === 0) {
+      triggerToast('error', '선택된 상품이 없습니다.');
+      return;
+    }
+    // 선택된 아이템 ID를 쿼리 파라미터로 전달하여 OrderPage로 이동
+    if (companyId) {
+      const itemsParam = cartItemIds.join(',');
+      router.push(`/${companyId}/order?items=${itemsParam}`);
+    }
+  };
+
+  // 로딩 상태
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>{LOADING_MESSAGES.DEFAULT}</p>
+      </div>
+    );
+  }
+
+  // 에러 상태
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>{ERROR_MESSAGES.FETCH_ERROR}</p>
+      </div>
+    );
+  }
+
+  // 데이터 변환
+  const items: OrderItem[] = cartData?.data.map(adaptCartItemToOrderItem) || [];
+
+  // 계속 쇼핑하기 핸들러
+  const handleContinueShopping = () => {
+    if (companyId) {
+      router.push(`/${companyId}/products`);
     }
   };
 
   return (
-    <>
-      <ShoppingCartTem
-        cartRole="user"
-        items={items}
-        loading={isLoading}
-        onQuantityChange={(id, qty) => {
-          handleQuantityChange(id, qty).catch(console.error);
-        }}
-        onDeleteSelected={(ids) => {
-          handleDeleteSelected(ids).catch(console.error);
-        }}
-        onSubmit={(ids) => {
-          handleSubmit(ids).catch(console.error);
-        }}
-      />
-
-      {errorMessage && (
-        <div className="fixed top-60 left-1/2 -translate-x-1/2 z-toast">
-          <Toast variant="custom" message={errorMessage} onClose={() => setErrorMessage(null)} />
-        </div>
-      )}
-    </>
+    <ShoppingCartTem
+      cartRole={cartRole}
+      items={items}
+      budget={budget}
+      loading={
+        isLoading ||
+        isBudgetLoading ||
+        updateQuantityMutation.isPending ||
+        deleteMultipleMutation.isPending
+      }
+      onQuantityChange={handleQuantityChange}
+      onDeleteSelected={handleDeleteSelected}
+      onSubmit={handleSubmit}
+      onContinueShopping={handleContinueShopping}
+    />
   );
 };
 

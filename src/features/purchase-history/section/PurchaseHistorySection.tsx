@@ -33,13 +33,16 @@ const PurchaseHistorySection = () => {
     return defaultOption || COMMON_SORT_OPTIONS[0] || { key: 'LATEST', label: '최신순' };
   });
 
-  // Budget data
+  // Budget data (백엔드에서 계산된 값)
   const [thisMonthBudget, setThisMonthBudget] = useState(0);
   const [lastMonthBudget, setLastMonthBudget] = useState(0);
   const [thisMonthSpending, setThisMonthSpending] = useState(0);
   const [lastMonthSpending, setLastMonthSpending] = useState(0);
   const [thisYearTotalSpending, setThisYearTotalSpending] = useState(0);
   const [lastYearTotalSpending, setLastYearTotalSpending] = useState(0);
+  const [spendingPercentage, setSpendingPercentage] = useState(0);
+  const [currentBudget, setCurrentBudget] = useState(0);
+  const [lastBudget, setLastBudget] = useState(0);
 
   const { user } = useAuthStore();
   const companyId = user?.companyId || '';
@@ -151,25 +154,30 @@ const PurchaseHistorySection = () => {
 
         logger.info('[PurchaseHistory] 예산 정보 조회 성공:', budgetData);
 
-        // 현재 월 데이터 (API에서 제공)
-        // NaN, undefined, null 체크 및 기본값 0 처리
-        const safeBudget = Number.isFinite(budgetData.budget) ? budgetData.budget : 0;
-        const safeSpending = Number.isFinite(budgetData.monthlySpending)
-          ? budgetData.monthlySpending
-          : 0;
-
-        setThisMonthBudget(safeBudget);
-        setThisMonthSpending(safeSpending);
-
-        // TODO: 아래 데이터는 백엔드 API에서 제공되지 않음
-        // 추후 연간/월간 지출 통계 API가 추가되면 실제 값으로 대체 필요
-        // - lastMonthBudget, lastMonthSpending: 지난 달 예산/지출
-        // - thisYearTotalSpending: 올해 1월~현재월 누적 지출
-        // - lastYearTotalSpending: 작년 동기간 누적 지출
-        setLastMonthBudget(0);
-        setLastMonthSpending(0);
-        setThisYearTotalSpending(0);
-        setLastYearTotalSpending(0);
+        // 백엔드에서 계산된 모든 값을 그대로 사용
+        setThisMonthBudget(Number.isFinite(budgetData.budget) ? budgetData.budget : 0);
+        setThisMonthSpending(
+          Number.isFinite(budgetData.monthlySpending) ? budgetData.monthlySpending : 0
+        );
+        setLastMonthBudget(
+          Number.isFinite(budgetData.lastMonthBudget) ? budgetData.lastMonthBudget : 0
+        );
+        setLastMonthSpending(
+          Number.isFinite(budgetData.lastMonthSpending) ? budgetData.lastMonthSpending : 0
+        );
+        setThisYearTotalSpending(
+          Number.isFinite(budgetData.thisYearTotalSpending) ? budgetData.thisYearTotalSpending : 0
+        );
+        setLastYearTotalSpending(
+          Number.isFinite(budgetData.lastYearTotalSpending) ? budgetData.lastYearTotalSpending : 0
+        );
+        setSpendingPercentage(
+          Number.isFinite(budgetData.spendingPercentage) ? budgetData.spendingPercentage : 0
+        );
+        setCurrentBudget(
+          Number.isFinite(budgetData.remainingBudget) ? budgetData.remainingBudget : 0
+        );
+        setLastBudget(Number.isFinite(budgetData.lastBudget) ? budgetData.lastBudget : 0);
       } catch (error) {
         logger.error('[PurchaseHistory] 예산 정보 조회 실패:', error);
         // 예산 조회 실패는 토스트를 띄우지 않음 (선택적 정보)
@@ -198,6 +206,9 @@ const PurchaseHistorySection = () => {
         lastMonthSpending={lastMonthSpending}
         thisYearTotalSpending={thisYearTotalSpending}
         lastYearTotalSpending={lastYearTotalSpending}
+        spendingPercentage={spendingPercentage}
+        currentBudget={currentBudget}
+        lastBudget={lastBudget}
         selectedSort={selectedSort}
         onSortChange={handleSortChange}
         items={items}

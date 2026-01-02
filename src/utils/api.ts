@@ -7,6 +7,32 @@ import {
 import { useAuthStore } from '@/lib/store/authStore';
 
 /**
+ * 인증 만료 에러 클래스
+ * API 응답에서 인증 만료를 감지했을 때 throw됩니다.
+ * 상위 레벨의 fetchWithAuth나 전역 인터셉터에서 catch하여 처리해야 합니다.
+ */
+export class AuthExpiredError extends Error {
+  public readonly status: number;
+
+  public readonly response: Response | null;
+
+  public readonly responseData: unknown;
+
+  constructor(
+    message: string,
+    status: number,
+    response: Response | null = null,
+    responseData: unknown = null
+  ) {
+    super(message);
+    this.name = 'AuthExpiredError';
+    this.status = status;
+    this.response = response;
+    this.responseData = responseData;
+  }
+}
+
+/**
  * API URL 가져오기 (환경 변수 또는 기본 배포 서버 URL)
  * Next.js에서 클라이언트 사이드에서 process.env 접근 시 안전하게 처리
  */
@@ -156,8 +182,10 @@ export async function fetchWithAuth(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+  const finalUrl = `${apiUrl}${url}`;
+
   try {
-    const response = await fetch(`${apiUrl}${url}`, {
+    const response = await fetch(finalUrl, {
       ...requestOptions,
       headers: {
         'Content-Type': 'application/json',
@@ -180,7 +208,7 @@ export async function fetchWithAuth(
         const retryController = new AbortController();
         const retryTimeoutId = setTimeout(() => retryController.abort(), timeout);
         try {
-          const retryResponse = await fetch(`${apiUrl}${url}`, {
+          const retryResponse = await fetch(finalUrl, {
             ...requestOptions,
             headers: {
               'Content-Type': 'application/json',
