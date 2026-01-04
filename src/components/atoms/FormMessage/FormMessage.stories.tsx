@@ -33,4 +33,3 @@ export const LongMessage: Story = {
     children: '비밀번호는 8자 이상, 영문 대소문자와 숫자를 모두 포함해야 합니다.',
   },
 };
-

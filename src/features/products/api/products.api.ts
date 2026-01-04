@@ -368,11 +368,20 @@ export async function getAllProducts(
         throw new Error(`product fetch failed: ${retryRes.status} ${retryText}`);
       }
 
+      const retryBodyText = await retryRes.text();
+      let retryParsed: GetAllProductsResponse | null = null;
+
+      try {
+        retryParsed = JSON.parse(retryBodyText) as GetAllProductsResponse;
+      } catch {
+        throw new Error('product fetch failed: invalid JSON response');
+      }
+
       if (!retryParsed) {
         throw new Error('product fetch failed: invalid JSON response');
       }
 
-      return retryParsed as GetAllProductsResponse;
+      return retryParsed;
     }
 
     throw new Error(`product fetch failed: ${res.status} ${bodyText}`);

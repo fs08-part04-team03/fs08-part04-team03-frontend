@@ -36,10 +36,23 @@ const PurchaseHistorySection = () => {
   const companyId = user?.companyId || '';
 
   // useToast 훅 사용
-  const { showToast, toastMessage, closeToast } = useToast();
+  const { showToast, toastVariant, toastMessage, closeToast } = useToast();
 
   // 드롭다운 옵션 key를 API sort 파라미터로 변환
-  const sortParam = selectedSort.key === 'LATEST' ? undefined : selectedSort.key;
+  const getSortParams = (
+    sortKey: string
+  ): { sortBy?: 'createdAt' | 'totalPrice'; order?: 'asc' | 'desc' } => {
+    if (sortKey === 'PRICE_LOW') {
+      return { sortBy: 'totalPrice', order: 'asc' };
+    }
+    if (sortKey === 'PRICE_HIGH') {
+      return { sortBy: 'totalPrice', order: 'desc' };
+    }
+    // LATEST 또는 기본값
+    return { sortBy: 'createdAt', order: 'desc' };
+  };
+
+  const sortParams = getSortParams(selectedSort.key);
 
   // 구매 내역 목록 조회 (React Query)
   const {
@@ -47,17 +60,19 @@ const PurchaseHistorySection = () => {
     isLoading: isPurchaseLoading,
     error: purchaseError,
   } = useQuery({
-    queryKey: ['purchaseHistory', sortParam],
+    queryKey: ['purchaseHistory', sortParams.sortBy, sortParams.order],
     queryFn: async () => {
       logger.info('[PurchaseHistory] 구매 내역 조회 시작:', {
-        sort: sortParam,
+        sortBy: sortParams.sortBy,
+        order: sortParams.order,
         status: 'APPROVED',
       });
 
       const params: ManagePurchaseRequestsParams = {
         page: 1,
         size: 100,
-        sort: sortParam,
+        sortBy: sortParams.sortBy,
+        order: sortParams.order,
         status: 'APPROVED',
       };
 
@@ -74,7 +89,11 @@ const PurchaseHistorySection = () => {
   });
 
   // 예산 조회 (React Query)
-  const { data: budgetData, isLoading: isBudgetLoading } = useQuery({
+  const {
+    data: budgetData,
+    isLoading: isBudgetLoading,
+    error: budgetError,
+  } = useQuery({
     queryKey: ['budget', companyId],
     queryFn: async () => {
       if (!companyId) {
@@ -105,17 +124,8 @@ const PurchaseHistorySection = () => {
         item.approver && item.approver.id && item.approver.name && item.status === 'APPROVED'
     );
 
-    // 클라이언트 측 정렬 적용
-    const sortedItems = [...filteredItems].sort((a, b) => {
-      if (sortParam === 'PRICE_LOW') {
-        return a.totalPrice - b.totalPrice;
-      }
-      if (sortParam === 'PRICE_HIGH') {
-        return b.totalPrice - a.totalPrice;
-      }
-      // LATEST 또는 기본값: 최신순 (날짜 내림차순)
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    // 백엔드에서 이미 정렬된 데이터를 사용 (추가 클라이언트 정렬 불필요)
+    const sortedItems = filteredItems;
 
     // 페이지당 4개로 페이지네이션
     const itemsPerPage = 4;
@@ -134,14 +144,13 @@ const PurchaseHistorySection = () => {
       approvedFilteredCount: filteredItems.length,
       paginatedCount: paginatedItems.length,
       calculatedTotalPages,
-      sortParam,
     });
 
     return {
       items: paginatedItems,
       totalPages: calculatedTotalPages,
     };
-  }, [purchaseData, currentPage, sortParam]);
+  }, [purchaseData, currentPage]);
 
   // 예산 데이터 처리
   const budgetInfo = useMemo(() => {
@@ -202,7 +211,7 @@ const PurchaseHistorySection = () => {
   }
 
   // 에러 발생 시
-  if (purchaseError) {
+  if (purchaseError || budgetError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-red-600">{ERROR_MESSAGES.FETCH_ERROR}</p>
@@ -232,7 +241,7 @@ const PurchaseHistorySection = () => {
       />
       {showToast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-toast">
-          <Toast variant="custom" message={toastMessage} onClose={closeToast} />
+          <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
         </div>
       )}
     </>

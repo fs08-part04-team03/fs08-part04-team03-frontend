@@ -56,7 +56,7 @@ const PurchaseRequestListSection = () => {
   const getSortParams = (
     frontendSort: string | undefined
   ): {
-    sortBy: 'createdAt' | 'updatedAt' | 'totalPrice';
+    sortBy: 'createdAt' | 'totalPrice';
     order?: 'asc' | 'desc';
   } => {
     if (!frontendSort || frontendSort === 'createdAt') {

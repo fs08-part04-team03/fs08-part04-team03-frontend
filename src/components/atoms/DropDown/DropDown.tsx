@@ -97,7 +97,7 @@ const DropDown: React.FC<DropDownProps> = ({
     large: 'h-44',
   };
 
-  const zIndexClass = inModal ? 'z-modaldropdown' : 'z-modal';
+  const zIndexClass = inModal ? 'z-modaldropdown' : 'z-dropdown';
 
   return (
     <div ref={dropdownRef} className="relative z-20 inline-block">

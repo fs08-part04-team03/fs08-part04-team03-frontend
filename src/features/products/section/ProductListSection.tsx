@@ -30,7 +30,7 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
   const { accessToken } = useAuthStore();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['products', selectedCategoryId, selectedSort.key, accessToken],
+    queryKey: ['products', selectedCategoryId, selectedSort.key],
     queryFn: async () => {
       const result = await getAllProducts({
         sort: selectedSort.key,
