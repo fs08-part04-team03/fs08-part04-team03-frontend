@@ -94,19 +94,44 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   /** =====================
       Image 처리
   ====================== */
+  // imageUrl이 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
+  const isValidImageUrl = imageUrl && typeof imageUrl === 'string' && imageUrl.trim().length > 0;
+
+  // 유효한 imageUrl이 있고 에러가 없을 때만 실제 이미지 표시
+  const shouldShowImage = isValidImageUrl && !imgError;
+
+  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
+  const isExternalUrl = isValidImageUrl
+    ? imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
+    : false;
+
   let imageContent;
-  if (imageUrl && !imgError) {
-    imageContent = (
-      <Image
-        src={imageUrl}
-        alt={name}
-        fill
-        onError={() => setImgError(true)}
-        className="object-cover"
-      />
-    );
+  if (shouldShowImage) {
+    // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+    if (isExternalUrl) {
+      imageContent = (
+        <img
+          src={imageUrl}
+          alt={name}
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={() => setImgError(true)}
+          crossOrigin="anonymous"
+        />
+      );
+    } else {
+      // 내부 이미지는 Next.js Image 컴포넌트 사용
+      imageContent = (
+        <Image
+          src={imageUrl}
+          alt={name}
+          fill
+          onError={() => setImgError(true)}
+          className="object-cover"
+        />
+      );
+    }
   } else {
-    // 이미지가 없거나 로딩 실패 시 no-image.svg 표시
+    // imageUrl이 없거나 유효하지 않거나 로딩 실패 시 fallback 이미지 표시
     imageContent = (
       <Image
         src="/icons/no-image.svg"
@@ -178,13 +203,14 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           aria-label={isLiked ? '찜하기 취소' : '찜하기'}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={handleHeartClick}
-          className="absolute bottom-10 right-10 w-30 h-30 desktop:bottom-20 desktop:right-20 bg-transparent p-0"
+          className="absolute bottom-10 right-10 w-17 h-17 desktop:bottom-20 desktop:right-20 desktop:w-25 desktop:h-25 bg-transparent p-0"
         >
           <Image
             src={isLiked ? '/icons/heart.svg' : '/icons/heart-outline.svg'}
             alt=""
-            width={30}
-            height={30}
+            width={25}
+            height={25}
+            className="w-full h-full"
           />
         </button>
       </div>

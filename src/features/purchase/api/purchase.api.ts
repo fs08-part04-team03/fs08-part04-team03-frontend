@@ -184,7 +184,8 @@ export interface ManagePurchaseRequestsParams {
   page?: number;
   size?: number;
   status?: string;
-  sort?: string;
+  sortBy?: 'createdAt' | 'updatedAt' | 'totalPrice'; // 백엔드 API 스펙에 맞게 수정
+  order?: 'asc' | 'desc'; // 정렬 순서 (기본값: desc)
 }
 
 export interface PurchaseRequest {
@@ -265,7 +266,8 @@ export async function managePurchaseRequests(
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
   if (params?.status) queryParams.append('status', params.status);
-  if (params?.sort) queryParams.append('sort', params.sort);
+  if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+  if (params?.order) queryParams.append('order', params.order); // 정렬 순서 (asc 또는 desc)
 
   const queryString = queryParams.toString();
   const url = `${PURCHASE_API_PATHS.ADMIN_MANAGE_PURCHASE_REQUESTS}${queryString ? `?${queryString}` : ''}`;
@@ -289,43 +291,19 @@ export async function managePurchaseRequests(
 
 /**
  * 구매 요청 상세 조회 (관리자)
- * 백엔드 API 문서에 따르면 별도의 상세 조회 엔드포인트가 없으므로,
- * managePurchaseRequests API를 사용하여 해당 ID의 항목을 조회합니다.
+ * GET /api/v1/purchase/admin/purchaseRequest/{id}
  */
 export async function getPurchaseRequestDetail(
   purchaseRequestId: string
 ): Promise<PurchaseRequestItem> {
-  // managePurchaseRequests API를 사용하여 여러 페이지를 순회하며 해당 ID의 항목을 찾습니다.
-  // TODO: 백엔드에서 상세 조회 엔드포인트가 추가되면 해당 엔드포인트를 사용하도록 변경 필요
-  const pageSize = 50; // 페이지당 50개씩 조회
-  let currentPage = 1;
-  let totalPages = 1;
-
-  do {
-    const queryParams = new URLSearchParams();
-    queryParams.append('page', currentPage.toString());
-    queryParams.append('size', pageSize.toString());
-
-    const url = `${PURCHASE_API_PATHS.ADMIN_MANAGE_PURCHASE_REQUESTS}?${queryParams.toString()}`;
-
-    // eslint-disable-next-line no-await-in-loop
-    const result = await fetchWithAuth<PurchaseRequestItem[]>(url, {
+  const result = await fetchWithAuth<PurchaseRequestItem>(
+    `${PURCHASE_API_PATHS.ADMIN_GET_PURCHASE_REQUEST_DETAIL}/${purchaseRequestId}`,
+    {
       method: 'GET',
-    });
-
-    // 배열에서 해당 ID의 항목 찾기
-    const foundItem = result.data?.find((item) => item.id === purchaseRequestId);
-
-    if (foundItem) {
-      return foundItem;
     }
+  );
 
-    // 다음 페이지가 있는지 확인
-    totalPages = result.pagination?.totalPages || 1;
-    currentPage += 1;
-  } while (currentPage <= totalPages);
-
-  throw new Error('구매 요청을 찾을 수 없습니다.');
+  return result.data;
 }
 
 /**
