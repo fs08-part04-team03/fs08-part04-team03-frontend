@@ -25,7 +25,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: process.env.BACKEND_HOST || 'fs08-part04-team03-backend.onrender.com',
+        hostname: 'fs08-part04-team03-backend.onrender.com',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'fs08-part04-team03-backend.onrender.com',
         pathname: '/uploads/**',
       },
       {
