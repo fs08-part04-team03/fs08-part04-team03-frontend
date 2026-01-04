@@ -184,7 +184,7 @@ export interface ManagePurchaseRequestsParams {
   page?: number;
   size?: number;
   status?: string;
-  sortBy?: 'createdAt' | 'updatedAt' | 'totalPrice'; // 백엔드 API 스펙에 맞게 수정
+  sortBy?: 'createdAt' | 'totalPrice'; // 백엔드 API 스펙에 맞게 수정
   order?: 'asc' | 'desc'; // 정렬 순서 (기본값: desc)
 }
 

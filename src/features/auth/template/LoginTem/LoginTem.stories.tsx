@@ -58,6 +58,7 @@ const LoginTemWithForm = (args: Partial<Story['args']>) => {
       isValid={form.formState.isValid}
       onSubmit={args?.onSubmit ?? fn()}
       showToast={args?.showToast ?? false}
+      toastVariant={args?.toastVariant ?? 'error'}
       toastMessage={args?.toastMessage ?? ''}
       setShowToast={args?.setShowToast ?? fn()}
     />
@@ -74,6 +75,7 @@ export const Default: Story = {
   render: (args) => <LoginTemWithForm {...args} />,
   args: {
     showToast: false,
+    toastVariant: 'error',
     toastMessage: '',
     onSubmit: fn(),
     setShowToast: fn(),
@@ -90,6 +92,7 @@ export const WithErrorToast: Story = {
   render: (args) => <LoginTemWithForm {...args} />,
   args: {
     showToast: true,
+    toastVariant: 'error',
     toastMessage: '이메일 또는 비밀번호가 올바르지 않습니다.',
     onSubmit: fn(),
     setShowToast: fn(),
@@ -105,6 +108,7 @@ export const WithNetworkErrorToast: Story = {
   render: (args) => <LoginTemWithForm {...args} />,
   args: {
     showToast: true,
+    toastVariant: 'error',
     toastMessage: '네트워크 오류가 발생했습니다. 다시 시도해 주세요.',
     onSubmit: fn(),
     setShowToast: fn(),
