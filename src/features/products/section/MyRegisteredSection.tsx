@@ -77,6 +77,8 @@ const MyRegisteredSection = () => {
       return response;
     },
     enabled: !!companyId,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    refetchOnMount: true, // 마운트 시 refetch (삭제 후 리다이렉트 시 최신 데이터 보장)
   });
 
   /* =====================
@@ -93,25 +95,32 @@ const MyRegisteredSection = () => {
   ====================== */
   const formattedDate = useMemo(() => formatDate(new Date()), []);
 
+  // 로딩 중일 때는 로딩 메시지만 표시
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>{LOADING_MESSAGES.DEFAULT}</p>
-      </div>
+      <section className="w-full bg-white">
+        <div className="flex items-center justify-center min-h-screen">
+          <p>{LOADING_MESSAGES.DEFAULT}</p>
+        </div>
+      </section>
     );
   }
 
+  // 에러 발생 시 에러 메시지만 표시
   if (queryError) {
     const errorMessage =
       queryError instanceof Error ? queryError.message : ERROR_MESSAGES.FETCH_ERROR;
     logger.error('[MyRegisteredSection] API 에러:', queryError);
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-red-600">{errorMessage}</p>
-      </div>
+      <section className="w-full bg-white">
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-red-600">{errorMessage}</p>
+        </div>
+      </section>
     );
   }
 
+  // 데이터가 없으면 null 반환
   if (!data) {
     return null;
   }
@@ -163,16 +172,18 @@ const MyRegisteredSection = () => {
       </div>
 
       {/* =====================
-          Pagination (항상 노출)
+          Pagination (데이터가 있을 때만 표시)
       ====================== */}
-      <div className="flex justify-center mt-20 tablet:mt-30">
-        <PaginationBlock
-          current={currentPage}
-          total={totalPage}
-          onPrev={setCurrentPage}
-          onNext={setCurrentPage}
-        />
-      </div>
+      {totalCount > 0 && (
+        <div className="flex justify-center mt-20 tablet:mt-30">
+          <PaginationBlock
+            current={currentPage}
+            total={totalPage}
+            onPrev={setCurrentPage}
+            onNext={setCurrentPage}
+          />
+        </div>
+      )}
 
       {/* =====================
           Product Modal
@@ -182,9 +193,8 @@ const MyRegisteredSection = () => {
         onClose={() => setModalOpen(false)}
         onSubmit={() => {
           setModalOpen(false);
-          queryClient.invalidateQueries({ queryKey: ['myRegisteredProducts'] }).catch(() => {
-            // 에러 무시
-          });
+          // 캐시 즉시 제거하여 새로 등록된 상품이 즉시 표시되도록 보장
+          queryClient.removeQueries({ queryKey: ['myRegisteredProducts'] });
         }}
         initialName=""
         initialPrice=""

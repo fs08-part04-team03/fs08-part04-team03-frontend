@@ -30,12 +30,7 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
   const { accessToken } = useAuthStore();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [
-      'products',
-      selectedCategoryId,
-      selectedSort.key,
-      accessToken, // ✅ 토큰 변경 시 refetch
-    ],
+    queryKey: ['products', selectedCategoryId, selectedSort.key, accessToken],
     queryFn: async () => {
       const result = await getAllProducts({
         sort: selectedSort.key,
@@ -44,12 +39,16 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
       });
       return result;
     },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    enabled: !!companyId, // companyId가 있을 때만 쿼리 실행
+    refetchOnMount: true, // 마운트 시 refetch (삭제 후 리다이렉트 시 최신 데이터 보장)
   });
 
   // 위시리스트 목록 조회
   const { data: wishlistData } = useQuery({
     queryKey: ['wishlist'],
     queryFn: () => getWishlist(),
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   const products: TemplateProduct[] = useMemo(() => {
@@ -68,8 +67,26 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     },
   ];
 
+  // 로딩 중일 때
+  if (isLoading) {
+    return (
+      <div className="mt-12 md:mt-20 flex items-center justify-center min-h-screen">
+        <p>{LOADING_MESSAGES.DEFAULT}</p>
+      </div>
+    );
+  }
+
+  // 에러 발생 시
+  if (error) {
+    return (
+      <div className="mt-12 md:mt-20 flex items-center justify-center min-h-screen">
+        <p className="text-red-600">{ERROR_MESSAGES.FETCH_ERROR}</p>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="mt-12 md:mt-20">
       <ProductListTem
         categorySections={CATEGORY_SECTIONS}
         activeSectionId={CATEGORY_SECTIONS[0]?.id ?? null}
@@ -83,18 +100,6 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
         companyId={companyId}
         wishlistData={wishlistData}
       />
-
-      {isLoading && (
-        <div className="flex items-center justify-center min-h-screen">
-          <p>{LOADING_MESSAGES.DEFAULT}</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="flex items-center justify-center min-h-screen">
-          <p className="text-red-600">{ERROR_MESSAGES.FETCH_ERROR}</p>
-        </div>
-      )}
     </div>
   );
 };
