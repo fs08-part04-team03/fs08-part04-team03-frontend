@@ -71,6 +71,8 @@ export async function GET(req: Request) {
         ...forwardHeaders,
         Accept: 'application/json',
       },
+      // 5분간 캐시 유지 (TOO_MANY_REQUESTS 방지)
+      next: { revalidate: 300 },
     });
 
     const text = await res.text();
@@ -146,6 +148,8 @@ export async function GET(req: Request) {
       ...forwardHeaders,
       Accept: 'application/json',
     },
+    // 5분간 캐시 유지 (TOO_MANY_REQUESTS 방지)
+    next: { revalidate: 300 },
   });
 
   const text = await res.text();
