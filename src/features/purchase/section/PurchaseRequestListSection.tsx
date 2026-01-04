@@ -19,10 +19,10 @@ import {
   ERROR_MESSAGES,
   VALIDATION_MESSAGES,
 } from '@/constants';
-import { COMMON_SORT_OPTIONS, DEFAULT_SORT_KEY } from '@/constants/sort';
 import { useToast } from '@/hooks/useToast';
 import { usePaginationParams } from '@/hooks/usePaginationParams';
 import { logger } from '@/utils/logger';
+import type { Option } from '@/components/atoms/DropDown/DropDown';
 
 const PurchaseRequestListSection = () => {
   const params = useParams();
@@ -38,31 +38,74 @@ const PurchaseRequestListSection = () => {
     params: paginationParams,
     handlePageChange,
     handleSortChange,
-  } = usePaginationParams({ defaultSize: 6, defaultSortKey: DEFAULT_SORT_KEY });
+  } = usePaginationParams({ defaultSize: 6 });
 
-  const { page, size, status, sort } = paginationParams;
+  const { page, size, sort } = paginationParams;
 
-  // 기본적으로 PENDING 상태만 조회 (이미 처리된 요청 제외)
-  const effectiveStatus = status || 'PENDING';
+  // requests 페이지에서는 상태 필터링 없음 (항상 모든 상태 조회)
+  const effectiveStatus = undefined;
+
+  // 프론트엔드 드롭다운 옵션 (사용자 친화적인 레이블)
+  const purchaseRequestSortOptions: Option[] = [
+    { key: 'createdAt', label: '최신순' },
+    { key: 'totalPriceAsc', label: '낮은 가격순' },
+    { key: 'totalPriceDesc', label: '높은 가격순' },
+  ];
+
+  // 프론트엔드 sort 값을 백엔드 API 스펙에 맞게 변환
+  const getSortParams = (
+    frontendSort: string | undefined
+  ): {
+    sortBy: 'createdAt' | 'updatedAt' | 'totalPrice';
+    order?: 'asc' | 'desc';
+  } => {
+    if (!frontendSort || frontendSort === 'createdAt') {
+      // 최신순: createdAt만 보내면 됨 (기본값 desc이므로 최신순)
+      return { sortBy: 'createdAt' };
+    }
+
+    if (frontendSort === 'totalPriceAsc') {
+      // 낮은 가격순: totalPrice + asc
+      return { sortBy: 'totalPrice', order: 'asc' };
+    }
+
+    if (frontendSort === 'totalPriceDesc') {
+      // 높은 가격순: totalPrice + desc
+      return { sortBy: 'totalPrice', order: 'desc' };
+    }
+
+    // 기본값: 최신순
+    return { sortBy: 'createdAt' };
+  };
+
+  const { sortBy: effectiveSortBy, order: effectiveOrder } = getSortParams(sort);
+
+  const selectedSortOption =
+    sort && purchaseRequestSortOptions.find((opt) => opt.key === sort)
+      ? purchaseRequestSortOptions.find((opt) => opt.key === sort)
+      : purchaseRequestSortOptions.find((opt) => opt.key === 'createdAt');
 
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-
-  const selectedSortOption =
-    sort && sort !== DEFAULT_SORT_KEY
-      ? COMMON_SORT_OPTIONS.find((opt) => opt.key === sort)
-      : COMMON_SORT_OPTIONS.find((opt) => opt.key === DEFAULT_SORT_KEY);
 
   const {
     data,
     isLoading,
     error: queryError,
   } = useQuery({
-    queryKey: ['purchaseRequests', page, size, effectiveStatus, sort],
-    queryFn: () => managePurchaseRequests({ page, size, status: effectiveStatus, sort }),
+    queryKey: ['purchaseRequests', page, size, effectiveStatus, effectiveSortBy, effectiveOrder],
+    queryFn: () =>
+      managePurchaseRequests({
+        page,
+        size,
+        status: effectiveStatus,
+        sortBy: effectiveSortBy,
+        order: effectiveOrder,
+      }),
     retry: false, // 401 에러 시 재시도 방지
     refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   // 예산 조회
@@ -142,7 +185,8 @@ const PurchaseRequestListSection = () => {
       if (!selectedRequestId) return;
       try {
         await rejectPurchaseRequest(selectedRequestId, { reason: message });
-        await queryClient.invalidateQueries({ queryKey: ['purchaseRequests'] });
+        // 캐시 즉시 제거하여 최신 데이터 보장
+        queryClient.removeQueries({ queryKey: ['purchaseRequests'] });
         setRejectModalOpen(false);
         setSelectedRequestId(null);
         triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_REJECTED);
@@ -159,9 +203,9 @@ const PurchaseRequestListSection = () => {
       if (!selectedRequestId) return;
       try {
         await approvePurchaseRequest(selectedRequestId);
-        // 구매 요청 목록과 예산 데이터 모두 갱신
-        await queryClient.invalidateQueries({ queryKey: ['purchaseRequests'] });
-        await queryClient.invalidateQueries({ queryKey: ['budget', companyId] });
+        // 캐시 즉시 제거하여 최신 데이터 보장
+        queryClient.removeQueries({ queryKey: ['purchaseRequests'] });
+        queryClient.removeQueries({ queryKey: ['budget', companyId] });
         setApproveModalOpen(false);
         setSelectedRequestId(null);
         triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_APPROVED);
@@ -264,7 +308,7 @@ const PurchaseRequestListSection = () => {
         currentPage={data.currentPage}
         totalPages={data.totalPages}
         onPageChange={handlePageChange}
-        sortOptions={COMMON_SORT_OPTIONS}
+        sortOptions={purchaseRequestSortOptions}
         selectedSortOption={selectedSortOption}
         onSortChange={handleSortChange}
         onNavigateToProducts={handleProductNavigation}

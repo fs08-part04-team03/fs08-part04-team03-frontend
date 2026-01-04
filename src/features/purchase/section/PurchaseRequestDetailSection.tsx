@@ -50,6 +50,7 @@ const PurchaseRequestDetailSection = () => {
       return getPurchaseRequestDetail(requestId);
     },
     enabled: !!requestId,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   // 예산 조회
@@ -110,10 +111,10 @@ const PurchaseRequestDetailSection = () => {
       if (!requestId) return;
       try {
         await approvePurchaseRequest(requestId);
-        // 구매 요청 상세, 목록, 예산 데이터 모두 갱신
-        await queryClient.invalidateQueries({ queryKey: ['purchaseRequestDetail', requestId] });
-        await queryClient.invalidateQueries({ queryKey: ['purchaseRequests'] });
-        await queryClient.invalidateQueries({ queryKey: ['budget', companyId] });
+        // 캐시 즉시 제거하여 최신 데이터 보장
+        queryClient.removeQueries({ queryKey: ['purchaseRequestDetail', requestId] });
+        queryClient.removeQueries({ queryKey: ['purchaseRequests'] });
+        queryClient.removeQueries({ queryKey: ['budget', companyId] });
         setApproveModalOpen(false);
         setSuccessModalType('approved');
         setSuccessModalOpen(true);
@@ -130,8 +131,9 @@ const PurchaseRequestDetailSection = () => {
       if (!requestId) return;
       try {
         await rejectPurchaseRequest(requestId, { reason: message });
-        await queryClient.invalidateQueries({ queryKey: ['purchaseRequestDetail', requestId] });
-        await queryClient.invalidateQueries({ queryKey: ['purchaseRequests'] });
+        // 캐시 즉시 제거하여 최신 데이터 보장
+        queryClient.removeQueries({ queryKey: ['purchaseRequestDetail', requestId] });
+        queryClient.removeQueries({ queryKey: ['purchaseRequests'] });
         setRejectModalOpen(false);
         setSuccessModalType('rejected');
         setSuccessModalOpen(true);

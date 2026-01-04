@@ -64,12 +64,14 @@ const ProductDetailSection = () => {
     queryKey: ['product', productId],
     queryFn: () => getProductById(productId),
     enabled: !!productId,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   // 위시리스트 목록 조회
   const { data: wishlistData } = useQuery({
     queryKey: ['wishlist'],
     queryFn: () => getWishlist(),
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   // 현재 상품이 위시리스트에 있는지 확인
@@ -116,8 +118,9 @@ const ProductDetailSection = () => {
   // 장바구니 추가 mutation
   const addToCartMutation = useMutation({
     mutationFn: (qty: number) => cartApi.addToCart(Number(productId), qty),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+    onSuccess: () => {
+      // 캐시 즉시 제거하여 최신 데이터 보장
+      queryClient.removeQueries({ queryKey: ['cart'] });
       setIsCartAddSuccessModalOpen(true);
     },
     onError: () => {
@@ -197,10 +200,6 @@ const ProductDetailSection = () => {
             },
           ]
         : []),
-      {
-        label: product.name,
-        href: '',
-      },
     ];
 
     const imageUrl = product.image
@@ -254,7 +253,9 @@ const ProductDetailSection = () => {
       try {
         await updateMyProduct(productId, data);
         triggerToast('success', '상품이 수정되었습니다.');
+        // 상품 상세와 목록 모두 invalidate하여 최신 데이터 보장
         await queryClient.invalidateQueries({ queryKey: ['product', productId] });
+        await queryClient.invalidateQueries({ queryKey: ['products'] });
         setEditModalOpen(false);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : '상품 수정에 실패했습니다.';
@@ -269,13 +270,17 @@ const ProductDetailSection = () => {
     try {
       await deleteProduct(productId);
       triggerToast('success', '상품이 삭제되었습니다.');
+      // 서버와 재동기화: invalidate로 모든 관련 쿼리 무효화
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['product', productId] });
       setDeleteModalOpen(false);
+      // 리다이렉트 후 페이지가 마운트될 때 쿼리가 활성화되면 자동으로 refetch됨
       router.push(PATHNAME.PRODUCTS(companyId));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '상품 삭제에 실패했습니다.';
       triggerToast('error', message);
     }
-  }, [productId, companyId, router, triggerToast]);
+  }, [productId, companyId, router, queryClient, triggerToast]);
 
   // 카테고리 옵션 초기화 (수정 모달용)
   const initialCategoryOption = useMemo((): Option | null => {
