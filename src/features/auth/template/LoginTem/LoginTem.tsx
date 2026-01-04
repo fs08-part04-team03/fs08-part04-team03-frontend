@@ -11,12 +11,15 @@ import Link from 'next/link';
 import { PATHNAME } from '@/constants';
 import { Toast } from '@/components/molecules/Toast/Toast';
 
+type ToastVariant = 'success' | 'error' | 'custom';
+
 interface LoginTemProps {
   control: Control<LoginInput>;
   handleSubmit: UseFormHandleSubmit<LoginInput>;
   isValid: boolean;
   onSubmit: (values: LoginInput) => void | Promise<void>;
   showToast: boolean;
+  toastVariant: ToastVariant;
   toastMessage: string;
   setShowToast: (show: boolean) => void;
 }
@@ -58,7 +61,14 @@ const LoginTemContent = ({
       />
     ))}
 
-    <Button type="submit" variant="primary" size="md" className="mt-8" fullWidth inactive={!isValid}>
+    <Button
+      type="submit"
+      variant="primary"
+      size="md"
+      className="mt-8"
+      fullWidth
+      inactive={!isValid}
+    >
       로그인
     </Button>
   </form>
@@ -69,7 +79,7 @@ export const LoginTemMobile = ({
   isValid,
   onSubmit,
   handleSubmit,
-}: Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>) => (
+}: Omit<LoginTemProps, 'showToast' | 'toastVariant' | 'toastMessage' | 'setShowToast'>) => (
   <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
     <div className="m-38">
       <Logo size="lg" />
@@ -95,7 +105,7 @@ export const LoginTemDesktop = ({
   isValid,
   onSubmit,
   handleSubmit,
-}: Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>) => (
+}: Omit<LoginTemProps, 'showToast' | 'toastVariant' | 'toastMessage' | 'setShowToast'>) => (
   <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
     <div className="mt-177">
       <Logo size="lg" />
@@ -129,6 +139,7 @@ const LoginTem = ({
   isValid,
   onSubmit,
   showToast,
+  toastVariant,
   toastMessage,
   setShowToast,
 }: LoginTemProps) => (
@@ -148,7 +159,7 @@ const LoginTem = ({
     {/* Toast */}
     {showToast && (
       <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
-        <Toast variant="custom" message={toastMessage} onClose={() => setShowToast(false)} />
+        <Toast variant={toastVariant} message={toastMessage} onClose={() => setShowToast(false)} />
       </div>
     )}
   </>
