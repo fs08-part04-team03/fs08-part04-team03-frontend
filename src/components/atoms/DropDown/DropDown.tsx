@@ -20,6 +20,7 @@ export interface DropDownProps {
   optionClassName?: string;
   onSelect?: (item: Option) => void;
   selected?: Option; // ← 외부에서 선택된 값을 받는 prop
+  inModal?: boolean; // ← 모달 안에 있는 드롭다운인지 여부
 }
 
 const DropDown: React.FC<DropDownProps> = ({
@@ -32,6 +33,7 @@ const DropDown: React.FC<DropDownProps> = ({
   optionClassName = '',
   onSelect,
   selected: externalSelected, // ← 외부 selected
+  inModal = false, // ← 모달 안에 있는 드롭다운인지 여부
 }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Option | null>(externalSelected ?? null);
@@ -95,6 +97,8 @@ const DropDown: React.FC<DropDownProps> = ({
     large: 'h-44',
   };
 
+  const zIndexClass = inModal ? 'z-modaldropdown' : 'z-modal';
+
   return (
     <div ref={dropdownRef} className="relative z-20 inline-block">
       {/* 선택 박스 */}
@@ -128,7 +132,8 @@ const DropDown: React.FC<DropDownProps> = ({
           role="listbox"
           aria-label={placeholder}
           className={clsx(
-            'absolute left-0 mt-4 w-full bg-white border border-gray-300 shadow-lg rounded-8 z-dropdown max-h-200 overflow-y-auto scrollbar-none',
+            'absolute left-0 mt-4 w-full bg-white border border-gray-300 shadow-lg rounded-8 max-h-200 overflow-y-auto scrollbar-none',
+            zIndexClass,
             dropdownClassName
           )}
         >

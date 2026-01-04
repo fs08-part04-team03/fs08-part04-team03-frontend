@@ -57,10 +57,9 @@ export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuP
       {/* Overlay */}
       <div
         className={clsx(
-          'fixed inset-0 bg-black/40 transition-opacity duration-200',
+          'fixed inset-0 bg-black/40 transition-opacity duration-200 z-menu',
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
-        style={{ zIndex: 999999 }}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -68,13 +67,12 @@ export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuP
       {/* Sidebar Drawer */}
       <aside
         className={clsx(
-          'fixed top-0 right-0',
+          'fixed top-0 right-0 z-menu',
           'w-225 h-full bg-white shadow-lg',
           'transform transition-transform duration-250 ease-out',
           open ? 'translate-x-0' : 'translate-x-full',
           className
         )}
-        style={{ zIndex: 9999 }}
         role="dialog"
         aria-modal="true"
         aria-label="사이드바 메뉴"

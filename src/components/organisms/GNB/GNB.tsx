@@ -135,7 +135,7 @@ const GNB: React.FC<GNBProps> = ({
           onItemClick={onNavItemClick}
         />
 
-        {categories.length > 0 && activeCategoryId && onCategoryChange && (
+        {categories && categories.length > 0 && activeCategoryId && onCategoryChange && (
           <div className="flex-1 flex items-center justify-center tablet:hidden">
             <GNBCategorySwitcher
               categories={categories}
