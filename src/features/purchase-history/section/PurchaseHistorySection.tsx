@@ -102,11 +102,14 @@ const PurchaseHistorySection = () => {
         throw new Error('Company ID is required');
       }
 
-      logger.info('[PurchaseHistory] 예산 정보 조회 시작:', { companyId });
+      logger.info('[PurchaseHistory] 예산 정보 조회 시작');
 
       const result = await getBudget(companyId);
 
-      logger.info('[PurchaseHistory] 예산 정보 조회 성공:', result);
+      logger.info('[PurchaseHistory] 예산 정보 조회 성공', {
+        hasBudget: !!result.budget,
+        hasSpending: !!result.monthlySpending,
+      });
 
       return result;
     },
