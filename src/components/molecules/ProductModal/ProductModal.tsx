@@ -7,7 +7,6 @@ import DropDown, { Option } from '@/components/atoms/DropDown/DropDown';
 import Button from '@/components/atoms/Button/Button';
 import InputField from '@/components/molecules/InputField/InputField';
 import { useToast } from '@/hooks/useToast';
-import { useQueryClient } from '@tanstack/react-query';
 import { CATEGORY_SECTIONS } from '@/constants';
 import { useAuthStore } from '@/lib/store/authStore';
 
@@ -90,7 +89,6 @@ const ProductModal = ({
     ? subCategoriesByCategory[selectedCategory.key] || []
     : [];
 
-  const queryClient = useQueryClient();
   const { triggerToast } = useToast();
   const { accessToken } = useAuthStore();
 
@@ -171,7 +169,7 @@ const ProductModal = ({
       }
 
       triggerToast('success', '상품이 등록되었습니다.');
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      onSubmit(); // 부모에서 캐시 처리
       onClose();
     } catch (error) {
       console.error(error);
@@ -329,6 +327,7 @@ const ProductModal = ({
                   setTouched((prev) => ({ ...prev, category: true }));
                 }}
                 selected={selectedCategory || undefined}
+                inModal
               />
               <DropDown
                 items={filteredSubCategories}
@@ -342,6 +341,7 @@ const ProductModal = ({
                   setTouched((prev) => ({ ...prev, subCategory: true }));
                 }}
                 selected={selectedSubCategory || undefined}
+                inModal
               />
             </div>
             {touched.category && errors.category && (

@@ -140,10 +140,6 @@ const MyProductDetailSection = () => {
             },
           ]
         : []),
-      {
-        label: product.name,
-        href: '',
-      },
     ];
 
     const imageUrl = product.image
