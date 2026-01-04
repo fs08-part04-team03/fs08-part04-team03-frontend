@@ -120,21 +120,8 @@ const PurchaseHistorySection = () => {
       return { items: [], totalPages: 1 };
     }
 
-    // 서버에서 이미 APPROVED 상태로 필터링되어 오지만,
-    // approver 정보가 있는 항목만 추가 필터링
-    const filteredItems = purchaseData.purchaseRequests.filter(
-      (item) => item.approver && item.approver.id && item.approver.name
-    );
-
-    logger.info('[PurchaseHistory] 구매 내역:', {
-      receivedCount: purchaseData.purchaseRequests.length,
-      filteredCount: filteredItems.length,
-      totalPages: purchaseData.totalPages,
-      currentPage: purchaseData.currentPage,
-    });
-
     return {
-      items: filteredItems,
+      items: purchaseData.purchaseRequests,
       totalPages: purchaseData.totalPages || 1,
     };
   }, [purchaseData]);
