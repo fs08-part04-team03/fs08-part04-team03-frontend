@@ -54,23 +54,24 @@ const PurchaseHistorySection = () => {
 
   const sortParams = getSortParams(selectedSort.key);
 
-  // 구매 내역 목록 조회 (React Query)
+  // 구매 내역 목록 조회 (React Query) - 서버 측 페이지네이션
   const {
     data: purchaseData,
     isLoading: isPurchaseLoading,
     error: purchaseError,
   } = useQuery({
-    queryKey: ['purchaseHistory', sortParams.sortBy, sortParams.order],
+    queryKey: ['purchaseHistory', sortParams.sortBy, sortParams.order, currentPage],
     queryFn: async () => {
       logger.info('[PurchaseHistory] 구매 내역 조회 시작:', {
         sortBy: sortParams.sortBy,
         order: sortParams.order,
+        page: currentPage,
         status: 'APPROVED',
       });
 
       const params: ManagePurchaseRequestsParams = {
-        page: 1,
-        size: 100,
+        page: currentPage,
+        size: 4, // 페이지당 4개
         sortBy: sortParams.sortBy,
         order: sortParams.order,
         status: 'APPROVED',
@@ -81,6 +82,7 @@ const PurchaseHistorySection = () => {
       logger.info('[PurchaseHistory] 구매 내역 조회 성공:', {
         totalItems: response.totalItems,
         currentPage: response.currentPage,
+        totalPages: response.totalPages,
       });
 
       return response;
@@ -112,45 +114,30 @@ const PurchaseHistorySection = () => {
     staleTime: QUERY_STALE_TIME_BUDGET,
   });
 
-  // 구매 내역 필터링 및 페이지네이션 (클라이언트 측)
+  // 서버에서 받은 데이터를 그대로 사용 (서버 측 페이지네이션)
   const { items, totalPages } = useMemo(() => {
     if (!purchaseData) {
       return { items: [], totalPages: 1 };
     }
 
-    // 구매 승인일과 담당자(approver)가 있고, 상태가 APPROVED인 항목만 필터링
+    // 서버에서 이미 APPROVED 상태로 필터링되어 오지만,
+    // approver 정보가 있는 항목만 추가 필터링
     const filteredItems = purchaseData.purchaseRequests.filter(
-      (item) =>
-        item.approver && item.approver.id && item.approver.name && item.status === 'APPROVED'
+      (item) => item.approver && item.approver.id && item.approver.name
     );
 
-    // 백엔드에서 이미 정렬된 데이터를 사용 (추가 클라이언트 정렬 불필요)
-    const sortedItems = filteredItems;
-
-    // 페이지당 4개로 페이지네이션
-    const itemsPerPage = 4;
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedItems = sortedItems.slice(startIndex, endIndex);
-
-    // 필터링된 전체 아이템 수를 기반으로 totalPages 계산
-    const calculatedTotalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
-
-    logger.info('[PurchaseHistory] 필터링된 구매 내역:', {
-      originalCount: purchaseData.purchaseRequests.length,
-      approverFilteredCount: purchaseData.purchaseRequests.filter(
-        (item) => item.approver && item.approver.id && item.approver.name
-      ).length,
-      approvedFilteredCount: filteredItems.length,
-      paginatedCount: paginatedItems.length,
-      calculatedTotalPages,
+    logger.info('[PurchaseHistory] 구매 내역:', {
+      receivedCount: purchaseData.purchaseRequests.length,
+      filteredCount: filteredItems.length,
+      totalPages: purchaseData.totalPages,
+      currentPage: purchaseData.currentPage,
     });
 
     return {
-      items: paginatedItems,
-      totalPages: calculatedTotalPages,
+      items: filteredItems,
+      totalPages: purchaseData.totalPages || 1,
     };
-  }, [purchaseData, currentPage]);
+  }, [purchaseData]);
 
   // 예산 데이터 처리
   const budgetInfo = useMemo(() => {
