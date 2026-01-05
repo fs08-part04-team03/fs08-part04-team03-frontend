@@ -163,7 +163,6 @@ const ShoppingCartSection = () => {
       items={items}
       budget={budget}
       loading={
-        isLoading ||
         isBudgetLoading ||
         updateQuantityMutation.isPending ||
         deleteMultipleMutation.isPending
