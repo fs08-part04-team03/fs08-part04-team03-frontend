@@ -333,7 +333,13 @@ const ProductListTem = ({
       <ProductModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSubmit={() => setModalOpen(false)}
+        onSubmit={() => {
+          setModalOpen(false);
+          // 캐시 무효화하여 새로 등록된 상품이 즉시 표시되도록 보장
+          queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {
+            // 에러는 무시 (백그라운드 작업)
+          });
+        }}
         initialName=""
         initialPrice=""
         initialLink=""

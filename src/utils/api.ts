@@ -198,6 +198,18 @@ export async function fetchWithAuth(
 
     clearTimeout(timeoutId);
 
+    // 429 에러 로깅 (TOO_MANY_REQUESTS 디버깅용)
+    if (response.status === 429) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[fetchWithAuth] TOO_MANY_REQUESTS:', {
+          url: finalUrl,
+          method: requestOptions.method || 'GET',
+          status: response.status,
+        });
+      }
+    }
+
     // 401 Unauthorized 에러 처리
     if (response.status === 401) {
       await handle401Error();

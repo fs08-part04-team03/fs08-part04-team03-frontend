@@ -25,7 +25,7 @@ const LoginSection = () => {
   const { setAuth } = useAuthStore();
 
   // useToast 훅 사용
-  const { showToast, toastMessage, triggerToast, closeToast } = useToast();
+  const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -83,7 +83,7 @@ const LoginSection = () => {
       logger.error('[Login] 로그인 실패:', error);
       const errorMessage =
         error instanceof Error ? error.message : '이메일 또는 비밀번호가 올바르지 않습니다.';
-      triggerToast('custom', errorMessage);
+      triggerToast('error', errorMessage);
     }
   };
 
@@ -94,6 +94,7 @@ const LoginSection = () => {
       isValid={form.formState.isValid}
       onSubmit={onSubmit}
       showToast={showToast}
+      toastVariant={toastVariant}
       toastMessage={toastMessage}
       setShowToast={closeToast}
     />

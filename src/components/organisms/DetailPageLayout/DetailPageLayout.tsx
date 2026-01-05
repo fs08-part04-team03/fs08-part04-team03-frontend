@@ -71,6 +71,8 @@ const ProductImageBox = ({
   const imageAlt = productImage?.alt || '이미지 없음';
 
   const isNoImage = imageSrc === '/icons/no-image.svg';
+  // 외부 URL인지 확인 (http:// 또는 https://로 시작)
+  const isExternalUrl = imageSrc.startsWith('http://') || imageSrc.startsWith('https://');
 
   return (
     <div className={clsx('relative bg-gray-100 rounded-8 shadow-lg', sizeClass)}>
@@ -87,13 +89,24 @@ const ProductImageBox = ({
           </div>
         ) : (
           <div className="relative w-full h-full">
-            <Image
-              src={imageSrc}
-              alt={imageAlt}
-              fill
-              className="object-contain"
-              onError={() => setImgError(true)}
-            />
+            {isExternalUrl ? (
+              // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+              <img
+                src={imageSrc}
+                alt={imageAlt}
+                className="absolute inset-0 w-full h-full object-contain"
+                onError={() => setImgError(true)}
+                crossOrigin="anonymous"
+              />
+            ) : (
+              <Image
+                src={imageSrc}
+                alt={imageAlt}
+                fill
+                className="object-contain"
+                onError={() => setImgError(true)}
+              />
+            )}
           </div>
         )}
       </div>

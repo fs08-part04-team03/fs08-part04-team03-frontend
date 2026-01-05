@@ -15,7 +15,12 @@ import ProductEditModal, {
 } from '@/components/molecules/ProductEditModal/ProductEditModal';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import { Option } from '@/components/atoms/DropDown/DropDown';
-import { updateMyProduct, deleteMyProduct } from '@/features/products/api/products.api';
+import {
+  updateMyProduct,
+  deleteMyProduct,
+  type GetRegisteredProductsResponse,
+  type GetAllProductsResponse,
+} from '@/features/products/api/products.api';
 import { useToast } from '@/hooks/useToast';
 
 /* =====================
@@ -137,8 +142,11 @@ const MyProductDetailTem = ({
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       await updateMyProduct(productId, data);
       triggerToast('success', '상품이 수정되었습니다.');
+      // 상품 상세와 목록 모두 invalidate하여 최신 데이터 보장
       await queryClient.invalidateQueries({ queryKey: ['myProduct', productId] });
       await queryClient.invalidateQueries({ queryKey: ['myRegisteredProducts'] });
+      // 일반 상품 목록도 invalidate하여 수정된 상품이 목록에 반영되도록 보장
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
       setEditModalOpen(false);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '상품 수정에 실패했습니다.';
@@ -147,14 +155,59 @@ const MyProductDetailTem = ({
   };
 
   const handleDeleteConfirm = async (): Promise<void> => {
+    const deletedId = Number(productId);
+
+    // Optimistic Update: 즉시 UI 업데이트
+    await queryClient.cancelQueries({ queryKey: ['myRegisteredProducts'] });
+    await queryClient.cancelQueries({ queryKey: ['products'] });
+    const previousMyRegisteredData = queryClient.getQueriesData({
+      queryKey: ['myRegisteredProducts'],
+    });
+    const previousProductsData = queryClient.getQueriesData({ queryKey: ['products'] });
+
+    // 내가 등록한 상품 목록에서 삭제된 상품 제거
+    queryClient.setQueriesData({ queryKey: ['myRegisteredProducts'] }, (old: unknown) => {
+      if (!old || typeof old !== 'object') return old;
+      const data = old as GetRegisteredProductsResponse;
+      if (!data.products || !Array.isArray(data.products)) return old;
+      return {
+        ...data,
+        products: data.products.filter((p) => p.id !== deletedId),
+        totalItems: data.totalItems ? data.totalItems - 1 : 0,
+      };
+    });
+
+    // 일반 상품 목록에서도 삭제된 상품 제거 (Optimistic Update)
+    queryClient.setQueriesData({ queryKey: ['products'] }, (old: unknown) => {
+      if (!old || typeof old !== 'object') return old;
+      const data = old as GetAllProductsResponse;
+      if (!data.data || !Array.isArray(data.data)) return old;
+      return {
+        ...data,
+        data: data.data.filter((p) => p.id !== deletedId),
+      };
+    });
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       await deleteMyProduct(productId);
       triggerToast('success', '상품이 삭제되었습니다.');
-      await queryClient.invalidateQueries({ queryKey: ['myRegisteredProducts'] });
       setDeleteModalOpen(false);
+      // 서버와 재동기화: invalidate로 모든 관련 쿼리 무효화
+      await queryClient.invalidateQueries({ queryKey: ['myRegisteredProducts'] });
+      await queryClient.invalidateQueries({ queryKey: ['myProduct', productId] });
+      // 일반 상품 목록도 invalidate하여 삭제된 상품이 목록에서 제거되도록 보장
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      // 리다이렉트 후 페이지가 마운트될 때 쿼리가 활성화되면 자동으로 refetch됨
       router.push(`/${companyId}/products/my`);
     } catch (err: unknown) {
+      // 실패 시 이전 상태로 롤백
+      previousMyRegisteredData.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+      previousProductsData.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
       const message = err instanceof Error ? err.message : '상품 삭제에 실패했습니다.';
       triggerToast('error', message);
     }

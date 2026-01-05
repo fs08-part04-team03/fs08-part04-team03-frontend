@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema, type SignupInput } from '@/features/auth/schemas/signup.schema';
 import { signup } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
+import { logger } from '@/utils/logger';
 
 export const useSignupForm = () => {
   const [showToast, setShowToast] = useState(false);
@@ -41,10 +42,7 @@ export const useSignupForm = () => {
 
   const onSubmit = async (values: SignupInput): Promise<void> => {
     try {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[Signup] 회원가입 시도 시작:', { email: values.email, name: values.name });
-      }
+      logger.info('[Signup] 회원가입 시도 시작');
       const { user, accessToken } = await signup({
         name: values.name,
         email: values.email,
@@ -54,31 +52,22 @@ export const useSignupForm = () => {
         businessNumber: values.businessNumber,
       });
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[Signup] 회원가입 API 성공:', { hasAccessToken: !!accessToken });
-      }
+      logger.info('[Signup] 회원가입 API 성공', { hasAccessToken: !!accessToken });
 
       // 인증 정보 저장 (zustand - 클라이언트 상태 관리)
       setAuth({ user, accessToken });
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[Signup] 인증 정보 저장 완료:', {
-          userId: user.id,
-          role: user.role,
-          companyId: user.companyId,
-        });
-      }
+      logger.info('[Signup] 인증 정보 저장 완료', {
+        role: user.role,
+      });
 
       // 상품 리스트 페이지로 리다이렉트
       const redirectPath = `/${user.companyId}/products`;
       router.push(redirectPath);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[Signup] 회원가입 실패:', error);
-      }
+      logger.error('[Signup] 회원가입 실패', {
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+      });
       const errorMessage =
         error instanceof Error ? error.message : '회원가입에 실패했습니다. 다시 시도해 주세요.';
       setToastMessage(errorMessage);

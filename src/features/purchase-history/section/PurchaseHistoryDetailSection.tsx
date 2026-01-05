@@ -51,11 +51,14 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
         logger.error('[PurchaseHistoryDetail] 구매 내역 상세 조회 실패:', {
           message: errorMessage,
           orderId,
-          error: error instanceof Error ? {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-          } : error,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : error,
         });
         triggerToast('custom', errorMessage);
       } finally {

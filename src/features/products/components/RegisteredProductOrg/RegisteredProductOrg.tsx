@@ -101,9 +101,13 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
           ) : (
             <ul className={clsx('flex flex-col')}>
               {products.map((product) => {
-                const hasImage = product.imageSrc && product.imageSrc.trim() !== '';
+                // imageSrc가 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
+                const isValidImageUrl =
+                  product.imageSrc &&
+                  typeof product.imageSrc === 'string' &&
+                  product.imageSrc.trim().length > 0;
                 const imgError = imageErrors[product.id] || false;
-                const showNoImage = !hasImage || imgError;
+                const showNoImage = !isValidImageUrl || imgError;
 
                 return (
                   <li key={product.id}>
@@ -136,23 +140,57 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
                             'flex items-center justify-center w-90 h-90 bg-gray-50 shrink-0'
                           )}
                         >
-                          {showNoImage ? (
-                            <Image
-                              src="/icons/no-image-small.svg"
-                              alt="이미지 없음"
-                              width={29}
-                              height={50}
-                              unoptimized
-                            />
-                          ) : (
-                            <Image
-                              src={product.imageSrc}
-                              alt={product.name}
-                              width={29}
-                              height={50}
-                              onError={() => handleImageError(product.id)}
-                            />
-                          )}
+                          {(() => {
+                            if (showNoImage) {
+                              return (
+                                <Image
+                                  src="/icons/no-image-small.svg"
+                                  alt="이미지 없음"
+                                  width={29}
+                                  height={50}
+                                  unoptimized
+                                />
+                              );
+                            }
+                            if (
+                              isValidImageUrl &&
+                              (product.imageSrc.startsWith('http://') ||
+                                product.imageSrc.startsWith('https://'))
+                            ) {
+                              // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+                              return (
+                                <img
+                                  src={product.imageSrc}
+                                  alt={product.name}
+                                  width={29}
+                                  height={50}
+                                  onError={() => handleImageError(product.id)}
+                                  crossOrigin="anonymous"
+                                  className="object-contain"
+                                />
+                              );
+                            }
+                            if (isValidImageUrl) {
+                              return (
+                                <Image
+                                  src={product.imageSrc}
+                                  alt={product.name}
+                                  width={29}
+                                  height={50}
+                                  onError={() => handleImageError(product.id)}
+                                />
+                              );
+                            }
+                            return (
+                              <Image
+                                src="/icons/no-image-small.svg"
+                                alt="이미지 없음"
+                                width={29}
+                                height={50}
+                                unoptimized
+                              />
+                            );
+                          })()}
                         </div>
 
                         <div className={clsx('flex flex-col gap-6 w-216')}>
@@ -228,23 +266,57 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
                             'flex items-center justify-center w-40 h-40 bg-gray-50 shrink-0'
                           )}
                         >
-                          {showNoImage ? (
-                            <Image
-                              src="/icons/no-image-small.svg"
-                              alt="이미지 없음"
-                              width={16}
-                              height={27}
-                              unoptimized
-                            />
-                          ) : (
-                            <Image
-                              src={product.imageSrc}
-                              alt={product.name}
-                              width={16}
-                              height={27}
-                              onError={() => handleImageError(product.id)}
-                            />
-                          )}
+                          {(() => {
+                            if (showNoImage) {
+                              return (
+                                <Image
+                                  src="/icons/no-image-small.svg"
+                                  alt="이미지 없음"
+                                  width={16}
+                                  height={27}
+                                  unoptimized
+                                />
+                              );
+                            }
+                            if (
+                              isValidImageUrl &&
+                              (product.imageSrc.startsWith('http://') ||
+                                product.imageSrc.startsWith('https://'))
+                            ) {
+                              // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+                              return (
+                                <img
+                                  src={product.imageSrc}
+                                  alt={product.name}
+                                  width={16}
+                                  height={27}
+                                  onError={() => handleImageError(product.id)}
+                                  crossOrigin="anonymous"
+                                  className="object-contain"
+                                />
+                              );
+                            }
+                            if (isValidImageUrl) {
+                              return (
+                                <Image
+                                  src={product.imageSrc}
+                                  alt={product.name}
+                                  width={16}
+                                  height={27}
+                                  onError={() => handleImageError(product.id)}
+                                />
+                              );
+                            }
+                            return (
+                              <Image
+                                src="/icons/no-image-small.svg"
+                                alt="이미지 없음"
+                                width={16}
+                                height={27}
+                                unoptimized
+                              />
+                            );
+                          })()}
                         </div>
                         <span className={clsx('text-16 tracking--0.4 text-gray-950')}>
                           {product.name}

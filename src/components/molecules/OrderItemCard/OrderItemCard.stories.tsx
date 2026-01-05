@@ -48,7 +48,6 @@ export const Default: Story = {
         name={args.name}
         unitPrice={args.unitPrice}
         quantity={quantity}
-        totalPrice={args.totalPrice}
         shippingCost={args.shippingCost}
         shippingLabelText={args.shippingLabelText}
         imageSrc={args.imageSrc}
@@ -71,7 +70,6 @@ export const Default: Story = {
     name: '코카콜라 제로',
     unitPrice: 2000,
     quantity: 1,
-    totalPrice: 2000,
     shippingCost: 0,
   },
 };
@@ -83,7 +81,6 @@ export const Confirm: Story = {
       name={args.name}
       unitPrice={args.unitPrice}
       quantity={args.quantity}
-      totalPrice={args.totalPrice}
       imageSrc={args.imageSrc}
       className={args.className}
     />
@@ -93,6 +90,5 @@ export const Confirm: Story = {
     name: '코카콜라 제로',
     unitPrice: 2000,
     quantity: 3,
-    totalPrice: 6000,
   },
 };

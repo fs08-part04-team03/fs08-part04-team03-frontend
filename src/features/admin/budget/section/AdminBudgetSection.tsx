@@ -9,6 +9,7 @@ import {
   updateBudgetCriteria,
 } from '@/features/admin/budget/api/adminBudget.api';
 import { Toast } from '@/components/molecules/Toast/Toast';
+import { logger } from '@/utils/logger';
 
 // 어드민 예산 관리 섹션
 const AdminBudgetSection = () => {
@@ -49,7 +50,9 @@ const AdminBudgetSection = () => {
           setInitialMonthlyStartBudget(criteriaRes.data.amount);
         }
       } catch (error) {
-        console.error('예산 정보를 불러오는데 실패했습니다.', error);
+        logger.error('[AdminBudget] 예산 정보를 불러오는데 실패했습니다.', {
+          message: error instanceof Error ? error.message : '알 수 없는 오류',
+        });
         setToastState({
           isVisible: true,
           variant: 'custom',
@@ -78,7 +81,9 @@ const AdminBudgetSection = () => {
       setTimeout(() => setToastState((prev) => ({ ...prev, isVisible: false })), 3000);
     } catch (error) {
       // 예산 업데이트 실패
-      console.error(error);
+      logger.error('[AdminBudget] 예산 업데이트 실패', {
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+      });
       setToastState({
         isVisible: true,
         variant: 'custom',

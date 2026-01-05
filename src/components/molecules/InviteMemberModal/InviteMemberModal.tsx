@@ -150,6 +150,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMem
                 onSelect={(item) => setSelectedRole(item)}
                 buttonClassName={clsx(!selectedRole ? 'border-red-500' : '')}
                 selected={selectedRole || undefined}
+                inModal
               />
             </div>
           </div>

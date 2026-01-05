@@ -3,8 +3,10 @@
 import { forwardRef, useId, type TextareaHTMLAttributes } from 'react';
 import { clsx } from '@/utils/clsx';
 
-export interface TextAreaFieldProps
-  extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'placeholder'> {
+export interface TextAreaFieldProps extends Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  'placeholder'
+> {
   label?: string;
   placeholder?: string;
   error?: boolean;

@@ -106,10 +106,7 @@ export const PurchaseHistoryRowOrg = ({
           <div className="grid grid-cols-[140px_1fr] border-b border-gray-100">
             <p className="text-14 border-r border-gray-100 p-16">요청인</p>
             <p className="text-14 p-16">
-              <RequesterWithUrgentTag
-                name={item.requester?.name || '-'}
-                isUrgent={isUrgent}
-              />
+              <RequesterWithUrgentTag name={item.requester?.name || '-'} isUrgent={isUrgent} />
             </p>
           </div>
           <div className="grid grid-cols-[140px_1fr] border-b border-gray-100">
@@ -156,10 +153,7 @@ export const PurchaseHistoryRowOrg = ({
               요청인
             </div>
             <div className="text-16 border-b border-gray-100 flex items-center px-20 py-15">
-              <RequesterWithUrgentTag
-                name={item.requester?.name || '-'}
-                isUrgent={isUrgent}
-              />
+              <RequesterWithUrgentTag name={item.requester?.name || '-'} isUrgent={isUrgent} />
             </div>
           </div>
           <div className="grid grid-cols-[140px_1fr_140px_1fr]">

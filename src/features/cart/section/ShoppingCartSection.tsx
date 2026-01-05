@@ -40,6 +40,7 @@ const ShoppingCartSection = () => {
   } = useQuery({
     queryKey: ['cart', currentPage, pageSize],
     queryFn: () => cartApi.getMyCart(currentPage, pageSize),
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   // 월 예산 조회 (manager만)
@@ -69,7 +70,7 @@ const ShoppingCartSection = () => {
       return 0;
     },
     enabled: isAdminRole,
-    staleTime: 60 * 1000, // 1분간 캐시
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   const budget = budgetData ?? 0;
@@ -78,8 +79,9 @@ const ShoppingCartSection = () => {
   const updateQuantityMutation = useMutation({
     mutationFn: ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) =>
       cartApi.updateQuantity(cartItemId, quantity),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+    onSuccess: () => {
+      // 캐시 즉시 제거하여 최신 데이터 보장
+      queryClient.removeQueries({ queryKey: ['cart'] });
       triggerToast('success', '수량이 변경되었습니다.');
     },
     onError: (err: unknown) => {
@@ -91,8 +93,9 @@ const ShoppingCartSection = () => {
   // 선택 삭제 mutation
   const deleteMultipleMutation = useMutation({
     mutationFn: (cartItemIds: string[]) => cartApi.deleteMultiple(cartItemIds),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+    onSuccess: () => {
+      // 캐시 즉시 제거하여 최신 데이터 보장
+      queryClient.removeQueries({ queryKey: ['cart'] });
       triggerToast('success', '선택한 상품이 삭제되었습니다.');
     },
     onError: (err: unknown) => {
