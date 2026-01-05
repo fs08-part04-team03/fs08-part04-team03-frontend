@@ -29,11 +29,6 @@ const nextConfig: NextConfig = {
         pathname: '/uploads/**',
       },
       {
-        protocol: 'http',
-        hostname: process.env.BACKEND_HOST || 'snock.tplinkdns.com',
-        pathname: '/uploads/**',
-      },
-      {
         protocol: imageProtocol,
         hostname: normalizedHost,
         ...(normalizedPort && { port: normalizedPort }),
