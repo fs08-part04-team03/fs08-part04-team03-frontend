@@ -48,7 +48,7 @@ const ProductDetailTem = ({
   }, [productCategoryId]);
 
   const handleCategoryChange = (value: number | null) => {
-    if (value !== null) {
+    if (value !== null && companyId) {
       // 다른 소분류 클릭 시 상품 페이지로 이동
       router.push(`/${companyId}/products?categoryId=${value}`);
     }
@@ -72,7 +72,11 @@ const ProductDetailTem = ({
             <CategoryPanel
               sections={categorySections}
               activeSectionId={activeSectionId}
-              selectedValue={productCategoryId}
+              selectedValue={
+                typeof productCategoryId === 'string'
+                  ? Number(productCategoryId)
+                  : productCategoryId
+              }
               onChange={handleCategoryChange}
             />
             <div className="flex items-center justify-center w-full h-522 tablet:h-604 desktop:h-938">

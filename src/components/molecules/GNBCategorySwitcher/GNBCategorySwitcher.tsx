@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { clsx } from '@/utils/clsx';
-import type { CategorySection, ParentCategoryKey } from '@/constants';
+import type { ParentCategoryKey, CategorySection } from '@/constants';
 import type { GNBCategorySwitcherProps } from './GNBCategorySwitcherProps';
 
 export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
@@ -17,7 +17,7 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
   onSubCategoryChange,
   className,
 }) => {
-  const sections: CategorySection[] = categorySections ?? [];
+  const sections = useMemo<CategorySection[]>(() => categorySections ?? [], [categorySections]);
 
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -30,6 +30,20 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
     () => categories.find((c) => c.id === effectiveCategoryId) ?? categories[0],
     [categories, effectiveCategoryId]
   );
+
+  // categorySections에서 sectionIdByParentKey를 내부적으로 파생
+  const derivedSectionIdByParentKey = useMemo(() => {
+    const mapping: Partial<Record<ParentCategoryKey, number>> = {};
+    sections.forEach((section) => {
+      if (section.key) {
+        mapping[section.key as ParentCategoryKey] = section.id;
+      }
+    });
+    return mapping;
+  }, [sections]);
+
+  // 외부에서 전달된 sectionIdByParentKey가 있으면 우선 사용, 없으면 내부 파생값 사용
+  const finalSectionIdByParentKey = sectionIdByParentKey ?? derivedSectionIdByParentKey;
 
   useEffect(() => {
     setMounted(true);
@@ -49,7 +63,7 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
   };
 
   const findFirstSubCategoryValue = (parentKey: ParentCategoryKey): number | null => {
-    const sectionId = sectionIdByParentKey?.[parentKey];
+    const sectionId = finalSectionIdByParentKey[parentKey];
     if (!sectionId) return null;
 
     const section = sections.find((s) => s.id === sectionId);
