@@ -31,8 +31,8 @@ const ProductTile: React.FC<ProductTileProps> = (props) => {
   // 상품명
   const nameClass =
     size === 'sm'
-      ? 'text-14 leading-22 tracking--0.35'
-      : 'text-14 leading-22 tracking--0.35 tablet:text-16 tablet:leading-24 tablet:tracking--0.4';
+      ? 'text-14 leading-22 tracking--0.35 whitespace-nowrap overflow-hidden text-ellipsis'
+      : 'text-14 leading-22 tracking--0.35 tablet:text-16 tablet:leading-24 tablet:tracking--0.4 whitespace-nowrap overflow-hidden text-ellipsis';
 
   // 보조정보
   const subClass =
