@@ -39,7 +39,7 @@ const OrderSection = () => {
   // 선택된 항목이 없으면 기본 페이지네이션 사용
   const shouldFetchAll = cartItemIds.length > 0;
   const page = 1;
-  const limit = shouldFetchAll ? 1000 : 10; // 선택된 항목이 있으면 충분히 큰 limit 사용
+  const limit = shouldFetchAll ? 100 : 10; // 선택된 항목이 있으면 충분히 큰 limit 사용 (백엔드 제한에 맞춤)
 
   // 장바구니 조회
   const {

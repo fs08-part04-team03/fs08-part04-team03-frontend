@@ -41,9 +41,25 @@ export async function POST(request: NextRequest) {
 
     // accessToken 검증: JWT 토큰을 검증하고 디코딩하여 사용자 정보 확인
     // 이렇게 하면 클라이언트가 임의의 role과 companyId를 보내는 것을 방지할 수 있습니다.
-    const jwtSecret = process.env.JWT_SECRET;
+    // 보안: NEXT_PUBLIC_ 접두사가 붙은 환경 변수는 클라이언트에 노출되므로 절대 사용하지 않음
+    const jwtSecret = process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET;
+
     if (!jwtSecret) {
-      logger.error('[set-cookies] JWT_SECRET 환경 변수가 설정되지 않았습니다.');
+      // 보안: 프로덕션에서는 상세 정보를 로그에 남기지 않음
+      // Vercel 환경에서는 VERCEL_ENV로 환경 구분 (production, preview, development)
+      const isProduction =
+        process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production';
+
+      if (!isProduction) {
+        logger.error('[set-cookies] JWT_SECRET 환경 변수가 설정되지 않았습니다.', {
+          JWT_SECRET_exists: !!process.env.JWT_SECRET,
+          JWT_ACCESS_SECRET_exists: !!process.env.JWT_ACCESS_SECRET,
+          VERCEL_ENV: process.env.VERCEL_ENV,
+          NODE_ENV: process.env.NODE_ENV,
+        });
+      } else {
+        logger.error('[set-cookies] JWT_SECRET 환경 변수가 설정되지 않았습니다.');
+      }
       return NextResponse.json(
         { success: false, message: '서버 설정 오류가 발생했습니다.' },
         { status: 500 }
@@ -108,12 +124,12 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true });
 
     // 쿠키 설정 (HttpOnly, Secure, SameSite 플래그 포함)
-    const isProduction = process.env.NODE_ENV === 'production';
+    // 보안: 백엔드가 HTTPS를 사용하므로 개발 환경에서도 secure: true 사용
     const maxAge = 60 * 60 * 24 * 7; // 7일
 
     response.cookies.set('auth-role', role, {
       httpOnly: true,
-      secure: isProduction, // 프로덕션에서만 Secure 플래그 사용
+      secure: true, // HTTPS 사용 시 항상 true
       sameSite: 'lax',
       maxAge,
       path: '/',
@@ -121,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set('auth-company-id', companyId, {
       httpOnly: true,
-      secure: isProduction, // 프로덕션에서만 Secure 플래그 사용
+      secure: true, // HTTPS 사용 시 항상 true
       sameSite: 'lax',
       maxAge,
       path: '/',
@@ -131,7 +147,7 @@ export async function POST(request: NextRequest) {
     // 보안: HttpOnly로 설정하여 JavaScript에서 접근 불가
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,
-      secure: isProduction, // 프로덕션에서만 Secure 플래그 사용
+      secure: true, // HTTPS 사용 시 항상 true
       sameSite: 'lax',
       maxAge,
       path: '/',

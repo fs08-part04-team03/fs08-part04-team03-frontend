@@ -1,4 +1,5 @@
 import type { OrderItem } from '@/features/cart/components/CartSummaryBlockOrg/CartSummaryBlockOrg';
+import { getApiUrl } from '@/utils/api';
 import type { CartItem } from '../api/cart.api';
 
 /**
@@ -15,5 +16,5 @@ export const adaptCartItemToOrderItem = (item: CartItem): OrderItem => ({
   name: item.product.name,
   price: item.product.price, // ✅ unitPrice → price
   quantity: item.quantity,
-  imageSrc: item.product.image,
+  imageSrc: item.product.image ? `${getApiUrl()}/uploads/${item.product.image}` : undefined,
 });
