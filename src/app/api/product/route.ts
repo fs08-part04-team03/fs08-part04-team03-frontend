@@ -141,7 +141,19 @@ export async function GET(req: Request) {
   }
 
   /** ===== 일반 프록시 ===== */
-  const target = new URL(`/api/v1/product${url.search}`, apiBase);
+  const proxyParams = new URLSearchParams();
+  const searchParamsForProxy = url.searchParams;
+
+  // 허용된 쿼리 파라미터만 백엔드로 전달
+  const allowedKeys = ['limit', 'sort', 'categoryId', 'page', 'all'];
+  for (const key of allowedKeys) {
+    const value = searchParamsForProxy.get(key);
+    if (value !== null) {
+      proxyParams.set(key, value);
+    }
+  }
+
+  const target = new URL(`/api/v1/product?${proxyParams.toString()}`, apiBase);
   const res = await fetch(target.toString(), {
     method: 'GET',
     headers: {
