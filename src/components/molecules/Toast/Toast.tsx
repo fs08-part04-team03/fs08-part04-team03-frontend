@@ -121,7 +121,7 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
     iconSrc = '/icons/red-info.svg';
     defaultMessage = '예산이 부족합니다. 수량을 줄이거나 항목을 제거해주세요.';
   } else if (variant === 'custom') {
-    iconSrc = '/icons/check-icon.svg';
+    iconSrc = '/icons/red-info.svg';
     defaultMessage = message || '';
   } else {
     iconSrc = '/icons/check-icon.svg';

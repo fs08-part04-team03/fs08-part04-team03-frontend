@@ -25,12 +25,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: process.env.BACKEND_HOST || 'fs08-part04-team03-backend.onrender.com',
+        hostname: process.env.BACKEND_HOST || 'snock.tplinkdns.com',
         pathname: '/uploads/**',
       },
       {
         protocol: 'http',
-        hostname: process.env.BACKEND_HOST || 'fs08-part04-team03-backend.onrender.com',
+        hostname: process.env.BACKEND_HOST || 'snock.tplinkdns.com',
         pathname: '/uploads/**',
       },
       {
@@ -47,7 +47,7 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
-    const backendUrl = process.env.BACKEND_API_URL || 'http://snock.tplinkdns.com:4000';
+    const backendUrl = process.env.BACKEND_API_URL || 'https://snock.tplinkdns.com:4000';
     return [
       {
         source: '/api/:path*',
