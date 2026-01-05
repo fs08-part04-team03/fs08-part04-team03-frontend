@@ -274,8 +274,8 @@ const PurchaseRequestListTem = ({
                         placeholder="최신순"
                         selected={selectedSortOption}
                         onSelect={(option) => {
-                          const sort = option.key === 'LATEST' ? undefined : option.key;
-                          onSortChange?.(sort);
+                          // 백엔드 API 스펙에 맞게 createdAt, updatedAt, totalPrice 값 그대로 전달
+                          onSortChange?.(option.key);
                         }}
                       />
                     </div>
@@ -297,8 +297,8 @@ const PurchaseRequestListTem = ({
                         placeholder="최신순"
                         selected={selectedSortOption}
                         onSelect={(option) => {
-                          const sort = option.key === 'LATEST' ? undefined : option.key;
-                          onSortChange?.(sort);
+                          // 백엔드 API 스펙에 맞게 createdAt, updatedAt, totalPrice 값 그대로 전달
+                          onSortChange?.(option.key);
                         }}
                       />
                     </div>

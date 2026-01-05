@@ -16,6 +16,7 @@ import {
   type User,
 } from '@/features/admin/users/api/adminUser.api';
 import { Option } from '@/components/atoms/DropDown/DropDown';
+import { logger } from '@/utils/logger';
 
 const UserListSection = () => {
   const params = useParams();
@@ -44,13 +45,13 @@ const UserListSection = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to fetch users:', error);
+      logger.error('Failed to fetch users:', error);
     }
   };
 
   // 사용자 목록 조회 useEffect
   useEffect(() => {
-    fetchUserList().catch((err) => console.error('Initial fetch failed', err));
+    fetchUserList().catch((err) => logger.error('Initial fetch failed', err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchQuery]);
 
@@ -76,7 +77,7 @@ const UserListSection = () => {
         await updateUserStatus(selectedUser.id, false); // isActive: false
         await fetchUserList();
       } catch (error) {
-        console.error('Failed to delete user:', error);
+        logger.error('Failed to delete user', error);
       }
     }
     setIsDeleteModalOpen(false);
@@ -93,7 +94,7 @@ const UserListSection = () => {
   const handleInviteSubmit = async (roleOption: Option, name: string, email: string) => {
     const normalizedRole = roleOption.key.toUpperCase();
     if (!VALID_USER_ROLES.includes(normalizedRole as UserRole)) {
-      console.error('Invalid role selected:', roleOption.key);
+      logger.error('Invalid role selected');
       return;
     }
     const role = normalizedRole as UserRole;
@@ -104,7 +105,7 @@ const UserListSection = () => {
         await updateUserRole(selectedUser.id, role);
       } else {
         if (!companyId) {
-          console.error('Company ID is missing');
+          logger.error('Company ID is missing');
           return;
         }
         // Invite Member
@@ -112,7 +113,7 @@ const UserListSection = () => {
       }
       await fetchUserList();
     } catch (error) {
-      console.error('Operation failed:', error);
+      logger.error('Operation failed', error);
     }
 
     setIsInviteModalOpen(false);
@@ -149,7 +150,7 @@ const UserListSection = () => {
         onClose={() => setIsInviteModalOpen(false)}
         onSubmit={(role, name, email) => {
           handleInviteSubmit(role, name, email).catch((err) => {
-            console.error(err);
+            logger.error('Invite submit failed', err);
           });
         }}
         defaultValues={inviteModalDefaultValues}

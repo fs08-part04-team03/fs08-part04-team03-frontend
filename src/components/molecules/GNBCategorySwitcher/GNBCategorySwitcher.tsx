@@ -103,7 +103,7 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
       >
         <div
           className={clsx(
-            'absolute left-0 right-0 top-56',
+            'absolute left-0 right-0 top-56 w-full',
             'bg-white/95 backdrop-blur-sm',
             'py-24',
             'transform transition-transform duration-200 ease-out',

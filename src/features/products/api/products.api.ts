@@ -269,8 +269,8 @@ export async function getAllProducts(
 ): Promise<GetAllProductsResponse> {
   const { sort, categoryId, accessToken } = params || {};
   const qs = new URLSearchParams();
-  qs.set('all', 'true');
 
+  // 백엔드 API 스펙에 맞게 파라미터 설정
   if (sort) {
     const SORT_MAP: Record<string, string> = {
       latest: 'latest',
@@ -289,7 +289,8 @@ export async function getAllProducts(
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
-  const res = await fetch(`/api/product?${qs.toString()}`, {
+  // 백엔드 API 스펙에 맞게 엔드포인트 변경: /api/v1/product
+  const res = await fetch(`/api/v1/product?${qs.toString()}`, {
     headers,
     credentials: 'include',
   });
@@ -304,26 +305,56 @@ export async function getAllProducts(
       // ignore
     }
 
-    const isAuthExpired = res.status === 401 || parsed?.error?.code === 'AUTH_TOKEN_EXPIRED';
+    // 429 Too Many Requests 에러 처리
+    if (res.status === 429) {
+      throw new Error('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+    }
+
+    // 401 Unauthorized 에러 처리 (재시도 없이 즉시 에러 반환)
+    if (res.status === 401) {
+      throw new AuthExpiredError(
+        '인증이 필요합니다. 다시 로그인해주세요.',
+        res.status,
+        res,
+        parsed as unknown
+      );
+    }
+
+    const isAuthExpired = parsed?.error?.code === 'AUTH_TOKEN_EXPIRED';
 
     if (isAuthExpired) {
-      const retryRes = await fetch(`/api/product?${qs.toString()}`, {
+      const retryRes = await fetch(`/api/v1/product?${qs.toString()}`, {
         headers: { Accept: 'application/json' },
         credentials: 'include',
       });
 
-      const retryText = await retryRes.text();
-      let retryParsed: GetAllProductsResponse | null = null;
-
-      try {
-        retryParsed = JSON.parse(retryText) as GetAllProductsResponse;
-      } catch {
-        // ignore
-      }
-
+      // 재시도 시에도 에러 체크
       if (!retryRes.ok) {
-        const isRetryAuthExpired =
-          retryRes.status === 401 || retryParsed?.error?.code === 'AUTH_TOKEN_EXPIRED';
+        // 429 Too Many Requests 에러 처리
+        if (retryRes.status === 429) {
+          throw new Error('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+        }
+
+        // 401 에러는 재시도하지 않고 즉시 반환
+        if (retryRes.status === 401) {
+          throw new AuthExpiredError(
+            '인증이 필요합니다. 다시 로그인해주세요.',
+            retryRes.status,
+            retryRes,
+            null
+          );
+        }
+
+        const retryText = await retryRes.text();
+        let retryParsed: GetAllProductsResponse | null = null;
+
+        try {
+          retryParsed = JSON.parse(retryText) as GetAllProductsResponse;
+        } catch {
+          // ignore
+        }
+
+        const isRetryAuthExpired = retryParsed?.error?.code === 'AUTH_TOKEN_EXPIRED';
 
         if (isRetryAuthExpired) {
           throw new AuthExpiredError(
@@ -335,6 +366,15 @@ export async function getAllProducts(
         }
 
         throw new Error(`product fetch failed: ${retryRes.status} ${retryText}`);
+      }
+
+      const retryBodyText = await retryRes.text();
+      let retryParsed: GetAllProductsResponse | null = null;
+
+      try {
+        retryParsed = JSON.parse(retryBodyText) as GetAllProductsResponse;
+      } catch {
+        throw new Error('product fetch failed: invalid JSON response');
       }
 
       if (!retryParsed) {
@@ -361,6 +401,19 @@ export async function getProductById(productId: string | number): Promise<Backen
   });
 
   if (!response.ok) {
+    // 404 에러 처리
+    if (response.status === 404) {
+      throw new Error('상품을 찾을 수 없습니다. 삭제되었거나 존재하지 않는 상품입니다.');
+    }
+    // 401 에러 처리
+    if (response.status === 401) {
+      throw new AuthExpiredError(
+        '인증이 필요합니다. 다시 로그인해주세요.',
+        response.status,
+        response,
+        null
+      );
+    }
     throw new Error('상품 정보를 불러오는데 실패했습니다.');
   }
 
@@ -414,8 +467,8 @@ export async function updateMyProduct(
   productId: string | number,
   data: UpdateMyProductData
 ): Promise<BackendProduct> {
-  const response = await fetchWithAuth(`/api/v1/product/my/${productId}`, {
-    method: 'PUT',
+  const response = await fetchWithAuth(`/api/v1/product/${productId}`, {
+    method: 'PATCH',
     body: JSON.stringify(data),
   });
 
@@ -437,7 +490,7 @@ export async function updateMyProduct(
  * @param productId - 상품 ID
  */
 export async function deleteMyProduct(productId: string | number): Promise<void> {
-  const response = await fetchWithAuth(`/api/v1/product/my/${productId}`, {
+  const response = await fetchWithAuth(`/api/v1/product/${productId}`, {
     method: 'DELETE',
   });
 

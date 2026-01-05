@@ -29,6 +29,11 @@ const nextConfig: NextConfig = {
         pathname: '/uploads/**',
       },
       {
+        protocol: 'http',
+        hostname: process.env.BACKEND_HOST || 'fs08-part04-team03-backend.onrender.com',
+        pathname: '/uploads/**',
+      },
+      {
         protocol: imageProtocol,
         hostname: normalizedHost,
         ...(normalizedPort && { port: normalizedPort }),
