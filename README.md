@@ -46,7 +46,7 @@ cp .env.example .env
 
 ```
 # API 설정
-NEXT_PUBLIC_API_URL=https://fs08-part04-team03-backend.onrender.com
+NEXT_PUBLIC_API_URL=https://snock.tplinkdns.com:4000
 NEXT_PUBLIC_API_TIMEOUT=10000
 
 # JWT 토큰 검증을 위한 시크릿 키
