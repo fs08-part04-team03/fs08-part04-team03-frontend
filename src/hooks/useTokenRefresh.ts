@@ -4,50 +4,54 @@ import { useEffect, useRef } from 'react';
 import { useAuthStore } from '@/lib/store/authStore';
 import { tryRefreshToken } from '@/utils/api';
 
-/**
- * Access token 자동 갱신 훅
- *
- * - Access token이 만료되기 전에 자동으로 갱신합니다
- * - 기본적으로 4분마다 갱신 (5분 만료 기준)
- * - 로그인된 사용자에게만 작동합니다
- *
- * @param refreshInterval - 갱신 간격 (밀리초), 기본값: 4분 (240000ms)
- */
 export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
   const { accessToken, user } = useAuthStore();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const inFlightRef = useRef(false); // 중복 refresh 방지
+  const mountedRef = useRef(false); // 언마운트 레이스 방지
 
   useEffect(() => {
-    // 로그인되지 않은 경우 갱신하지 않음
+    mountedRef.current = true;
+
     if (!accessToken || !user) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      return undefined;
+      return () => {
+        mountedRef.current = false;
+      };
     }
 
-    // 토큰 갱신 함수
     const refreshToken = async () => {
+      if (inFlightRef.current) return;
+      inFlightRef.current = true;
+
       try {
         await tryRefreshToken();
       } catch (error) {
-        // 갱신 실패는 조용히 무시 (401 에러 처리는 fetchWithAuth에서 담당)
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
           console.warn('[useTokenRefresh] Token refresh failed:', error);
         }
+      } finally {
+        // 언마운트 이후라도 플래그는 정리 (메모리/상태 누수 방지)
+        inFlightRef.current = false;
       }
     };
 
-    // 주기적으로 토큰 갱신
+    // 마운트 시 즉시 한 번 실행
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    refreshToken();
+
     intervalRef.current = setInterval(() => {
+      if (!mountedRef.current) return;
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       refreshToken();
     }, refreshInterval);
 
-    // 컴포넌트 언마운트 시 interval 정리
     return () => {
+      mountedRef.current = false;
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
