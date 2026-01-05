@@ -1,188 +1,276 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
 import Button from '@/components/atoms/Button/Button';
 import OrderItemCard from '@/components/molecules/OrderItemCard/OrderItemCard';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
+import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logger';
+
+import { purchaseNow, urgentRequestPurchase } from '@/features/purchase/api/purchase.api';
 
 export type CartRole = 'user' | 'manager' | 'admin';
 
 export interface OrderItem {
-  id: number;
+  cartItemId: string;
+  productId: number;
   name: string;
-  unitPrice: number;
+  price: number;
   quantity: number;
-  shippingCost: number;
   imageSrc?: string;
 }
 
 interface CartSummaryBlockOrgProps {
-  role: CartRole;
+  cartRole: CartRole;
   items: OrderItem[];
   budget?: number;
-
-  onDeleteSelected?: (ids: number[]) => void;
-  onSubmit?: (itemIds: number[]) => void;
-  onItemPurchase?: (params: { itemId: number; action: 'BUY_NOW' }) => void;
+  loading?: boolean; // 🔹 로딩 상태 추가
+  onDeleteSelected?: (cartItemIds: string[]) => void;
+  onSubmit?: (cartItemIds: string[]) => void;
   onGoBudgetManage?: () => void;
+  onQuantityChange?: (cartItemId: string, quantity: number) => void;
+  onContinueShopping?: () => void;
 }
 
 const CartSummaryBlockOrg = ({
-  role,
+  cartRole,
   items,
   budget = 0,
+  loading = false, // 🔹 기본값 false
   onDeleteSelected,
   onSubmit,
-  onItemPurchase,
   onGoBudgetManage,
+  onQuantityChange,
+  onContinueShopping,
 }: CartSummaryBlockOrgProps) => {
-  /** =====================
-   * 상태
-   ====================== */
-  const [cartItems, setCartItems] = useState<OrderItem[]>(items);
-  const [checkedIds, setCheckedIds] = useState<number[]>([]);
+  const router = useRouter();
+  const params = useParams();
+  const queryClient = useQueryClient();
+  const { triggerToast } = useToast();
+  const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
   const [showBudgetToast, setShowBudgetToast] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
+  const isAdminRole = cartRole === 'manager' || cartRole === 'admin';
 
   useEffect(() => {
-    setCartItems(items);
-    setCheckedIds((prev) => prev.filter((id) => items.some((i) => i.id === id)));
+    setCheckedIds((prev) => prev.filter((id) => items.some((i) => i.cartItemId === id)));
   }, [items]);
 
-  /** =====================
-   * 파생 상태
-   ====================== */
-  const allChecked = cartItems.length > 0 && checkedIds.length === cartItems.length;
+  const allChecked = items.length > 0 && checkedIds.length === items.length;
 
   const selectedItems = useMemo(
-    () => cartItems.filter((item) => checkedIds.includes(item.id)),
-    [cartItems, checkedIds]
+    () => items.filter((item) => checkedIds.includes(item.cartItemId)),
+    [items, checkedIds]
   );
 
   const totalProductPrice = useMemo(
-    () => selectedItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
+    () => selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [selectedItems]
   );
 
-  const shippingFee = useMemo(() => {
-    if (selectedItems.length === 0) return 0;
-    return Math.max(...selectedItems.map((item) => item.shippingCost));
-  }, [selectedItems]);
-
+  const shippingFee = 0;
   const totalPrice = totalProductPrice + shippingFee;
   const remainBudget = budget - totalPrice;
-  const isBudgetExceeded = role !== 'user' && remainBudget < 0;
+  const isBudgetExceeded = isAdminRole && remainBudget < 0;
 
-  /** =====================
-   * 핸들러
-   ====================== */
+  /** 예산 초과 시 토스트 표시 */
+  useEffect(() => {
+    if (!isAdminRole) return;
+    setShowBudgetToast(isBudgetExceeded);
+  }, [isBudgetExceeded, isAdminRole]);
+
+  const submitButtonLabel = useMemo(() => {
+    if (cartRole === 'admin' && isBudgetExceeded) return '예산 관리';
+    if (cartRole === 'manager' && isBudgetExceeded) return '긴급 구매 요청';
+    return '구매 요청';
+  }, [cartRole, isBudgetExceeded]);
+
   const handleToggleAll = (checked: boolean) => {
-    setCheckedIds(checked ? cartItems.map((i) => i.id) : []);
+    setCheckedIds(checked ? items.map((i) => i.cartItemId) : []);
   };
 
-  const handleToggleItem = (id: number, checked: boolean) => {
-    setCheckedIds((prev) => (checked ? [...prev, id] : prev.filter((v) => v !== id)));
+  const handleToggleItem = (cartItemId: string, checked: boolean) => {
+    setCheckedIds((prev) =>
+      checked ? [...prev, cartItemId] : prev.filter((v) => v !== cartItemId)
+    );
   };
 
-  const handleQuantityChange = (id: number, option: Option) => {
+  const handleQuantityChange = (cartItemId: string, option: Option) => {
     const quantity = Number(option.key);
     if (Number.isNaN(quantity)) return;
-
-    setCartItems((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)));
+    onQuantityChange?.(cartItemId, quantity);
   };
 
   const handleDeleteSelected = () => {
-    setCartItems((prev) => prev.filter((item) => !checkedIds.includes(item.id)));
-    onDeleteSelected?.(checkedIds);
+    if (!loading && !isPurchasing) onDeleteSelected?.(checkedIds);
     setCheckedIds([]);
   };
 
-  const handleSubmitClick = () => {
-    if (role === 'manager' && isBudgetExceeded) {
-      setShowBudgetToast(true);
+  /** 관리자 즉시 구매 */
+  const handleAdminPurchaseNow = async (item: OrderItem) => {
+    if (
+      !isAdminRole ||
+      !checkedIds.includes(item.cartItemId) ||
+      isBudgetExceeded ||
+      loading ||
+      isPurchasing
+    )
+      return;
+
+    try {
+      setIsPurchasing(true);
+      await purchaseNow({
+        productId: String(item.productId),
+        quantity: item.quantity,
+      });
+      onSubmit?.([item.cartItemId]);
+    } catch (error) {
+      logger.error('[CartSummaryBlock] 즉시 구매 실패', {
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+      });
+      setErrorMessage('즉시 구매에 실패했습니다.');
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
+  /** 매니저 긴급 구매 요청 */
+  const handleManagerUrgentPurchase = async () => {
+    if (checkedIds.length === 0 || loading || isPurchasing) return;
+
+    try {
+      setIsPurchasing(true);
+      const result = await urgentRequestPurchase({
+        items: selectedItems.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        shippingFee: 0,
+        requestMessage: '긴급 구매 요청',
+      });
+
+      // 장바구니 무효화
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+      triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
+
+      // Order Completed 페이지로 이동
+      try {
+        if (companyId && result?.id) {
+          router.push(`/${companyId}/order/completed?id=${result.id}`);
+        } else if (companyId) {
+          // purchase ID가 없으면 장바구니로 이동
+          router.push(`/${companyId}/cart`);
+        }
+      } catch (navError) {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[CartSummaryBlockOrg] 네비게이션 실패:', navError);
+        }
+        // 네비게이션 실패는 무시 (구매는 성공했으므로)
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[CartSummaryBlockOrg] 긴급 구매 요청 실패:', error);
+      }
+      setErrorMessage('긴급 구매 요청에 실패했습니다.');
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (loading || isPurchasing) return;
+
+    if (cartRole === 'admin' && isBudgetExceeded) {
+      onGoBudgetManage?.();
       return;
     }
 
-    if (role === 'admin' && isBudgetExceeded) {
-      onGoBudgetManage?.();
+    if (cartRole === 'manager' && isBudgetExceeded) {
+      await handleManagerUrgentPurchase();
       return;
     }
 
     onSubmit?.(checkedIds);
   };
 
-  /** =====================
-   * 렌더
-   ====================== */
+  const handleSubmitClick = () => {
+    handleSubmit().catch((err) => {
+      logger.error('[CartSummaryBlock] 요청 처리 중 오류', {
+        message: err instanceof Error ? err.message : '알 수 없는 오류',
+      });
+      setErrorMessage('요청 처리 중 오류가 발생했습니다.');
+    });
+  };
+
   return (
     <>
       <div className="mx-auto w-327 tablet:w-696 desktop:w-1150">
         <div className="rounded-default bg-white shadow-[0_0_10px_0_rgba(0,0,0,0.12)] overflow-hidden flex flex-col">
-          {/* 상단 */}
           <div className="flex items-center justify-between px-12 py-16 tablet:px-16 desktop:px-20 shrink-0">
             <div className="flex items-center gap-10">
               <Checkbox checked={allChecked} onChange={handleToggleAll} aria-label="전체 선택" />
               <span className="text-black font-bold text-16 tablet:text-18 tracking--0.4 tablet:tracking--0.45">
-                전체 선택 ({cartItems.length}개)
+                전체 선택 ({items.length}개)
               </span>
             </div>
 
             <button
               type="button"
               onClick={handleDeleteSelected}
+              disabled={loading || isPurchasing} // 🔹 로딩/구매 중 비활성화
               className="text-gray-600 underline text-14 tablet:text-16 tracking--0.35 tablet:tracking--0.4 cursor-pointer"
             >
               선택 삭제
             </button>
           </div>
 
-          {/* 상품 리스트 */}
           <div className="flex flex-col gap-12 overflow-y-auto scrollbar-none max-h-349 tablet:max-h-516 desktop:max-h-540">
-            {cartItems.map((item) => {
-              const isChecked = checkedIds.includes(item.id);
-              const showPurchaseButton = isChecked;
+            {items.map((item) => {
+              const isChecked = checkedIds.includes(item.cartItemId);
 
-              let purchaseButtonLabel: string | undefined;
-              if (role === 'user') {
-                purchaseButtonLabel = '바로 요청';
-              } else if (showPurchaseButton) {
-                purchaseButtonLabel = '즉시 구매';
-              }
-
-              const purchaseButtonDisabled = role === 'user' || !isChecked || isBudgetExceeded;
-
-              const handlePurchaseClick =
-                role !== 'user' && showPurchaseButton && !isBudgetExceeded
-                  ? () =>
-                      onItemPurchase?.({
-                        itemId: item.id,
-                        action: 'BUY_NOW',
-                      })
-                  : undefined;
+              const purchaseButtonLabel = cartRole === 'user' ? '바로 요청' : '즉시 구매';
+              const purchaseButtonDisabled =
+                cartRole === 'user' || !isChecked || isBudgetExceeded || isPurchasing || loading; // 🔹 로딩 포함
 
               return (
                 <OrderItemCard
-                  key={item.id}
+                  key={item.cartItemId}
                   name={item.name}
-                  unitPrice={item.unitPrice}
+                  unitPrice={item.price}
                   quantity={item.quantity}
-                  shippingCost={item.shippingCost}
+                  shippingCost={0}
                   imageSrc={item.imageSrc}
                   checked={isChecked}
-                  onCheckboxChange={(checked) => handleToggleItem(item.id, checked)}
-                  onQuantityChange={(option) => handleQuantityChange(item.id, option)}
+                  onCheckboxChange={(checked) => handleToggleItem(item.cartItemId, checked)}
+                  onQuantityChange={(option) => handleQuantityChange(item.cartItemId, option)}
                   purchaseButtonLabel={purchaseButtonLabel}
                   purchaseButtonDisabled={purchaseButtonDisabled}
-                  onPurchaseClick={handlePurchaseClick}
+                  onPurchaseClick={() => {
+                    if (!purchaseButtonDisabled) {
+                      handleAdminPurchaseNow(item).catch((err) => {
+                        logger.error('[CartSummaryBlock] 즉시 구매 실패', {
+                          message: err instanceof Error ? err.message : '알 수 없는 오류',
+                        });
+                        setErrorMessage('즉시 구매 실패');
+                      });
+                    }
+                  }}
                 />
               );
             })}
           </div>
         </div>
 
-        {/* 하단 */}
         <div className="mt-40 flex flex-col tablet:flex-row tablet:justify-between tablet:items-start gap-40 tablet:mt-70">
           <div className="flex flex-col gap-14">
             <p className="font-bold text-gray-950 text-24 tablet:text-30 tracking--0.6">
@@ -197,7 +285,7 @@ const CartSummaryBlockOrg = ({
               배송비는 {shippingFee.toLocaleString()}원입니다.
             </p>
 
-            {role !== 'user' && (
+            {cartRole !== 'user' && budget > 0 && (
               <p className="font-bold text-18 tracking--0.45 text-gray-700">
                 {isBudgetExceeded ? '전체 예산 금액' : '남은 예산 금액'}{' '}
                 <PriceText value={isBudgetExceeded ? budget : remainBudget} />
@@ -207,12 +295,14 @@ const CartSummaryBlockOrg = ({
 
           <div
             className={`flex flex-col items-center gap-16 ${
-              role === 'user' ? 'tablet:gap-20' : 'tablet:gap-34'
+              cartRole === 'user' ? 'tablet:gap-20' : 'tablet:gap-34'
             }`}
           >
             <Button
               variant="secondary"
               className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
+              inactive={loading || isPurchasing} // 🔹 로딩 시 비활성화
+              onClick={onContinueShopping}
             >
               계속 쇼핑하기
             </Button>
@@ -220,16 +310,15 @@ const CartSummaryBlockOrg = ({
             <Button
               variant="primary"
               className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
-              inactive={checkedIds.length === 0 && !(role === 'admin' && isBudgetExceeded)}
+              inactive={checkedIds.length === 0 || loading || isPurchasing} // 🔹 로딩 포함
               onClick={handleSubmitClick}
             >
-              {role === 'admin' && isBudgetExceeded ? '예산 관리' : '구매 요청'}
+              {submitButtonLabel}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Toast */}
       {showBudgetToast && (
         <div className="fixed top-60 left-1/2 -translate-x-1/2 z-toast tablet:top-30">
           <Toast
@@ -237,6 +326,12 @@ const CartSummaryBlockOrg = ({
             amount={remainBudget.toString()}
             onClose={() => setShowBudgetToast(false)}
           />
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="fixed top-60 left-1/2 -translate-x-1/2 z-toast tablet:top-30">
+          <Toast variant="custom" message={errorMessage} onClose={() => setErrorMessage(null)} />
         </div>
       )}
     </>

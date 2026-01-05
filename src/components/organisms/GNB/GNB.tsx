@@ -123,11 +123,11 @@ const GNB: React.FC<GNBProps> = ({
         className
       )}
     >
-      <div className="flex items-center shrink-0">
+      <div className="flex items-center shrink-0 pr-5">
         <GNBBrand />
       </div>
 
-      <div className="flex-1 flex items-center justify-start desktop:ml-10">
+      <div className="flex-1 flex items-center justify-start desktop:ml-10 translate-y-3">
         <GNBPrimaryNav
           role={role}
           companyId={companyId}
@@ -135,7 +135,7 @@ const GNB: React.FC<GNBProps> = ({
           onItemClick={onNavItemClick}
         />
 
-        {categories.length > 0 && activeCategoryId && onCategoryChange && (
+        {categories && categories.length > 0 && activeCategoryId && onCategoryChange && (
           <div className="flex-1 flex items-center justify-center tablet:hidden">
             <GNBCategorySwitcher
               categories={categories}

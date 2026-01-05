@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -56,12 +56,12 @@ export interface GNBUserActionsDesktopProps extends GNBUserActionsBaseProps {
 }
 
 // Mobile Component
-export const GNBUserActionsMobile: React.FC<GNBUserActionsMobileProps> = ({
+export const GNBUserActionsMobile = ({
   companyId,
   cartCount = 0,
   onMenuClick,
   className,
-}) => (
+}: GNBUserActionsMobileProps) => (
   <div className={clsx('flex items-center gap-8', className)}>
     {/* 장바구니 */}
     <CartButton companyId={companyId} count={cartCount} />
@@ -82,13 +82,13 @@ export const GNBUserActionsMobile: React.FC<GNBUserActionsMobileProps> = ({
 );
 
 // Tablet Component
-export const GNBUserActionsTablet: React.FC<GNBUserActionsTabletProps> = ({
+export const GNBUserActionsTablet = ({
   companyId,
   userProfile,
   cartCount = 0,
   onMenuClick,
   className,
-}) => (
+}: GNBUserActionsTabletProps) => (
   <div className={clsx('flex items-center gap-12', className)}>
     {/* 장바구니 */}
     <CartButton companyId={companyId} count={cartCount} />
@@ -112,13 +112,13 @@ export const GNBUserActionsTablet: React.FC<GNBUserActionsTabletProps> = ({
 );
 
 // Desktop Component
-export const GNBUserActionsDesktop: React.FC<GNBUserActionsDesktopProps> = ({
+export const GNBUserActionsDesktop = ({
   companyId,
   userProfile,
   cartCount = 0,
   onLogout,
   className,
-}) => {
+}: GNBUserActionsDesktopProps) => {
   const pathname = usePathname();
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -134,7 +134,7 @@ export const GNBUserActionsDesktop: React.FC<GNBUserActionsDesktopProps> = ({
   };
 
   return (
-    <div className={clsx('flex items-center gap-16', className)}>
+    <div className={clsx('flex items-center gap-3', className)}>
       {/* 장바구니 */}
       <CartButton companyId={companyId} count={cartCount} />
 
@@ -162,9 +162,11 @@ export const GNBUserActionsDesktop: React.FC<GNBUserActionsDesktopProps> = ({
         />
       </Link>
 
+      <span className="pl-2" />
       {/* 유저 프로필 */}
       {userProfile && <div className="flex items-center">{userProfile}</div>}
 
+      <span className="pl-2" />
       {/* 구분선 */}
       {userProfile && <div className="w-px h-20 bg-gray-200" />}
 
@@ -214,14 +216,14 @@ export interface GNBUserActionsProps {
  * - 태블릿: 장바구니, 유저프로필, 햄버거메뉴
  * - 데스크탑: 장바구니, 찜목록, 유저프로필, 구분선, 로그아웃
  */
-export const GNBUserActions: React.FC<GNBUserActionsProps> = ({
+export const GNBUserActions = ({
   companyId,
   userProfile,
   cartCount = 0,
   onLogout,
   onMenuClick,
   className,
-}) => (
+}: GNBUserActionsProps) => (
   <>
     {/* 모바일 */}
     <div className={clsx('tablet:hidden', className)}>

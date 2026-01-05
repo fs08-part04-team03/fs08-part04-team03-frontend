@@ -1,7 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clsx } from '@/utils/clsx';
+import {
+  addToWishlist,
+  removeFromWishlist,
+  type GetWishlistResponse,
+} from '@/features/wishlist/api/wishlist.api';
+import { useToast } from '@/hooks/useToast';
 
 import {
   CategoryPanel,
@@ -37,6 +45,9 @@ interface ProductListTemProps {
     imageUrl?: string;
     purchaseCount?: number;
   }>;
+
+  companyId: string;
+  wishlistData?: GetWishlistResponse;
 }
 
 /* =====================
@@ -72,11 +83,67 @@ const ProductListTem = ({
   selectedSort,
   onChangeSort,
   products,
+  companyId,
+  wishlistData,
 }: ProductListTemProps) => {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { triggerToast } = useToast();
 
   const itemsPerPage = useItemsPerPage();
+
+  const handleProductClick = (productId: number) => {
+    router.push(`/${companyId}/products/${productId}`);
+  };
+
+  // 위시리스트 추가 mutation
+  const addWishlistMutation = useMutation({
+    mutationFn: (productId: number) => addToWishlist(productId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['wishlist'] });
+      triggerToast('success', '위시리스트에 추가되었습니다.');
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : '위시리스트 추가에 실패했습니다.';
+      triggerToast('error', message);
+    },
+  });
+
+  // 위시리스트 제거 mutation
+  const removeWishlistMutation = useMutation({
+    mutationFn: (productId: number) => removeFromWishlist(productId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['wishlist'] });
+      triggerToast('success', '위시리스트에서 제거되었습니다.');
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : '위시리스트 제거에 실패했습니다.';
+      triggerToast('error', message);
+    },
+  });
+
+  // 위시리스트 토글 핸들러
+  const handleToggleLike = useCallback(
+    (productId: number, isLiked: boolean) => {
+      if (isLiked) {
+        removeWishlistMutation.mutate(productId);
+      } else {
+        addWishlistMutation.mutate(productId);
+      }
+    },
+    [addWishlistMutation, removeWishlistMutation]
+  );
+
+  // 상품이 위시리스트에 있는지 확인
+  const isProductLiked = useCallback(
+    (productId: number) => {
+      if (!wishlistData?.data) return false;
+      return wishlistData.data.some((item) => item.product.id === productId);
+    },
+    [wishlistData]
+  );
 
   /* =====================
    * Filter Products by Category
@@ -233,16 +300,22 @@ const ProductListTem = ({
                 'desktop:gap-y-60 tablet:gap-y-50 gap-y-40'
               )}
             >
-              {currentProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  variant="product"
-                  name={product.name}
-                  price={product.price}
-                  purchaseCount={product.purchaseCount}
-                  imageUrl={product.imageUrl}
-                />
-              ))}
+              {currentProducts.map((product) => {
+                const liked = isProductLiked(product.id);
+                return (
+                  <ProductCard
+                    key={product.id}
+                    variant="product"
+                    name={product.name}
+                    price={product.price}
+                    purchaseCount={product.purchaseCount}
+                    imageUrl={product.imageUrl}
+                    onClick={() => handleProductClick(product.id)}
+                    liked={liked}
+                    onToggleLike={() => handleToggleLike(product.id, liked)}
+                  />
+                );
+              })}
             </div>
           )}
 
@@ -260,7 +333,13 @@ const ProductListTem = ({
       <ProductModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSubmit={() => setModalOpen(false)}
+        onSubmit={() => {
+          setModalOpen(false);
+          // 캐시 무효화하여 새로 등록된 상품이 즉시 표시되도록 보장
+          queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {
+            // 에러는 무시 (백그라운드 작업)
+          });
+        }}
         initialName=""
         initialPrice=""
         initialLink=""

@@ -13,6 +13,7 @@ interface OrderTemProps {
 
   onGoCart?: () => void;
   onGoOrderHistory?: () => void;
+  onPurchaseRequest?: (requestMessage: string, isUrgent?: boolean) => void;
 }
 
 const steps: StepBreadcrumbStep[] = [
@@ -21,7 +22,13 @@ const steps: StepBreadcrumbStep[] = [
   { label: 'Order Confirmed' },
 ];
 
-const OrderTem = ({ items, shippingFee, onGoCart, onGoOrderHistory }: OrderTemProps) => (
+const OrderTem = ({
+  items,
+  shippingFee,
+  onGoCart,
+  onGoOrderHistory,
+  onPurchaseRequest,
+}: OrderTemProps) => (
   <div className="mx-auto">
     {/* ✅ 페이지 콘텐츠 컨테이너 */}
     <div
@@ -46,6 +53,7 @@ const OrderTem = ({ items, shippingFee, onGoCart, onGoOrderHistory }: OrderTemPr
         shippingFee={shippingFee}
         onGoCart={onGoCart}
         onGoOrderHistory={onGoOrderHistory}
+        onPurchaseRequest={onPurchaseRequest}
       />
     </div>
   </div>

@@ -7,27 +7,27 @@ import ShoppingCartTem from './ShoppingCartTem';
  ====================== */
 const mockItems: OrderItem[] = [
   {
-    id: 1,
+    cartItemId: 'cart-1',
+    productId: 101,
     name: '노트북',
-    unitPrice: 1_200_000,
+    price: 1_200_000,
     quantity: 1,
-    shippingCost: 0,
     imageSrc: '/images/sample1.png',
   },
   {
-    id: 2,
+    cartItemId: 'cart-2',
+    productId: 102,
     name: '무선 마우스',
-    unitPrice: 50_000,
+    price: 50_000,
     quantity: 2,
-    shippingCost: 3_000,
     imageSrc: '/images/sample2.png',
   },
   {
-    id: 3,
+    cartItemId: 'cart-3',
+    productId: 103,
     name: '키보드',
-    unitPrice: 150_000,
+    price: 150_000,
     quantity: 1,
-    shippingCost: 3_000,
     imageSrc: '/images/sample3.png',
   },
 ];
@@ -55,46 +55,16 @@ StepBreadcrumb과 CartSummaryBlockOrg를 조합하여
 
 - 페이지 전반의 **레이아웃 및 여백 관리**
 - StepBreadcrumb와 CartSummaryBlockOrg의 **구성 및 배치**
-- role, items, budget 등의 props를 **하위 Organism으로 전달**
+- cartRole, items, budget 등의 props를 **하위 Organism으로 전달**
 
 > ⚠️ 비즈니스 로직 및 상태 관리는 하지 않으며  
 > 모든 구매 규칙 및 예산 로직은 CartSummaryBlockOrg에서 처리합니다.
-
----
-
-### Layout 규칙
-
-- 상단 여백
-  - Mobile / Tablet: \`mt-60\`
-  - Desktop: \`mt-80\`
-- StepBreadcrumb 하단 여백
-  - Mobile: \`mb-40\`
-  - Tablet / Desktop: \`mb-70\`
-- Desktop 환경에서
-  - StepBreadcrumb부터 CartSummaryBlockOrg 버튼 영역까지  
-    좌우 패딩 \`24px\` 적용
-
----
-
-### Role 전달 구조
-
-- **User / Manager / Admin** role을 그대로 CartSummaryBlockOrg에 전달
-- Template에서는 role에 따른 분기 처리 ❌
-- UI 및 행동 제어는 Organism 레벨에서 수행
-
----
-
-### 사용 위치
-
-- Next.js Page 레벨에서 사용
-- 데이터 패칭 및 라우팅 로직은 Page에서 처리
-- 본 Template은 순수 UI 조합 역할만 담당
         `,
       },
     },
   },
   argTypes: {
-    role: {
+    cartRole: {
       control: 'radio',
       options: ['user', 'manager', 'admin'],
     },
@@ -109,10 +79,16 @@ type Story = StoryObj<typeof ShoppingCartTem>;
  ====================== */
 export const User: Story = {
   args: {
-    role: 'user',
+    cartRole: 'user',
     items: mockItems,
     onSubmit: (ids) => {
       console.log('User submit:', ids);
+    },
+    onDeleteSelected: (ids) => {
+      console.log('User delete:', ids);
+    },
+    onQuantityChange: (id, qty) => {
+      console.log('User quantity change:', id, qty);
     },
   },
 };
@@ -122,14 +98,17 @@ export const User: Story = {
  ====================== */
 export const ManagerWithinBudget: Story = {
   args: {
-    role: 'manager',
+    cartRole: 'manager',
     items: mockItems,
     budget: 2_000_000,
     onSubmit: (ids) => {
       console.log('Manager submit:', ids);
     },
-    onItemPurchase: (params) => {
-      console.log('Manager purchase:', params);
+    onDeleteSelected: (ids) => {
+      console.log('Manager delete:', ids);
+    },
+    onQuantityChange: (id, qty) => {
+      console.log('Manager quantity change:', id, qty);
     },
   },
 };
@@ -139,11 +118,14 @@ export const ManagerWithinBudget: Story = {
  ====================== */
 export const ManagerBudgetExceeded: Story = {
   args: {
-    role: 'manager',
+    cartRole: 'manager',
     items: mockItems,
     budget: 100_000,
     onSubmit: (ids) => {
-      console.log('Manager submit (budget exceeded):', ids);
+      console.log('Manager urgent request:', ids);
+    },
+    onDeleteSelected: (ids) => {
+      console.log('Manager delete:', ids);
     },
   },
 };
@@ -153,14 +135,14 @@ export const ManagerBudgetExceeded: Story = {
  ====================== */
 export const AdminWithinBudget: Story = {
   args: {
-    role: 'admin',
+    cartRole: 'admin',
     items: mockItems,
     budget: 2_000_000,
-    onItemPurchase: (params) => {
-      console.log('Admin purchase:', params);
-    },
     onSubmit: (ids) => {
       console.log('Admin submit:', ids);
+    },
+    onDeleteSelected: (ids) => {
+      console.log('Admin delete:', ids);
     },
   },
 };
@@ -170,7 +152,7 @@ export const AdminWithinBudget: Story = {
  ====================== */
 export const AdminBudgetExceeded: Story = {
   args: {
-    role: 'admin',
+    cartRole: 'admin',
     items: mockItems,
     budget: 100_000,
     onSubmit: (ids) => {

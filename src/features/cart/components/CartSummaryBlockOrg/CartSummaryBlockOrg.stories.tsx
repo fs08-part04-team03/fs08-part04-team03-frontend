@@ -1,32 +1,32 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import CartSummaryBlockOrg, { type OrderItem } from './CartSummaryBlockOrg';
+import CartSummaryBlockOrg, { type OrderItem, type CartRole } from './CartSummaryBlockOrg';
 
 /** =====================
  * Mock Data
  ====================== */
 const mockItems: OrderItem[] = [
   {
-    id: 1,
+    cartItemId: 'cart-1',
+    productId: 101,
     name: '노트북',
-    unitPrice: 1_200_000,
+    price: 1_200_000,
     quantity: 1,
-    shippingCost: 0,
     imageSrc: '/images/sample1.png',
   },
   {
-    id: 2,
+    cartItemId: 'cart-2',
+    productId: 102,
     name: '무선 마우스',
-    unitPrice: 50_000,
+    price: 50_000,
     quantity: 2,
-    shippingCost: 3_000,
     imageSrc: '/images/sample2.png',
   },
   {
-    id: 3,
+    cartItemId: 'cart-3',
+    productId: 103,
     name: '키보드',
-    unitPrice: 150_000,
+    price: 150_000,
     quantity: 1,
-    shippingCost: 3_000,
     imageSrc: '/images/sample3.png',
   },
 ];
@@ -35,7 +35,7 @@ const mockItems: OrderItem[] = [
  * Meta
  ====================== */
 const meta: Meta<typeof CartSummaryBlockOrg> = {
-  title: 'Features/Cart/CartSummaryBlockOrg',
+  title: 'Features/Cart/Organisms/CartSummaryBlockOrg',
   component: CartSummaryBlockOrg,
   tags: ['autodocs'],
   parameters: {
@@ -49,33 +49,31 @@ const meta: Meta<typeof CartSummaryBlockOrg> = {
 
 - **User**
   - 상품 선택 및 수량 변경 가능
-  - 즉시 구매 버튼 노출되지 않음
+  - 즉시 구매 버튼 비활성화
   - 예산 정보 미노출
 
 - **Manager**
-  - 예산 내: 선택된 상품에 대해 즉시 구매 가능
-  - 예산 초과: 즉시 구매 버튼 비활성화
-  - 하단 구매 요청 버튼 비활성화
+  - 예산 내: 구매 요청 가능
+  - 예산 초과: 긴급 구매 요청 버튼 노출
 
 - **Admin**
-  - Manager와 동일한 구매 규칙
-  - 예산 초과 시 모든 구매 액션 비활성화
+  - 예산 내: 즉시 구매 가능
+  - 예산 초과: 예산 관리 버튼 노출
 
-※ 라우팅은 페이지 레벨에서 처리하며, 본 컴포넌트는 UI와 이벤트만 담당합니다.
+※ 라우팅과 API 연동은 페이지 레벨에서 처리합니다.
         `,
       },
     },
   },
   argTypes: {
-    role: {
+    cartRole: {
       control: 'radio',
-      options: ['user', 'manager', 'admin'],
+      options: ['user', 'manager', 'admin'] satisfies CartRole[],
     },
   },
 };
 
 export default meta;
-
 type Story = StoryObj<typeof CartSummaryBlockOrg>;
 
 /** =====================
@@ -83,10 +81,16 @@ type Story = StoryObj<typeof CartSummaryBlockOrg>;
  ====================== */
 export const User: Story = {
   args: {
-    role: 'user',
+    cartRole: 'user',
     items: mockItems,
     onSubmit: (ids) => {
       console.log('User submit:', ids);
+    },
+    onDeleteSelected: (ids) => {
+      console.log('User delete:', ids);
+    },
+    onQuantityChange: (id, qty) => {
+      console.log('User quantity change:', id, qty);
     },
   },
 };
@@ -96,14 +100,17 @@ export const User: Story = {
  ====================== */
 export const ManagerWithinBudget: Story = {
   args: {
-    role: 'manager',
+    cartRole: 'manager',
     items: mockItems,
     budget: 2_000_000,
     onSubmit: (ids) => {
       console.log('Manager submit:', ids);
     },
-    onItemPurchase: (params) => {
-      console.log('Manager purchase:', params);
+    onDeleteSelected: (ids) => {
+      console.log('Manager delete:', ids);
+    },
+    onQuantityChange: (id, qty) => {
+      console.log('Manager quantity change:', id, qty);
     },
   },
 };
@@ -113,14 +120,14 @@ export const ManagerWithinBudget: Story = {
  ====================== */
 export const ManagerBudgetExceeded: Story = {
   args: {
-    role: 'manager',
+    cartRole: 'manager',
     items: mockItems,
     budget: 100_000,
     onSubmit: (ids) => {
-      console.log('Manager submit (budget exceeded):', ids);
+      console.log('Manager urgent request:', ids);
     },
-    onItemPurchase: (params) => {
-      console.log('Manager purchase (budget exceeded):', params);
+    onDeleteSelected: (ids) => {
+      console.log('Manager delete:', ids);
     },
   },
 };
@@ -130,14 +137,14 @@ export const ManagerBudgetExceeded: Story = {
  ====================== */
 export const AdminWithinBudget: Story = {
   args: {
-    role: 'admin',
+    cartRole: 'admin',
     items: mockItems,
     budget: 2_000_000,
     onSubmit: (ids) => {
       console.log('Admin submit:', ids);
     },
-    onItemPurchase: (params) => {
-      console.log('Admin purchase:', params);
+    onDeleteSelected: (ids) => {
+      console.log('Admin delete:', ids);
     },
   },
 };
@@ -147,14 +154,14 @@ export const AdminWithinBudget: Story = {
  ====================== */
 export const AdminBudgetExceeded: Story = {
   args: {
-    role: 'admin',
+    cartRole: 'admin',
     items: mockItems,
     budget: 100_000,
     onSubmit: (ids) => {
       console.log('Admin submit (budget exceeded):', ids);
     },
-    onItemPurchase: (params) => {
-      console.log('Admin purchase (budget exceeded):', params);
+    onGoBudgetManage: () => {
+      console.log('Go to budget manage');
     },
   },
 };

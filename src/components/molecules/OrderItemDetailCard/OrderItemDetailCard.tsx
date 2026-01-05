@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 
@@ -21,41 +21,41 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   className,
 }) => {
   const displayTotalPrice = unitPrice * quantity;
+  const [imageError, setImageError] = useState(false);
+  const hasValidImage = imageSrc && imageSrc.trim() !== '' && !imageError;
+
+  // imageSrc 변경 시 imageError 상태 초기화
+  useEffect(() => {
+    setImageError(false);
+  }, [imageSrc]);
 
   return (
     <div className={clsx('tablet:hidden', className)}>
       <div className="flex flex-col w-full rounded-12 bg-white px-12 py-8 gap-8">
         <div className="flex items-center gap-12">
-          <div className="overflow-hidden rounded-8 bg-gray-50 w-85 h-85 p-15">
-            {imageSrc ? (
-              <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-50">
+          <div className="overflow-hidden rounded-8 bg-gray-50 w-85 h-85">
+            {hasValidImage ? (
+              <div className="w-full h-full p-15">
                 <img
-                  src="/icons/photo-icon.svg"
-                  alt=""
-                  className="opacity-40"
-                  width={20}
-                  height={20}
+                  src={imageSrc}
+                  alt={name}
+                  className="w-full h-full object-contain"
+                  onError={() => setImageError(true)}
                 />
               </div>
+            ) : (
+              <img src="/icons/no-image.svg" alt="" className="w-full h-full object-cover" />
             )}
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 flex-1">
             <p className="text-black-100 text-14 leading-20">{name}</p>
             <PriceText value={unitPrice} className="text-black-100 text-14 leading-20" />
-            <div className="pt-14">
+            <div className="pt-14 flex items-center justify-between">
               <span className="text-black-100 text-14 leading-20">수량 {quantity}개</span>
+              <PriceText value={displayTotalPrice} className="text-gray-700 font-bold text-16" />
             </div>
           </div>
-        </div>
-
-        <div className="flex justify-end">
-          <PriceText
-            value={displayTotalPrice}
-            className="text-gray-700 font-bold text-16 text-right"
-          />
         </div>
       </div>
     </div>
@@ -71,24 +71,30 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   className,
 }) => {
   const displayTotalPrice = unitPrice * quantity;
+  const [imageError, setImageError] = useState(false);
+  const hasValidImage = imageSrc && imageSrc.trim() !== '' && !imageError;
+
+  // imageSrc 변경 시 imageError 상태 초기화
+  useEffect(() => {
+    setImageError(false);
+  }, [imageSrc]);
 
   return (
     <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
       <div className="flex items-center justify-between w-full rounded-12 bg-white px-16 py-12 gap-12">
         <div className="flex items-center gap-12">
-          <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140 p-15">
-            {imageSrc ? (
-              <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-50">
+          <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+            {hasValidImage ? (
+              <div className="w-full h-full p-15">
                 <img
-                  src="/icons/photo-icon.svg"
-                  alt=""
-                  className="opacity-40"
-                  width={24}
-                  height={24}
+                  src={imageSrc}
+                  alt={name}
+                  className="w-full h-full object-contain"
+                  onError={() => setImageError(true)}
                 />
               </div>
+            ) : (
+              <img src="/icons/no-image.svg" alt="" className="w-full h-full object-cover" />
             )}
           </div>
 
@@ -121,24 +127,30 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   className,
 }) => {
   const displayTotalPrice = unitPrice * quantity;
+  const [imageError, setImageError] = useState(false);
+  const hasValidImage = imageSrc && imageSrc.trim() !== '' && !imageError;
+
+  // imageSrc 변경 시 imageError 상태 초기화
+  useEffect(() => {
+    setImageError(false);
+  }, [imageSrc]);
 
   return (
     <div className={clsx('hidden desktop:flex', className)}>
       <div className="flex items-center justify-between w-full rounded-12 bg-white px-20 py-16 gap-16">
         <div className="flex items-center gap-12">
-          <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140 p-15">
-            {imageSrc ? (
-              <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-50">
+          <div className="overflow-hidden rounded-8 bg-gray-50 w-140 h-140">
+            {hasValidImage ? (
+              <div className="w-full h-full p-15">
                 <img
-                  src="/icons/photo-icon.svg"
-                  alt=""
-                  className="opacity-40"
-                  width={28}
-                  height={28}
+                  src={imageSrc}
+                  alt={name}
+                  className="w-full h-full object-contain"
+                  onError={() => setImageError(true)}
                 />
               </div>
+            ) : (
+              <img src="/icons/no-image.svg" alt="" className="w-full h-full object-cover" />
             )}
           </div>
 

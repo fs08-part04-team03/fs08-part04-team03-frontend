@@ -20,6 +20,10 @@ interface BaseProductCardProps {
 
   /** ✅ wishlist 전용 */
   onUnlike?: () => void;
+
+  /** ✅ 위시리스트 상태 */
+  liked?: boolean;
+  onToggleLike?: () => void;
 }
 
 const ProductCard: React.FC<BaseProductCardProps> = ({
@@ -33,11 +37,16 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   className,
   onClick,
   onUnlike,
+  liked: externalLiked,
+  onToggleLike,
 }) => {
-  const [liked, setLiked] = useState(variant === 'wishlist');
+  const [internalLiked, setInternalLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const isWishlist = variant === 'wishlist';
+  // 외부에서 liked prop이 전달되면 그것을 사용, 없으면 내부 state 사용
+  const liked = externalLiked !== undefined ? externalLiked : internalLiked;
   const isLiked = isWishlist ? true : liked;
 
   const rootClasses = clsx(
@@ -74,8 +83,92 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       return;
     }
 
-    setLiked((prev) => !prev);
+    // 외부에서 onToggleLike가 전달되면 그것을 사용, 없으면 내부 state 업데이트
+    if (onToggleLike) {
+      onToggleLike();
+    } else {
+      setInternalLiked((prev) => !prev);
+    }
   };
+
+  /** =====================
+      Image 처리
+  ====================== */
+  // imageUrl이 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
+  const isValidImageUrl = imageUrl && typeof imageUrl === 'string' && imageUrl.trim().length > 0;
+
+  // 유효한 imageUrl이 있고 에러가 없을 때만 실제 이미지 표시
+  const shouldShowImage = isValidImageUrl && !imgError;
+
+  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
+  const isExternalUrl = isValidImageUrl
+    ? imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
+    : false;
+
+  let imageContent;
+  if (shouldShowImage) {
+    // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+    if (isExternalUrl) {
+      imageContent = (
+        <img
+          src={imageUrl}
+          alt={name}
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={() => setImgError(true)}
+          crossOrigin="anonymous"
+        />
+      );
+    } else {
+      // 내부 이미지는 Next.js Image 컴포넌트 사용
+      imageContent = (
+        <Image
+          src={imageUrl}
+          alt={name}
+          fill
+          onError={() => setImgError(true)}
+          className="object-cover"
+        />
+      );
+    }
+  } else {
+    // imageUrl이 없거나 유효하지 않거나 로딩 실패 시 fallback 이미지 표시
+    imageContent = (
+      <Image
+        src="/icons/no-image.svg"
+        alt="이미지 없음"
+        fill
+        className="object-contain"
+        unoptimized
+      />
+    );
+  }
+
+  /** =====================
+      ProductTile 처리
+  ====================== */
+  let productTileContent;
+  if (variant === 'product' || variant === 'wishlist') {
+    productTileContent = (
+      <ProductTile
+        variant="product"
+        name={name}
+        price={price}
+        purchaseCount={purchaseCount}
+        size="md"
+      />
+    );
+  } else {
+    productTileContent = (
+      <ProductTile
+        variant="order"
+        name={name}
+        price={price}
+        quantity={quantity}
+        shippingFee={shippingFee}
+        size="md"
+      />
+    );
+  }
 
   return (
     <div
@@ -101,36 +194,23 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
             'w-155 h-155 tablet:w-219 tablet:h-219 desktop:w-373 desktop:h-373'
         )}
       >
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={name}
-            width={54}
-            height={93}
-            className={clsx(
-              'object-cover',
-              'tablet:w-54 tablet:h-94',
-              'desktop:w-128 desktop:h-222'
-            )}
-          />
-        ) : (
-          <span className="text-12 text-gray-500">이미지 없음</span>
-        )}
+        <div className="relative w-full h-full">{imageContent}</div>
 
-        {/* Heart */}
+        {/* Heart 버튼 */}
         <button
           type="button"
           aria-pressed={isLiked}
           aria-label={isLiked ? '찜하기 취소' : '찜하기'}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={handleHeartClick}
-          className="absolute bottom-10 right-10 w-30 h-30 desktop:bottom-20 desktop:right-20 bg-transparent p-0"
+          className="absolute bottom-10 right-10 w-17 h-17 desktop:bottom-20 desktop:right-20 desktop:w-25 desktop:h-25 bg-transparent p-0"
         >
           <Image
             src={isLiked ? '/icons/heart.svg' : '/icons/heart-outline.svg'}
             alt=""
-            width={30}
-            height={30}
+            width={25}
+            height={25}
+            className="w-full h-full"
           />
         </button>
       </div>
@@ -138,26 +218,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       {/* =====================
           Text
       ====================== */}
-      <div className="flex flex-col flex-1 min-w-0 px-8 pt-8 pb-12 gap-2">
-        {variant === 'product' || variant === 'wishlist' ? (
-          <ProductTile
-            variant="product"
-            name={name}
-            price={price}
-            purchaseCount={purchaseCount}
-            size="md"
-          />
-        ) : (
-          <ProductTile
-            variant="order"
-            name={name}
-            price={price}
-            quantity={quantity}
-            shippingFee={shippingFee}
-            size="md"
-          />
-        )}
-      </div>
+      <div className="flex flex-col flex-1 min-w-0 px-8 pt-8 pb-12 gap-2">{productTileContent}</div>
     </div>
   );
 };

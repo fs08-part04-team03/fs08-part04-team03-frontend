@@ -15,3 +15,14 @@ export const SORT_OPTIONS_WITH_SALES: Option[] = [
 ] as const;
 
 export const DEFAULT_SORT_KEY = 'LATEST' as const;
+
+// 상품 등록 내역용 정렬 옵션 (전체 옵션 포함)
+export const REGISTERED_PRODUCT_SORT_OPTIONS: Option[] = [
+  { key: 'all', label: '전체' },
+  { key: 'latest', label: '최신순' },
+  { key: 'lowprice', label: '낮은 가격순' },
+  { key: 'highprice', label: '높은 가격순' },
+];
+
+// 상품 등록 내역용 기본 정렬 옵션
+export const DEFAULT_REGISTERED_PRODUCT_SORT: Option = REGISTERED_PRODUCT_SORT_OPTIONS[0]!;

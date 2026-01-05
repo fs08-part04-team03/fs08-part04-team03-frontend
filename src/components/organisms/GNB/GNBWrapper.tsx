@@ -1,10 +1,13 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
 import { clearAuthCookies } from '@/utils/cookies';
 import { logout } from '@/features/auth/api/auth.api';
+import { getCompany } from '@/features/profile/api/company.api';
+import UserProfile from '@/components/molecules/UserProfile/UserProfile';
+import { PARENT_CATEGORY_OPTIONS, type ParentCategoryKey } from '@/constants';
 import GNB from './GNB';
 
 /**
@@ -16,8 +19,36 @@ import GNB from './GNB';
  * - Cart count, User profile 등 데이터 주입
  */
 export const GNBWrapper: React.FC = () => {
-  const { user, clearAuth } = useAuthStore();
+  const { user, accessToken, clearAuth } = useAuthStore();
   const router = useRouter();
+  const params = useParams();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [companyName, setCompanyName] = useState<string>('');
+
+  // 회사 정보 조회 (GNB에 표시할 회사명)
+  // Authorization 헤더를 포함하여 API 호출
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      if (!accessToken) return;
+
+      try {
+        const company = await getCompany(accessToken);
+        setCompanyName(company.name);
+      } catch (error) {
+        // 네트워크 에러는 조용히 처리 (개발 환경에서만 로그)
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('[GNBWrapper] 회사 정보 조회 실패:', error);
+        }
+        // 실패 시 기본값 사용 (사용자에게는 에러를 표시하지 않음)
+        setCompanyName('SNACK');
+      }
+    };
+
+    // eslint-disable-next-line no-void
+    void fetchCompanyData();
+  }, [accessToken]);
 
   // 로그아웃 핸들러 (비동기 작업을 수행하지만 void를 반환)
   const handleLogout = () => {
@@ -46,30 +77,57 @@ export const GNBWrapper: React.FC = () => {
   // const { data: cartData } = useCartQuery();
   // const cartCount = cartData?.totalItems || 0;
 
-  // TODO: UserProfile 컴포넌트 구현 후 추가
-  // const userProfile = user ? (
-  //   <UserProfileAvatar
-  //     name={user.name}
-  //     avatar={user.avatar}
-  //   />
-  // ) : null;
+  const companyId = (params?.companyId as string) || user?.companyId || '';
+  const userProfile = user ? (
+    <UserProfile
+      name={user.name}
+      company={{ name: companyName }}
+      profileHref={`/${companyId}/my/profile`}
+      variant="secondary"
+    />
+  ) : null;
 
-  // TODO: 상품 페이지에서 Category 관련 로직 추가
-  // const pathname = usePathname();
-  // const isProductPage = pathname?.includes('/products');
-  // const categoryProps = isProductPage ? {
-  //   categories: PARENT_CATEGORIES,
-  //   activeCategoryId: currentCategory,
-  //   onCategoryChange: handleCategoryChange,
-  // } : {};
+  // 상품 페이지 또는 위시리스트 페이지에서만 카테고리 스위처 표시
+  const isProductOrWishlistPage = useMemo(() => {
+    if (!pathname) return false;
+    return pathname.includes('/products') || pathname.includes('/wishlist');
+  }, [pathname]);
+
+  // 현재 선택된 카테고리 ID (URL 쿼리 파라미터에서 가져오거나 첫 번째 카테고리 사용)
+  const activeCategoryId = useMemo(() => {
+    if (!isProductOrWishlistPage) return undefined;
+    const categoryParam = searchParams?.get('category');
+    if (categoryParam) {
+      // 쿼리 파라미터가 숫자 ID인 경우 해당 카테고리 찾기
+      const categoryId = Number.parseInt(categoryParam, 10);
+      const category = PARENT_CATEGORY_OPTIONS.find((c) => c.parentId === categoryId);
+      return category?.id;
+    }
+    // 기본값: 첫 번째 카테고리
+    return PARENT_CATEGORY_OPTIONS[0]?.id;
+  }, [isProductOrWishlistPage, searchParams]);
+
+  // 카테고리 변경 핸들러
+  const handleCategoryChange = (categoryKey: ParentCategoryKey) => {
+    if (!isProductOrWishlistPage) return;
+    const category = PARENT_CATEGORY_OPTIONS.find((c) => c.id === categoryKey);
+    if (category) {
+      // 상품 페이지로 이동하면서 카테고리 쿼리 파라미터 추가
+      router.push(`/${companyId}/products?category=${category.parentId}`);
+    }
+  };
 
   return (
     <GNB
       role={user?.role || 'user'}
       cartCount={0}
       onLogout={handleLogout}
-      // userProfile={userProfile}
-      // {...categoryProps}
+      userProfile={userProfile}
+      categories={isProductOrWishlistPage && activeCategoryId ? PARENT_CATEGORY_OPTIONS : undefined}
+      activeCategoryId={isProductOrWishlistPage && activeCategoryId ? activeCategoryId : undefined}
+      onCategoryChange={
+        isProductOrWishlistPage && activeCategoryId ? handleCategoryChange : undefined
+      }
     />
   );
 };
