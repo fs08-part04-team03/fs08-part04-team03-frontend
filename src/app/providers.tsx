@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
+import { useTokenRefresh } from '@/hooks/useTokenRefresh';
 
 export const Providers = ({ children }: { children: React.ReactNode }) => {
   const [queryClient] = useState(
@@ -25,6 +26,9 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
         },
       })
   );
+
+  // Access token 자동 갱신 (4분마다, 5분 만료 기준)
+  useTokenRefresh();
 
   return (
     <QueryClientProvider client={queryClient}>

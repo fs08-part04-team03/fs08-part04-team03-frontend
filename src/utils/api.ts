@@ -88,7 +88,7 @@ export function getApiTimeout(): number {
  * refreshToken을 사용하여 토큰 갱신 시도
  * refreshToken이 httpOnly 쿠키에 있다면 백엔드가 자동으로 확인합니다
  */
-async function tryRefreshToken(): Promise<string | null> {
+export async function tryRefreshToken(): Promise<string | null> {
   const apiUrl = getApiUrl();
   const timeout = getApiTimeout();
   const controller = new AbortController();
