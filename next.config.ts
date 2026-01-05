@@ -1,7 +1,6 @@
 import type { NextConfig } from 'next';
 
 // 환경 변수 기반 프로토콜 및 호스트 설정
-const isProduction = process.env.NODE_ENV === 'production';
 const imageHost = process.env.IMAGE_HOST || 'snock.tplinkdns.com';
 const imagePort = process.env.IMAGE_PORT || '4000';
 
@@ -9,8 +8,8 @@ const imagePort = process.env.IMAGE_PORT || '4000';
 const normalizedPort =
   imagePort.trim() && /^\d+$/.test(imagePort.trim()) ? imagePort.trim() : undefined;
 
-// 프로덕션에서는 HTTPS, 개발에서는 HTTP 사용
-const imageProtocol = isProduction ? 'https' : 'http';
+// 백엔드가 HTTPS를 사용하므로 항상 HTTPS 사용
+const imageProtocol = 'https';
 
 // 호스트명 정규화 (공백 제거, 소문자 변환)
 const normalizedHost = imageHost.trim().toLowerCase();
