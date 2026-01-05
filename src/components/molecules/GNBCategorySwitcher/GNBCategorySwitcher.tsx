@@ -85,7 +85,7 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
       {/* 드롭다운 오버레이 */}
       <div
         className={clsx(
-          'fixed inset-0 z-tooltip tablet:hidden',
+          'fixed inset-0 z-menu tablet:hidden',
           'transition-opacity duration-200',
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
