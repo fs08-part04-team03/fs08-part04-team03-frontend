@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { clsx } from '@/utils/clsx';
 
 export interface Option {
@@ -19,8 +20,8 @@ export interface DropDownProps {
   dropdownClassName?: string;
   optionClassName?: string;
   onSelect?: (item: Option) => void;
-  selected?: Option; // ← 외부에서 선택된 값을 받는 prop
-  inModal?: boolean; // ← 모달 안에 있는 드롭다운인지 여부
+  selected?: Option;
+  inModal?: boolean;
 }
 
 const DropDown: React.FC<DropDownProps> = ({
@@ -32,30 +33,60 @@ const DropDown: React.FC<DropDownProps> = ({
   dropdownClassName = '',
   optionClassName = '',
   onSelect,
-  selected: externalSelected, // ← 외부 selected
-  inModal = false, // ← 모달 안에 있는 드롭다운인지 여부
+  selected: externalSelected,
+  inModal = false,
 }) => {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [selected, setSelected] = useState<Option | null>(externalSelected ?? null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLUListElement>(null);
+
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleOpen = () => !disabled && setOpen((prev) => !prev);
 
   const handleSelect = (item: Option) => {
     setSelected(item);
     setOpen(false);
-    if (onSelect) onSelect(item);
+
+    // 닫힘 렌더를 먼저 반영한 뒤 콜백 실행
+    queueMicrotask(() => {
+      onSelect?.(item);
+    });
   };
 
-  // 외부 selected prop 변경 시 내부 상태 동기화
   useEffect(() => {
     setSelected(externalSelected ?? null);
   }, [externalSelected]);
 
-  // 외부 클릭 + Escape 키 처리
+  /** 위치 계산 */
   useEffect(() => {
+    if (!open || !buttonRef.current) return;
+
+    const rect = buttonRef.current.getBoundingClientRect();
+    setPosition({
+      top: rect.bottom + window.scrollY + 4,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+    });
+  }, [open]);
+
+  /** 외부 클릭 + ESC */
+  useEffect(() => {
+    if (!open) return;
+
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node) &&
+        !buttonRef.current?.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     };
@@ -64,11 +95,10 @@ const DropDown: React.FC<DropDownProps> = ({
       if (e.key === 'Escape') setOpen(false);
     };
 
-    if (open) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
 
+    // eslint-disable-next-line consistent-return
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
@@ -78,9 +108,9 @@ const DropDown: React.FC<DropDownProps> = ({
   const appliedVariant: SelectVariant = variant ?? 'small';
 
   const sizeClasses = {
-    small: `w-110 h-44`,
-    medium: `mobile:w-153 tablet:w-216 desktop:w-216 h-56`,
-    large: `mobile:w-327 tablet:w-480 desktop:w-480 h-44`,
+    small: 'w-110 h-44',
+    medium: 'mobile:w-153 tablet:w-216 desktop:w-216 h-56',
+    large: 'mobile:w-327 tablet:w-480 desktop:w-480 h-44',
   };
 
   const textColorClasses = {
@@ -97,12 +127,13 @@ const DropDown: React.FC<DropDownProps> = ({
     large: 'h-44',
   };
 
+  /** ✅ z-index 클래스 */
   const zIndexClass = inModal ? 'z-modaldropdown' : 'z-dropdown';
 
   return (
-    <div ref={dropdownRef} className="relative z-20 inline-block">
-      {/* 선택 박스 */}
+    <>
       <button
+        ref={buttonRef}
         type="button"
         onClick={toggleOpen}
         disabled={disabled}
@@ -121,50 +152,60 @@ const DropDown: React.FC<DropDownProps> = ({
 
         <img
           src="/icons/arrow-down.svg"
-          alt="arrow"
+          alt=""
+          aria-hidden
           className={clsx('w-12 h-12 transition-transform duration-200', open && 'rotate-180')}
         />
       </button>
 
-      {/* 옵션 드롭다운 */}
-      {open && (
-        <ul
-          role="listbox"
-          aria-label={placeholder}
-          className={clsx(
-            'absolute left-0 mt-4 w-full bg-white border border-gray-300 shadow-lg rounded-8 max-h-200 overflow-y-auto scrollbar-none',
-            zIndexClass,
-            dropdownClassName
-          )}
-        >
-          {items.map((item) => (
-            <li
-              key={item.key}
-              role="option"
-              aria-selected={selected?.key === item.key}
-              tabIndex={0}
-              onClick={() => handleSelect(item)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleSelect(item);
-                }
-              }}
-              className={clsx(
-                'flex items-center px-12 cursor-pointer hover:bg-gray-100',
-                fontClasses,
-                textColorClasses[appliedVariant],
-                optionHeightClasses[appliedVariant],
-                selected?.key === item.key && 'bg-gray-50',
-                optionClassName
-              )}
-            >
-              {item.label}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+      {mounted &&
+        open &&
+        createPortal(
+          <ul
+            ref={dropdownRef}
+            role="listbox"
+            aria-label={placeholder}
+            style={{
+              position: 'absolute',
+              top: position.top,
+              left: position.left,
+              width: position.width,
+            }}
+            className={clsx(
+              zIndexClass,
+              'bg-white border border-gray-300 shadow-lg rounded-8 max-h-200 overflow-y-auto scrollbar-none',
+              dropdownClassName
+            )}
+          >
+            {items.map((item) => (
+              <li
+                key={item.key}
+                role="option"
+                aria-selected={selected?.key === item.key}
+                tabIndex={0}
+                onClick={() => handleSelect(item)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSelect(item);
+                  }
+                }}
+                className={clsx(
+                  'flex items-center px-12 cursor-pointer hover:bg-gray-100',
+                  fontClasses,
+                  textColorClasses[appliedVariant],
+                  optionHeightClasses[appliedVariant],
+                  selected?.key === item.key && 'bg-gray-50',
+                  optionClassName
+                )}
+              >
+                {item.label}
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
+    </>
   );
 };
 

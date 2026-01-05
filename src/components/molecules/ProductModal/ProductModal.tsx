@@ -9,6 +9,7 @@ import InputField from '@/components/molecules/InputField/InputField';
 import { useToast } from '@/hooks/useToast';
 import { CATEGORY_SECTIONS } from '@/constants';
 import { useAuthStore } from '@/lib/store/authStore';
+import { formatPrice, isInvalidPrice, isValidUrl, isValidPriceInput } from '@/utils/validation';
 
 interface ProductModalProps {
   open: boolean;
@@ -92,11 +93,6 @@ const ProductModal = ({
   const { triggerToast } = useToast();
   const { accessToken } = useAuthStore();
 
-  const formatPrice = (value: string) => {
-    const numeric = value.replace(/[^0-9]/g, '');
-    return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
-
   const validate = useCallback(() => {
     const newErrors = {
       name: '',
@@ -108,11 +104,14 @@ const ProductModal = ({
     };
 
     if (!productName.trim()) newErrors.name = '상품명을 입력해주세요.';
-    if (!price.trim()) newErrors.price = '가격을 입력해주세요.';
 
-    const urlRegex = /^https?:\/\/.+/;
+    // 가격 검증: 콤마를 제거한 숫자값이 0보다 커야 함
+    if (isInvalidPrice(price)) {
+      newErrors.price = '가격을 입력해주세요.';
+    }
+
     if (!link.trim()) newErrors.link = '제품 링크를 입력해주세요.';
-    else if (!urlRegex.test(link))
+    else if (!isValidUrl(link))
       newErrors.link = 'http:// 또는 https://로 시작하는 URL을 입력해주세요.';
 
     if (!selectedCategory) newErrors.category = '대분류를 선택해주세요.';
@@ -226,7 +225,15 @@ const ProductModal = ({
     prevCategoryRef.current = selectedCategory;
   }, [selectedCategory]);
 
-  // 모달이 열릴 때 자동으로 validate하지 않음 (사용자가 입력하거나 submit 시에만 검증)
+  // 입력값 변경 시 실시간 검증 (touched 필드가 있을 때만)
+  useEffect(() => {
+    if (open) {
+      const hasTouched = Object.values(touched).some((t) => t);
+      if (hasTouched) {
+        validate();
+      }
+    }
+  }, [open, productName, price, link, selectedCategory, selectedSubCategory, touched, validate]);
 
   useEffect(() => {
     if (!open && previewUrlRef.current) {
@@ -280,7 +287,7 @@ const ProductModal = ({
         aria-modal="true"
         className={clsx(
           'relative bg-white rounded-12 z-modal flex flex-col gap-30 items-center',
-          'tablet:w-512 tablet:p-30'
+          'p-30 tablet:w-512'
         )}
       >
         <h2 className="text-18 font-bold">상품 등록</h2>
@@ -361,6 +368,7 @@ const ProductModal = ({
                 setProductName(value);
                 setTouched((prev) => ({ ...prev, name: true }));
               }}
+              onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
               minLength={1}
               maxLength={20}
             />
@@ -375,12 +383,15 @@ const ProductModal = ({
               placeholder="가격을 입력해주세요"
               value={price}
               onChange={(v) => {
-                setPrice(formatPrice(v));
-                setTouched((prev) => ({ ...prev, price: true }));
+                const numeric = v.replace(/[^0-9]/g, '');
+                if (isValidPriceInput(numeric)) {
+                  setPrice(numeric ? formatPrice(numeric) : '');
+                  setTouched((prev) => ({ ...prev, price: true }));
+                }
               }}
+              onBlur={() => setTouched((prev) => ({ ...prev, price: true }))}
               type="text"
               minLength={1}
-              maxLength={20}
             />
             {touched.price && errors.price && (
               <span className="text-red-500 text-12">{errors.price}</span>
@@ -396,6 +407,7 @@ const ProductModal = ({
                 setLink(value);
                 setTouched((prev) => ({ ...prev, link: true }));
               }}
+              onBlur={() => setTouched((prev) => ({ ...prev, link: true }))}
               type="text"
               maxLength={50}
             />
