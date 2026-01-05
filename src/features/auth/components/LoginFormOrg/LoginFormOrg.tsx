@@ -50,7 +50,6 @@ export const useLoginForm = () => {
       setAuth({ user, accessToken });
 
       logger.info('[Login] 인증 정보 저장 완료', {
-        userId: user.id,
         role: user.role,
       });
 
@@ -58,7 +57,9 @@ export const useLoginForm = () => {
       const redirectPath = `/${user.companyId}/products`;
       router.push(redirectPath);
     } catch (error) {
-      logger.error('[Login] 로그인 실패', error);
+      logger.error('[Login] 로그인 실패', {
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+      });
       const errorMessage =
         error instanceof Error ? error.message : '이메일 또는 비밀번호가 올바르지 않습니다.';
       setToastMessage(errorMessage);

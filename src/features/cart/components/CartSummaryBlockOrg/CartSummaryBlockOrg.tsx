@@ -10,6 +10,7 @@ import PriceText from '@/components/atoms/PriceText/PriceText';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logger';
 
 import { purchaseNow, urgentRequestPurchase } from '@/features/purchase/api/purchase.api';
 
@@ -132,7 +133,9 @@ const CartSummaryBlockOrg = ({
       });
       onSubmit?.([item.cartItemId]);
     } catch (error) {
-      console.error(error);
+      logger.error('[CartSummaryBlock] 즉시 구매 실패', {
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+      });
       setErrorMessage('즉시 구매에 실패했습니다.');
     } finally {
       setIsPurchasing(false);
@@ -202,7 +205,9 @@ const CartSummaryBlockOrg = ({
 
   const handleSubmitClick = () => {
     handleSubmit().catch((err) => {
-      console.error(err);
+      logger.error('[CartSummaryBlock] 요청 처리 중 오류', {
+        message: err instanceof Error ? err.message : '알 수 없는 오류',
+      });
       setErrorMessage('요청 처리 중 오류가 발생했습니다.');
     });
   };
@@ -253,7 +258,9 @@ const CartSummaryBlockOrg = ({
                   onPurchaseClick={() => {
                     if (!purchaseButtonDisabled) {
                       handleAdminPurchaseNow(item).catch((err) => {
-                        console.error(err);
+                        logger.error('[CartSummaryBlock] 즉시 구매 실패', {
+                          message: err instanceof Error ? err.message : '알 수 없는 오류',
+                        });
                         setErrorMessage('즉시 구매 실패');
                       });
                     }

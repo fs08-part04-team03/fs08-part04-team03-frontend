@@ -48,7 +48,6 @@ export const useInviteSignupForm = (email: string, token: string) => {
       });
 
       logger.info('[InviteSignup] 초대 회원가입 API 성공', {
-        userId: user.id,
         hasAccessToken: !!accessToken,
       });
 
@@ -68,7 +67,6 @@ export const useInviteSignupForm = (email: string, token: string) => {
       setAuth({ user, accessToken });
 
       logger.info('[InviteSignup] 인증 정보 저장 완료', {
-        userId: user.id,
         role: user.role,
       });
 
@@ -76,7 +74,9 @@ export const useInviteSignupForm = (email: string, token: string) => {
       const redirectPath = `/${user.companyId}/products`;
       router.push(redirectPath);
     } catch (error) {
-      logger.error('[InviteSignup] 초대 회원가입 실패', error);
+      logger.error('[InviteSignup] 초대 회원가입 실패', {
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+      });
       const errorMessage =
         error instanceof Error ? error.message : '회원가입에 실패했습니다. 다시 시도해 주세요.';
       setToastMessage(errorMessage);
