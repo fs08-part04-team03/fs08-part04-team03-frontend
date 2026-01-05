@@ -7,7 +7,10 @@ import { clearAuthCookies } from '@/utils/cookies';
 import { logout } from '@/features/auth/api/auth.api';
 import { getCompany } from '@/features/profile/api/company.api';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
-import { PARENT_CATEGORY_OPTIONS, type ParentCategoryKey } from '@/constants';
+import { PARENT_CATEGORY_OPTIONS, CATEGORY_SECTIONS, type ParentCategoryKey } from '@/constants';
+import { getChildById } from '@/constants/categories/categories.utils';
+import { useQuery } from '@tanstack/react-query';
+import { getProductById } from '@/features/products/api/products.api';
 import GNB from './GNB';
 
 /**
@@ -93,21 +96,70 @@ export const GNBWrapper: React.FC = () => {
     return pathname.includes('/products') || pathname.includes('/wishlist');
   }, [pathname]);
 
-  // 현재 선택된 카테고리 ID (URL 쿼리 파라미터에서 가져오거나 첫 번째 카테고리 사용)
+  // 상품 디테일 페이지인지 확인
+  const isProductDetailPage = useMemo(() => {
+    if (!pathname) return false;
+    // /products/[productId] 또는 /products/my/[productId] 형식
+    return (
+      pathname.match(/\/products\/[^/]+$/) !== null ||
+      pathname.match(/\/products\/my\/[^/]+$/) !== null
+    );
+  }, [pathname]);
+
+  // 상품 ID 추출 (디테일 페이지인 경우)
+  const productId = useMemo(() => {
+    if (!isProductDetailPage) return null;
+    const pathSegments = pathname?.split('/') || [];
+    return pathSegments[pathSegments.length - 1] || null;
+  }, [isProductDetailPage, pathname]);
+
+  // 상품 정보 조회 (디테일 페이지인 경우)
+  const { data: productData } = useQuery({
+    queryKey: ['product', productId],
+    queryFn: () => getProductById(productId!),
+    enabled: !!productId && isProductDetailPage,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 상품의 대분류 ID (디테일 페이지용)
+  const productCategoryId = useMemo(() => {
+    if (!productData?.categoryId) return undefined;
+    const childCategory = getChildById(productData.categoryId);
+    if (!childCategory) return undefined;
+    const parentCategory = PARENT_CATEGORY_OPTIONS.find(
+      (c) => c.parentId === childCategory.parentId
+    );
+    return parentCategory?.id;
+  }, [productData]);
+
+  // 현재 선택된 카테고리 ID (URL 쿼리 파라미터에서 가져오거나 상품 카테고리 사용)
   const activeCategoryId = useMemo(() => {
     if (!isProductOrWishlistPage) return undefined;
-    const categoryParam = searchParams?.get('category');
-    if (categoryParam) {
-      // 쿼리 파라미터가 숫자 ID인 경우 해당 카테고리 찾기
-      const categoryId = Number.parseInt(categoryParam, 10);
-      const category = PARENT_CATEGORY_OPTIONS.find((c) => c.parentId === categoryId);
-      return category?.id;
+
+    // 디테일 페이지인 경우 상품의 카테고리 사용
+    if (isProductDetailPage && productCategoryId) {
+      return productCategoryId;
     }
+
+    // categoryId 쿼리 파라미터에서 소분류 ID를 읽어서 대분류 찾기
+    const categoryIdParam = searchParams?.get('categoryId');
+    if (categoryIdParam) {
+      const childCategoryId = Number.parseInt(categoryIdParam, 10);
+      // 소분류 ID로 대분류 찾기
+      const childCategory = CATEGORY_SECTIONS.find((section) =>
+        section.options.some((opt) => opt.value === childCategoryId)
+      );
+      if (childCategory) {
+        const parentCategory = PARENT_CATEGORY_OPTIONS.find((c) => c.parentId === childCategory.id);
+        return parentCategory?.id;
+      }
+    }
+
     // 기본값: 첫 번째 카테고리
     return PARENT_CATEGORY_OPTIONS[0]?.id;
-  }, [isProductOrWishlistPage, searchParams]);
+  }, [isProductOrWishlistPage, isProductDetailPage, productCategoryId, searchParams]);
 
-  // 카테고리 변경 핸들러
+  // 카테고리 변경 핸들러 (대분류)
   const handleCategoryChange = (categoryKey: ParentCategoryKey) => {
     if (!isProductOrWishlistPage) return;
     const category = PARENT_CATEGORY_OPTIONS.find((c) => c.id === categoryKey);
@@ -115,6 +167,13 @@ export const GNBWrapper: React.FC = () => {
       // 상품 페이지로 이동하면서 카테고리 쿼리 파라미터 추가
       router.push(`/${companyId}/products?category=${category.parentId}`);
     }
+  };
+
+  // 소분류 카테고리 변경 핸들러
+  const handleSubCategoryChange = (subCategoryId: number) => {
+    if (!isProductOrWishlistPage) return;
+    // 소분류 ID로 필터링하기 위해 categoryId 쿼리 파라미터 업데이트
+    router.push(`/${companyId}/products?categoryId=${subCategoryId}`);
   };
 
   return (
@@ -125,8 +184,12 @@ export const GNBWrapper: React.FC = () => {
       userProfile={userProfile}
       categories={isProductOrWishlistPage && activeCategoryId ? PARENT_CATEGORY_OPTIONS : undefined}
       activeCategoryId={isProductOrWishlistPage && activeCategoryId ? activeCategoryId : undefined}
+      productCategoryId={isProductDetailPage ? productCategoryId : undefined}
       onCategoryChange={
         isProductOrWishlistPage && activeCategoryId ? handleCategoryChange : undefined
+      }
+      onSubCategoryChange={
+        isProductOrWishlistPage && activeCategoryId ? handleSubCategoryChange : undefined
       }
     />
   );

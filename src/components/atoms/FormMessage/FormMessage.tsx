@@ -14,7 +14,7 @@ const FormMessage = forwardRef<HTMLParagraphElement, FormMessageProps>(
       className={clsx(
         'flex-1',
         'text-14 font-normal leading-normal tracking-[-0.35px]',
-        'font-[var(--font-family-base)]',
+        'font-(--font-family-base)',
         className
       )}
       style={{

@@ -160,7 +160,7 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
       )}
     >
       {/* 아이콘 */}
-      <div className="flex-shrink-0 w-24 h-24 relative">
+      <div className="shrink-0 w-24 h-24 relative">
         <Image src={iconSrc} alt="toast-icon" fill />
       </div>
 
