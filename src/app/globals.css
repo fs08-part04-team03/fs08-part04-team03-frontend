@@ -51,12 +51,12 @@ body {
 
   /* Z-Index 레이어 토큰 */
   --z-base: 1;
-  --z-header: 10;
-  --z-dropdown: 20;
-  --z-tooltip: 30;
-  --z-toast: 40;
-  --z-modal: 50;
-  --z-modaldropdown: 55;
+  --z-dropdown: 10;
+  --z-tooltip: 20;
+  --z-modal: 30;
+  --z-modaldropdown: 35;
+  --z-header: 40;
+  --z-toast: 50;
   --z-menu: 60;
 
   /* Shadow Tokens */
@@ -178,6 +178,7 @@ body {
   --spacing-73: 73px;
   --spacing-74: 74px;
   --spacing-75: 75px;
+  --spacing-76\.83: 76.83px;
   --spacing-76: 76px;
   --spacing-77: 77px;
   --spacing-78: 78px;

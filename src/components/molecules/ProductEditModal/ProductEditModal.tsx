@@ -7,6 +7,7 @@ import DropDown, { Option } from '@/components/atoms/DropDown/DropDown';
 import Button from '@/components/atoms/Button/Button';
 import InputField from '@/components/molecules/InputField/InputField';
 import { CHILD_CATEGORIES, PARENT_CATEGORIES } from '@/constants/categories/categories.constants';
+import { formatPrice, isInvalidPrice, isValidUrl, isValidPriceInput } from '@/utils/validation';
 
 export interface ProductEditFormData {
   name: string;
@@ -127,6 +128,13 @@ const ProductEditModal = ({
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Option | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<Option | null>(null);
+  const [touched, setTouched] = useState({
+    name: false,
+    price: false,
+    link: false,
+    category: false,
+    subCategory: false,
+  });
 
   const previewUrlRef = useRef<string | null>(null);
 
@@ -143,11 +151,6 @@ const ProductEditModal = ({
   const filteredSubCategories = selectedCategory
     ? subCategoriesByCategory[selectedCategory.key] || []
     : [];
-
-  const formatPrice = (value: string) => {
-    const numeric = value.replace(/[^0-9]/g, '');
-    return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
 
   useEffect(
     () => () => {
@@ -168,6 +171,13 @@ const ProductEditModal = ({
       setSelectedCategory(initialCategory);
       setSelectedSubCategory(initialSubCategory);
       setErrors({ name: '', price: '', link: '', category: '', subCategory: '', image: '' });
+      setTouched({
+        name: false,
+        price: false,
+        link: false,
+        category: false,
+        subCategory: false,
+      });
     } else if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
       previewUrlRef.current = null;
@@ -186,11 +196,14 @@ const ProductEditModal = ({
     const newErrors = { name: '', price: '', link: '', category: '', subCategory: '', image: '' };
 
     if (!productName.trim()) newErrors.name = '상품명을 입력해주세요.';
-    if (!price.trim()) newErrors.price = '가격을 입력해주세요.';
 
-    const urlRegex = /^https?:\/\/.+/;
+    // 가격 검증: 콤마를 제거한 숫자값이 0보다 커야 함
+    if (isInvalidPrice(price)) {
+      newErrors.price = '가격을 입력해주세요.';
+    }
+
     if (!link.trim()) newErrors.link = '제품 링크를 입력해주세요.';
-    else if (!urlRegex.test(link))
+    else if (!isValidUrl(link))
       newErrors.link = 'http:// 또는 https://로 시작하는 URL을 입력해주세요.';
 
     if (!selectedCategory) newErrors.category = '대분류를 선택해주세요.';
@@ -206,14 +219,28 @@ const ProductEditModal = ({
     return () => document.removeEventListener('keydown', handleEsc);
   }, [open, onClose]);
 
+  // 입력값 변경 시 실시간 검증 (touched 필드가 있을 때만)
   useEffect(() => {
-    if (open) validate();
-  }, [open, validate]);
+    if (open) {
+      const hasTouched = Object.values(touched).some((t) => t);
+      if (hasTouched) {
+        validate();
+      }
+    }
+  }, [open, productName, price, link, selectedCategory, selectedSubCategory, touched, validate]);
 
   if (!open) return null;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // submit 시 모든 필드를 touched로 표시
+    setTouched({
+      name: true,
+      price: true,
+      link: true,
+      category: true,
+      subCategory: true,
+    });
     if (!validate()) return;
 
     // 카테고리 키를 숫자 ID로 변환
@@ -334,7 +361,7 @@ const ProductEditModal = ({
                     }
                     setPreview(null);
                   }}
-                  className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-20"
+                  className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50"
                   aria-label="이미지 삭제"
                 >
                   <Image
@@ -366,10 +393,11 @@ const ProductEditModal = ({
                 items={categories}
                 placeholder="대분류"
                 variant="medium"
-                buttonClassName={clsx(!selectedCategory && 'border-red-500')}
+                buttonClassName={clsx(touched.category && !selectedCategory && 'border-red-500')}
                 onSelect={(v) => {
                   setSelectedCategory(v);
                   setSelectedSubCategory(null);
+                  setTouched((prev) => ({ ...prev, category: true }));
                 }}
                 selected={selectedCategory || undefined}
                 inModal
@@ -378,14 +406,21 @@ const ProductEditModal = ({
                 items={filteredSubCategories}
                 placeholder="소분류"
                 variant="medium"
-                buttonClassName={clsx(!selectedSubCategory && 'border-red-500')}
-                onSelect={setSelectedSubCategory}
+                buttonClassName={clsx(
+                  touched.subCategory && !selectedSubCategory && 'border-red-500'
+                )}
+                onSelect={(option) => {
+                  setSelectedSubCategory(option);
+                  setTouched((prev) => ({ ...prev, subCategory: true }));
+                }}
                 selected={selectedSubCategory || undefined}
                 inModal
               />
             </div>
-            {errors.category && <span className="text-red-500 text-12">{errors.category}</span>}
-            {errors.subCategory && (
+            {touched.category && errors.category && (
+              <span className="text-red-500 text-12">{errors.category}</span>
+            )}
+            {touched.subCategory && errors.subCategory && (
               <span className="text-red-500 text-12">{errors.subCategory}</span>
             )}
           </div>
@@ -395,11 +430,17 @@ const ProductEditModal = ({
               label="상품명"
               placeholder="상품명을 입력해주세요"
               value={productName}
-              onChange={setProductName}
+              onChange={(value) => {
+                setProductName(value);
+                setTouched((prev) => ({ ...prev, name: true }));
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
               minLength={1}
               maxLength={20}
             />
-            {errors.name && <span className="text-red-500 text-12">{errors.name}</span>}
+            {touched.name && errors.name && (
+              <span className="text-red-500 text-12">{errors.name}</span>
+            )}
           </div>
 
           <div className="flex flex-col w-full gap-1">
@@ -407,12 +448,21 @@ const ProductEditModal = ({
               label="가격"
               placeholder="가격을 입력해주세요"
               value={price}
-              onChange={(v) => setPrice(formatPrice(v))}
+              onChange={(v) => {
+                const numeric = v.replace(/[^0-9]/g, '');
+                if (isValidPriceInput(numeric)) {
+                  setPrice(numeric ? formatPrice(numeric) : '');
+                  setTouched((prev) => ({ ...prev, price: true }));
+                }
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, price: true }))}
               type="text"
               minLength={1}
               maxLength={20}
             />
-            {errors.price && <span className="text-red-500 text-12">{errors.price}</span>}
+            {touched.price && errors.price && (
+              <span className="text-red-500 text-12">{errors.price}</span>
+            )}
           </div>
 
           <div className="flex flex-col w-full gap-1">
@@ -420,11 +470,17 @@ const ProductEditModal = ({
               label="제품 링크"
               placeholder="제품 링크를 입력해주세요"
               value={link}
-              onChange={setLink}
+              onChange={(value) => {
+                setLink(value);
+                setTouched((prev) => ({ ...prev, link: true }));
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, link: true }))}
               type="text"
               maxLength={50}
             />
-            {errors.link && <span className="text-red-500 text-12">{errors.link}</span>}
+            {touched.link && errors.link && (
+              <span className="text-red-500 text-12">{errors.link}</span>
+            )}
           </div>
 
           <div className="flex-1" />
