@@ -57,7 +57,7 @@ const ApprovalRequestModal = ({
         width={40}
         height={40}
         alt={item.title}
-        className="w-40 h-40 flex-shrink-0 object-cover"
+        className="w-40 h-40 shrink-0 object-cover"
       />
     ),
   }));
