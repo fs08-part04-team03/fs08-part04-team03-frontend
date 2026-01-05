@@ -5,6 +5,7 @@ import { useParams, usePathname } from 'next/navigation';
 
 import { clsx } from '@/utils/clsx';
 import type { UserRole, AppRouteKey, ParentCategoryKey, ParentCategoryOption } from '@/constants';
+import { CATEGORY_SECTIONS } from '@/constants';
 
 import GNBBrand from '@/components/molecules/GNBBrand/GNBBrand';
 import GNBPrimaryNav, {
@@ -48,6 +49,9 @@ export interface GNBProps {
   /** 카테고리 변경 콜백 */
   onCategoryChange?: (id: ParentCategoryKey) => void;
 
+  /** 소분류 카테고리 변경 콜백 */
+  onSubCategoryChange?: (id: number) => void;
+
   /** GNB 컨테이너 className */
   className?: string;
 }
@@ -69,6 +73,7 @@ const GNB: React.FC<GNBProps> = ({
   activeCategoryId,
   productCategoryId,
   onCategoryChange,
+  onSubCategoryChange,
   className,
 }) => {
   const params = useParams();
@@ -78,6 +83,15 @@ const GNB: React.FC<GNBProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const currentActivePath = activePath ?? pathname ?? '';
+
+  // GNBCategorySwitcher를 보여줄 페이지인지 확인 (모바일 전용)
+  // "내가 등록한 상품" 페이지(/products/my)는 제외
+  const showCategorySwitcher = pathname
+    ? pathname.includes('/products') &&
+      !pathname.includes('/products/my') &&
+      (pathname.match(/\/products$/) || // 상품 리스트
+        pathname.match(/\/products\/[^/]+$/)) // 상품 상세
+    : false;
 
   useEffect(() => {
     const handleResize = () => {
@@ -135,16 +149,22 @@ const GNB: React.FC<GNBProps> = ({
           onItemClick={onNavItemClick}
         />
 
-        {categories && categories.length > 0 && activeCategoryId && onCategoryChange && (
-          <div className="flex-1 flex items-center justify-center tablet:hidden">
-            <GNBCategorySwitcher
-              categories={categories}
-              activeCategoryId={activeCategoryId}
-              productCategoryId={productCategoryId}
-              onCategoryChange={onCategoryChange}
-            />
-          </div>
-        )}
+        {showCategorySwitcher &&
+          categories &&
+          categories.length > 0 &&
+          activeCategoryId &&
+          onCategoryChange && (
+            <div className="flex-1 flex items-center justify-center tablet:hidden">
+              <GNBCategorySwitcher
+                categories={categories}
+                categorySections={CATEGORY_SECTIONS}
+                activeCategoryId={activeCategoryId}
+                productCategoryId={productCategoryId}
+                onCategoryChange={onCategoryChange}
+                onSubCategoryChange={onSubCategoryChange}
+              />
+            </div>
+          )}
       </div>
 
       <div className="flex items-center shrink-0">
@@ -172,3 +192,6 @@ const GNB: React.FC<GNBProps> = ({
 };
 
 export default GNB;
+
+// MobileCategoryBar를 별도로 export
+export { MobileCategoryBar } from '@/components/molecules/MobileCategoryBar/MobileCategoryBar';

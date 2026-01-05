@@ -4,6 +4,7 @@ export type AppRouteKey =
   | 'product-register-list'
   | 'purchase-request-list-manager'
   | 'purchase-history-check'
+  | 'wishlist'
   | 'management';
 
 export interface AppRouteConfig {
@@ -31,6 +32,10 @@ export const ROUTES: Record<AppRouteKey, AppRouteConfig> = {
   'purchase-history-check': {
     label: '구매 내역 확인',
     href: '/[companyId]/purchase-history',
+  },
+  wishlist: {
+    label: '찜목록',
+    href: '/[companyId]/wishlist',
   },
   management: {
     label: '관리',

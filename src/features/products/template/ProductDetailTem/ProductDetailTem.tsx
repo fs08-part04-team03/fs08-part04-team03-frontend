@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 
 import {
   CategoryPanel,
@@ -12,6 +13,7 @@ import DetailPageLayout, {
 } from '@/components/organisms/DetailPageLayout/DetailPageLayout';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import { LOADING_MESSAGES } from '@/constants';
+import { getChildById } from '@/constants/categories/categories.utils';
 
 /* =====================
  * Props
@@ -21,6 +23,7 @@ interface ProductDetailTemProps {
   detailPageProps: DetailPageLayoutProps;
   isLoading?: boolean;
   hasProduct?: boolean;
+  productCategoryId?: number | null; // 상품의 소분류 ID
 }
 
 /* =====================
@@ -31,33 +34,23 @@ const ProductDetailTem = ({
   detailPageProps,
   isLoading = false,
   hasProduct = true,
+  productCategoryId = null,
 }: ProductDetailTemProps) => {
-  const { breadcrumbItems } = detailPageProps;
+  const router = useRouter();
+  const params = useParams();
+  const companyId = params?.companyId ? String(params.companyId) : '';
 
-  const initialSelectedCategory = useMemo(() => {
-    if (!breadcrumbItems || breadcrumbItems.length === 0) {
-      return null;
-    }
-
-    const lastLabel = breadcrumbItems[breadcrumbItems.length - 1]?.label;
-    if (!lastLabel) {
-      return null;
-    }
-
-    const matchedOption = categorySections
-      .flatMap((section) => section.options)
-      .find((option) => option.label === lastLabel);
-
-    return matchedOption ? matchedOption.value : null;
-  }, [breadcrumbItems, categorySections]);
-
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(initialSelectedCategory);
+  // 상품의 대분류 ID 찾기
+  const activeSectionId = useMemo(() => {
+    if (!productCategoryId) return null;
+    const childCategory = getChildById(productCategoryId);
+    return childCategory?.parentId ?? null;
+  }, [productCategoryId]);
 
   const handleCategoryChange = (value: number | null) => {
-    setSelectedCategory(value);
-
     if (value !== null) {
-      // router.push(...) 등
+      // 다른 소분류 클릭 시 상품 페이지로 이동
+      router.push(`/${companyId}/products?categoryId=${value}`);
     }
   };
 
@@ -73,12 +66,13 @@ const ProductDetailTem = ({
   // product가 없을 때는 "등록된 상품이 없습니다" 메시지 표시
   if (!hasProduct) {
     return (
-      <div className="flex justify-center w-full desktop:mt-80">
+      <div className="flex justify-center w-full tablet:mt-10 desktop:mt-80">
         <div className="w-327 tablet:w-696 desktop:w-1400">
           <div className="flex flex-col tablet:flex-row items-start gap-20 desktop:gap-40">
             <CategoryPanel
               sections={categorySections}
-              selectedValue={selectedCategory}
+              activeSectionId={activeSectionId}
+              selectedValue={productCategoryId}
               onChange={handleCategoryChange}
             />
             <div className="flex items-center justify-center w-full h-522 tablet:h-604 desktop:h-938">
@@ -95,12 +89,15 @@ const ProductDetailTem = ({
   }
 
   return (
-    <div className="flex justify-center w-full desktop:mt-80">
+    <div className="flex justify-center w-full tablet:mt-10 desktop:mt-80">
       <div className="w-327 tablet:w-696 desktop:w-1400">
         <div className="flex flex-col tablet:flex-row items-start gap-20 desktop:gap-40">
           <CategoryPanel
             sections={categorySections}
-            selectedValue={selectedCategory}
+            activeSectionId={activeSectionId}
+            selectedValue={
+              typeof productCategoryId === 'string' ? Number(productCategoryId) : productCategoryId
+            }
             onChange={handleCategoryChange}
           />
 

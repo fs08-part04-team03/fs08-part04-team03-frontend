@@ -214,12 +214,14 @@ const MyProductDetailTem = ({
   };
 
   return (
-    <div className="flex justify-center w-full desktop:mt-80">
+    <div className="flex justify-center w-full tablet:mt-10 desktop:mt-80">
       <div className="w-327 tablet:w-696 desktop:w-1400">
         <div className="flex flex-col tablet:flex-row items-start gap-20 desktop:gap-40">
           <CategoryPanel
             sections={categorySections}
-            selectedValue={selectedCategory}
+            selectedValue={
+              typeof selectedCategory === 'string' ? Number(selectedCategory) : selectedCategory
+            }
             onChange={setSelectedCategory}
           />
 
