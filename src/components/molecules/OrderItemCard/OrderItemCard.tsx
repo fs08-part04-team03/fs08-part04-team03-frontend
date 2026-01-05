@@ -45,6 +45,16 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
 }) => {
   const displayTotalPrice = unitPrice * quantity;
 
+  /** 상품명 공통 클래스 */
+  const productNameClass = clsx(
+    'text-black-100',
+    'text-14 leading-20 tablet:text-16 tablet:leading-24',
+    'truncate whitespace-nowrap overflow-hidden',
+    'max-w-76.83', // mobile
+    'tablet:max-w-270', // tablet
+    'desktop:max-w-none' // desktop (제한 없음)
+  );
+
   // Confirm variant
   if (variant === 'confirm') {
     return (
@@ -81,13 +91,13 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
           </div>
 
           <div className="flex flex-col gap-4">
-            <p className="text-black-100 text-14 leading-20 tablet:text-16 tablet:leading-24">
-              {name}
-            </p>
+            <p className={productNameClass}>{name}</p>
+
             <PriceText
               value={unitPrice}
               className="text-black-100 text-14 leading-20 tablet:text-16 tablet:leading-24"
             />
+
             <div className="pt-14 tablet:pt-30">
               <span className="text-black-100 text-14 leading-20 tablet:text-16 tablet:leading-24">
                 수량 {quantity}개
@@ -149,17 +159,16 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
         </div>
 
         <div className="flex flex-col gap-4">
-          <p className="text-black-100 text-14 leading-20 tablet:text-16 tablet:leading-24">
-            {name}
-          </p>
+          <p className={productNameClass}>{name}</p>
+
           <PriceText
             value={unitPrice}
             className="text-black-100 text-14 leading-20 tablet:text-16 tablet:leading-24"
           />
+
           <div className="pt-13 flex items-center gap-4">
             <span className="text-black-100 text-13 leading-20 tablet:text-14">
               {shippingLabelText}
-              {/* 태블릿 이상에서만 "배송비" 추가 */}
               <span className="hidden tablet:inline"> 배송비</span>
             </span>
             <PriceText
@@ -181,7 +190,6 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
           />
         </div>
 
-        {/* 태블릿 이상에서만 총액 표시 */}
         <div className="hidden tablet:flex items-center gap-4">
           <span className="text-gray-900 font-semibold text-24 leading-32">총</span>
           <PriceText
