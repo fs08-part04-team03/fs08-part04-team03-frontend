@@ -5,18 +5,31 @@ import Image from 'next/image';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
 
-type ModalType = 'delete' | 'cancel' | 'approved' | 'rejected' | 'budget-shortage';
+type ModalType =
+  | 'delete'
+  | 'cancel'
+  | 'approved'
+  | 'rejected'
+  | 'budget-shortage'
+  | 'user-delete'
+  | 'purchase-failed'
+  | 'cart-add-failed'
+  | 'cart-add-success'
+  | 'link-confirm';
 
 interface CustomModalProps {
   open: boolean;
   productName?: string;
   cancelCount?: number;
   type: ModalType;
+  description?: string;
   onClose: () => void;
   onConfirm?: () => void | Promise<void>;
   onHome?: () => void;
   onOrder?: () => void;
   onBudgetRequest?: () => void;
+  onGoToCart?: () => void;
+  onGoToProducts?: () => void;
 }
 
 const CustomModal = ({
@@ -24,11 +37,14 @@ const CustomModal = ({
   productName,
   cancelCount = 0,
   type,
+  description,
   onClose,
   onConfirm,
   onHome,
   onOrder,
   onBudgetRequest,
+  onGoToCart,
+  onGoToProducts,
 }: CustomModalProps) => {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
@@ -52,6 +68,45 @@ const CustomModal = ({
     }
     if (type === 'budget-shortage') {
       return onBudgetRequest;
+    }
+    if (type === 'purchase-failed') {
+      return onConfirm
+        ? () => {
+            Promise.resolve(onConfirm()).catch((error) => {
+              if (process.env.NODE_ENV === 'development') {
+                // eslint-disable-next-line no-console
+                console.error('[CustomModal] onConfirm error:', error);
+              }
+            });
+          }
+        : undefined;
+    }
+    if (type === 'cart-add-failed') {
+      return onConfirm
+        ? () => {
+            Promise.resolve(onConfirm()).catch((error) => {
+              if (process.env.NODE_ENV === 'development') {
+                // eslint-disable-next-line no-console
+                console.error('[CustomModal] onConfirm error:', error);
+              }
+            });
+          }
+        : onClose;
+    }
+    if (type === 'cart-add-success') {
+      return onGoToCart;
+    }
+    if (type === 'link-confirm') {
+      return onConfirm
+        ? () => {
+            Promise.resolve(onConfirm()).catch((error) => {
+              if (process.env.NODE_ENV === 'development') {
+                // eslint-disable-next-line no-console
+                console.error('[CustomModal] onConfirm error:', error);
+              }
+            });
+          }
+        : undefined;
     }
     if (onConfirm) {
       return () => {
@@ -105,6 +160,41 @@ const CustomModal = ({
       buttonRight: '예산 증액 요청',
       icon: '/icons/red-i.svg',
     },
+    'user-delete': {
+      title: '계정 탈퇴',
+      description: description || '계정을 탈퇴시킬까요?',
+      buttonLeft: '더 생각해볼게요',
+      buttonRight: '탈퇴시키기',
+      icon: '/icons/red-i.svg',
+    },
+    'purchase-failed': {
+      title: '구매 요청 실패',
+      description: description || '구매 요청에 실패했습니다.\n나중에 다시 시도해주세요.',
+      buttonLeft: '닫기',
+      buttonRight: '장바구니로',
+      icon: '/icons/red-i.svg',
+    },
+    'cart-add-failed': {
+      title: '장바구니 추가 실패',
+      description: description || '나중에 다시 시도해주세요.',
+      buttonLeft: '닫기',
+      buttonRight: '확인',
+      icon: '/icons/red-x.svg',
+    },
+    'cart-add-success': {
+      title: '장바구니에 담았습니다',
+      description: description || '장바구니에 상품이 추가되었습니다.',
+      buttonLeft: '상품 리스트',
+      buttonRight: '장바구니로',
+      icon: '/icons/check-circle.svg',
+    },
+    'link-confirm': {
+      title: '외부 링크로 이동',
+      description: description || '외부 링크로 이동하시겠습니까?',
+      buttonLeft: '취소',
+      buttonRight: '이동',
+      icon: '/icons/info.svg',
+    },
   };
 
   const content = modalContent[type];
@@ -141,8 +231,15 @@ const CustomModal = ({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* approved / rejected / budget-shortage */}
-        {type === 'approved' || type === 'rejected' || type === 'budget-shortage' ? (
+        {/* approved / rejected / budget-shortage / user-delete / purchase-failed / cart-add-failed / cart-add-success / link-confirm */}
+        {type === 'approved' ||
+        type === 'rejected' ||
+        type === 'budget-shortage' ||
+        type === 'user-delete' ||
+        type === 'purchase-failed' ||
+        type === 'cart-add-failed' ||
+        type === 'cart-add-success' ||
+        type === 'link-confirm' ? (
           <div className="flex flex-col items-center gap-5 mb-36">
             <h2 className={clsx('text-16 text-center tablet:text-18 desktop:text-18', 'font-bold')}>
               {content.title}
@@ -200,7 +297,7 @@ const CustomModal = ({
               'tablet:w-216 tablet:h-64 tablet:text-16',
               'desktop:w-216 desktop:h-64 desktop:text-16'
             )}
-            onClick={onClose}
+            onClick={type === 'cart-add-success' ? onGoToProducts || onClose : onClose}
           >
             {content.buttonLeft}
           </Button>

@@ -32,7 +32,7 @@ const ProductTile: React.FC<ProductTileProps> = (props) => {
   const nameClass =
     size === 'sm'
       ? 'text-14 leading-22 tracking--0.35'
-      : 'text-16 leading-24 tracking--0.4 tablet:text-18 tablet:leading-26 tablet:tracking--0.45';
+      : 'text-14 leading-22 tracking--0.35 tablet:text-16 tablet:leading-24 tablet:tracking--0.4';
 
   // 보조정보
   const subClass =
@@ -44,7 +44,7 @@ const ProductTile: React.FC<ProductTileProps> = (props) => {
   const priceClass =
     size === 'sm'
       ? 'text-14 leading-22 tracking--0.35'
-      : 'text-16 leading-24 tracking--0.4 tablet:text-18 tablet:leading-26 tablet:tracking--0.45';
+      : 'text-14 leading-22 tracking--0.35 tablet:text-16 tablet:leading-24 tablet:tracking--0.4';
 
   let subNode: React.ReactNode = null;
   let purchaseCountNode: React.ReactNode = null;

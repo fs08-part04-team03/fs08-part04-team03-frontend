@@ -22,6 +22,7 @@ const FormMessage = forwardRef<HTMLParagraphElement, FormMessageProps>(
         background: 'var(--error, #F31D1D)',
         fontFamily: 'SUIT, var(--font-family-base), sans-serif',
       }}
+      // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     >
       {children}
@@ -32,4 +33,3 @@ const FormMessage = forwardRef<HTMLParagraphElement, FormMessageProps>(
 FormMessage.displayName = 'FormMessage';
 
 export default FormMessage;
-

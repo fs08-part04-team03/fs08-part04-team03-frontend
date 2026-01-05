@@ -1,4 +1,4 @@
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, useId, ChangeEvent } from 'react';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { clsx } from '@/utils/clsx';
 import { formatBusinessNumber } from '@/utils/formatBusinessNumber';
@@ -36,14 +36,15 @@ const InputField = ({
   const [internal, setInternal] = useState(value);
   const [visible, setVisible] = useState(false);
   const [touched, setTouched] = useState(false);
+  const generatedId = useId();
 
   // value prop 변경 시 internal 동기화
   useEffect(() => {
     setInternal(value);
   }, [value]);
 
-  // input과 label 연결을 위한 id
-  const inputId = id ?? `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
+  // input과 label 연결을 위한 id (고유 ID 사용)
+  const inputId = id ?? generatedId;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     let v = e.target.value;
@@ -90,6 +91,14 @@ const InputField = ({
 
   const showToggle = type === 'password' || type === 'passwordConfirm';
 
+  // autoComplete 값 결정
+  let autoCompleteValue: string | undefined;
+  if (type === 'email') {
+    autoCompleteValue = 'email';
+  } else if (type === 'password' || type === 'passwordConfirm') {
+    autoCompleteValue = 'current-password';
+  }
+
   return (
     <div className="flex flex-col w-full">
       {/* label - htmlFor 연결 */}
@@ -109,6 +118,7 @@ const InputField = ({
           aria-invalid={!isValid}
           maxLength={type === 'businessNumber' ? 12 : undefined}
           disabled={disabled}
+          autoComplete={autoCompleteValue}
           className={clsx(
             'flex-1 bg-transparent border-none outline-none',
             'font-suit text-16 font-normal tracking-tight text-gray-950'

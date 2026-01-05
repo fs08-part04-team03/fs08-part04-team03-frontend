@@ -1,8 +1,7 @@
 'use client';
 
-import { useAuthStore } from '@/lib/store/authStore';
-import { getApiTimeout, getApiUrl } from '@/utils/api';
-import { PURCHASE_API_PATHS, BUDGET_API_PATHS } from '@/constants/purchase.constants';
+import { getApiUrl, fetchWithAuth as fetchWithAuthUtil } from '@/utils/api';
+import { PURCHASE_API_PATHS } from '@/features/purchase/utils/constants';
 
 /**
  * 백엔드 API 응답 타입
@@ -11,46 +10,38 @@ interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 /**
  * 공통 API 요청 헬퍼 함수
+ * refreshToken 자동 갱신 로직이 포함된 utils/api.ts의 fetchWithAuth 사용
  */
 async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
-  const apiUrl = getApiUrl();
+  // utils/api.ts의 fetchWithAuth 사용 (refreshToken 자동 갱신 포함)
+  const response = await fetchWithAuthUtil(url, options);
 
-  const { accessToken } = useAuthStore.getState();
-  if (!accessToken) {
-    throw new Error('인증 토큰이 없습니다. 로그인이 필요합니다.');
-  }
+  // 429 Too Many Requests 에러 처리
+  if (response.status === 429) {
+    const retryAfter = response.headers.get('Retry-After');
+    let errorMessage = '너무 많은 요청입니다. 잠시 후 다시 시도해주세요.';
 
-  const timeout = getApiTimeout();
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, timeout);
-
-  let response: Response;
-  try {
-    response = await fetch(`${apiUrl}${url}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-        ...options.headers,
-      },
-      signal: controller.signal,
-    });
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+    // Retry-After 헤더가 있으면 더 구체적인 안내 제공
+    if (retryAfter) {
+      const retrySeconds = Number.parseInt(retryAfter, 10);
+      if (Number.isFinite(retrySeconds)) {
+        const retryMinutes = Math.ceil(retrySeconds / 60);
+        errorMessage += ` (약 ${retryMinutes}분 후 재시도 가능)`;
+      }
     }
-    throw error;
-  }
 
-  clearTimeout(timeoutId);
+    throw new Error(errorMessage);
+  }
 
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes('application/json')) {
@@ -79,7 +70,32 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
   }
 
   if (!result.success || !response.ok) {
-    throw new Error(result.message || '요청에 실패했습니다.');
+    // 400 Bad Request 등 클라이언트 에러의 경우 상세 정보 로깅
+    if (process.env.NODE_ENV === 'development') {
+      const apiUrl = getApiUrl();
+      // eslint-disable-next-line no-console
+      console.error('API 요청 실패:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: `${apiUrl}${url}`,
+        method: options.method || 'GET',
+        requestBody: options.body,
+        result,
+        message: result.message,
+        fullResponse: result,
+      });
+    }
+
+    // 에러 메시지 추출 (백엔드에서 보내는 상세 메시지 사용)
+    // result.error?.message 또는 result.message 확인
+    const errorMessage =
+      (result as { error?: { message?: string } }).error?.message ||
+      result.message ||
+      (response.status === 400
+        ? '잘못된 요청입니다. 입력값을 확인해주세요.'
+        : '요청에 실패했습니다.');
+
+    throw new Error(errorMessage);
   }
 
   return result;
@@ -168,7 +184,8 @@ export interface ManagePurchaseRequestsParams {
   page?: number;
   size?: number;
   status?: string;
-  sort?: string;
+  sortBy?: 'createdAt' | 'totalPrice'; // 백엔드 API 스펙에 맞게 수정
+  order?: 'asc' | 'desc'; // 정렬 순서 (기본값: desc)
 }
 
 export interface PurchaseRequest {
@@ -249,20 +266,32 @@ export async function managePurchaseRequests(
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
   if (params?.status) queryParams.append('status', params.status);
-  if (params?.sort) queryParams.append('sort', params.sort);
+  if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+  if (params?.order) queryParams.append('order', params.order); // 정렬 순서 (asc 또는 desc)
 
   const queryString = queryParams.toString();
   const url = `${PURCHASE_API_PATHS.ADMIN_MANAGE_PURCHASE_REQUESTS}${queryString ? `?${queryString}` : ''}`;
 
-  const result = await fetchWithAuth<ManagePurchaseRequestsResponse>(url, {
+  const result = await fetchWithAuth<PurchaseRequestItem[]>(url, {
     method: 'GET',
   });
 
-  return result.data;
+  // 백엔드 응답 구조: { success, data: [], pagination: { page, limit, total, totalPages } }
+  // 프론트엔드 응답 구조로 변환
+  return {
+    purchaseRequests: result.data,
+    currentPage: result.pagination?.page || 1,
+    totalPages: result.pagination?.totalPages || 1,
+    totalItems: result.pagination?.total || 0,
+    itemsPerPage: result.pagination?.limit || 10,
+    hasNextPage: result.pagination ? result.pagination.page < result.pagination.totalPages : false,
+    hasPreviousPage: result.pagination ? result.pagination.page > 1 : false,
+  };
 }
 
 /**
  * 구매 요청 상세 조회 (관리자)
+ * GET /api/v1/purchase/admin/purchaseRequest/{id}
  */
 export async function getPurchaseRequestDetail(
   purchaseRequestId: string
@@ -278,13 +307,6 @@ export async function getPurchaseRequestDetail(
 }
 
 /**
- * 구매 요청 승인 (관리자)
- */
-export interface ApprovePurchaseRequestResponse {
-  data: PurchaseRequestItem;
-}
-
-/**
  * 관리자 권한으로 지정된 구매 요청을 승인합니다.
  *
  * @param purchaseRequestId - 승인할 구매 요청의 식별자
@@ -292,8 +314,8 @@ export interface ApprovePurchaseRequestResponse {
  */
 export async function approvePurchaseRequest(
   purchaseRequestId: string
-): Promise<ApprovePurchaseRequestResponse> {
-  const result = await fetchWithAuth<ApprovePurchaseRequestResponse>(
+): Promise<PurchaseRequestItem> {
+  const result = await fetchWithAuth<PurchaseRequestItem>(
     `${PURCHASE_API_PATHS.ADMIN_APPROVE_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',
@@ -368,17 +390,23 @@ export async function getExpenseStatistics(): Promise<ExpenseStatisticsResponse>
  * 구매 관리 대시보드 (관리자)
  */
 export interface PurchaseDashboardResponse {
-  pendingRequests: number;
-  approvedRequests: number;
-  rejectedRequests: number;
-  totalExpense: number;
-  monthlyExpense: number;
-  recentPurchases: PurchaseItem[];
-  topProducts: Array<{
-    productId: string;
-    productName: string;
-    purchaseCount: number;
-  }>;
+  expenses: {
+    thisMonth: number;
+    lastMonth: number;
+    thisYear: number;
+    lastYear: number;
+  };
+  budget: {
+    thisMonthBudget: number;
+    remainingBudget: number;
+  };
+  purchaseList: PurchaseRequestItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 /**
@@ -426,17 +454,42 @@ export async function getMyPurchases(
   const queryParams = new URLSearchParams();
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
-  if (params?.status) queryParams.append('status', params.status);
+  // status가 undefined이거나 'ALL'일 때는 파라미터를 포함하지 않음 (모든 상태 조회)
+  // 백엔드가 status 없을 때 모든 상태를 반환하도록 설계되어 있다고 가정
+  if (params?.status && params.status !== 'ALL' && params.status !== undefined) {
+    queryParams.append('status', params.status);
+  }
   if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
   const url = `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASES}${queryString ? `?${queryString}` : ''}`;
 
-  const result = await fetchWithAuth<GetMyPurchasesResponse>(url, {
+  // 개발 환경에서 요청 정보 로깅
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[getMyPurchases] 요청 정보:', {
+      url,
+      params,
+      status: params?.status,
+      hasStatusParam: !!params?.status,
+    });
+  }
+
+  const result = await fetchWithAuth<PurchaseRequestItem[]>(url, {
     method: 'GET',
   });
 
-  return result.data;
+  // 백엔드 응답 구조: { success, data: [], pagination: { page, limit, total, totalPages } }
+  // 프론트엔드 응답 구조로 변환
+  return {
+    purchaseList: result.data,
+    currentPage: result.pagination?.page || 1,
+    totalPages: result.pagination?.totalPages || 1,
+    totalItems: result.pagination?.total || 0,
+    itemsPerPage: result.pagination?.limit || 10,
+    hasNextPage: result.pagination ? result.pagination.page < result.pagination.totalPages : false,
+    hasPreviousPage: result.pagination ? result.pagination.page > 1 : false,
+  };
 }
 
 /**
@@ -472,23 +525,73 @@ export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<My
 }
 
 /**
- * 구매 요청
+ * 구매 요청 아이템
  */
-export interface RequestPurchaseRequest {
-  productId: string;
+export interface RequestPurchaseItem {
+  productId: number;
   quantity: number;
-  reason?: string;
 }
 
+/**
+ * 구매 요청 요청 본문
+ */
+export interface RequestPurchaseRequest {
+  items: RequestPurchaseItem[];
+  shippingFee: number;
+  requestMessage?: string;
+}
+
+/**
+ * 구매 요청 응답 데이터
+ */
+export interface RequestPurchaseResponseData {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  totalPrice: number;
+  shippingFee: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  requestMessage: string;
+  rejectReason?: string;
+  purchaseItems: Array<{
+    id: string;
+    quantity: number;
+    priceSnapshot: number;
+    products: {
+      id: number;
+      name: string;
+      image: string;
+      link: string;
+    };
+  }>;
+  requester: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  approver?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+/**
+ * 구매 요청 응답
+ */
 export interface RequestPurchaseResponse {
-  purchaseRequestId: string;
+  success: boolean;
+  data: RequestPurchaseResponseData;
   message: string;
 }
 
+/**
+ * 구매 요청
+ */
 export async function requestPurchase(
   request: RequestPurchaseRequest
-): Promise<RequestPurchaseResponse> {
-  const result = await fetchWithAuth<RequestPurchaseResponse>(
+): Promise<RequestPurchaseResponseData> {
+  const result = await fetchWithAuth<RequestPurchaseResponseData>(
     PURCHASE_API_PATHS.USER_REQUEST_PURCHASE,
     {
       method: 'POST',
@@ -503,20 +606,21 @@ export async function requestPurchase(
  * 긴급 구매 요청 (예산 체크 우회)
  */
 export interface UrgentRequestPurchaseRequest {
-  productId: string;
-  quantity: number;
-  reason: string; // 긴급 사유 필수
+  items: RequestPurchaseItem[];
+  shippingFee?: number;
+  requestMessage?: string;
 }
 
 export interface UrgentRequestPurchaseResponse {
-  purchaseRequestId: string;
+  success: boolean;
+  data: RequestPurchaseResponseData;
   message: string;
 }
 
 export async function urgentRequestPurchase(
   request: UrgentRequestPurchaseRequest
-): Promise<UrgentRequestPurchaseResponse> {
-  const result = await fetchWithAuth<UrgentRequestPurchaseResponse>(
+): Promise<RequestPurchaseResponseData> {
+  const result = await fetchWithAuth<RequestPurchaseResponseData>(
     PURCHASE_API_PATHS.USER_URGENT_REQUEST_PURCHASE,
     {
       method: 'POST',
@@ -582,27 +686,72 @@ export async function cancelPurchaseRequest(
 }
 
 /**
- * 예산 조회
+ * 예산 조회 API 응답 타입 (배열)
+ * 백엔드 API는 월별 예산 목록을 배열로 반환합니다.
+ */
+export interface BudgetItem {
+  id: string;
+  companyId: string;
+  year: number;
+  month: number;
+  amount: number;
+  updatedAt: string;
+}
+
+/**
+ * 예산 조회 응답 타입
+ * 백엔드에서 계산된 모든 값들을 포함합니다.
  */
 export interface GetBudgetResponse {
-  budget: number;
-  monthlySpending: number;
-  remainingBudget: number;
+  budget: number; // 이번 달 예산
+  monthlySpending: number; // 이번 달 지출액
+  remainingBudget: number; // 남은 예산
+  spendingPercentage: number; // 진행률 (%)
+  lastMonthBudget: number; // 지난 달 예산
+  lastMonthSpending: number; // 지난 달 지출액
+  lastBudget: number; // 지난 달 남은 예산
+  thisYearTotalSpending: number; // 올해 총 지출액
+  lastYearTotalSpending: number; // 작년 총 지출액
 }
 
 /**
  * 주어진 회사의 예산과 지출 요약을 조회합니다.
+ * 백엔드에서 계산된 모든 값들을 그대로 반환합니다.
  *
- * @param companyId - 조회할 회사의 식별자
- * @returns 회사의 총 예산(`budget`), 해당 기간의 월별 지출(`monthlySpending`), 남은 예산(`remainingBudget`)을 포함한 객체
+ * purchaseDashboard 엔드포인트를 사용하여 예산 정보를 조회합니다.
+ *
+ * @param _companyId - (사용하지 않음) 호환성을 위해 유지, 토큰에서 회사 정보를 자동으로 추출
+ * @returns 백엔드에서 계산된 예산 및 지출 정보를 포함한 객체
  */
-export async function getBudget(companyId: string): Promise<GetBudgetResponse> {
-  const result = await fetchWithAuth<GetBudgetResponse>(
-    `${BUDGET_API_PATHS.GET_BUDGET}/${companyId}`,
+export async function getBudget(_companyId: string): Promise<GetBudgetResponse> {
+  // purchaseDashboard 엔드포인트 사용
+  const dashboardResult = await fetchWithAuth<PurchaseDashboardResponse>(
+    PURCHASE_API_PATHS.ADMIN_PURCHASE_DASHBOARD,
     {
       method: 'GET',
     }
   );
 
-  return result.data;
+  const dashboard = dashboardResult.data;
+
+  // 진행률 계산 (이번 달 지출액 / 이번 달 예산 * 100)
+  const spendingPercentage =
+    dashboard.budget.thisMonthBudget > 0
+      ? (dashboard.expenses.thisMonth / dashboard.budget.thisMonthBudget) * 100
+      : 0;
+
+  // PurchaseDashboardResponse를 GetBudgetResponse로 변환
+  const budgetResponse: GetBudgetResponse = {
+    budget: dashboard.budget.thisMonthBudget, // 이번 달 예산
+    monthlySpending: dashboard.expenses.thisMonth, // 이번 달 지출액
+    remainingBudget: dashboard.budget.remainingBudget, // 남은 예산
+    spendingPercentage, // 진행률 (계산)
+    lastMonthBudget: 0, // 지난 달 예산 (백엔드에서 제공하지 않음)
+    lastMonthSpending: dashboard.expenses.lastMonth, // 지난 달 지출액
+    lastBudget: 0, // 지난 달 남은 예산 (백엔드에서 제공하지 않음)
+    thisYearTotalSpending: dashboard.expenses.thisYear, // 올해 총 지출액
+    lastYearTotalSpending: dashboard.expenses.lastYear, // 작년 총 지출액
+  };
+
+  return budgetResponse;
 }

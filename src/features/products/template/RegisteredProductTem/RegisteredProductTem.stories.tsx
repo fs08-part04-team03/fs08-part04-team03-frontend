@@ -12,6 +12,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
     name: '코카콜라 제로',
     price: 2_000,
     imageSrc: '/images/sample1.png',
+    link: 'https://www.coca-cola.com/products/coke-zero',
   },
   {
     id: 2,
@@ -19,6 +20,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
     name: '스프라이트',
     price: 1_800,
     imageSrc: '/images/sample2.png',
+    link: 'https://www.coca-cola.com/products/sprite',
   },
   {
     id: 3,
@@ -26,6 +28,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
     name: '아메리카노',
     price: 3_500,
     imageSrc: '/images/sample3.png',
+    link: 'https://www.starbucks.com/products/americano',
   },
 ];
 
@@ -38,6 +41,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     name: '컵라면',
     price: 1_500,
     imageSrc: '/images/sample4.png',
+    link: 'https://www.example.com/products/cup-noodle',
   },
   {
     id: 5,
@@ -45,6 +49,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     name: '즉석밥',
     price: 2_200,
     imageSrc: '/images/sample5.png',
+    link: 'https://www.example.com/products/instant-rice',
   },
   {
     id: 6,
@@ -52,6 +57,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     name: '감자칩',
     price: 1_700,
     imageSrc: '/images/sample6.png',
+    link: 'https://www.example.com/products/potato-chips',
   },
   {
     id: 7,
@@ -59,6 +65,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     name: '초코바',
     price: 1_200,
     imageSrc: '/images/sample7.png',
+    link: 'https://www.example.com/products/choco-bar',
   },
   {
     id: 8,
@@ -66,6 +73,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     name: '우유',
     price: 2_500,
     imageSrc: '/images/sample8.png',
+    link: 'https://www.example.com/products/milk',
   },
   {
     id: 9,
@@ -73,6 +81,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     name: '요거트',
     price: 1_900,
     imageSrc: '/images/sample9.png',
+    link: 'https://www.example.com/products/yogurt',
   },
   {
     id: 10,
@@ -80,6 +89,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     name: '식빵',
     price: 3_000,
     imageSrc: '/images/sample10.png',
+    link: 'https://www.example.com/products/bread',
   },
   {
     id: 11,
@@ -87,6 +97,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     name: '크루아상',
     price: 3_200,
     imageSrc: '/images/sample11.png',
+    link: 'https://www.example.com/products/croissant',
   },
 ];
 
@@ -143,7 +154,7 @@ type Story = StoryObj<typeof RegisteredProductTem>;
 export const Default: Story = {
   args: {
     date: '2024.12.19',
-    address: '서울특별시 강남구 테헤란로 123',
+    companyId: 'test-company-id',
     products: mockProducts,
   },
 };
@@ -154,7 +165,7 @@ export const Default: Story = {
 export const ManyProducts: Story = {
   args: {
     date: '2024.12.19',
-    address: '서울특별시 송파구 올림픽로 300',
+    companyId: 'test-company-id',
     products: manyMockProducts,
   },
 };
@@ -165,7 +176,7 @@ export const ManyProducts: Story = {
 export const SinglePage: Story = {
   args: {
     date: '2024.12.01',
-    address: '부산광역시 해운대구 센텀로 45',
+    companyId: 'test-company-id',
     products: mockProducts.slice(0, 1),
   },
 };
@@ -176,7 +187,7 @@ export const SinglePage: Story = {
 export const Empty: Story = {
   args: {
     date: '2024.12.01',
-    address: '서울특별시 마포구 월드컵북로 396',
+    companyId: 'test-company-id',
     products: [],
   },
 };

@@ -1,6 +1,5 @@
 'use client';
 
-import React, { useMemo } from 'react';
 import { type Control, type UseFormHandleSubmit } from 'react-hook-form';
 
 import RHFInputField from '@/components/molecules/RHFInputField/RHFInputField';
@@ -12,13 +11,15 @@ import Link from 'next/link';
 import { PATHNAME } from '@/constants';
 import { Toast } from '@/components/molecules/Toast/Toast';
 
+type ToastVariant = 'success' | 'error' | 'custom';
+
 interface LoginTemProps {
   control: Control<LoginInput>;
   handleSubmit: UseFormHandleSubmit<LoginInput>;
   isValid: boolean;
-  serverError: string | null;
   onSubmit: (values: LoginInput) => void | Promise<void>;
   showToast: boolean;
+  toastVariant: ToastVariant;
   toastMessage: string;
   setShowToast: (show: boolean) => void;
 }
@@ -27,65 +28,58 @@ interface LoginTemContentProps {
   control: Control<LoginInput>;
   handleSubmit: UseFormHandleSubmit<LoginInput>;
   isValid: boolean;
-  serverError: string | null;
   onSubmit: (values: LoginInput) => void | Promise<void>;
   className?: string;
 }
 
-const LoginTemContent: React.FC<LoginTemContentProps> = ({
+const LoginTemContent = ({
   control,
   isValid,
-  serverError,
   onSubmit,
   handleSubmit,
   className,
-}) => {
-  // 서버 에러 슬롯: "항상 자리 확보"로 레이아웃 점프 제거
-  const serverErrorBoxClassName = useMemo(() => {
-    const base = 'rounded-8 px-12 text-14';
-    const visible = 'border border-error-200 bg-error-25 text-error-700';
-    const hidden = 'border border-transparent bg-transparent text-transparent';
-    return `${base} ${serverError ? visible : hidden}`;
-  }, [serverError]);
+}: LoginTemContentProps) => (
+  <form
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    onSubmit={handleSubmit(onSubmit)}
+    className={className}
+    noValidate
+  >
+    <header className="mb-4 text-center tablet:text-left">
+      <h1 className="text-20 font-bold text-black-400">로그인</h1>
+    </header>
 
-  return (
-    <form
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      onSubmit={handleSubmit(onSubmit)}
-      className={className}
-      noValidate
+    {loginFields.map((field) => (
+      <RHFInputField
+        key={field.name}
+        control={control}
+        name={field.name}
+        label={field.label}
+        placeholder={field.placeholder}
+        type={field.type}
+        className="w-full"
+      />
+    ))}
+
+    <Button
+      type="submit"
+      variant="primary"
+      size="md"
+      className="mt-8"
+      fullWidth
+      inactive={!isValid}
     >
-      <header className="mb-4 text-center tablet:text-left">
-        <h1 className="text-20 font-bold text-black-400">로그인</h1>
-      </header>
+      로그인
+    </Button>
+  </form>
+);
 
-      {/* 서버 에러 영역: 항상 렌더링해서 점프 방지 */}
-      <div className={serverErrorBoxClassName} aria-live="polite">
-        {serverError ?? '\u00A0'}
-      </div>
-
-      {loginFields.map((field) => (
-        <RHFInputField
-          key={field.name}
-          control={control}
-          name={field.name}
-          label={field.label}
-          placeholder={field.placeholder}
-          type={field.type}
-          className="w-full"
-        />
-      ))}
-
-      <Button type="submit" variant="primary" className="mt-8" fullWidth inactive={!isValid}>
-        로그인
-      </Button>
-    </form>
-  );
-};
-
-export const LoginTemMobile: React.FC<
-  Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>
-> = ({ control, isValid, serverError, onSubmit, handleSubmit }) => (
+export const LoginTemMobile = ({
+  control,
+  isValid,
+  onSubmit,
+  handleSubmit,
+}: Omit<LoginTemProps, 'showToast' | 'toastVariant' | 'toastMessage' | 'setShowToast'>) => (
   <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
     <div className="m-38">
       <Logo size="lg" />
@@ -93,7 +87,6 @@ export const LoginTemMobile: React.FC<
     <LoginTemContent
       control={control}
       isValid={isValid}
-      serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
       className="flex w-327 flex-col tablet:hidden desktop:hidden"
@@ -107,9 +100,12 @@ export const LoginTemMobile: React.FC<
   </div>
 );
 
-export const LoginTemDesktop: React.FC<
-  Omit<LoginTemProps, 'showToast' | 'toastMessage' | 'setShowToast'>
-> = ({ control, isValid, serverError, onSubmit, handleSubmit }) => (
+export const LoginTemDesktop = ({
+  control,
+  isValid,
+  onSubmit,
+  handleSubmit,
+}: Omit<LoginTemProps, 'showToast' | 'toastVariant' | 'toastMessage' | 'setShowToast'>) => (
   <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
     <div className="mt-177">
       <Logo size="lg" />
@@ -119,13 +115,12 @@ export const LoginTemDesktop: React.FC<
         <LoginTemContent
           control={control}
           isValid={isValid}
-          serverError={serverError}
           onSubmit={onSubmit}
           handleSubmit={handleSubmit}
           className="flex flex-col w-full tablet:w-480 desktop:w-480"
         />
-        <p className="flex justify-center mt-24 text-14 text-gray-600">
-          기업 담당자이신가요?{' '}
+        <p className="flex justify-center mt-24 text-14 text-gray-600 gap-5">
+          기업 담당자이신가요?
           <Link
             href={PATHNAME.SIGNUP}
             className="underline font-bold text-gray-950 underline-offset-4"
@@ -138,35 +133,33 @@ export const LoginTemDesktop: React.FC<
   </div>
 );
 
-const LoginTem: React.FC<LoginTemProps> = ({
+const LoginTem = ({
   control,
   handleSubmit,
   isValid,
-  serverError,
   onSubmit,
   showToast,
+  toastVariant,
   toastMessage,
   setShowToast,
-}) => (
+}: LoginTemProps) => (
   <>
     <LoginTemMobile
       control={control}
       isValid={isValid}
-      serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
     />
     <LoginTemDesktop
       control={control}
       isValid={isValid}
-      serverError={serverError}
       onSubmit={onSubmit}
       handleSubmit={handleSubmit}
     />
     {/* Toast */}
     {showToast && (
       <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
-        <Toast variant="custom" message={toastMessage} onClose={() => setShowToast(false)} />
+        <Toast variant={toastVariant} message={toastMessage} onClose={() => setShowToast(false)} />
       </div>
     )}
   </>

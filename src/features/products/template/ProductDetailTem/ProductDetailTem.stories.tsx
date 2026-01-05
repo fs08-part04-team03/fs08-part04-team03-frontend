@@ -100,7 +100,9 @@ const mockDetailPageProps: DetailPageLayoutProps = {
     onMenuClick: (action) => {
       console.log('menu action:', action);
     },
-    onAddToCart: () => {},
+    onAddToCart: (quantity: number) => {
+      console.log('add to cart:', quantity);
+    },
   },
 };
 
@@ -116,7 +118,7 @@ const meta: Meta<typeof ProductDetailTem> = {
       description: {
         component:
           'ProductDetailTem 컴포넌트는 상세 페이지 템플릿으로, 제품 이미지, 제품 상세 헤더, 카테고리 패널 등을 포함합니다. ' +
-          'breadcrumb는 상세 페이지 진입 시 고정되며, headerType에 따라 ItemMenu 표시 여부를 조절할 수 있습니다.',
+          'breadcrumb는 상세 페이지 진입 시 고정되며, isLoading과 hasProduct props로 로딩 및 에러 상태를 처리합니다.',
       },
     },
   },
@@ -128,17 +130,17 @@ type Story = StoryObj<typeof ProductDetailTem>;
 /* =====================
  * ItemMenu OFF
  ====================== */
-export const WithoutItemMenu: Story = {
+export const Default: Story = {
   args: {
     categorySections: mockCategorySections,
     detailPageProps: mockDetailPageProps,
-    headerType: 'simple',
+    isLoading: false,
+    hasProduct: true,
   },
   parameters: {
     docs: {
       description: {
-        story:
-          'breadcrumb는 "음료 > 탄산음료"로 고정되며, headerType이 simple일 때 ItemMenu가 표시되지 않습니다.',
+        story: 'breadcrumb는 "음료 > 탄산음료"로 고정되며, 상품이 있을 때 상세 정보를 표시합니다.',
       },
     },
   },

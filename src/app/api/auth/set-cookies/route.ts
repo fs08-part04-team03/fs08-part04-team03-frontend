@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import type { UserRole } from '@/constants/roles';
 import { VALID_ROLES } from '@/constants/roles';
+import { logger } from '@/utils/logger';
 
 /**
  * 인증 쿠키 설정 API Route
@@ -42,8 +43,7 @@ export async function POST(request: NextRequest) {
     // 이렇게 하면 클라이언트가 임의의 role과 companyId를 보내는 것을 방지할 수 있습니다.
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
-      // eslint-disable-next-line no-console
-      console.error('JWT_SECRET 환경 변수가 설정되지 않았습니다.');
+      logger.error('[set-cookies] JWT_SECRET 환경 변수가 설정되지 않았습니다.');
       return NextResponse.json(
         { success: false, message: '서버 설정 오류가 발생했습니다.' },
         { status: 500 }
@@ -55,8 +55,7 @@ export async function POST(request: NextRequest) {
       // JWT 토큰 검증 및 디코딩
       decodedToken = jwt.verify(accessToken, jwtSecret) as jwt.JwtPayload;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('토큰 검증 실패:', error);
+      logger.error('[set-cookies] 토큰 검증 실패', error);
       return NextResponse.json(
         { success: false, message: '유효하지 않은 토큰입니다.' },
         { status: 401 }
@@ -68,8 +67,7 @@ export async function POST(request: NextRequest) {
     const tokenCompanyId = decodedToken.companyId as string;
 
     if (!tokenRole || !tokenCompanyId) {
-      // eslint-disable-next-line no-console
-      console.error('토큰에 필수 정보가 없습니다:', { tokenRole, tokenCompanyId });
+      logger.error('[set-cookies] 토큰에 필수 정보가 없습니다');
       return NextResponse.json(
         { success: false, message: '토큰에 필수 정보가 없습니다.' },
         { status: 401 }
@@ -83,8 +81,7 @@ export async function POST(request: NextRequest) {
       if (upperRole === 'ADMIN') return 'admin';
       if (upperRole === 'USER') return 'user';
       // 알 수 없는 역할은 에러 반환 (보안상 안전)
-      // eslint-disable-next-line no-console
-      console.error('알 수 없는 역할:', roleValue);
+      logger.error('[set-cookies] 알 수 없는 역할');
       throw new Error(`유효하지 않은 역할입니다: ${roleValue}`);
     };
 
@@ -92,8 +89,7 @@ export async function POST(request: NextRequest) {
     try {
       normalizedTokenRole = normalizeRole(tokenRole);
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('역할 정규화 실패:', error);
+      logger.error('[set-cookies] 역할 정규화 실패', error);
       return NextResponse.json(
         { success: false, message: '토큰에 유효하지 않은 역할이 포함되어 있습니다.' },
         { status: 401 }
@@ -102,13 +98,7 @@ export async function POST(request: NextRequest) {
 
     // 요청 body의 role과 companyId와 토큰의 값 비교
     if (normalizedTokenRole !== role || tokenCompanyId !== companyId) {
-      // eslint-disable-next-line no-console
-      console.error('인증 정보 불일치:', {
-        tokenRole: normalizedTokenRole,
-        requestRole: role,
-        tokenCompanyId,
-        requestCompanyId: companyId,
-      });
+      logger.error('[set-cookies] 인증 정보 불일치');
       return NextResponse.json(
         { success: false, message: '인증 정보가 일치하지 않습니다.' },
         { status: 403 }
@@ -137,10 +127,19 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
+    // accessToken도 쿠키에 저장 (서버 컴포넌트에서 사용하기 위해)
+    // 보안: HttpOnly로 설정하여 JavaScript에서 접근 불가
+    response.cookies.set('accessToken', accessToken, {
+      httpOnly: true,
+      secure: isProduction, // 프로덕션에서만 Secure 플래그 사용
+      sameSite: 'lax',
+      maxAge,
+      path: '/',
+    });
+
     return response;
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('쿠키 설정 실패:', error);
+    logger.error('[set-cookies] 쿠키 설정 실패', error);
     return NextResponse.json(
       { success: false, message: '쿠키 설정에 실패했습니다.' },
       { status: 500 }

@@ -6,11 +6,20 @@ import { clsx } from '@/utils/clsx';
 import DropDown, { Option } from '@/components/atoms/DropDown/DropDown';
 import Button from '@/components/atoms/Button/Button';
 import InputField from '@/components/molecules/InputField/InputField';
+import { CHILD_CATEGORIES, PARENT_CATEGORIES } from '@/constants/categories/categories.constants';
+
+export interface ProductEditFormData {
+  name: string;
+  price: number;
+  link: string;
+  categoryId: number;
+  image?: string;
+}
 
 interface ProductEditModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (data: ProductEditFormData) => void | Promise<void>;
 
   initialName: string;
   initialPrice: string;
@@ -19,6 +28,25 @@ interface ProductEditModalProps {
   initialCategory: Option | null;
   initialSubCategory: Option | null;
 }
+
+/**
+ * 카테고리 키를 숫자 ID로 변환하는 함수
+ * @param key - 카테고리 키 (예: 'snack-cookie', '1')
+ * @returns 숫자 ID (소분류 우선, 없으면 대분류 ID, 없으면 0)
+ */
+const getCategoryIdByKey = (key: string | null | undefined): number => {
+  if (!key) return 0;
+
+  // 소분류에서 찾기
+  const childCategory = CHILD_CATEGORIES.find((cat) => cat.key === key);
+  if (childCategory) return childCategory.id;
+
+  // 대분류에서 찾기
+  const parentCategory = PARENT_CATEGORIES.find((cat) => cat.key === key || String(cat.id) === key);
+  if (parentCategory) return parentCategory.id;
+
+  return 0;
+};
 
 const categories: Option[] = [
   { key: '1', label: '스낵' },
@@ -167,11 +195,10 @@ const ProductEditModal = ({
 
     if (!selectedCategory) newErrors.category = '대분류를 선택해주세요.';
     if (!selectedSubCategory) newErrors.subCategory = '소분류를 선택해주세요.';
-    if (!preview) newErrors.image = '상품 이미지를 등록해주세요.';
 
     setErrors(newErrors);
     return !Object.values(newErrors).some((msg) => msg !== '');
-  }, [productName, price, link, selectedCategory, selectedSubCategory, preview]);
+  }, [productName, price, link, selectedCategory, selectedSubCategory]);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => open && e.key === 'Escape' && onClose();
@@ -188,14 +215,55 @@ const ProductEditModal = ({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
-    onSubmit();
+
+    // 카테고리 키를 숫자 ID로 변환
+    const categoryId = getCategoryIdByKey(selectedSubCategory?.key ?? selectedCategory?.key);
+
+    if (!categoryId) {
+      setErrors((prev) => ({ ...prev, category: '카테고리를 선택해주세요.' }));
+      return;
+    }
+
+    const formData: ProductEditFormData = {
+      name: productName.trim(),
+      price: Number(price.replace(/,/g, '')),
+      link: link.trim(),
+      categoryId,
+    };
+
+    // 이미지가 새로 업로드된 경우 (preview가 blob URL인 경우)
+    if (preview && preview.startsWith('blob:') && previewUrlRef.current) {
+      // 파일명 추출 (실제로는 서버에 업로드 후 파일명을 받아야 함)
+      const fileName = `product_${Date.now()}.jpg`;
+      formData.image = fileName;
+    } else if (
+      preview &&
+      preview === initialImage &&
+      initialImage &&
+      !initialImage.includes('no-image')
+    ) {
+      // 기존 이미지 유지 (URL에서 파일명 추출)
+      const urlParts = initialImage.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      if (fileName) {
+        formData.image = fileName;
+      }
+    }
+
+    Promise.resolve(onSubmit(formData)).catch((error) => {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('[ProductEditModal] 제출 실패:', error);
+      }
+      // 에러를 상위로 전파하여 호출자가 처리할 수 있도록 함
+      throw error;
+    });
   };
 
   const isValid =
     productName.trim() &&
     price.trim() &&
     link.trim() &&
-    preview &&
     selectedCategory &&
     selectedSubCategory &&
     Object.values(errors).every((msg) => msg === '');
@@ -229,14 +297,14 @@ const ProductEditModal = ({
           <div
             className={clsx(
               'w-140 h-140 border rounded-8 flex items-center justify-center overflow-hidden cursor-pointer relative',
-              preview ? 'border-gray-300' : 'border-red-500'
+              'border-gray-300'
             )}
           >
             <input
               type="file"
               accept="image/*"
               aria-label="상품 이미지 업로드"
-              className="absolute inset-0 opacity-0 cursor-pointer"
+              className="absolute inset-0 opacity-0 cursor-pointer z-10"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -247,14 +315,37 @@ const ProductEditModal = ({
               }}
             />
             {preview ? (
-              <Image
-                src={preview}
-                alt="preview"
-                width={140}
-                height={140}
-                className="object-contain pointer-events-none"
-                unoptimized
-              />
+              <>
+                <Image
+                  src={preview}
+                  alt="preview"
+                  width={140}
+                  height={140}
+                  className="object-contain pointer-events-none"
+                  unoptimized
+                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (previewUrlRef.current) {
+                      URL.revokeObjectURL(previewUrlRef.current);
+                      previewUrlRef.current = null;
+                    }
+                    setPreview(null);
+                  }}
+                  className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-20"
+                  aria-label="이미지 삭제"
+                >
+                  <Image
+                    src="/icons/close-circle.svg"
+                    alt="삭제"
+                    width={24}
+                    height={24}
+                    className="pointer-events-none"
+                  />
+                </button>
+              </>
             ) : (
               <Image
                 src="/icons/photo-icon.svg"
@@ -281,6 +372,7 @@ const ProductEditModal = ({
                   setSelectedSubCategory(null);
                 }}
                 selected={selectedCategory || undefined}
+                inModal
               />
               <DropDown
                 items={filteredSubCategories}
@@ -289,6 +381,7 @@ const ProductEditModal = ({
                 buttonClassName={clsx(!selectedSubCategory && 'border-red-500')}
                 onSelect={setSelectedSubCategory}
                 selected={selectedSubCategory || undefined}
+                inModal
               />
             </div>
             {errors.category && <span className="text-red-500 text-12">{errors.category}</span>}
