@@ -48,10 +48,12 @@ const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
   const activeSection = useMemo(() => {
     if (!sections?.length) return null;
 
+    // ✅ GNB에서 선택된 대분류가 있으면 그 섹션을 최우선으로 사용
     if (activeSectionId != null) {
       return sections.find((s) => s.id === activeSectionId) ?? sections[0];
     }
 
+    // (fallback) selectedValue가 속한 섹션을 찾음
     if (selectedValue != null) {
       const found = sections.find((s) => s.options.some((o) => o.value === selectedValue));
       if (found) return found;
@@ -59,6 +61,20 @@ const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
 
     return sections[0];
   }, [sections, activeSectionId, selectedValue]);
+
+  // ✅ GNB로 대분류가 바뀌었는데 selectedValue가 그 섹션에 없으면 선택 해제
+  useEffect(() => {
+    if (!activeSection) return;
+    if (activeSectionId == null) return;
+    if (!onChange) return;
+
+    if (selectedValue == null) return;
+
+    const belongsToActiveSection = activeSection.options.some((o) => o.value === selectedValue);
+    if (!belongsToActiveSection) {
+      onChange(null);
+    }
+  }, [activeSection, activeSectionId, selectedValue, onChange]);
 
   const handleClickOption = (value: number) => {
     if (!onChange) return;
@@ -69,7 +85,6 @@ const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
 
   return (
     <section className={clsx('w-full bg-white tablet:hidden', 'flex flex-col', className)}>
-      {/* 소분류 Scrollable Tabs */}
       <div
         className={clsx(
           'w-full overflow-x-auto border-b border-gray-200',
@@ -164,7 +179,7 @@ const CategoryPanelTablet: React.FC<TabletDesktopPanelProps> = ({
       )}
     >
       {/* 카테고리 타이틀 */}
-      <div className="mb-10 text-[18px] font-suit font-bold text-gray-primary-950 tracking-[-0.45px]">
+      <div className="mb-10 text-18 font-suit font-bold text-gray-primary-950 tracking-[-0.45px]">
         카테고리
       </div>
 
@@ -301,7 +316,7 @@ const CategoryPanelDesktop: React.FC<TabletDesktopPanelProps> = ({
   return (
     <section className={clsx('hidden desktop:flex w-180 bg-white', 'flex flex-col', className)}>
       {/* 카테고리 타이틀 */}
-      <div className="mb-10 text-[18px] font-suit font-bold text-gray-primary-950 tracking-[-0.45px]">
+      <div className="mb-10 text-18 font-suit font-bold text-gray-primary-950 tracking-[-0.45px]">
         카테고리
       </div>
 

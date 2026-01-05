@@ -3,7 +3,7 @@ import { ROUTES, type AppRouteKey } from '@/constants/routes';
 
 /** 역할별 GNB 노출 메뉴 키 */
 export const ROLE_NAV_KEYS: Record<UserRole, AppRouteKey[]> = {
-  user: ['product-list', 'my-purchase-request-list', 'product-register-list'],
+  user: ['product-list', 'my-purchase-request-list', 'product-register-list', 'wishlist'],
   manager: [
     'product-list',
     'my-purchase-request-list',

@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ProductListTem from '@/features/products/template/ProductListTem/ProductListTem';
 import { CATEGORY_SECTIONS, BREADCRUMB_ITEMS, LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import { Option } from '@/components/atoms/DropDown/DropDown';
@@ -12,6 +13,7 @@ import {
 import { useAuthStore } from '@/lib/store/authStore';
 import { getAllProducts } from '@/features/products/api/products.api';
 import { getWishlist } from '@/features/wishlist/api/wishlist.api';
+import { getChildById } from '@/constants/categories/categories.utils';
 
 const SORT_OPTIONS: Option[] = [
   { key: 'latest', label: '최신순' },
@@ -21,13 +23,38 @@ const SORT_OPTIONS: Option[] = [
 ];
 
 const ProductListSection = ({ companyId }: { companyId: string }) => {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { accessToken } = useAuthStore();
+
+  // URL 쿼리 파라미터에서 categoryId 읽기
+  const categoryIdFromUrl = useMemo(() => {
+    const param = searchParams?.get('categoryId');
+    return param ? Number.parseInt(param, 10) : null;
+  }, [searchParams]);
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(categoryIdFromUrl);
   const [selectedSort, setSelectedSort] = useState<Option>({
     key: 'latest',
     label: '최신순',
   });
 
-  const { accessToken } = useAuthStore();
+  // URL 쿼리 파라미터가 변경되면 state 동기화
+  useEffect(() => {
+    setSelectedCategoryId(categoryIdFromUrl);
+  }, [categoryIdFromUrl]);
+
+  // 카테고리 변경 핸들러 - URL 쿼리 파라미터 업데이트
+  const handleCategoryChange = (categoryId: number | null) => {
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    if (categoryId === null) {
+      params.delete('categoryId');
+    } else {
+      params.set('categoryId', String(categoryId));
+    }
+    const newUrl = `/${companyId}/products${params.toString() ? `?${params.toString()}` : ''}`;
+    router.push(newUrl);
+  };
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['products', selectedCategoryId, selectedSort.key],
@@ -55,6 +82,18 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     if (!data) return [];
     return data.data.map(mapBackendProductToTemplate);
   }, [data]);
+
+  // 선택된 categoryId에서 대분류(ParentCategory) ID 찾기
+  const activeSectionId = useMemo(() => {
+    if (!selectedCategoryId) return CATEGORY_SECTIONS[0]?.id ?? null;
+
+    const childCategory = getChildById(selectedCategoryId);
+    if (childCategory) {
+      return childCategory.parentId;
+    }
+
+    return CATEGORY_SECTIONS[0]?.id ?? null;
+  }, [selectedCategoryId]);
 
   const breadcrumbItems = [
     {
@@ -89,9 +128,9 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     <div className="mt-12 md:mt-20">
       <ProductListTem
         categorySections={CATEGORY_SECTIONS}
-        activeSectionId={CATEGORY_SECTIONS[0]?.id ?? null}
+        activeSectionId={activeSectionId}
         selectedCategoryId={selectedCategoryId}
-        onChangeCategory={setSelectedCategoryId}
+        onChangeCategory={handleCategoryChange}
         breadcrumbItems={breadcrumbItems}
         sortOptions={SORT_OPTIONS}
         selectedSort={selectedSort}

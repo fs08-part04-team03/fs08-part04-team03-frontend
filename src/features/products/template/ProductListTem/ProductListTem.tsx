@@ -148,10 +148,8 @@ const ProductListTem = ({
   /* =====================
    * Filter Products by Category
    ====================== */
-  const filteredProducts = useMemo(() => {
-    if (selectedCategoryId == null) return products;
-    return products.filter((p) => p.categoryId === selectedCategoryId);
-  }, [products, selectedCategoryId]);
+  // 백엔드에서 이미 필터링된 데이터를 받아오므로 클라이언트 필터링 불필요
+  const filteredProducts = products;
 
   /* =====================
    * Sort Products
@@ -226,7 +224,7 @@ const ProductListTem = ({
     <div className="w-full flex justify-center">
       <div className="flex mobile:flex-col tablet:flex-row desktop:gap-40 tablet:gap-20 mobile:gap-0">
         {/* Category */}
-        <div className="mobile:mt-20 tablet:mt-0 desktop:mt-80">
+        <div className="mobile:mt-0 tablet:mt-10 desktop:mt-80">
           <div className="mobile:overflow-x-auto mobile:scrollbar-none tablet:overflow-visible">
             <div className="mobile:flex mobile:flex-nowrap tablet:flex-col mobile:w-325 tablet:w-180">
               <CategoryPanel
