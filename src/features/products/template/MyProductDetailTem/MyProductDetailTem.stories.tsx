@@ -97,12 +97,8 @@ const mockDetailPageProps: DetailPageLayoutProps = {
     purchaseCount: 1234,
     price: 2000,
     onQuantityChange: () => {},
-    onMenuClick: (action) => {
-      console.log('menu action:', action);
-    },
-    onAddToCart: (quantity: number) => {
-      console.log('add to cart:', quantity);
-    },
+    onMenuClick: () => {},
+    onAddToCart: () => {},
   },
 };
 
