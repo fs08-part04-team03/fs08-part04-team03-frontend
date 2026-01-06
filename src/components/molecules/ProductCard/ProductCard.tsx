@@ -45,15 +45,15 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   const [imgError, setImgError] = useState(false);
 
   const isWishlist = variant === 'wishlist';
-  // 외부에서 liked prop이 전달되면 그것을 사용, 없으면 내부 state 사용
   const liked = externalLiked !== undefined ? externalLiked : internalLiked;
   const isLiked = isWishlist ? true : liked;
 
   const rootClasses = clsx(
     'flex flex-col overflow-hidden',
     'rounded-8 bg-white text-left rounded-default',
-    'transition-transform transition-[box-shadow] duration-200 ease-out',
-    'hover:shadow-dropdown',
+    'shadow-card',
+    'transition-all duration-300 ease-out',
+    'hover:animate-border-shimmer hover:-translate-y-2',
     pressed && 'scale-[0.97]',
     'cursor-pointer',
 
