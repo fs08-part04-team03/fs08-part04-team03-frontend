@@ -71,11 +71,11 @@ const InviteSignupTemContent = ({
               />
             ) : (
               <Image
-                src="/icons/photo-icon.svg"
+                src="/icons/upload.svg"
                 alt="이미지 업로드"
-                width={48}
-                height={48}
-                className="opacity-40"
+                width={140}
+                height={140}
+                className="object-contain"
               />
             )}
           </div>

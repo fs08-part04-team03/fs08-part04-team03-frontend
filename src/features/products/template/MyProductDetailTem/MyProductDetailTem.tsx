@@ -147,6 +147,8 @@ const MyProductDetailTem = ({
       await queryClient.invalidateQueries({ queryKey: ['myRegisteredProducts'] });
       // 일반 상품 목록도 invalidate하여 수정된 상품이 목록에 반영되도록 보장
       await queryClient.invalidateQueries({ queryKey: ['products'] });
+      // 즉시 refetch하여 수정된 이미지가 바로 반영되도록 함
+      await queryClient.refetchQueries({ queryKey: ['myProduct', productId] });
       setEditModalOpen(false);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '상품 수정에 실패했습니다.';

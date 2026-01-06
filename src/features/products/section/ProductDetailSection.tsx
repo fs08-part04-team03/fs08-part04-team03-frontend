@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import ProductDetailTem from '@/features/products/template/ProductDetailTem/ProductDetailTem';
 import {
   getProductById,
@@ -48,6 +48,8 @@ const ProductDetailSection = () => {
   const [isCartAddSuccessModalOpen, setIsCartAddSuccessModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [productImageUrl, setProductImageUrl] = useState<string | null>(null);
+  const [editModalImageUrl, setEditModalImageUrl] = useState<string | null>(null);
 
   // 메니저 이상급만 ItemMenu 사용 가능
   const canUseMenu = useMemo(() => {
@@ -105,6 +107,25 @@ const ProductDetailSection = () => {
       triggerToast('error', message);
     },
   });
+
+  // 상품 이미지 URL 로드
+  useEffect(() => {
+    const loadImageUrl = async () => {
+      if (product?.image) {
+        const url = await buildImageUrl(product.image);
+        setProductImageUrl(url || null);
+        setEditModalImageUrl(url || null);
+      } else {
+        setProductImageUrl(null);
+        setEditModalImageUrl(null);
+      }
+    };
+    loadImageUrl().catch(() => {
+      // 이미지 로딩 실패 시 기본 이미지 사용
+      setProductImageUrl(null);
+      setEditModalImageUrl(null);
+    });
+  }, [product?.image]);
 
   // 위시리스트 토글 핸들러
   const handleToggleLike = useCallback(() => {
@@ -202,7 +223,7 @@ const ProductDetailSection = () => {
         : []),
     ];
 
-    const imageUrl = buildImageUrl(product.image) || '/icons/no-image.svg';
+    const imageUrl = productImageUrl || '/icons/no-image.svg';
 
     return {
       breadcrumbItems,
@@ -243,7 +264,7 @@ const ProductDetailSection = () => {
       liked: isLiked,
       onToggleLike: handleToggleLike,
     };
-  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu]);
+  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu, productImageUrl]);
 
   // 수정 모달 핸들러
   const handleEditSubmit = useCallback(
@@ -349,7 +370,7 @@ const ProductDetailSection = () => {
             initialName={product?.name || ''}
             initialPrice={product?.price ? String(product.price) : ''}
             initialLink={initialLink}
-            initialImage={buildImageUrl(product?.image) || null}
+            initialImage={editModalImageUrl}
             initialCategory={initialCategoryOption}
             initialSubCategory={initialSubCategoryOption}
           />

@@ -12,6 +12,7 @@ import { logger } from '@/utils/logger';
  */
 type SignupRequest = Omit<SignupInput, 'confirmPassword'> & {
   passwordConfirm: string;
+  imageKey?: string;
 };
 
 /**

@@ -9,6 +9,8 @@ import InputField from '@/components/molecules/InputField/InputField';
 import { CHILD_CATEGORIES, PARENT_CATEGORIES } from '@/constants/categories/categories.constants';
 import { formatPrice, isInvalidPrice, isValidUrl, isValidPriceInput } from '@/utils/validation';
 import { logger } from '@/utils/logger';
+import { uploadProductImage, getImageUrl, deleteImage } from '@/features/products/api/products.api';
+import { useToast } from '@/hooks/useToast';
 
 export interface ProductEditFormData {
   name: string;
@@ -129,6 +131,10 @@ const ProductEditModal = ({
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Option | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<Option | null>(null);
+  const [_selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [touched, setTouched] = useState({
     name: false,
     price: false,
@@ -153,6 +159,8 @@ const ProductEditModal = ({
     ? subCategoriesByCategory[selectedCategory.key] || []
     : [];
 
+  const { triggerToast } = useToast();
+
   useEffect(
     () => () => {
       if (previewUrlRef.current) {
@@ -171,6 +179,9 @@ const ProductEditModal = ({
       setPreview(initialImage);
       setSelectedCategory(initialCategory);
       setSelectedSubCategory(initialSubCategory);
+      setSelectedFile(null);
+      setUploadedImageKey(null);
+      setImageToDelete(null);
       setErrors({ name: '', price: '', link: '', category: '', subCategory: '', image: '' });
       setTouched({
         name: false,
@@ -232,7 +243,7 @@ const ProductEditModal = ({
 
   if (!open) return null;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // submit 시 모든 필드를 touched로 표시
     setTouched({
@@ -259,33 +270,51 @@ const ProductEditModal = ({
       categoryId,
     };
 
-    // 이미지가 새로 업로드된 경우 (preview가 blob URL인 경우)
-    if (preview && preview.startsWith('blob:') && previewUrlRef.current) {
-      // 파일명 추출 (실제로는 서버에 업로드 후 파일명을 받아야 함)
-      const fileName = `product_${Date.now()}.jpg`;
-      formData.image = fileName;
-    } else if (
-      preview &&
-      preview === initialImage &&
-      initialImage &&
-      !initialImage.includes('no-image')
-    ) {
-      // 기존 이미지 유지 (URL에서 파일명 추출)
-      const urlParts = initialImage.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      if (fileName) {
-        formData.image = fileName;
+    try {
+      // 이미지 삭제가 요청된 경우
+      if (imageToDelete) {
+        try {
+          await deleteImage(imageToDelete);
+          formData.image = undefined; // 이미지 삭제
+        } catch (deleteError) {
+          const message =
+            deleteError instanceof Error ? deleteError.message : '이미지 삭제에 실패했습니다.';
+          triggerToast('error', message);
+          throw deleteError;
+        }
       }
-    }
+      // 새 이미지가 업로드된 경우 (이미 업로드되어 uploadedImageKey에 저장됨)
+      else if (uploadedImageKey) {
+        formData.image = uploadedImageKey;
+      } else if (
+        preview &&
+        preview === initialImage &&
+        initialImage &&
+        !initialImage.includes('no-image') &&
+        !initialImage.includes('upload.svg')
+      ) {
+        // 기존 이미지 유지 (URL에서 key 추출)
+        // initialImage가 signed URL이거나 일반 URL일 수 있으므로
+        // 백엔드에서 받은 이미지 key를 사용하거나 URL에서 추출
+        const urlParts = initialImage.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        if (fileName) {
+          // URL에서 쿼리 파라미터 제거
+          const key = fileName.split('?')[0];
+          if (key) {
+            formData.image = key;
+          }
+        }
+      }
 
-    Promise.resolve(onSubmit(formData)).catch((error) => {
+      await onSubmit(formData);
+    } catch (error) {
       logger.error('Product edit submission failed', {
         hasError: true,
         errorType: error instanceof Error ? error.constructor.name : 'Unknown',
       });
-      // 에러를 상위로 전파하여 호출자가 처리할 수 있도록 함
       throw error;
-    });
+    }
   };
 
   const isValid =
@@ -336,13 +365,59 @@ const ProductEditModal = ({
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-                const newUrl = URL.createObjectURL(file);
-                previewUrlRef.current = newUrl;
-                setPreview(newUrl);
+
+                // 파일 크기 검증 (5MB)
+                const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+                if (file.size > MAX_SIZE) {
+                  triggerToast('error', '이미지 크기는 5MB 이하여야 합니다.');
+                  e.target.value = '';
+                  return;
+                }
+
+                // 파일 형식 검증
+                const allowedTypes = [
+                  'image/jpeg',
+                  'image/jpg',
+                  'image/png',
+                  'image/gif',
+                  'image/webp',
+                ];
+                if (!allowedTypes.includes(file.type)) {
+                  triggerToast('error', '지원되는 형식: JPEG, JPG, PNG, GIF, WEBP');
+                  e.target.value = '';
+                  return;
+                }
+
+                setSelectedFile(file);
+                setIsUploading(true);
+
+                // 1. 이미지 업로드
+                uploadProductImage(file, 'products')
+                  .then(async (imageKey) => {
+                    // 2. 업로드 후 GET API로 signed URL 가져오기
+                    const { url: signedUrl } = await getImageUrl(imageKey);
+
+                    // 3. signed URL을 미리보기에 사용
+                    if (previewUrlRef.current) {
+                      URL.revokeObjectURL(previewUrlRef.current);
+                    }
+                    setPreview(signedUrl);
+                    setUploadedImageKey(imageKey);
+                  })
+                  .catch((error) => {
+                    const message =
+                      error instanceof Error ? error.message : '이미지 업로드에 실패했습니다.';
+                    triggerToast('error', message);
+                    setSelectedFile(null);
+                    setPreview(null);
+                    setUploadedImageKey(null);
+                  })
+                  .finally(() => {
+                    setIsUploading(false);
+                  });
               }}
             />
-            {preview ? (
+            {preview && !preview.includes('no-image') && !preview.includes('upload.svg') ? (
               <>
                 <Image
                   src={preview}
@@ -360,7 +435,34 @@ const ProductEditModal = ({
                       URL.revokeObjectURL(previewUrlRef.current);
                       previewUrlRef.current = null;
                     }
-                    setPreview(null);
+
+                    // 기존 이미지가 있으면 삭제할 key 추출
+                    if (
+                      initialImage &&
+                      !initialImage.includes('no-image') &&
+                      !initialImage.includes('upload.svg')
+                    ) {
+                      // initialImage에서 key 추출
+                      const urlParts = initialImage.split('/');
+                      const fileName = urlParts[urlParts.length - 1];
+                      if (fileName) {
+                        const key = fileName.split('?')[0];
+                        if (key) {
+                          // S3 key 형식인지 확인 (products/xxx.png 형식)
+                          if (key.includes('/')) {
+                            setImageToDelete(key);
+                          } else {
+                            // 단순 파일명인 경우 products/ 접두사 추가
+                            setImageToDelete(`products/${key}`);
+                          }
+                        }
+                      }
+                    }
+
+                    // 미리보기를 upload.svg로 설정
+                    setPreview('/icons/upload.svg');
+                    setSelectedFile(null);
+                    setUploadedImageKey(null);
                   }}
                   className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50"
                   aria-label="이미지 삭제"
@@ -376,18 +478,25 @@ const ProductEditModal = ({
               </>
             ) : (
               <Image
-                src="/icons/photo-icon.svg"
+                src="/icons/upload.svg"
                 alt="upload"
-                width={30}
-                height={30}
-                className="opacity-60 pointer-events-none"
+                width={140}
+                height={140}
+                className="object-contain pointer-events-none"
               />
             )}
           </div>
           {errors.image && <span className="text-red-500 text-12">{errors.image}</span>}
         </div>
 
-        <form className="w-full flex flex-col flex-1 gap-20" onSubmit={handleSubmit}>
+        <form
+          className="w-full flex flex-col flex-1 gap-20"
+          onSubmit={(e) => {
+            handleSubmit(e).catch(() => {
+              // 에러는 handleSubmit 내부에서 처리됨
+            });
+          }}
+        >
           <div className="flex flex-col gap-2 mb-6 tablet:mb-8 desktop:mb-8">
             <div className="flex gap-20">
               <DropDown
@@ -501,7 +610,7 @@ const ProductEditModal = ({
               inactive={!isValid}
               className="mobile:w-153 mobile:h-64 tablet:w-216 tablet:h-64 desktop:w-216 desktop:h-64 text-16 cursor-pointer"
             >
-              수정하기
+              {isUploading ? '이미지 업로드 중...' : '수정하기'}
             </Button>
           </div>
         </form>
