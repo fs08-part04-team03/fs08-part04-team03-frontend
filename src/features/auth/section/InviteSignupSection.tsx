@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,22 +27,11 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
   const [preview, setPreview] = useState<string | null>(null);
   const [_uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
   const [_isUploading, setIsUploading] = useState(false);
-  const previewUrlRef = useRef<string | null>(null);
   const router = useRouter();
   const { setAuth } = useAuthStore();
 
   // useToast 훅 사용
   const { showToast, toastMessage, triggerToast, closeToast } = useToast();
-
-  // 컴포넌트 언마운트 시 preview URL 정리
-  useEffect(
-    () => () => {
-      if (previewUrlRef.current) {
-        URL.revokeObjectURL(previewUrlRef.current);
-      }
-    },
-    []
-  );
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,9 +62,6 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
         const { url: signedUrl } = await getImageUrl(imageKey);
 
         // 3. signed URL을 미리보기에 사용
-        if (previewUrlRef.current) {
-          URL.revokeObjectURL(previewUrlRef.current);
-        }
         setPreview(signedUrl);
         setUploadedImageKey(imageKey);
       })
@@ -108,6 +94,8 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
         email: values.email,
         password: values.password,
         inviteToken: token,
+        // TODO: API가 profileImage를 지원하는 경우 다음 줄의 주석을 해제하세요
+        // profileImage: uploadedImageKey || undefined,
       });
 
       logger.info('[InviteSignup] 초대 회원가입 API 성공:', { hasAccessToken: !!accessToken });

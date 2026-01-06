@@ -3,11 +3,10 @@ import { getApiUrl } from '@/utils/api';
 
 /**
  * 이미지 URL 조회 프록시
- * GET /api/product/image?key=...
+ * GET /api/product/image/{key}
  */
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const key = url.searchParams.get('key');
+export async function GET(req: Request, { params }: { params: Promise<{ key: string }> }) {
+  const { key } = await params;
 
   if (!key) {
     return NextResponse.json(

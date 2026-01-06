@@ -29,6 +29,7 @@ interface ProductEditModalProps {
   initialPrice: string;
   initialLink: string;
   initialImage: string | null;
+  initialImageKey?: string | null; // 이미지 키를 직접 전달 (URL 파싱 방지)
   initialCategory: Option | null;
   initialSubCategory: Option | null;
 }
@@ -122,6 +123,7 @@ const ProductEditModal = ({
   initialPrice,
   initialLink,
   initialImage,
+  initialImageKey,
   initialCategory,
   initialSubCategory,
 }: ProductEditModalProps) => {
@@ -135,6 +137,7 @@ const ProductEditModal = ({
   const [uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [currentImageKey, setCurrentImageKey] = useState<string | null>(initialImageKey || null);
   const [touched, setTouched] = useState({
     name: false,
     price: false,
@@ -182,6 +185,7 @@ const ProductEditModal = ({
       setSelectedFile(null);
       setUploadedImageKey(null);
       setImageToDelete(null);
+      setCurrentImageKey(initialImageKey || null);
       setErrors({ name: '', price: '', link: '', category: '', subCategory: '', image: '' });
       setTouched({
         name: false,
@@ -200,6 +204,7 @@ const ProductEditModal = ({
     initialPrice,
     initialLink,
     initialImage,
+    initialImageKey,
     initialCategory,
     initialSubCategory,
   ]);
@@ -289,22 +294,12 @@ const ProductEditModal = ({
       } else if (
         preview &&
         preview === initialImage &&
-        initialImage &&
-        !initialImage.includes('no-image') &&
-        !initialImage.includes('upload.svg')
+        currentImageKey &&
+        !initialImage?.includes('no-image') &&
+        !initialImage?.includes('upload.svg')
       ) {
-        // 기존 이미지 유지 (URL에서 key 추출)
-        // initialImage가 signed URL이거나 일반 URL일 수 있으므로
-        // 백엔드에서 받은 이미지 key를 사용하거나 URL에서 추출
-        const urlParts = initialImage.split('/');
-        const fileName = urlParts[urlParts.length - 1];
-        if (fileName) {
-          // URL에서 쿼리 파라미터 제거
-          const key = fileName.split('?')[0];
-          if (key) {
-            formData.image = key;
-          }
-        }
+        // 기존 이미지 유지 (initialImageKey 사용)
+        formData.image = currentImageKey;
       }
 
       await onSubmit(formData);
@@ -403,6 +398,7 @@ const ProductEditModal = ({
                     }
                     setPreview(signedUrl);
                     setUploadedImageKey(imageKey);
+                    setCurrentImageKey(imageKey);
                   })
                   .catch((error) => {
                     const message =
@@ -436,33 +432,16 @@ const ProductEditModal = ({
                       previewUrlRef.current = null;
                     }
 
-                    // 기존 이미지가 있으면 삭제할 key 추출
-                    if (
-                      initialImage &&
-                      !initialImage.includes('no-image') &&
-                      !initialImage.includes('upload.svg')
-                    ) {
-                      // initialImage에서 key 추출
-                      const urlParts = initialImage.split('/');
-                      const fileName = urlParts[urlParts.length - 1];
-                      if (fileName) {
-                        const key = fileName.split('?')[0];
-                        if (key) {
-                          // S3 key 형식인지 확인 (products/xxx.png 형식)
-                          if (key.includes('/')) {
-                            setImageToDelete(key);
-                          } else {
-                            // 단순 파일명인 경우 products/ 접두사 추가
-                            setImageToDelete(`products/${key}`);
-                          }
-                        }
-                      }
+                    // 기존 이미지가 있으면 삭제할 key 사용
+                    if (currentImageKey) {
+                      setImageToDelete(currentImageKey);
                     }
 
                     // 미리보기를 upload.svg로 설정
                     setPreview('/icons/upload.svg');
                     setSelectedFile(null);
                     setUploadedImageKey(null);
+                    setCurrentImageKey(null);
                   }}
                   className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50"
                   aria-label="이미지 삭제"

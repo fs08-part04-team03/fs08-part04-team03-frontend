@@ -16,6 +16,17 @@ export async function GET(req: Request) {
     );
   }
 
+  // 기본적인 입력 검증
+  if (imageKey.includes('..') || imageKey.startsWith('/') || imageKey.includes('\\')) {
+    return NextResponse.json({ success: false, message: 'Invalid key format' }, { status: 400 });
+  }
+
+  // 허용된 폴더 prefix 검증
+  const allowedPrefixes = ['products/', 'users/', 'companies/', 'misc/'];
+  if (!allowedPrefixes.some((prefix) => imageKey.startsWith(prefix))) {
+    return NextResponse.json({ success: false, message: 'Invalid key prefix' }, { status: 400 });
+  }
+
   const apiBase = getApiUrl();
   const authHeader = req.headers.get('authorization');
   const cookie = req.headers.get('cookie');

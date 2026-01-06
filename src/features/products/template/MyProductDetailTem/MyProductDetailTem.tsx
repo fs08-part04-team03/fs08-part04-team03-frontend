@@ -259,6 +259,7 @@ const MyProductDetailTem = ({
         initialPrice={String(detailPageProps.productDetailHeader.price)}
         initialLink={initialLink}
         initialImage={detailPageProps.productImage?.src ?? null}
+        initialImageKey={detailPageProps.productImageKey ?? null}
         initialCategory={initialCategoryOption}
         initialSubCategory={initialSubCategoryOption}
       />
