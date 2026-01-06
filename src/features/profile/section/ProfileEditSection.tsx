@@ -7,6 +7,7 @@ import { profileEditSchema, type ProfileEditInput } from '@/features/profile/sch
 import { useAuthStore } from '@/lib/store/authStore';
 import { getCompany } from '@/features/profile/api/company.api';
 import { updateAdminProfile, updateUserProfile } from '@/features/profile/api/profile.api';
+import { logger } from '@/utils/logger';
 import ProfileEditTemplate from '@/features/profile/template/ProfileEditTemplate';
 
 const getRoleDisplayName = (role?: string) => {
@@ -50,10 +51,10 @@ const ProfileEditSection = () => {
         const company = await getCompany(accessToken);
         form.setValue('companyName', company.name);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[ProfileEdit] 회사 정보 조회 실패:', error);
-        }
+        logger.error('Failed to fetch company information in ProfileEdit', {
+          hasError: true,
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        });
         // 실패 시 빈 값으로 설정하여 사용자가 직접 입력하도록 유도
         form.setValue('companyName', '');
       }
@@ -75,11 +76,6 @@ const ProfileEditSection = () => {
     setServerError(null);
 
     try {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[ProfileEdit] 프로필 수정:', values);
-      }
-
       if (!user?.id || !user?.companyId || !accessToken) {
         throw new Error('사용자 정보를 찾을 수 없습니다.');
       }
@@ -130,10 +126,10 @@ const ProfileEditSection = () => {
         passwordConfirm: '',
       });
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[ProfileEdit] 프로필 수정 실패:', error);
-      }
+      logger.error('Profile update failed', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
       const errorMessage = error instanceof Error ? error.message : '프로필 변경에 실패했습니다.';
       setToastMessage(errorMessage);
       setShowToast(true);

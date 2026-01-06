@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/atoms/Button/Button';
 import { Toast } from '@/components/molecules/Toast/Toast';
+import { logger } from '@/utils/logger';
 
 export interface PurchaseRequestDetailActionsOrgProps {
   companyId?: string;
@@ -96,8 +97,9 @@ const PurchaseRequestDetailActionsOrg = ({
 
   const handleGoToList = () => {
     if (!companyId) {
-      // eslint-disable-next-line no-console
-      console.warn('companyId missing');
+      logger.warn('companyId missing in handleGoToList', {
+        hasCompanyId: false,
+      });
       setToastMessage('회사가 선택되지 않았습니다.');
       setShowToast(true);
       return;
@@ -107,8 +109,9 @@ const PurchaseRequestDetailActionsOrg = ({
 
   const handleAddToCart = () => {
     if (!companyId) {
-      // eslint-disable-next-line no-console
-      console.warn('companyId missing');
+      logger.warn('companyId missing in handleAddToCart', {
+        hasCompanyId: false,
+      });
       setToastMessage('회사가 선택되지 않았습니다.');
       setShowToast(true);
       return;

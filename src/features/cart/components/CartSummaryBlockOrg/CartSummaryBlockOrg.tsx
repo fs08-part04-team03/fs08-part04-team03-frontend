@@ -170,17 +170,17 @@ const CartSummaryBlockOrg = ({
           router.push(`/${companyId}/cart`);
         }
       } catch (navError) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[CartSummaryBlockOrg] 네비게이션 실패:', navError);
-        }
+        logger.warn('Navigation failed after purchase', {
+          hasError: true,
+          errorType: navError instanceof Error ? navError.constructor.name : 'Unknown',
+        });
         // 네비게이션 실패는 무시 (구매는 성공했으므로)
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[CartSummaryBlockOrg] 긴급 구매 요청 실패:', error);
-      }
+      logger.error('Urgent purchase request failed', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
       setErrorMessage('긴급 구매 요청에 실패했습니다.');
     } finally {
       setIsPurchasing(false);

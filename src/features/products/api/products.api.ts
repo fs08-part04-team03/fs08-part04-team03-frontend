@@ -4,6 +4,7 @@ import { fetchWithAuth, getApiUrl, AuthExpiredError } from '@/utils/api';
 import type { RegisteredProductOrgItem } from '@/features/products/components/RegisteredProductOrg/RegisteredProductOrg';
 import type { BackendProduct } from '@/features/products/utils/product.utils';
 import { getChildById, getParentById } from '@/constants/categories/categories.utils';
+import { logger } from '@/utils/logger';
 
 /**
  * 백엔드 API 응답 타입
@@ -53,10 +54,11 @@ const getCategoryLabel = (categoryId: number | null | undefined): string => {
 
     return `${parentCategory.name} > ${childCategory.name}`;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[getCategoryLabel] 카테고리 라벨 생성 오류:', error, { categoryId });
-    }
+    logger.error('Category label generation error', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      hasCategoryId: !!categoryId,
+    });
     return '미분류';
   }
 };
@@ -102,17 +104,7 @@ export async function getMyRegisteredProducts(
   const queryString = queryParams.toString();
   const url = `/api/v1/product/my${queryString ? `?${queryString}` : ''}`;
 
-  // 개발 환경에서 요청 URL 로깅
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[getMyRegisteredProducts] 요청 URL:', url, {
-      params,
-      queryString,
-      fullUrl: url,
-      hasIdInPath: url.includes('/undefined/') || url.includes('/null/'),
-      hasIdInQuery: url.includes('?id=') || url.includes('&id='),
-    });
-  }
+  // 개발 환경에서 요청 URL 로깅 제거 (의미 없는 디버그 로그)
 
   try {
     const response = await fetchWithAuth(url, {
@@ -195,17 +187,12 @@ export async function getMyRegisteredProducts(
       }
 
       // 개발 환경에서 상세 에러 로깅
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[getMyRegisteredProducts] API 에러 상세:', {
-          status: response.status,
-          statusText: response.statusText,
-          url,
-          errorMessage: finalErrorMessage,
-          errorDetails: errorDetails ? JSON.stringify(errorDetails, null, 2) : null,
-          errorDetailsRaw: errorDetails,
-        });
-      }
+      logger.error('Failed to fetch registered products', {
+        status: response.status,
+        statusText: response.statusText,
+        hasErrorMessage: !!finalErrorMessage,
+        hasErrorDetails: !!errorDetails,
+      });
 
       throw new Error(finalErrorMessage);
     }
@@ -227,14 +214,10 @@ export async function getMyRegisteredProducts(
       totalPages: result.pagination?.totalPages || 1,
     };
   } catch (error) {
-    // 개발 환경에서만 에러 로깅
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[getMyRegisteredProducts] API 에러:', {
-        url,
-        error,
-      });
-    }
+    logger.error('API error in getMyRegisteredProducts', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+    });
     throw error;
   }
 }
