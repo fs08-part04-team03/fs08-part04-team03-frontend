@@ -52,7 +52,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
     'flex flex-col overflow-hidden',
     'rounded-8 bg-white text-left rounded-default',
     'shadow-card',
-    'transition-all duration-300 ease-out',
+    'transition-[transform,box-shadow,border] duration-300 ease-out',
     'hover:animate-border-shimmer hover:-translate-y-2',
     pressed && 'scale-[0.97]',
     'cursor-pointer',
@@ -139,8 +139,6 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
         fill
         className="object-contain"
         unoptimized
-        loading="eager"
-        priority
       />
     );
   }
