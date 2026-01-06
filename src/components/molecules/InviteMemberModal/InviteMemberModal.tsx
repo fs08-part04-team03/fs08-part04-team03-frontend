@@ -78,7 +78,9 @@ const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMem
 
   return (
     <div
-      className={clsx('fixed inset-0 flex items-center justify-center bg-black/60 z-30')}
+      className={clsx(
+        'fixed inset-0 flex items-center justify-center bg-black/60 z-[var(--z-modal)]'
+      )}
       aria-modal="true"
       role="dialog"
     >
@@ -94,7 +96,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMem
       <div
         ref={modalRef}
         className={clsx(
-          'bg-white rounded-16 flex flex-col relative z-10',
+          'bg-white rounded-16 flex flex-col relative z-[var(--z-dropdown)]',
           // Mobile
           'mobile:w-375 mobile:h-812 mobile:px-24 mobile:py-24',
           // Tablet & Desktop
@@ -142,7 +144,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMem
             </div>
 
             {/* 권한 */}
-            <div className="flex flex-col relative z-10">
+            <div className="flex flex-col relative z-[var(--z-dropdown)]">
               <span className="mb-2 text-16 font-bold text-gray-950">권한</span>
               <DropDown
                 items={roleOptions}
@@ -157,7 +159,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMem
 
           <div
             className={clsx(
-              'flex gap-20 justify-center mt-24 mobile:mb-24 relative z-0',
+              'flex gap-20 justify-center mt-24 mobile:mb-24 relative z-[var(--z-back)]',
               'tablet:justify-start desktop:justify-start'
             )}
           >
