@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { CATEGORY_SECTIONS } from '@/constants';
 import { useAuthStore } from '@/lib/store/authStore';
 import { formatPrice, isInvalidPrice, isValidUrl, isValidPriceInput } from '@/utils/validation';
+import { logger } from '@/utils/logger';
 
 interface ProductModalProps {
   open: boolean;
@@ -171,7 +172,10 @@ const ProductModal = ({
       onSubmit(); // 부모에서 캐시 처리
       onClose();
     } catch (error) {
-      console.error(error);
+      logger.error('Product registration failed', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
       triggerToast('error', '상품 등록 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);

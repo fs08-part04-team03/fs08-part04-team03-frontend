@@ -11,6 +11,7 @@ import { PARENT_CATEGORY_OPTIONS, CATEGORY_SECTIONS, type ParentCategoryKey } fr
 import { getChildById } from '@/constants/categories/categories.utils';
 import { useQuery } from '@tanstack/react-query';
 import { getProductById } from '@/features/products/api/products.api';
+import { logger } from '@/utils/logger';
 import GNB from './GNB';
 
 /**
@@ -39,11 +40,10 @@ export const GNBWrapper: React.FC = () => {
         const company = await getCompany(accessToken);
         setCompanyName(company.name);
       } catch (error) {
-        // 네트워크 에러는 조용히 처리 (개발 환경에서만 로그)
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[GNBWrapper] 회사 정보 조회 실패:', error);
-        }
+        logger.error('Failed to fetch company information', {
+          hasError: true,
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        });
         // 실패 시 기본값 사용 (사용자에게는 에러를 표시하지 않음)
         setCompanyName('SNACK');
       }
@@ -63,8 +63,10 @@ export const GNBWrapper: React.FC = () => {
         // 로그아웃 API 호출 (백엔드 세션 정리)
         await logout();
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('로그아웃 처리 중 오류:', error);
+        logger.error('Logout process error', {
+          hasError: true,
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        });
         // 에러가 발생해도 클라이언트 상태는 정리
       } finally {
         // 클라이언트 상태 정리

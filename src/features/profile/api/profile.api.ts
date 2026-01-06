@@ -1,4 +1,5 @@
 import { getApiUrl, getApiTimeout } from '@/utils/api';
+import { logger } from '@/utils/logger';
 
 /**
  * 프로필 업데이트 입력 데이터 (레거시)
@@ -121,15 +122,11 @@ export async function updateCompanyName(companyId: string, companyName: string):
     if (!response.ok) {
       const errorData = (await response.json().catch(() => null)) as ApiErrorResponse | null;
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[updateCompanyName] API 에러:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorData,
-          url: `${apiUrl}/api/companies/${companyId}`,
-        });
-      }
+      logger.error('API error in updateCompanyName', {
+        status: response.status,
+        statusText: response.statusText,
+        hasErrorData: !!errorData,
+      });
 
       throw new Error(errorData?.message || `기업명 변경에 실패했습니다. (${response.status})`);
     }
@@ -163,15 +160,11 @@ export async function updatePassword(userId: string, password: string): Promise<
     if (!response.ok) {
       const errorData = (await response.json().catch(() => null)) as ApiErrorResponse | null;
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[updatePassword] API 에러:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorData,
-          url: `${apiUrl}/api/users/${userId}/password`,
-        });
-      }
+      logger.error('API error in updatePassword', {
+        status: response.status,
+        statusText: response.statusText,
+        hasErrorData: !!errorData,
+      });
 
       throw new Error(errorData?.message || `비밀번호 변경에 실패했습니다. (${response.status})`);
     }
@@ -238,21 +231,12 @@ export async function updateAdminProfile(
         // Response is not JSON
       }
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[updateAdminProfile] API 에러:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorData,
-          responseText,
-          requestBody,
-          url: `${apiUrl}/api/v1/user/admin/profile`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken.substring(0, 20)}...`,
-          },
-        });
-      }
+      logger.error('API error in updateAdminProfile', {
+        status: response.status,
+        statusText: response.statusText,
+        hasErrorData: !!errorData,
+        hasRequestBody: !!requestBody,
+      });
 
       throw new Error(errorData?.message || `프로필 변경에 실패했습니다. (${response.status})`);
     }
@@ -308,15 +292,11 @@ export async function updateUserProfile(
     if (!response.ok) {
       const errorData = (await response.json().catch(() => null)) as ApiErrorResponse | null;
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[updateUserProfile] API 에러:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorData,
-          url: `${apiUrl}/api/v1/user/me/profile`,
-        });
-      }
+      logger.error('API error in updateUserProfile', {
+        status: response.status,
+        statusText: response.statusText,
+        hasErrorData: !!errorData,
+      });
 
       throw new Error(errorData?.message || `프로필 변경에 실패했습니다. (${response.status})`);
     }

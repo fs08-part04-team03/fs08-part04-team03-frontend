@@ -5,6 +5,7 @@ import {
   AUTH_API_PATHS,
 } from '@/features/auth/utils/constants';
 import { useAuthStore } from '@/lib/store/authStore';
+import { logger } from '@/utils/logger';
 
 /**
  * 인증 만료 에러 클래스
@@ -200,14 +201,10 @@ export async function fetchWithAuth(
 
     // 429 에러 로깅 (TOO_MANY_REQUESTS 디버깅용)
     if (response.status === 429) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[fetchWithAuth] TOO_MANY_REQUESTS:', {
-          url: finalUrl,
-          method: requestOptions.method || 'GET',
-          status: response.status,
-        });
-      }
+      logger.warn('Rate limit exceeded (429)', {
+        method: requestOptions.method || 'GET',
+        status: response.status,
+      });
     }
 
     // 401 Unauthorized 에러 처리

@@ -8,6 +8,7 @@ import Button from '@/components/atoms/Button/Button';
 import InputField from '@/components/molecules/InputField/InputField';
 import { CHILD_CATEGORIES, PARENT_CATEGORIES } from '@/constants/categories/categories.constants';
 import { formatPrice, isInvalidPrice, isValidUrl, isValidPriceInput } from '@/utils/validation';
+import { logger } from '@/utils/logger';
 
 export interface ProductEditFormData {
   name: string;
@@ -278,10 +279,10 @@ const ProductEditModal = ({
     }
 
     Promise.resolve(onSubmit(formData)).catch((error) => {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[ProductEditModal] 제출 실패:', error);
-      }
+      logger.error('Product edit submission failed', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
       // 에러를 상위로 전파하여 호출자가 처리할 수 있도록 함
       throw error;
     });

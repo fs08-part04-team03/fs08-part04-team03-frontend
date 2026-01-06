@@ -5,6 +5,7 @@ import { PurchaseRequestDetailTopOrg } from '@/features/purchase/components/Purc
 import PurchaseRequestDetailOrg from '@/features/purchase/components/PurchaseRequestDetailOrg/PurchaseRequestDetailOrg';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
 import { getApiUrl } from '@/utils/api';
+import { logger } from '@/utils/logger';
 import PurchaseRequestDetailActionsOrg from '../../components/PurchaseRequestDetailActionsOrg/PurchaseRequestDetailActionsOrg';
 
 interface PurchaseRequestDetailTemProps {
@@ -70,8 +71,9 @@ const PurchaseRequestDetailTem = ({
     items: purchaseRequest.purchaseItems.map((item) => {
       const parsedId = Number.parseInt(item.id, 10);
       if (Number.isNaN(parsedId)) {
-        // eslint-disable-next-line no-console
-        console.warn('Invalid item id:', item.id);
+        logger.warn('Invalid item id in purchase request', {
+          hasItemId: !!item.id,
+        });
       }
       return {
         id: Number.isNaN(parsedId) ? 0 : parsedId,
