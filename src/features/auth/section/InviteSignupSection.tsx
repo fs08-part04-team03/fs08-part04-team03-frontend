@@ -26,7 +26,7 @@ interface InviteSignupSectionProps {
 const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [_uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
-  const [_isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
   const { setAuth } = useAuthStore();
 
@@ -133,6 +133,7 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       setShowToast={closeToast}
       preview={preview}
       onImageChange={handleImageChange}
+      isUploading={isUploading}
       name={name}
     />
   );
