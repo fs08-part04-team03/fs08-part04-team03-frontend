@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import type { Option } from '@/components/atoms/DropDown/DropDown';
 import { COMMON_SORT_OPTIONS } from '@/constants/sort';
 import PurchaseHistoryTem from './PurchaseHistoryTem';
 
@@ -89,9 +88,8 @@ export const Default: Story = {
     thisYearTotalSpending: 10000000,
     lastYearTotalSpending: 4000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: (option: Option) => {
+    onSortChange: () => {
       // eslint-disable-next-line no-console
-      console.log('정렬 변경:', option);
     },
     items: [
       createPurchaseItem(
@@ -130,9 +128,8 @@ export const Default: Story = {
     companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
-    onPageChange: (page) => {
+    onPageChange: () => {
       // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
     },
   },
   parameters: {
@@ -154,9 +151,8 @@ export const WithPagination: Story = {
     thisYearTotalSpending: 5000000,
     lastYearTotalSpending: 6000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: (option: Option) => {
+    onSortChange: () => {
       // eslint-disable-next-line no-console
-      console.log('정렬 변경:', option);
     },
     items: Array.from({ length: 10 }, (_, i) =>
       createPurchaseItem(
@@ -174,9 +170,8 @@ export const WithPagination: Story = {
     companyId: 'company-1',
     currentPage: 1,
     totalPages: 3,
-    onPageChange: (page) => {
+    onPageChange: () => {
       // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
     },
   },
   parameters: {
@@ -198,17 +193,15 @@ export const EmptyList: Story = {
     thisYearTotalSpending: 0,
     lastYearTotalSpending: 0,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: (option: Option) => {
+    onSortChange: () => {
       // eslint-disable-next-line no-console
-      console.log('정렬 변경:', option);
     },
     items: [],
     companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
-    onPageChange: (page) => {
+    onPageChange: () => {
       // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
     },
   },
   parameters: {
