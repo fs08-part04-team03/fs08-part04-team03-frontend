@@ -110,12 +110,8 @@ export const UserDefault: Story = {
     userType: 'default',
     items: mockItems,
     shippingFee: 3_000,
-    onGoCart: () => {
-      console.log('Go to cart');
-    },
-    onGoOrderHistory: () => {
-      console.log('Go to order history');
-    },
+    onGoCart: () => {},
+    onGoOrderHistory: () => {},
   },
 };
 
@@ -129,12 +125,8 @@ export const UserRequest: Story = {
     userType: 'request',
     items: mockItems,
     shippingFee: 3_000,
-    onGoCart: () => {
-      console.log('Go to cart');
-    },
-    onGoOrderHistory: () => {
-      console.log('Request purchase');
-    },
+    onGoCart: () => {},
+    onGoOrderHistory: () => {},
   },
 };
 
@@ -147,12 +139,8 @@ export const Manager: Story = {
     cartRole: 'manager',
     items: mockItems,
     shippingFee: 3_000,
-    onGoCart: () => {
-      console.log('Manager go to cart');
-    },
-    onGoOrderHistory: () => {
-      console.log('Manager order history');
-    },
+    onGoCart: () => {},
+    onGoOrderHistory: () => {},
   },
 };
 
@@ -165,11 +153,7 @@ export const Admin: Story = {
     cartRole: 'admin',
     items: mockItems,
     shippingFee: 3_000,
-    onGoCart: () => {
-      console.log('Admin go to cart');
-    },
-    onGoOrderHistory: () => {
-      console.log('Admin order history');
-    },
+    onGoCart: () => {},
+    onGoOrderHistory: () => {},
   },
 };
