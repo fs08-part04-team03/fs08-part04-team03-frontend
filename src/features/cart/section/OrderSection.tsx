@@ -7,6 +7,7 @@ import { requestPurchase, urgentRequestPurchase } from '@/features/purchase/api/
 import { cartApi } from '@/features/cart/api/cart.api';
 import { useToast } from '@/hooks/useToast';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
+import { logger } from '@/utils/logger';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import type { OrderCompletedItem } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import OrderTem from '../template/OrderTem/OrderTem';
@@ -93,31 +94,40 @@ const OrderSection = () => {
       return requestPurchase(requestBody);
     },
     onSuccess: async (data) => {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[OrderSection] 구매 요청 성공:', { data, hasId: !!data?.id, id: data?.id });
-      }
       // 구매 요청 완료 후 completed 페이지로 이동 (purchase ID 전달)
-      // router.push를 먼저 실행하여 리다이렉트를 방지
       if (companyId && data?.id) {
         setIsPurchaseSuccess(true); // POST 성공 플래그 설정
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log(
-            '[OrderSection] Order Completed 페이지로 이동:',
-            `/${companyId}/order/completed?id=${data.id}`
-          );
+
+        // 선택된 아이템들을 장바구니에서 삭제
+        if (cartItemIds.length > 0) {
+          try {
+            await cartApi.deleteMultiple(cartItemIds);
+            logger.info('Cart items deleted after purchase request', {
+              deletedCount: cartItemIds.length,
+            });
+          } catch (deleteError) {
+            // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
+            logger.error('Failed to delete cart items after purchase request', {
+              hasError: true,
+              errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+              cartItemIds,
+            });
+            // 사용자에게는 알리지 않음 (구매 요청은 성공했으므로)
+          }
         }
-        router.push(`/${companyId}/order/completed?id=${data.id}`);
-        // router.push 후에 카트 무효화 (비동기로 실행되어도 문제없음)
+
+        // 카트 캐시 무효화
         await queryClient.invalidateQueries({ queryKey: ['cart'] });
+
+        // completed 페이지로 이동
+        router.push(`/${companyId}/order/completed?id=${data.id}`);
         triggerToast('success', '구매 요청이 완료되었습니다.');
       } else {
         // purchase ID가 없으면 에러 처리
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[OrderSection] Purchase ID가 없습니다:', data);
-        }
+        logger.error('Purchase request completed but missing purchase ID', {
+          hasData: !!data,
+          hasId: !!data?.id,
+        });
         setErrorMessage('구매 요청 응답에 문제가 있습니다.');
         setIsErrorModalOpen(true);
       }
@@ -134,10 +144,6 @@ const OrderSection = () => {
   // 단, 구매 요청 성공 후에는 리다이렉트하지 않음 (Order Completed 페이지로 이동 중)
   useEffect(() => {
     if (!isLoading && cartData && selectedItems.length === 0 && companyId && !isPurchaseSuccess) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[OrderSection] 선택된 아이템이 없어서 장바구니로 리다이렉트');
-      }
       router.push(`/${companyId}/cart`);
     }
   }, [isLoading, cartData, selectedItems.length, companyId, router, isPurchaseSuccess]);

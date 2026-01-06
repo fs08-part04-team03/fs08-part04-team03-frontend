@@ -5,6 +5,7 @@ import {
   AUTH_API_PATHS,
 } from '@/features/auth/utils/constants';
 import { useAuthStore } from '@/lib/store/authStore';
+import { logger } from '@/utils/logger';
 
 /**
  * 인증 만료 에러 클래스
@@ -82,6 +83,65 @@ export function getApiTimeout(): number {
   // }
 
   return timeout;
+}
+
+/**
+ * 이미지 URL 구성 (비동기)
+ * S3 키를 사용하여 signed URL을 가져옵니다.
+ * 클라이언트 사이드에서만 사용해야 합니다.
+ * @param imageKey - 이미지 S3 key (예: products/xxx.png)
+ * @returns signed URL 또는 undefined
+ */
+export async function buildImageUrl(
+  imageKey: string | null | undefined
+): Promise<string | undefined> {
+  if (!imageKey) return undefined;
+
+  // 서버 사이드에서는 이 함수를 호출하지 않아야 함
+  if (typeof window === 'undefined') {
+    logger.warn('buildImageUrl called on server-side', { imageKey });
+    return undefined;
+  }
+
+  try {
+    // S3 키를 쿼리 파라미터로 전달하여 Next.js API 라우트를 통해 조회
+    const encodedKey = encodeURIComponent(imageKey);
+    const baseUrl = window.location.origin;
+    const response = await fetch(`${baseUrl}/api/product/image?key=${encodedKey}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        // fetchWithAuth 대신 직접 헤더 설정
+        ...(useAuthStore.getState().accessToken
+          ? { Authorization: `Bearer ${useAuthStore.getState().accessToken}` }
+          : {}),
+      },
+    });
+
+    if (!response.ok) {
+      logger.warn('Failed to fetch image URL', { imageKey, status: response.status });
+      return undefined;
+    }
+
+    const result = (await response.json()) as {
+      success: boolean;
+      data?: { url: string };
+    };
+
+    if (result.success && result.data?.url) {
+      return result.data.url;
+    }
+
+    logger.warn('Invalid image URL response', { imageKey, result });
+    return undefined;
+  } catch (error) {
+    logger.error('Error in buildImageUrl', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      imageKey,
+    });
+    return undefined;
+  }
 }
 
 /**
@@ -200,14 +260,10 @@ export async function fetchWithAuth(
 
     // 429 에러 로깅 (TOO_MANY_REQUESTS 디버깅용)
     if (response.status === 429) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[fetchWithAuth] TOO_MANY_REQUESTS:', {
-          url: finalUrl,
-          method: requestOptions.method || 'GET',
-          status: response.status,
-        });
-      }
+      logger.warn('Rate limit exceeded (429)', {
+        method: requestOptions.method || 'GET',
+        status: response.status,
+      });
     }
 
     // 401 Unauthorized 에러 처리

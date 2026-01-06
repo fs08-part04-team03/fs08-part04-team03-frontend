@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
+import { logger } from '@/utils/logger';
 
 type ModalType =
   | 'delete'
@@ -73,10 +74,10 @@ const CustomModal = ({
       return onConfirm
         ? () => {
             Promise.resolve(onConfirm()).catch((error) => {
-              if (process.env.NODE_ENV === 'development') {
-                // eslint-disable-next-line no-console
-                console.error('[CustomModal] onConfirm error:', error);
-              }
+              logger.error('CustomModal onConfirm error', {
+                hasError: true,
+                errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+              });
             });
           }
         : undefined;
@@ -85,10 +86,10 @@ const CustomModal = ({
       return onConfirm
         ? () => {
             Promise.resolve(onConfirm()).catch((error) => {
-              if (process.env.NODE_ENV === 'development') {
-                // eslint-disable-next-line no-console
-                console.error('[CustomModal] onConfirm error:', error);
-              }
+              logger.error('CustomModal onConfirm error', {
+                hasError: true,
+                errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+              });
             });
           }
         : onClose;
@@ -100,10 +101,10 @@ const CustomModal = ({
       return onConfirm
         ? () => {
             Promise.resolve(onConfirm()).catch((error) => {
-              if (process.env.NODE_ENV === 'development') {
-                // eslint-disable-next-line no-console
-                console.error('[CustomModal] onConfirm error:', error);
-              }
+              logger.error('CustomModal onConfirm error', {
+                hasError: true,
+                errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+              });
             });
           }
         : undefined;
@@ -112,10 +113,10 @@ const CustomModal = ({
       return () => {
         Promise.resolve(onConfirm()).catch((error) => {
           // 상위 컴포넌트에서 에러 처리를 담당
-          if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
-            console.error('Modal confirm error:', error);
-          }
+          logger.error('Modal confirm error', {
+            hasError: true,
+            errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          });
         });
       };
     }

@@ -10,6 +10,7 @@ export const ROLE_NAV_KEYS: Record<UserRole, AppRouteKey[]> = {
     'product-register-list',
     'purchase-request-list-manager',
     'purchase-history-check',
+    'wishlist',
   ],
   admin: [
     'product-list',
@@ -18,6 +19,7 @@ export const ROLE_NAV_KEYS: Record<UserRole, AppRouteKey[]> = {
     'purchase-request-list-manager',
     'purchase-history-check',
     'management',
+    'wishlist',
   ],
 };
 

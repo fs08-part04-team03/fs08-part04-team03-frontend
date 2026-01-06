@@ -22,6 +22,7 @@ interface SignupTemProps {
   setShowToast: (show: boolean) => void;
   preview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isUploading?: boolean;
   title?: string;
   subtitle?: string;
   submitButtonText?: string;
@@ -40,6 +41,7 @@ const SignupTemContent = ({
   handleSubmit,
   preview,
   onImageChange,
+  isUploading = false,
   className,
   title = '기업 담당자 회원가입',
   subtitle = '* 그룹 내 유저는 기업 담당자의 초대 메일을 통해 가입이 가능합니다.',
@@ -75,11 +77,11 @@ const SignupTemContent = ({
               />
             ) : (
               <Image
-                src="/icons/photo-icon.svg"
+                src="/icons/upload.svg"
                 alt="이미지 업로드"
-                width={48}
-                height={48}
-                className="opacity-40"
+                width={140}
+                height={140}
+                className="object-contain"
               />
             )}
           </div>
@@ -108,8 +110,19 @@ const SignupTemContent = ({
       />
     ))}
 
-    <Button type="submit" variant="primary" className="mt-8" fullWidth inactive={!isValid}>
-      {submitButtonText}
+    <Button
+      type="submit"
+      variant="primary"
+      className="mt-8"
+      fullWidth
+      inactive={!isValid || isUploading}
+      rightIcon={
+        isUploading ? (
+          <div className="w-16 h-16 border-2 border-gray-50 border-t-transparent rounded-full animate-spin" />
+        ) : undefined
+      }
+    >
+      {isUploading ? '이미지 업로드 중...' : submitButtonText}
     </Button>
   </form>
 );
@@ -121,6 +134,7 @@ export const SignupTemMobile = ({
   handleSubmit,
   preview,
   onImageChange,
+  isUploading,
   title,
   subtitle,
   submitButtonText,
@@ -136,6 +150,7 @@ export const SignupTemMobile = ({
       handleSubmit={handleSubmit}
       preview={preview}
       onImageChange={onImageChange}
+      isUploading={isUploading}
       title={title}
       subtitle={subtitle}
       submitButtonText={submitButtonText}
@@ -157,6 +172,7 @@ export const SignupTemDesktop = ({
   handleSubmit,
   preview,
   onImageChange,
+  isUploading,
   title,
   subtitle,
   submitButtonText,
@@ -174,6 +190,7 @@ export const SignupTemDesktop = ({
           handleSubmit={handleSubmit}
           preview={preview}
           onImageChange={onImageChange}
+          isUploading={isUploading}
           title={title}
           subtitle={subtitle}
           submitButtonText={submitButtonText}
@@ -203,6 +220,7 @@ const SignupTem = ({
   setShowToast,
   preview,
   onImageChange,
+  isUploading,
   title,
   subtitle,
   submitButtonText,
@@ -215,6 +233,7 @@ const SignupTem = ({
       handleSubmit={handleSubmit}
       preview={preview}
       onImageChange={onImageChange}
+      isUploading={isUploading}
       title={title}
       subtitle={subtitle}
       submitButtonText={submitButtonText}
@@ -226,6 +245,7 @@ const SignupTem = ({
       handleSubmit={handleSubmit}
       preview={preview}
       onImageChange={onImageChange}
+      isUploading={isUploading}
       title={title}
       subtitle={subtitle}
       submitButtonText={submitButtonText}

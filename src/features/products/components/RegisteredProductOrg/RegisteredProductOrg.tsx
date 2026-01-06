@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Divider } from '@/components/atoms/Divider/Divider';
 import { clsx } from '@/utils/clsx';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import LinkText from '@/components/atoms/LinkText/LinkText';
+import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
 import { PATHNAME } from '@/constants';
 
 export interface RegisteredProductOrgItem {
@@ -24,6 +25,7 @@ interface RegisteredProductOrgProps {
   totalCount: number;
   companyId: string;
   onRegisterClick?: () => void;
+  isLoading?: boolean;
 }
 
 const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
@@ -32,10 +34,27 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
   totalCount,
   companyId,
   onRegisterClick,
+  isLoading = false,
 }) => {
   const isEmpty = products.length === 0;
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
   const router = useRouter();
+
+  // 클라이언트 사이드에서만 전체 URL 구성 (SSR 하이드레이션 불일치 방지)
+  const productsWithFullUrls = useMemo(() => {
+    if (typeof window === 'undefined') {
+      // 서버 사이드에서는 상대 경로 그대로 반환
+      return products;
+    }
+    // 클라이언트 사이드에서만 origin 추가
+    return products.map((product) => ({
+      ...product,
+      imageSrc:
+        product.imageSrc && !product.imageSrc.startsWith('http')
+          ? `${window.location.origin}${product.imageSrc}`
+          : product.imageSrc,
+    }));
+  }, [products]);
 
   const handleImageError = (productId: number) => {
     setImageErrors((prev) => ({ ...prev, [productId]: true }));
@@ -63,300 +82,307 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
         </p>
 
         {/* Desktop : Table Header (항상 유지) */}
+        <Divider variant="thin" />
         <div
           className={clsx(
-            'hidden',
-            'desktop:flex',
-            'desktop:px-40 desktop:gap-16 desktop:items-center desktop:h-100',
-            'border-t border-b border-gray-200'
+            'hidden desktop:flex',
+            'items-center w-full justify-between',
+            'h-60',
+            'desktop:border-b desktop:border-gray-200'
           )}
         >
           <div className={clsx('flex-1 flex items-center gap-20')}>
             <div className={clsx('w-40 h-40')} />
-            <span className={clsx('text-16 font-bold tracking--0.4 text-gray-400')}>상품명</span>
+            <span className={clsx('text-14 font-bold text-gray-700 pl-20')}>상품명</span>
           </div>
-          <span className={clsx('w-120 text-16 font-bold tracking--0.4 text-gray-400')}>
-            등록일
-          </span>
-          <span className={clsx('w-180 text-16 font-bold tracking--0.4 text-gray-400')}>
-            카테고리
-          </span>
-          <span className={clsx('w-160 text-16 font-bold tracking--0.4 text-gray-400')}>가격</span>
-          <span className={clsx('w-180 text-16 font-bold tracking--0.4 text-gray-400')}>
-            제품 링크
-          </span>
+          <span className={clsx('w-120 text-14 font-bold text-gray-700 pl-20')}>등록일</span>
+          <span className={clsx('w-180 text-14 font-bold text-gray-700 pl-20')}>카테고리</span>
+          <span className={clsx('w-160 text-14 font-bold text-gray-700 pl-20')}>가격</span>
+          <span className={clsx('w-180 text-14 font-bold text-gray-700 pl-20')}>제품 링크</span>
         </div>
 
         {/* ✅ Products 영역 (반응형 최대 높이 적용) */}
         <div className={clsx('mobile:min-h-710', 'tablet:min-h-740', 'desktop:min-h-600')}>
-          {isEmpty ? (
-            <div className={clsx('mt-40 flex justify-center')}>
-              <StatusNotice
-                title="등록된 상품이 없습니다"
-                description={`아직 등록한 상품이 없어요.\n상품을 등록해 보세요.`}
-                buttonText="상품 등록하기"
-                onButtonClick={onRegisterClick}
-              />
-            </div>
-          ) : (
-            <ul className={clsx('flex flex-col')}>
-              {products.map((product) => {
-                // imageSrc가 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
-                const isValidImageUrl =
-                  product.imageSrc &&
-                  typeof product.imageSrc === 'string' &&
-                  product.imageSrc.trim().length > 0;
-                const imgError = imageErrors[product.id] || false;
-                const showNoImage = !isValidImageUrl || imgError;
+          {(() => {
+            if (isLoading) {
+              return <ListSkeletonUI rows={6} />;
+            }
 
-                return (
-                  <li key={product.id}>
-                    {/* Mobile / Tablet */}
-                    <div
-                      className={clsx('desktop:hidden', 'cursor-pointer')}
-                      onClick={() => handleProductClick(product.id)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleProductClick(product.id);
-                        }
-                      }}
-                    >
-                      <p
-                        className={clsx(
-                          'mobile:mt-20 mobile:mb-10',
-                          'tablet:mt-30',
-                          'text-16 font-extrabold tracking--0.4 text-gray-950'
-                        )}
-                      >
-                        {date}
-                      </p>
+            if (isEmpty) {
+              return (
+                <div className={clsx('mt-40 flex justify-center')}>
+                  <StatusNotice
+                    title="등록된 상품이 없습니다"
+                    description={`아직 등록한 상품이 없어요.\n상품을 등록해 보세요.`}
+                    buttonText="상품 등록하기"
+                    onButtonClick={onRegisterClick}
+                  />
+                </div>
+              );
+            }
 
-                      <div className={clsx('flex gap-20')}>
-                        <div
-                          className={clsx(
-                            'flex items-center justify-center w-90 h-90 bg-gray-50 shrink-0'
-                          )}
-                        >
-                          {(() => {
-                            if (showNoImage) {
-                              return (
-                                <Image
-                                  src="/icons/no-image-small.svg"
-                                  alt="이미지 없음"
-                                  width={29}
-                                  height={50}
-                                  unoptimized
-                                />
-                              );
-                            }
-                            if (
-                              isValidImageUrl &&
-                              (product.imageSrc.startsWith('http://') ||
-                                product.imageSrc.startsWith('https://'))
-                            ) {
-                              // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
-                              return (
-                                <img
-                                  src={product.imageSrc}
-                                  alt={product.name}
-                                  width={29}
-                                  height={50}
-                                  onError={() => handleImageError(product.id)}
-                                  crossOrigin="anonymous"
-                                  className="object-contain"
-                                />
-                              );
-                            }
-                            if (isValidImageUrl) {
-                              return (
-                                <Image
-                                  src={product.imageSrc}
-                                  alt={product.name}
-                                  width={29}
-                                  height={50}
-                                  onError={() => handleImageError(product.id)}
-                                />
-                              );
-                            }
-                            return (
-                              <Image
-                                src="/icons/no-image-small.svg"
-                                alt="이미지 없음"
-                                width={29}
-                                height={50}
-                                unoptimized
-                              />
-                            );
-                          })()}
-                        </div>
+            return (
+              <ul className={clsx('flex flex-col')}>
+                {productsWithFullUrls.map((product) => {
+                  // imageSrc가 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
+                  const isValidImageUrl =
+                    product.imageSrc &&
+                    typeof product.imageSrc === 'string' &&
+                    product.imageSrc.trim().length > 0;
+                  const imgError = imageErrors[product.id] || false;
+                  const showNoImage = !isValidImageUrl || imgError;
 
-                        <div className={clsx('flex flex-col gap-6 w-216')}>
-                          <span className={clsx('text-12 tracking--0.3 text-gray-500')}>
-                            {product.categoryLabel}
-                          </span>
-
-                          <span
-                            className={clsx(
-                              'mobile:text-14',
-                              'tablet:text-16',
-                              'mobile:tracking--0.35',
-                              'tablet:tracking--0.4',
-                              'text-gray-950'
-                            )}
-                          >
-                            {product.name}
-                          </span>
-
-                          <span
-                            className={clsx('text-14 font-extrabold tracking--0.35 text-gray-950')}
-                          >
-                            {product.price.toLocaleString()}원
-                          </span>
-
-                          <div
-                            className={clsx('line-clamp-2')}
-                            onClick={(e) => e.stopPropagation()}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.stopPropagation();
-                              }
-                            }}
-                            role="presentation"
-                          >
-                            <LinkText
-                              url={product.link}
-                              className={clsx('text-14 tracking--0.35 text-gray-600')}
-                              clickable
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className={clsx('mt-30')}>
-                        <Divider variant="thin" />
-                      </div>
-                    </div>
-
-                    {/* Desktop */}
-                    <div
-                      className={clsx(
-                        'hidden',
-                        'desktop:flex',
-                        'desktop:items-center',
-                        'desktop:px-40 desktop:gap-16 desktop:h-100',
-                        'border-b border-gray-200',
-                        'cursor-pointer hover:bg-gray-50 transition-colors'
-                      )}
-                      onClick={() => handleProductClick(product.id)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleProductClick(product.id);
-                        }
-                      }}
-                    >
-                      <div className={clsx('flex-1 flex items-center gap-20')}>
-                        <div
-                          className={clsx(
-                            'flex items-center justify-center w-40 h-40 bg-gray-50 shrink-0'
-                          )}
-                        >
-                          {(() => {
-                            if (showNoImage) {
-                              return (
-                                <Image
-                                  src="/icons/no-image-small.svg"
-                                  alt="이미지 없음"
-                                  width={16}
-                                  height={27}
-                                  unoptimized
-                                />
-                              );
-                            }
-                            if (
-                              isValidImageUrl &&
-                              (product.imageSrc.startsWith('http://') ||
-                                product.imageSrc.startsWith('https://'))
-                            ) {
-                              // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
-                              return (
-                                <img
-                                  src={product.imageSrc}
-                                  alt={product.name}
-                                  width={16}
-                                  height={27}
-                                  onError={() => handleImageError(product.id)}
-                                  crossOrigin="anonymous"
-                                  className="object-contain"
-                                />
-                              );
-                            }
-                            if (isValidImageUrl) {
-                              return (
-                                <Image
-                                  src={product.imageSrc}
-                                  alt={product.name}
-                                  width={16}
-                                  height={27}
-                                  onError={() => handleImageError(product.id)}
-                                />
-                              );
-                            }
-                            return (
-                              <Image
-                                src="/icons/no-image-small.svg"
-                                alt="이미지 없음"
-                                width={16}
-                                height={27}
-                                unoptimized
-                              />
-                            );
-                          })()}
-                        </div>
-                        <span className={clsx('text-16 tracking--0.4 text-gray-950')}>
-                          {product.name}
-                        </span>
-                      </div>
-
-                      <span className={clsx('w-120 text-16 tracking--0.4 text-gray-950')}>
-                        {date}
-                      </span>
-
-                      <span className={clsx('w-180 text-16 tracking--0.4 text-gray-950')}>
-                        {product.categoryLabel}
-                      </span>
-
-                      <span className={clsx('w-160 text-16 tracking--0.4 text-gray-950')}>
-                        {product.price.toLocaleString()}
-                      </span>
-
+                  return (
+                    <li key={product.id}>
+                      {/* Mobile / Tablet */}
                       <div
-                        className={clsx('w-180 line-clamp-2')}
-                        onClick={(e) => e.stopPropagation()}
+                        className={clsx('desktop:hidden', 'cursor-pointer')}
+                        onClick={() => handleProductClick(product.id)}
+                        role="button"
+                        tabIndex={0}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
-                            e.stopPropagation();
+                            e.preventDefault();
+                            handleProductClick(product.id);
                           }
                         }}
-                        role="presentation"
                       >
-                        <LinkText
-                          url={product.link}
-                          className={clsx('text-16 tracking--0.4 text-gray-950')}
-                          clickable
-                        />
+                        <p
+                          className={clsx(
+                            'mobile:mt-20 mobile:mb-10',
+                            'tablet:mt-30',
+                            'text-16 font-extrabold tracking--0.4 text-gray-950'
+                          )}
+                        >
+                          {date}
+                        </p>
+
+                        <div className={clsx('flex gap-20')}>
+                          <div
+                            className={clsx(
+                              'flex items-center justify-center w-90 h-90 bg-gray-50 shrink-0'
+                            )}
+                          >
+                            {(() => {
+                              if (showNoImage) {
+                                return (
+                                  <Image
+                                    src="/icons/no-image-small.svg"
+                                    alt="이미지 없음"
+                                    width={29}
+                                    height={50}
+                                    unoptimized
+                                  />
+                                );
+                              }
+                              if (
+                                isValidImageUrl &&
+                                (product.imageSrc.startsWith('http://') ||
+                                  product.imageSrc.startsWith('https://'))
+                              ) {
+                                // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+                                return (
+                                  <img
+                                    src={product.imageSrc}
+                                    alt={product.name}
+                                    width={29}
+                                    height={50}
+                                    onError={() => handleImageError(product.id)}
+                                    crossOrigin="anonymous"
+                                    className="object-contain"
+                                  />
+                                );
+                              }
+                              if (isValidImageUrl) {
+                                return (
+                                  <Image
+                                    src={product.imageSrc}
+                                    alt={product.name}
+                                    width={29}
+                                    height={50}
+                                    onError={() => handleImageError(product.id)}
+                                  />
+                                );
+                              }
+                              return (
+                                <Image
+                                  src="/icons/no-image-small.svg"
+                                  alt="이미지 없음"
+                                  width={29}
+                                  height={50}
+                                  unoptimized
+                                />
+                              );
+                            })()}
+                          </div>
+
+                          <div className={clsx('flex flex-col gap-6 w-216')}>
+                            <span className={clsx('text-12 tracking--0.3 text-gray-500')}>
+                              {product.categoryLabel}
+                            </span>
+
+                            <span
+                              className={clsx(
+                                'mobile:text-14',
+                                'tablet:text-16',
+                                'mobile:tracking--0.35',
+                                'tablet:tracking--0.4',
+                                'text-gray-950'
+                              )}
+                            >
+                              {product.name}
+                            </span>
+
+                            <span
+                              className={clsx(
+                                'text-14 font-extrabold tracking--0.35 text-gray-950'
+                              )}
+                            >
+                              {product.price.toLocaleString()}원
+                            </span>
+
+                            <div
+                              className={clsx('line-clamp-2')}
+                              onClick={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.stopPropagation();
+                                }
+                              }}
+                              role="presentation"
+                            >
+                              <LinkText
+                                url={product.link}
+                                className={clsx('text-14 tracking--0.35 text-gray-600')}
+                                clickable
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className={clsx('mt-30')}>
+                          <Divider variant="thin" />
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+
+                      {/* Desktop */}
+                      <div
+                        className={clsx(
+                          'hidden',
+                          'desktop:flex',
+                          'desktop:items-center',
+                          'desktop:px-40 desktop:gap-16 desktop:h-100',
+                          'border-b border-gray-200',
+                          'cursor-pointer hover:bg-gray-50 transition-colors'
+                        )}
+                        onClick={() => handleProductClick(product.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleProductClick(product.id);
+                          }
+                        }}
+                      >
+                        <div className={clsx('flex-1 flex items-center gap-20')}>
+                          <div
+                            className={clsx(
+                              'flex items-center justify-center w-40 h-40 bg-gray-50 shrink-0'
+                            )}
+                          >
+                            {(() => {
+                              if (showNoImage) {
+                                return (
+                                  <Image
+                                    src="/icons/no-image-small.svg"
+                                    alt="이미지 없음"
+                                    width={16}
+                                    height={27}
+                                    unoptimized
+                                  />
+                                );
+                              }
+                              if (
+                                isValidImageUrl &&
+                                (product.imageSrc.startsWith('http://') ||
+                                  product.imageSrc.startsWith('https://'))
+                              ) {
+                                // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+                                return (
+                                  <img
+                                    src={product.imageSrc}
+                                    alt={product.name}
+                                    width={16}
+                                    height={27}
+                                    onError={() => handleImageError(product.id)}
+                                    crossOrigin="anonymous"
+                                    className="object-contain"
+                                  />
+                                );
+                              }
+                              if (isValidImageUrl) {
+                                return (
+                                  <Image
+                                    src={product.imageSrc}
+                                    alt={product.name}
+                                    width={16}
+                                    height={27}
+                                    onError={() => handleImageError(product.id)}
+                                  />
+                                );
+                              }
+                              return (
+                                <Image
+                                  src="/icons/no-image-small.svg"
+                                  alt="이미지 없음"
+                                  width={16}
+                                  height={27}
+                                  unoptimized
+                                />
+                              );
+                            })()}
+                          </div>
+                          <span className={clsx('text-16 tracking--0.4 text-gray-950')}>
+                            {product.name}
+                          </span>
+                        </div>
+
+                        <span className={clsx('w-120 text-16 tracking--0.4 text-gray-950')}>
+                          {date}
+                        </span>
+
+                        <span className={clsx('w-180 text-16 tracking--0.4 text-gray-950')}>
+                          {product.categoryLabel}
+                        </span>
+
+                        <span className={clsx('w-160 text-16 tracking--0.4 text-gray-950')}>
+                          {product.price.toLocaleString()}
+                        </span>
+
+                        <div
+                          className={clsx('w-180 line-clamp-2')}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.stopPropagation();
+                            }
+                          }}
+                          role="presentation"
+                        >
+                          <LinkText
+                            url={product.link}
+                            className={clsx('text-16 tracking--0.4 text-gray-950')}
+                            clickable
+                          />
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            );
+          })()}
         </div>
       </div>
     </section>

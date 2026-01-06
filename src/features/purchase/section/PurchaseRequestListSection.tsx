@@ -15,7 +15,6 @@ import {
   QUERY_STALE_TIME_BUDGET,
   SUCCESS_MESSAGES,
   PURCHASE_ERROR_MESSAGES,
-  LOADING_MESSAGES,
   ERROR_MESSAGES,
   VALIDATION_MESSAGES,
 } from '@/constants';
@@ -266,26 +265,7 @@ const PurchaseRequestListSection = () => {
     );
   }
 
-  // 메인 데이터(구매 요청 목록)가 로딩 중이면 대기
-  // 예산 데이터는 선택적이므로 로딩 중이어도 메인 데이터 표시 가능
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>{LOADING_MESSAGES.DEFAULT}</p>
-      </div>
-    );
-  }
-
-  // 데이터가 없으면 에러 상태로 표시 (isLoading이 false인 경우)
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>{ERROR_MESSAGES.FETCH_ERROR}</p>
-      </div>
-    );
-  }
-
-  const purchaseList = data.purchaseRequests || [];
+  const purchaseList = data?.purchaseRequests || [];
   // 무조건 6개까지만 표시
   const displayList = purchaseList.slice(0, 6);
 
@@ -305,13 +285,14 @@ const PurchaseRequestListSection = () => {
         onApproveSubmit={handleApproveSubmit}
         onRejectSubmit={handleRejectSubmit}
         budget={budgetData?.budget ?? 0}
-        currentPage={data.currentPage}
-        totalPages={data.totalPages}
+        currentPage={data?.currentPage}
+        totalPages={data?.totalPages}
         onPageChange={handlePageChange}
         sortOptions={purchaseRequestSortOptions}
         selectedSortOption={selectedSortOption}
         onSortChange={handleSortChange}
         onNavigateToProducts={handleProductNavigation}
+        isLoading={isLoading}
       />
       {/* Toast */}
       {showToast && (

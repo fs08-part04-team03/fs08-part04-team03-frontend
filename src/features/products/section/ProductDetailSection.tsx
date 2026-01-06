@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import ProductDetailTem from '@/features/products/template/ProductDetailTem/ProductDetailTem';
 import {
   getProductById,
@@ -23,7 +23,7 @@ import {
   getSubCategoryLabelById,
   PATHNAME,
 } from '@/constants';
-import { getApiUrl } from '@/utils/api';
+import { buildImageUrl } from '@/utils/api';
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
@@ -48,6 +48,8 @@ const ProductDetailSection = () => {
   const [isCartAddSuccessModalOpen, setIsCartAddSuccessModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [productImageUrl, setProductImageUrl] = useState<string | null>(null);
+  const [editModalImageUrl, setEditModalImageUrl] = useState<string | null>(null);
 
   // 메니저 이상급만 ItemMenu 사용 가능
   const canUseMenu = useMemo(() => {
@@ -106,6 +108,25 @@ const ProductDetailSection = () => {
     },
   });
 
+  // 상품 이미지 URL 로드
+  useEffect(() => {
+    const loadImageUrl = async () => {
+      if (product?.image) {
+        const url = await buildImageUrl(product.image);
+        setProductImageUrl(url || null);
+        setEditModalImageUrl(url || null);
+      } else {
+        setProductImageUrl(null);
+        setEditModalImageUrl(null);
+      }
+    };
+    loadImageUrl().catch(() => {
+      // 이미지 로딩 실패 시 기본 이미지 사용
+      setProductImageUrl(null);
+      setEditModalImageUrl(null);
+    });
+  }, [product?.image]);
+
   // 위시리스트 토글 핸들러
   const handleToggleLike = useCallback(() => {
     if (isLiked) {
@@ -118,9 +139,9 @@ const ProductDetailSection = () => {
   // 장바구니 추가 mutation
   const addToCartMutation = useMutation({
     mutationFn: (qty: number) => cartApi.addToCart(Number(productId), qty),
-    onSuccess: () => {
-      // 캐시 즉시 제거하여 최신 데이터 보장
-      queryClient.removeQueries({ queryKey: ['cart'] });
+    onSuccess: async () => {
+      // 캐시 무효화하여 자동으로 최신 데이터를 다시 가져옴 (GNB 업데이트 포함)
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
       setIsCartAddSuccessModalOpen(true);
     },
     onError: () => {
@@ -202,9 +223,7 @@ const ProductDetailSection = () => {
         : []),
     ];
 
-    const imageUrl = product.image
-      ? `${getApiUrl()}/uploads/${product.image}`
-      : '/icons/no-image.svg';
+    const imageUrl = productImageUrl || '/icons/no-image.svg';
 
     return {
       breadcrumbItems,
@@ -212,6 +231,7 @@ const ProductDetailSection = () => {
         src: imageUrl,
         alt: product.name,
       },
+      productImageKey: product.image || null,
       productDetailHeader: {
         productName: product.name,
         price: product.price,
@@ -245,7 +265,7 @@ const ProductDetailSection = () => {
       liked: isLiked,
       onToggleLike: handleToggleLike,
     };
-  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu]);
+  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu, productImageUrl]);
 
   // 수정 모달 핸들러
   const handleEditSubmit = useCallback(
@@ -256,6 +276,8 @@ const ProductDetailSection = () => {
         // 상품 상세와 목록 모두 invalidate하여 최신 데이터 보장
         await queryClient.invalidateQueries({ queryKey: ['product', productId] });
         await queryClient.invalidateQueries({ queryKey: ['products'] });
+        // 즉시 refetch하여 수정된 이미지가 바로 반영되도록 함
+        await queryClient.refetchQueries({ queryKey: ['product', productId] });
         setEditModalOpen(false);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : '상품 수정에 실패했습니다.';
@@ -349,7 +371,8 @@ const ProductDetailSection = () => {
             initialName={product?.name || ''}
             initialPrice={product?.price ? String(product.price) : ''}
             initialLink={initialLink}
-            initialImage={product?.image ? `${getApiUrl()}/uploads/${product.image}` : null}
+            initialImage={editModalImageUrl}
+            initialImageKey={product?.image || null}
             initialCategory={initialCategoryOption}
             initialSubCategory={initialSubCategoryOption}
           />

@@ -1,5 +1,3 @@
-import { getApiUrl } from '@/utils/api';
-
 export type TemplateProduct = {
   id: number;
   name: string;
@@ -27,8 +25,10 @@ export const mapBackendProductToTemplate = (p: BackendProduct): TemplateProduct 
   name: p.name,
   price: p.price,
   categoryId: p.categoryId ?? null,
-  // Use direct backend upload URL instead of local proxy to avoid proxy maintenance and server lock issues
-  // Do NOT pre-encode the filename — Next.js will encode the URL properly when requesting the image
-  imageUrl: p.image ? `${getApiUrl()}/uploads/${p.image}` : undefined,
+  // buildImageUrl은 async이므로 직접 URL 구성
+  // Supports both old format (filename) and new S3 key format (products/xxx.png)
+  imageUrl: p.image
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(p.image)}`
+    : undefined,
   purchaseCount: p.salesCount ?? 0,
 });

@@ -6,6 +6,7 @@ import { cache } from 'react';
 import AuthGuard from '@/components/auth/AuthGuard';
 import HeaderShell from '@/components/organisms/HeaderShell/HeaderShell';
 import { getApiUrl, getApiTimeout } from '@/utils/api';
+import { logger } from '@/utils/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,10 +37,6 @@ const fetchMyCompany = cache(async (): Promise<Company> => {
   const accessToken = cookieStore.get('accessToken')?.value;
 
   if (!accessToken) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('[fetchMyCompany] accessToken 쿠키가 없습니다.');
-    }
     return { name: '회사' };
   }
 
@@ -64,14 +61,10 @@ const fetchMyCompany = cache(async (): Promise<Company> => {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[fetchMyCompany] API 호출 실패:', {
-            status: response.status,
-            statusText: response.statusText,
-            url: response.url,
-          });
-        }
+        logger.error('API call failed in fetchMyCompany', {
+          status: response.status,
+          statusText: response.statusText,
+        });
         // 429 에러 시에도 기본값 반환하여 UI 깨짐 방지
         return { name: '회사' };
       }
@@ -83,26 +76,25 @@ const fetchMyCompany = cache(async (): Promise<Company> => {
         return { name: result.data.name };
       }
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.warn('[fetchMyCompany] 예상치 못한 응답 형식:', result);
-      }
+      logger.warn('Unexpected response format in fetchMyCompany', {
+        hasSuccess: result.success,
+        hasData: !!result.data,
+      });
       return { name: '회사' };
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      // 네트워크 에러는 조용히 처리 (개발 환경에서만 로그)
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[fetchMyCompany] fetch 실패:', fetchError);
-      }
+      logger.error('Fetch failed in fetchMyCompany', {
+        hasError: true,
+        errorType: fetchError instanceof Error ? fetchError.constructor.name : 'Unknown',
+      });
       // 네트워크 에러 시 기본값 반환 (사용자에게는 에러를 표시하지 않음)
       return { name: '회사' };
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[fetchMyCompany] 예외 발생:', error);
-    }
+    logger.error('Exception in fetchMyCompany', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+    });
     return { name: '회사' };
   }
 });

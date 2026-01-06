@@ -1,7 +1,8 @@
 'use client';
 
-import { getApiUrl, fetchWithAuth as fetchWithAuthUtil } from '@/utils/api';
+import { fetchWithAuth as fetchWithAuthUtil } from '@/utils/api';
 import { PURCHASE_API_PATHS } from '@/features/purchase/utils/constants';
+import { logger } from '@/utils/logger';
 
 /**
  * 백엔드 API 응답 타입
@@ -45,16 +46,12 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
 
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes('application/json')) {
-    const responseText = await response.text();
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('API 응답 형식 오류:', {
-        status: response.status,
-        statusText: response.statusText,
-        contentType,
-        body: responseText,
-      });
-    }
+    await response.text();
+    logger.error('API response format error', {
+      status: response.status,
+      statusText: response.statusText,
+      hasContentType: !!contentType,
+    });
     throw new Error('서버 응답 형식이 올바르지 않습니다.');
   }
 
@@ -62,29 +59,21 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
   try {
     result = (await response.json()) as ApiResponse<T>;
   } catch (parseError) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('JSON 파싱 오류:', parseError);
-    }
+    logger.error('JSON parsing error', {
+      hasError: true,
+      errorType: parseError instanceof Error ? parseError.constructor.name : 'Unknown',
+    });
     throw new Error('서버 응답을 파싱할 수 없습니다.');
   }
 
   if (!result.success || !response.ok) {
     // 400 Bad Request 등 클라이언트 에러의 경우 상세 정보 로깅
-    if (process.env.NODE_ENV === 'development') {
-      const apiUrl = getApiUrl();
-      // eslint-disable-next-line no-console
-      console.error('API 요청 실패:', {
-        status: response.status,
-        statusText: response.statusText,
-        url: `${apiUrl}${url}`,
-        method: options.method || 'GET',
-        requestBody: options.body,
-        result,
-        message: result.message,
-        fullResponse: result,
-      });
-    }
+    logger.error('API request failed', {
+      status: response.status,
+      statusText: response.statusText,
+      method: options.method || 'GET',
+      hasResult: !!result,
+    });
 
     // 에러 메시지 추출 (백엔드에서 보내는 상세 메시지 사용)
     // result.error?.message 또는 result.message 확인
@@ -156,7 +145,7 @@ export async function getAllPurchases(
 }
 
 /**
- * 즉시 구매 (관리자)
+ * 즉시 구매 (관리자) - 단일 상품
  */
 export interface PurchaseNowRequest {
   productId: string;
@@ -173,6 +162,66 @@ export async function purchaseNow(request: PurchaseNowRequest): Promise<Purchase
     method: 'POST',
     body: JSON.stringify(request),
   });
+
+  return result.data;
+}
+
+/**
+ * 구매 요청 응답 데이터 (공통 타입)
+ */
+export interface RequestPurchaseResponseData {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  totalPrice: number;
+  shippingFee: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  requestMessage: string;
+  rejectReason?: string;
+  purchaseItems: Array<{
+    id: string;
+    quantity: number;
+    priceSnapshot: number;
+    products: {
+      id: number;
+      name: string;
+      image: string;
+      link: string;
+    };
+  }>;
+  requester: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  approver?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+/**
+ * 즉시 구매 (관리자) - 여러 상품
+ */
+export interface PurchaseNowMultipleRequest {
+  items: Array<{
+    productId: number;
+    quantity: number;
+  }>;
+  shippingFee: number;
+}
+
+export async function purchaseNowMultiple(
+  request: PurchaseNowMultipleRequest
+): Promise<RequestPurchaseResponseData> {
+  const result = await fetchWithAuth<RequestPurchaseResponseData>(
+    PURCHASE_API_PATHS.ADMIN_PURCHASE_NOW,
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    }
+  );
 
   return result.data;
 }
@@ -464,16 +513,7 @@ export async function getMyPurchases(
   const queryString = queryParams.toString();
   const url = `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASES}${queryString ? `?${queryString}` : ''}`;
 
-  // 개발 환경에서 요청 정보 로깅
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[getMyPurchases] 요청 정보:', {
-      url,
-      params,
-      status: params?.status,
-      hasStatusParam: !!params?.status,
-    });
-  }
+  // 개발 환경에서 요청 정보 로깅 제거 (의미 없는 디버그 로그)
 
   const result = await fetchWithAuth<PurchaseRequestItem[]>(url, {
     method: 'GET',
@@ -539,41 +579,6 @@ export interface RequestPurchaseRequest {
   items: RequestPurchaseItem[];
   shippingFee: number;
   requestMessage?: string;
-}
-
-/**
- * 구매 요청 응답 데이터
- */
-export interface RequestPurchaseResponseData {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  totalPrice: number;
-  shippingFee: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
-  requestMessage: string;
-  rejectReason?: string;
-  purchaseItems: Array<{
-    id: string;
-    quantity: number;
-    priceSnapshot: number;
-    products: {
-      id: number;
-      name: string;
-      image: string;
-      link: string;
-    };
-  }>;
-  requester: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  approver?: {
-    id: string;
-    name: string;
-    email: string;
-  };
 }
 
 /**

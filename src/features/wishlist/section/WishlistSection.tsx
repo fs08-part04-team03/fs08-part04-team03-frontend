@@ -6,7 +6,6 @@ import WishlistTem, {
   type WishlistItem,
 } from '@/features/wishlist/template/WishlistTem/WishlistTem';
 import { getWishlist, removeFromWishlist } from '@/features/wishlist/api/wishlist.api';
-import { getApiUrl } from '@/utils/api';
 import { useToast } from '@/hooks/useToast';
 import { LOADING_MESSAGES, ERROR_MESSAGES, PATHNAME } from '@/constants';
 
@@ -41,13 +40,19 @@ const WishlistSection = () => {
 
   // 백엔드 데이터를 WishlistItem으로 변환
   const wishlistItems: WishlistItem[] =
-    wishlistProducts?.data.map((item) => ({
-      id: item.product.id,
-      name: item.product.name,
-      price: item.product.price,
-      imageUrl: item.product.image ? `${getApiUrl()}/uploads/${item.product.image}` : undefined,
-      purchaseCount: 0, // API 응답에 salesCount가 없으므로 0으로 설정
-    })) || [];
+    wishlistProducts?.data.map((item) => {
+      // buildImageUrl은 async이므로 직접 URL 구성
+      const imageUrl = item.product.image
+        ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(item.product.image)}`
+        : '';
+      return {
+        id: item.product.id,
+        name: item.product.name,
+        price: item.product.price,
+        imageUrl,
+        purchaseCount: 0, // API 응답에 salesCount가 없으므로 0으로 설정
+      };
+    }) || [];
 
   // 위시리스트 제거 핸들러
   const handleRemove = (productId: number) => {

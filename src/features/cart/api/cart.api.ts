@@ -23,6 +23,7 @@ export interface CartItem {
   updatedAt: string;
   subtotal: number;
   product: CartProduct;
+  isNew?: boolean; // addToCart 응답에만 포함 (새로 추가된 상품인지 여부)
 }
 
 /** 페이지네이션 */
@@ -78,7 +79,7 @@ export interface AddToCartResponse {
 export interface DeleteFromCartResponse {
   success: boolean;
   data: {
-    productId: number;
+    id: string; // cartItemId (UUID)
   };
   message: string;
 }

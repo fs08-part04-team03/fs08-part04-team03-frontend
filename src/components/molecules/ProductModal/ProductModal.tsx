@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/useToast';
 import { CATEGORY_SECTIONS } from '@/constants';
 import { useAuthStore } from '@/lib/store/authStore';
 import { formatPrice, isInvalidPrice, isValidUrl, isValidPriceInput } from '@/utils/validation';
+import { logger } from '@/utils/logger';
+import { uploadProductImage, getImageUrl } from '@/features/products/api/products.api';
 
 interface ProductModalProps {
   open: boolean;
@@ -64,8 +66,10 @@ const ProductModal = ({
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Option | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<Option | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [_selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [touched, setTouched] = useState({
     name: false,
     price: false,
@@ -134,9 +138,9 @@ const ProductModal = ({
       link: link.trim(),
     };
 
-    // 이미지가 있을 때만 필드 추가 (파일명만 전송)
-    if (selectedFile) {
-      body.image = selectedFile.name;
+    // 이미지가 업로드된 경우 (이미 업로드되어 uploadedImageKey에 저장됨)
+    if (uploadedImageKey) {
+      body.image = uploadedImageKey;
     }
 
     setIsSubmitting(true);
@@ -171,8 +175,13 @@ const ProductModal = ({
       onSubmit(); // 부모에서 캐시 처리
       onClose();
     } catch (error) {
-      console.error(error);
-      triggerToast('error', '상품 등록 중 오류가 발생했습니다.');
+      logger.error('Product registration failed', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
+      if (!(error instanceof Error && error.message.includes('이미지 업로드'))) {
+        triggerToast('error', '상품 등록 중 오류가 발생했습니다.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -271,10 +280,11 @@ const ProductModal = ({
     link.trim() &&
     selectedCategory &&
     selectedSubCategory &&
-    Object.values(errors).every((msg) => msg === '');
+    Object.values(errors).every((msg) => msg === '') &&
+    !isUploading;
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center">
+    <div className="fixed inset-0 z-modal flex items-center justify-center">
       <button
         type="button"
         aria-label="모달 닫기 영역"
@@ -286,7 +296,7 @@ const ProductModal = ({
         role="dialog"
         aria-modal="true"
         className={clsx(
-          'relative bg-white rounded-12 z-modal flex flex-col gap-30 items-center',
+          'relative bg-white rounded-12 flex flex-col gap-30 items-center',
           'p-30 tablet:w-512'
         )}
       >
@@ -306,17 +316,68 @@ const ProductModal = ({
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-                const newUrl = URL.createObjectURL(file);
-                previewUrlRef.current = newUrl;
-                setPreview(newUrl);
+
+                // 파일 크기 검증 (5MB)
+                const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+                if (file.size > MAX_SIZE) {
+                  triggerToast('error', '이미지 크기는 5MB 이하여야 합니다.');
+                  e.target.value = '';
+                  return;
+                }
+
+                // 파일 형식 검증
+                const allowedTypes = [
+                  'image/jpeg',
+                  'image/jpg',
+                  'image/png',
+                  'image/gif',
+                  'image/webp',
+                ];
+                if (!allowedTypes.includes(file.type)) {
+                  triggerToast('error', '지원되는 형식: JPEG, JPG, PNG, GIF, WEBP');
+                  e.target.value = '';
+                  return;
+                }
+
                 setSelectedFile(file);
+                setIsUploading(true);
+
+                // 1. 이미지 업로드
+                uploadProductImage(file, 'products')
+                  .then(async (imageKey) => {
+                    // 2. 업로드 후 GET API로 signed URL 가져오기
+                    const { url: signedUrl } = await getImageUrl(imageKey);
+
+                    // 3. signed URL을 미리보기에 사용
+                    if (previewUrlRef.current) {
+                      URL.revokeObjectURL(previewUrlRef.current);
+                    }
+                    setPreview(signedUrl);
+                    setUploadedImageKey(imageKey);
+                  })
+                  .catch((error) => {
+                    const message =
+                      error instanceof Error ? error.message : '이미지 업로드에 실패했습니다.';
+                    triggerToast('error', message);
+                    setSelectedFile(null);
+                    setPreview(null);
+                    setUploadedImageKey(null);
+                  })
+                  .finally(() => {
+                    setIsUploading(false);
+                  });
               }}
             />
             {preview ? (
               <Image src={preview} alt="preview" fill className="object-contain" />
             ) : (
-              <Image src="/icons/photo-icon.svg" alt="upload" width={30} height={30} />
+              <Image
+                src="/icons/upload.svg"
+                alt="upload"
+                width={140}
+                height={140}
+                className="object-contain"
+              />
             )}
           </div>
         </div>
@@ -433,7 +494,11 @@ const ProductModal = ({
               inactive={!isValid || isSubmitting}
               className="mobile:w-153 mobile:h-64 tablet:w-216 tablet:h-64 desktop:w-216 desktop:h-64 text-16 cursor-pointer"
             >
-              {isSubmitting ? '등록중...' : '등록하기'}
+              {(() => {
+                if (isUploading) return '이미지 업로드 중...';
+                if (isSubmitting) return '등록중...';
+                return '등록하기';
+              })()}
             </Button>
           </div>
         </form>
