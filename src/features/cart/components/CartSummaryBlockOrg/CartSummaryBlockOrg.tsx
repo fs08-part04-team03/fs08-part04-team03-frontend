@@ -12,7 +12,13 @@ import type { Option } from '@/components/atoms/DropDown/DropDown';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
 
-import { purchaseNow, urgentRequestPurchase } from '@/features/purchase/api/purchase.api';
+import {
+  purchaseNow,
+  purchaseNowMultiple,
+  urgentRequestPurchase,
+  type RequestPurchaseResponseData,
+} from '@/features/purchase/api/purchase.api';
+import { cartApi } from '@/features/cart/api/cart.api';
 
 export type CartRole = 'user' | 'manager' | 'admin';
 
@@ -142,7 +148,7 @@ const CartSummaryBlockOrg = ({
     }
   };
 
-  /** 매니저 긴급 구매 요청 */
+  /** 매니저 긴급 구매 요청 (예산 초과 시) */
   const handleManagerUrgentPurchase = async () => {
     if (checkedIds.length === 0 || loading || isPurchasing) return;
 
@@ -187,6 +193,67 @@ const CartSummaryBlockOrg = ({
     }
   };
 
+  /** 매니저 이상 구매 요청 (예산 초과가 아닌 경우) */
+  const handleManagerPurchaseRequest = async () => {
+    if (checkedIds.length === 0 || loading || isPurchasing) return;
+
+    try {
+      setIsPurchasing(true);
+      const result: RequestPurchaseResponseData = await purchaseNowMultiple({
+        items: selectedItems.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        shippingFee: 0,
+      });
+
+      // 선택된 아이템들을 장바구니에서 삭제
+      if (checkedIds.length > 0) {
+        try {
+          await cartApi.deleteMultiple(checkedIds);
+          logger.info('Cart items deleted after purchase request', {
+            deletedCount: checkedIds.length,
+          });
+        } catch (deleteError) {
+          // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
+          logger.error('Failed to delete cart items after purchase request', {
+            hasError: true,
+            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+            cartItemIds: checkedIds,
+          });
+        }
+      }
+
+      // 장바구니 무효화
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+      triggerToast('success', '구매 요청이 완료되었습니다.');
+
+      // Order Completed 페이지로 이동
+      try {
+        if (companyId && result?.id) {
+          router.push(`/${companyId}/order/completed?id=${result.id}`);
+        } else if (companyId) {
+          // purchase ID가 없으면 장바구니로 이동
+          router.push(`/${companyId}/cart`);
+        }
+      } catch (navError) {
+        logger.warn('Navigation failed after purchase', {
+          hasError: true,
+          errorType: navError instanceof Error ? navError.constructor.name : 'Unknown',
+        });
+        // 네비게이션 실패는 무시 (구매는 성공했으므로)
+      }
+    } catch (error) {
+      logger.error('Purchase request failed', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
+      setErrorMessage('구매 요청에 실패했습니다.');
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (loading || isPurchasing) return;
 
@@ -200,6 +267,13 @@ const CartSummaryBlockOrg = ({
       return;
     }
 
+    // 매니저 이상일 때는 바로 구매 요청 처리하고 오더 컨펌으로 이동
+    if (isAdminRole && !isBudgetExceeded) {
+      await handleManagerPurchaseRequest();
+      return;
+    }
+
+    // 유저일 때는 기존대로 Order 페이지로 이동
     onSubmit?.(checkedIds);
   };
 

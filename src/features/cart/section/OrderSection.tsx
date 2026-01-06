@@ -95,12 +95,32 @@ const OrderSection = () => {
     },
     onSuccess: async (data) => {
       // 구매 요청 완료 후 completed 페이지로 이동 (purchase ID 전달)
-      // router.push를 먼저 실행하여 리다이렉트를 방지
       if (companyId && data?.id) {
         setIsPurchaseSuccess(true); // POST 성공 플래그 설정
-        router.push(`/${companyId}/order/completed?id=${data.id}`);
-        // router.push 후에 카트 무효화 (비동기로 실행되어도 문제없음)
+
+        // 선택된 아이템들을 장바구니에서 삭제
+        if (cartItemIds.length > 0) {
+          try {
+            await cartApi.deleteMultiple(cartItemIds);
+            logger.info('Cart items deleted after purchase request', {
+              deletedCount: cartItemIds.length,
+            });
+          } catch (deleteError) {
+            // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
+            logger.error('Failed to delete cart items after purchase request', {
+              hasError: true,
+              errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+              cartItemIds,
+            });
+            // 사용자에게는 알리지 않음 (구매 요청은 성공했으므로)
+          }
+        }
+
+        // 카트 캐시 무효화
         await queryClient.invalidateQueries({ queryKey: ['cart'] });
+
+        // completed 페이지로 이동
+        router.push(`/${companyId}/order/completed?id=${data.id}`);
         triggerToast('success', '구매 요청이 완료되었습니다.');
       } else {
         // purchase ID가 없으면 에러 처리

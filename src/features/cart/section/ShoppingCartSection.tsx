@@ -79,9 +79,9 @@ const ShoppingCartSection = () => {
   const updateQuantityMutation = useMutation({
     mutationFn: ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) =>
       cartApi.updateQuantity(cartItemId, quantity),
-    onSuccess: () => {
-      // 캐시 즉시 제거하여 최신 데이터 보장
-      queryClient.removeQueries({ queryKey: ['cart'] });
+    onSuccess: async () => {
+      // 캐시 무효화하여 자동으로 최신 데이터를 다시 가져옴
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
       triggerToast('success', '수량이 변경되었습니다.');
     },
     onError: (err: unknown) => {
@@ -93,9 +93,9 @@ const ShoppingCartSection = () => {
   // 선택 삭제 mutation
   const deleteMultipleMutation = useMutation({
     mutationFn: (cartItemIds: string[]) => cartApi.deleteMultiple(cartItemIds),
-    onSuccess: () => {
-      // 캐시 즉시 제거하여 최신 데이터 보장
-      queryClient.removeQueries({ queryKey: ['cart'] });
+    onSuccess: async () => {
+      // 캐시 무효화하여 자동으로 최신 데이터를 다시 가져옴
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
       triggerToast('success', '선택한 상품이 삭제되었습니다.');
     },
     onError: (err: unknown) => {
@@ -163,9 +163,7 @@ const ShoppingCartSection = () => {
       items={items}
       budget={budget}
       loading={
-        isBudgetLoading ||
-        updateQuantityMutation.isPending ||
-        deleteMultipleMutation.isPending
+        isBudgetLoading || updateQuantityMutation.isPending || deleteMultipleMutation.isPending
       }
       onQuantityChange={handleQuantityChange}
       onDeleteSelected={handleDeleteSelected}

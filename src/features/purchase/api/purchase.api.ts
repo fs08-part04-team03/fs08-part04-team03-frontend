@@ -145,7 +145,7 @@ export async function getAllPurchases(
 }
 
 /**
- * 즉시 구매 (관리자)
+ * 즉시 구매 (관리자) - 단일 상품
  */
 export interface PurchaseNowRequest {
   productId: string;
@@ -162,6 +162,66 @@ export async function purchaseNow(request: PurchaseNowRequest): Promise<Purchase
     method: 'POST',
     body: JSON.stringify(request),
   });
+
+  return result.data;
+}
+
+/**
+ * 구매 요청 응답 데이터 (공통 타입)
+ */
+export interface RequestPurchaseResponseData {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  totalPrice: number;
+  shippingFee: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  requestMessage: string;
+  rejectReason?: string;
+  purchaseItems: Array<{
+    id: string;
+    quantity: number;
+    priceSnapshot: number;
+    products: {
+      id: number;
+      name: string;
+      image: string;
+      link: string;
+    };
+  }>;
+  requester: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  approver?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+/**
+ * 즉시 구매 (관리자) - 여러 상품
+ */
+export interface PurchaseNowMultipleRequest {
+  items: Array<{
+    productId: number;
+    quantity: number;
+  }>;
+  shippingFee: number;
+}
+
+export async function purchaseNowMultiple(
+  request: PurchaseNowMultipleRequest
+): Promise<RequestPurchaseResponseData> {
+  const result = await fetchWithAuth<RequestPurchaseResponseData>(
+    PURCHASE_API_PATHS.ADMIN_PURCHASE_NOW,
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    }
+  );
 
   return result.data;
 }
@@ -519,41 +579,6 @@ export interface RequestPurchaseRequest {
   items: RequestPurchaseItem[];
   shippingFee: number;
   requestMessage?: string;
-}
-
-/**
- * 구매 요청 응답 데이터
- */
-export interface RequestPurchaseResponseData {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  totalPrice: number;
-  shippingFee: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
-  requestMessage: string;
-  rejectReason?: string;
-  purchaseItems: Array<{
-    id: string;
-    quantity: number;
-    priceSnapshot: number;
-    products: {
-      id: number;
-      name: string;
-      image: string;
-      link: string;
-    };
-  }>;
-  requester: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  approver?: {
-    id: string;
-    name: string;
-    email: string;
-  };
 }
 
 /**

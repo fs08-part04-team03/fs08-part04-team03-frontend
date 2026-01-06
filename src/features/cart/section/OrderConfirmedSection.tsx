@@ -4,10 +4,15 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
-import { getApiUrl } from '@/utils/api';
+import { buildImageUrl } from '@/utils/api';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import { logger } from '@/utils/logger';
-import type { OrderCompletedItem } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
+import { useAuthStore } from '@/lib/store/authStore';
+import { ROLE_LEVEL } from '@/utils/auth';
+import type {
+  OrderCompletedItem,
+  CartRole,
+} from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import OrderConfirmedTem from '../template/OrderConfirmedTem/OrderConfirmedTem';
 
 const OrderConfirmedSection = () => {
@@ -16,6 +21,13 @@ const OrderConfirmedSection = () => {
   const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
   const purchaseId = searchParams.get('id');
+  const { user } = useAuthStore();
+
+  // 사용자 역할에 따른 cartRole 결정
+  const cartRole: CartRole = useMemo(() => {
+    if (!user?.role) return 'user';
+    return ROLE_LEVEL[user.role] >= ROLE_LEVEL.manager ? 'manager' : 'user';
+  }, [user?.role]);
 
   // purchase ID로 구매 요청 상세 조회
   const {
@@ -52,7 +64,7 @@ const OrderConfirmedSection = () => {
       name: item.products.name,
       unitPrice: item.priceSnapshot,
       quantity: item.quantity,
-      imageSrc: item.products.image ? `${getApiUrl()}/uploads/${item.products.image}` : undefined,
+      imageSrc: buildImageUrl(item.products.image),
     }));
   }, [purchaseData]);
 
@@ -127,7 +139,7 @@ const OrderConfirmedSection = () => {
 
   return (
     <OrderConfirmedTem
-      cartRole="user"
+      cartRole={cartRole}
       userType="default"
       items={items}
       shippingFee={purchaseData?.shippingFee || 0}
