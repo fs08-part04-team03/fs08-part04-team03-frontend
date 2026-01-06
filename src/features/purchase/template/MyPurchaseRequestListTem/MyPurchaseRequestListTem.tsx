@@ -16,6 +16,7 @@ import DropDown, { type Option } from '@/components/atoms/DropDown/DropDown';
 import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBlock';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
+import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
 import {
   formatDate,
   formatItemDescription,
@@ -55,6 +56,7 @@ export interface MyPurchaseRequestListTemProps {
   statusOptions?: Option[];
   selectedStatusOption?: Option;
   onStatusChange?: (status: string | undefined) => void;
+  isLoading?: boolean;
 }
 
 interface PurchaseRequestTableRowProps {
@@ -317,6 +319,7 @@ const MyPurchaseRequestListTem = ({
   statusOptions,
   selectedStatusOption,
   onStatusChange,
+  isLoading = false,
 }: MyPurchaseRequestListTemProps) => {
   const router = useRouter();
   const params = useParams();
@@ -328,6 +331,68 @@ const MyPurchaseRequestListTem = ({
   }, [router, companyId]);
 
   const isEmpty = !purchaseList || purchaseList.length === 0;
+  const shouldShowTableHeader = isLoading || !isEmpty;
+
+  const renderMobileContent = () => {
+    if (isLoading) {
+      return <ListSkeletonUI rows={6} />;
+    }
+
+    if (isEmpty) {
+      return (
+        <div
+          className={clsx('w-full', 'flex justify-center items-center', 'min-h-[calc(100vh-80px)]')}
+        >
+          <StatusNotice
+            title="구매 요청한 내역이 없어요"
+            description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
+            buttonText="상품 리스트로 이동"
+            onButtonClick={handleNavigateToProducts}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <PurchaseRequestItemListOrg
+        purchaseList={purchaseList}
+        onCancel={onCancelClick}
+        companyId={companyId}
+      />
+    );
+  };
+
+  const renderTableContent = () => {
+    if (isLoading) {
+      return <ListSkeletonUI rows={6} />;
+    }
+
+    if (isEmpty) {
+      return (
+        <div className={clsx('w-full', 'mt-200', 'flex justify-center')}>
+          <StatusNotice
+            title="구매 요청한 내역이 없어요"
+            description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
+            buttonText="상품 리스트로 이동"
+            onButtonClick={handleNavigateToProducts}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className={clsx('w-full')}>
+        {purchaseList.map((item) => (
+          <PurchaseRequestTableRowDesktop
+            key={item.id}
+            item={item}
+            onCancelClick={onCancelClick}
+            companyId={companyId}
+          />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div
@@ -342,30 +407,7 @@ const MyPurchaseRequestListTem = ({
       )}
     >
       {/* 모바일 레이아웃 */}
-      <div className={clsx('tablet:hidden')}>
-        {isEmpty ? (
-          <div
-            className={clsx(
-              'w-full',
-              'flex justify-center items-center',
-              'min-h-[calc(100vh-80px)]'
-            )}
-          >
-            <StatusNotice
-              title="구매 요청한 내역이 없어요"
-              description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-              buttonText="상품 리스트로 이동"
-              onButtonClick={handleNavigateToProducts}
-            />
-          </div>
-        ) : (
-          <PurchaseRequestItemListOrg
-            purchaseList={purchaseList}
-            onCancel={onCancelClick}
-            companyId={companyId}
-          />
-        )}
-      </div>
+      <div className={clsx('tablet:hidden')}>{renderMobileContent()}</div>
 
       {/* 태블릿/데스크탑 레이아웃 - 테이블 */}
       <div className={clsx('hidden tablet:block', 'overflow-x-auto')}>
@@ -380,7 +422,18 @@ const MyPurchaseRequestListTem = ({
               selectedStatusOption={selectedStatusOption}
               onStatusChange={onStatusChange}
             />
-            {!isEmpty && <Divider variant="thin" className="w-full" />}
+            {shouldShowTableHeader && (
+              <>
+                <Divider variant="thin" className="w-full" />
+                <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200">
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.status}>상태</TableHeaderCell>
+                  <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
+                </div>
+              </>
+            )}
           </div>
 
           {/* 데스크탑 헤더 - 항상 표시 */}
@@ -393,7 +446,7 @@ const MyPurchaseRequestListTem = ({
               selectedStatusOption={selectedStatusOption}
               onStatusChange={onStatusChange}
             />
-            {!isEmpty && (
+            {shouldShowTableHeader && (
               <>
                 <Divider variant="thin" className="w-full" />
                 <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200">
@@ -407,44 +460,7 @@ const MyPurchaseRequestListTem = ({
             )}
           </div>
 
-          {isEmpty ? (
-            <div className={clsx('w-full', 'mt-200', 'flex justify-center')}>
-              <StatusNotice
-                title="구매 요청한 내역이 없어요"
-                description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-                buttonText="상품 리스트로 이동"
-                onButtonClick={handleNavigateToProducts}
-              />
-            </div>
-          ) : (
-            <>
-              {/* 태블릿 테이블 헤더 */}
-              <div className="hidden tablet:block desktop:hidden">
-                <div className="w-full">
-                  <Divider variant="thin" className="w-full" />
-                  <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200">
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.status}>상태</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
-                  </div>
-                </div>
-              </div>
-
-              {/* 테이블 바디 */}
-              <div className={clsx('w-full')}>
-                {purchaseList.map((item) => (
-                  <PurchaseRequestTableRowDesktop
-                    key={item.id}
-                    item={item}
-                    onCancelClick={onCancelClick}
-                    companyId={companyId}
-                  />
-                ))}
-              </div>
-            </>
-          )}
+          {renderTableContent()}
         </div>
       </div>
 

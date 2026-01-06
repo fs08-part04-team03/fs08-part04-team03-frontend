@@ -119,7 +119,7 @@ const DropDown: React.FC<DropDownProps> = ({
     large: 'text-gray-950',
   };
 
-  const fontClasses = 'font-sans font-normal text-16 tracking--0.4';
+  const fontClasses = 'font-sans font-normal text-15 tracking--0.4';
 
   const optionHeightClasses = {
     small: 'h-44',
@@ -128,7 +128,7 @@ const DropDown: React.FC<DropDownProps> = ({
   };
 
   /** ✅ z-index 클래스 */
-  const zIndexClass = inModal ? 'z-modaldropdown' : 'z-dropdown';
+  const zIndexClass = inModal ? 'z-[var(--z-modaldropdown)]' : 'z-[var(--z-dropdown)]';
 
   return (
     <>

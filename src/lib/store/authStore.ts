@@ -116,23 +116,8 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
           // 성공 시: rehydration이 완료된 직후 isHydrated를 true로 설정
-          // Zustand의 persist 미들웨어는 rehydration이 완료되면 이 콜백을 호출하므로
-          // 바로 setHydrated를 호출해도 안전합니다.
+          // 저장된 데이터 유무와 관계없이 localStorage를 건드리지 않고 상태만 표시
           if (state) {
-            // user와 accessToken이 모두 null이면 localStorage에서 제거
-            // (이전에 clearAuth가 제대로 동작하지 않아 저장된 경우 대비)
-            if (!state.user && !state.accessToken && typeof window !== 'undefined') {
-              localStorage.removeItem('auth-storage');
-              logger.info('[AuthStore] Rehydration - null 상태 감지, localStorage 제거');
-            }
-            state.setHydrated();
-            logger.info('[AuthStore] Rehydration 완료:', {
-              hasUser: !!state.user,
-              hasAccessToken: !!state.accessToken,
-              userId: state.user?.id,
-              userEmail: state.user?.email,
-            });
-            // rehydration 후 localStorage 재확인
             if (typeof window !== 'undefined') {
               const stored = localStorage.getItem('auth-storage');
               try {
@@ -145,6 +130,14 @@ export const useAuthStore = create<AuthState>()(
                 logger.error('[AuthStore] Rehydration 후 localStorage 파싱 실패:', parseError);
               }
             }
+
+            state.setHydrated();
+            logger.info('[AuthStore] Rehydration 완료:', {
+              hasUser: !!state.user,
+              hasAccessToken: !!state.accessToken,
+              userId: state.user?.id,
+              userEmail: state.user?.email,
+            });
           } else {
             logger.warn('[AuthStore] Rehydration 완료되었지만 state가 null입니다.');
           }

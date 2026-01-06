@@ -37,7 +37,7 @@ export const Default: Story = {
 
 export const WithoutProtocol: Story = {
   args: {
-    url: 'www.coupanf.com/products/item123',
+    url: 'www.coupang.com/products/item123',
     className: 'text-16 tracking--0.4 text-gray-950',
     clickable: true,
   },
@@ -53,7 +53,7 @@ export const CoKrDomain: Story = {
 
 export const NotClickable: Story = {
   args: {
-    url: 'https://www.coupanf.com/products/item123',
+    url: 'https://www.coupang.com/products/item123',
     className: 'text-16 tracking--0.4 text-gray-950',
     clickable: false,
   },
@@ -61,7 +61,7 @@ export const NotClickable: Story = {
 
 export const MobileSize: Story = {
   args: {
-    url: 'https://www.coupanf.com/products/item123',
+    url: 'https://www.coupang.com/products/item123',
     className: 'text-14 tracking--0.35 text-gray-600',
     clickable: true,
   },

@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { getApiUrl, getApiTimeout } from '@/utils/api';
+import { logger } from '@/utils/logger';
 
 /**
  * 회사 정보 타입
@@ -94,13 +95,10 @@ export async function fetchCompanyForMetadata(): Promise<{ name: string }> {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[fetchCompanyForMetadata] API 응답 실패:', {
-            status: response.status,
-            statusText: response.statusText,
-          });
-        }
+        logger.error('Failed to fetch company for metadata', {
+          status: response.status,
+          statusText: response.statusText,
+        });
         return { name: '회사' };
       }
 
@@ -113,17 +111,17 @@ export async function fetchCompanyForMetadata(): Promise<{ name: string }> {
       return { name: '회사' };
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[fetchCompanyForMetadata] fetch 실패:', fetchError);
-      }
+      logger.error('Fetch failed in fetchCompanyForMetadata', {
+        hasError: true,
+        errorType: fetchError instanceof Error ? fetchError.constructor.name : 'Unknown',
+      });
       return { name: '회사' };
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[fetchCompanyForMetadata] 예외 발생:', error);
-    }
+    logger.error('Exception in fetchCompanyForMetadata', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+    });
     return { name: '회사' };
   }
 }
@@ -157,10 +155,10 @@ export async function fetchUserForMetadata(): Promise<{ name: string } | null> {
         name?: string;
       };
     } catch (decodeError) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[fetchUserForMetadata] JWT 디코딩 실패:', decodeError);
-      }
+      logger.error('JWT decoding failed in fetchUserForMetadata', {
+        hasError: true,
+        errorType: decodeError instanceof Error ? decodeError.constructor.name : 'Unknown',
+      });
       return null;
     }
 
@@ -188,13 +186,10 @@ export async function fetchUserForMetadata(): Promise<{ name: string } | null> {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[fetchUserForMetadata] API 응답 실패:', {
-            status: response.status,
-            statusText: response.statusText,
-          });
-        }
+        logger.error('API response failed in fetchUserForMetadata', {
+          status: response.status,
+          statusText: response.statusText,
+        });
         return null;
       }
 
@@ -207,17 +202,17 @@ export async function fetchUserForMetadata(): Promise<{ name: string } | null> {
       return null;
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[fetchUserForMetadata] fetch 실패:', fetchError);
-      }
+      logger.error('Fetch failed in fetchUserForMetadata', {
+        hasError: true,
+        errorType: fetchError instanceof Error ? fetchError.constructor.name : 'Unknown',
+      });
       return null;
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[fetchUserForMetadata] 예외 발생:', error);
-    }
+    logger.error('Exception in fetchUserForMetadata', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+    });
     return null;
   }
 }

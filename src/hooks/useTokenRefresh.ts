@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '@/lib/store/authStore';
 import { tryRefreshToken } from '@/utils/api';
+import { logger } from '@/utils/logger';
 
 export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
   const { accessToken, user } = useAuthStore();
@@ -31,14 +32,10 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         await tryRefreshToken();
       } catch (error: unknown) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          if (error instanceof Error) {
-            console.warn('[useTokenRefresh] Token refresh failed:', error.message);
-          } else {
-            console.warn('[useTokenRefresh] Token refresh failed:', error);
-          }
-        }
+        logger.warn('Token refresh failed', {
+          hasError: true,
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        });
       } finally {
         // 언마운트 이후라도 플래그는 정리 (메모리/상태 누수 방지)
         inFlightRef.current = false;

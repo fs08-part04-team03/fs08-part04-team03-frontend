@@ -55,12 +55,8 @@ export const Default: Story = {
       price: 2000,
       type: 'default', // ItemMenu 표시
       onQuantityChange: () => {},
-      onMenuClick: (action) => {
-        console.log('menu action:', action);
-      },
-      onAddToCart: (quantity: number) => {
-        console.log('add to cart:', quantity);
-      },
+      onMenuClick: () => {},
+      onAddToCart: () => {},
     },
     accordionPanels: [
       {
@@ -99,12 +95,8 @@ export const WithoutImage: Story = {
       price: 1800,
       type: 'default',
       onQuantityChange: () => {},
-      onMenuClick: (action) => {
-        console.log('menu action:', action);
-      },
-      onAddToCart: (quantity: number) => {
-        console.log('add to cart:', quantity);
-      },
+      onMenuClick: () => {},
+      onAddToCart: () => {},
     },
     accordionPanels: [
       {
@@ -138,12 +130,8 @@ export const MultipleAccordionPanels: Story = {
       price: 1500,
       type: 'simple', // ItemMenu 숨김
       onQuantityChange: () => {},
-      onMenuClick: (action) => {
-        console.log('menu action:', action);
-      },
-      onAddToCart: (quantity: number) => {
-        console.log('add to cart:', quantity);
-      },
+      onMenuClick: () => {},
+      onAddToCart: () => {},
     },
     accordionPanels: [
       {

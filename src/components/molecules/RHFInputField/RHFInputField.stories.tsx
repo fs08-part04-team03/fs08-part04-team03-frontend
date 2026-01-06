@@ -178,7 +178,6 @@ export const PasswordConfirmField: Story = {
             label="비밀번호"
             placeholder="비밀번호를 입력해주세요."
             type="password"
-            // ✅ minLength 제거 (Zod로 검증)
           />
           <RHFInputField
             control={control}
@@ -319,14 +318,20 @@ export const FullForm: Story = {
         },
       });
 
-      const onSubmit = (data: FormData) => {
-        // eslint-disable-next-line no-console
-        console.log('Form submitted:', data);
+      const onSubmit = (_data: FormData): void => {
+        // Storybook 데모용 submit
+      };
+
+      // ✅ JSX에 들어갈 "순수 void 반환" 핸들러
+      const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+        e.preventDefault();
+        handleSubmit(onSubmit)(e).catch(() => {
+          // Storybook 데모용이므로 에러 무시
+        });
       };
 
       return (
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-20 w-327">
+        <form onSubmit={handleFormSubmit} className="flex flex-col gap-20 w-327">
           <RHFInputField
             control={control}
             name="name"
@@ -347,7 +352,6 @@ export const FullForm: Story = {
             label="비밀번호"
             placeholder="비밀번호를 입력해주세요."
             type="password"
-            // ✅ minLength 제거 (Zod로 검증)
           />
           <RHFInputField
             control={control}
@@ -378,13 +382,5 @@ export const FullForm: Story = {
     };
 
     return <Wrapper />;
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '모든 필드를 포함한 전체 폼 예시입니다. React Hook Form과 Zod를 사용하여 validation을 처리합니다.',
-      },
-    },
   },
 };

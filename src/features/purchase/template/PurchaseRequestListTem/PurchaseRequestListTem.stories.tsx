@@ -86,54 +86,16 @@ export const Default: Story = {
     selectedRequestId: null,
     approveModalOpen: false,
     rejectModalOpen: false,
-    onRejectClick: (id) => {
-      // eslint-disable-next-line no-console
-      console.log('반려 클릭:', id);
-    },
-    onApproveClick: (id) => {
-      // eslint-disable-next-line no-console
-      console.log('승인 클릭:', id);
-    },
-    onRowClick: (id) => {
-      // eslint-disable-next-line no-console
-      console.log('행 클릭:', id);
-    },
-    onNavigateToProducts: () => {
-      // eslint-disable-next-line no-console
-      console.log('상품 리스트로 이동');
-    },
-    onApproveModalClose: () => {
-      // eslint-disable-next-line no-console
-      console.log('승인 모달 닫기');
-    },
-    onRejectModalClose: () => {
-      // eslint-disable-next-line no-console
-      console.log('반려 모달 닫기');
-    },
-    onApproveSubmit: (message: string) => {
-      // eslint-disable-next-line no-console
-      console.log('승인 제출:', message);
-    },
-    onRejectSubmit: (message: string) => {
-      // eslint-disable-next-line no-console
-      console.log('반려 제출:', message);
-    },
-    onPageChange: (page) => {
-      // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
-    },
-    onSortChange: (sort) => {
-      // eslint-disable-next-line no-console
-      console.log('정렬 변경:', sort);
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '기본 구매 요청 목록 화면입니다. 승인됨, 대기중, 반려됨 상태의 요청들이 표시됩니다.\n\n**특징:**\n- 태블릿/데스크톱에서 테이블 형식으로 표시\n- 모바일에서 카드 형식으로 표시\n- 각 요청마다 승인/반려 버튼 제공',
-      },
-    },
+    onRejectClick: () => {},
+    onApproveClick: () => {},
+    onRowClick: () => {},
+    onNavigateToProducts: () => {},
+    onApproveModalClose: () => {},
+    onRejectModalClose: () => {},
+    onApproveSubmit: () => {},
+    onRejectSubmit: () => {},
+    onPageChange: () => {},
+    onSortChange: () => {},
   },
 };
 
@@ -149,54 +111,16 @@ export const EmptyList: Story = {
     selectedRequestId: null,
     approveModalOpen: false,
     rejectModalOpen: false,
-    onRejectClick: (id) => {
-      // eslint-disable-next-line no-console
-      console.log('반려 클릭:', id);
-    },
-    onApproveClick: (id) => {
-      // eslint-disable-next-line no-console
-      console.log('승인 클릭:', id);
-    },
-    onRowClick: (id) => {
-      // eslint-disable-next-line no-console
-      console.log('행 클릭:', id);
-    },
-    onNavigateToProducts: () => {
-      // eslint-disable-next-line no-console
-      console.log('상품 리스트로 이동');
-    },
-    onApproveModalClose: () => {
-      // eslint-disable-next-line no-console
-      console.log('승인 모달 닫기');
-    },
-    onRejectModalClose: () => {
-      // eslint-disable-next-line no-console
-      console.log('반려 모달 닫기');
-    },
-    onApproveSubmit: (message: string) => {
-      // eslint-disable-next-line no-console
-      console.log('승인 제출:', message);
-    },
-    onRejectSubmit: (message: string) => {
-      // eslint-disable-next-line no-console
-      console.log('반려 제출:', message);
-    },
-    onPageChange: (page) => {
-      // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
-    },
-    onSortChange: (sort) => {
-      // eslint-disable-next-line no-console
-      console.log('정렬 변경:', sort);
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '구매 요청 내역이 없는 경우입니다. StatusNotice 컴포넌트가 표시되며, 상품 리스트로 이동할 수 있는 버튼이 제공됩니다.\n\n**특징:**\n- 빈 상태 UI 표시\n- 상품 리스트로 이동 버튼 제공\n- 정렬/필터 드롭다운은 데스크톱에서만 표시',
-      },
-    },
+    onRejectClick: () => {},
+    onApproveClick: () => {},
+    onRowClick: () => {},
+    onNavigateToProducts: () => {},
+    onApproveModalClose: () => {},
+    onRejectModalClose: () => {},
+    onApproveSubmit: () => {},
+    onRejectSubmit: () => {},
+    onPageChange: () => {},
+    onSortChange: () => {},
   },
 };
 
@@ -217,64 +141,23 @@ export const WithPagination: Story = {
     selectedRequestId: null,
     approveModalOpen: false,
     rejectModalOpen: false,
-    onRejectClick: (id) => {
-      // eslint-disable-next-line no-console
-      console.log('반려 클릭:', id);
-    },
-    onApproveClick: (id) => {
-      // eslint-disable-next-line no-console
-      console.log('승인 클릭:', id);
-    },
-    onRowClick: (id) => {
-      // eslint-disable-next-line no-console
-      console.log('행 클릭:', id);
-    },
-    onNavigateToProducts: () => {
-      // eslint-disable-next-line no-console
-      console.log('상품 리스트로 이동');
-    },
-    onApproveModalClose: () => {
-      // eslint-disable-next-line no-console
-      console.log('승인 모달 닫기');
-    },
-    onRejectModalClose: () => {
-      // eslint-disable-next-line no-console
-      console.log('반려 모달 닫기');
-    },
-    onApproveSubmit: (message: string) => {
-      // eslint-disable-next-line no-console
-      console.log('승인 제출:', message);
-    },
-    onRejectSubmit: (message: string) => {
-      // eslint-disable-next-line no-console
-      console.log('반려 제출:', message);
-    },
-    onPageChange: (page) => {
-      // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
-    },
-    onSortChange: (sort) => {
-      // eslint-disable-next-line no-console
-      console.log('정렬 변경:', sort);
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '페이지네이션이 있는 구매 요청 목록입니다. 현재 페이지가 2페이지이며 총 5페이지가 있습니다.\n\n**특징:**\n- 페이지네이션 블록 표시\n- 여러 요청인의 요청 표시\n- 배송비가 포함된 요청도 표시',
-      },
-    },
+    onRejectClick: () => {},
+    onApproveClick: () => {},
+    onRowClick: () => {},
+    onNavigateToProducts: () => {},
+    onApproveModalClose: () => {},
+    onRejectModalClose: () => {},
+    onApproveSubmit: () => {},
+    onRejectSubmit: () => {},
+    onPageChange: () => {},
+    onSortChange: () => {},
   },
 };
 
 export const Interactive: Story = {
   render: (args) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [approveModalOpen, setApproveModalOpen] = useState(false);
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [rejectModalOpen, setRejectModalOpen] = useState(false);
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
     return (
@@ -292,48 +175,28 @@ export const Interactive: Story = {
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}
         onApproveClick={(id) => {
-          // eslint-disable-next-line no-console
-          console.log('승인 버튼 클릭 - 모달 열기:', id);
           setSelectedRequestId(id);
           setApproveModalOpen(true);
         }}
         onRejectClick={(id) => {
-          // eslint-disable-next-line no-console
-          console.log('반려 버튼 클릭 - 모달 열기:', id);
           setSelectedRequestId(id);
           setRejectModalOpen(true);
         }}
-        onRowClick={(id) => {
-          // eslint-disable-next-line no-console
-          console.log('행 클릭:', id);
-        }}
-        onNavigateToProducts={() => {
-          // eslint-disable-next-line no-console
-          console.log('상품 리스트로 이동');
-        }}
+        onRowClick={() => {}}
+        onNavigateToProducts={() => {}}
         onApproveModalClose={() => {
-          // eslint-disable-next-line no-console
-          console.log('승인 모달 닫기');
           setApproveModalOpen(false);
           setSelectedRequestId(null);
         }}
         onRejectModalClose={() => {
-          // eslint-disable-next-line no-console
-          console.log('반려 모달 닫기');
           setRejectModalOpen(false);
           setSelectedRequestId(null);
         }}
-        onApproveSubmit={(message: string) => {
-          // eslint-disable-next-line no-console
-          console.log('승인 제출:', message, 'for request:', selectedRequestId);
-          // 실제로는 여기서 API 호출
+        onApproveSubmit={() => {
           setApproveModalOpen(false);
           setSelectedRequestId(null);
         }}
-        onRejectSubmit={(message: string) => {
-          // eslint-disable-next-line no-console
-          console.log('반려 제출:', message, 'for request:', selectedRequestId);
-          // 실제로는 여기서 API 호출
+        onRejectSubmit={() => {
           setRejectModalOpen(false);
           setSelectedRequestId(null);
         }}
@@ -353,21 +216,7 @@ export const Interactive: Story = {
     currentPage: 1,
     totalPages: 1,
     budget: 2000000,
-    onPageChange: (page) => {
-      // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
-    },
-    onSortChange: (sort) => {
-      // eslint-disable-next-line no-console
-      console.log('정렬 변경:', sort);
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '인터랙티브한 스토리입니다. 승인/반려 버튼을 클릭하면 실제로 모달이 열리고, 모달에서 제출하면 닫힙니다.\n\n**동작:**\n- 승인 버튼 클릭 → 해당 요청의 승인 모달 열림\n- 반려 버튼 클릭 → 해당 요청의 반려 모달 열림\n- 모달에서 제출 → 콘솔에 메시지와 요청 ID 출력 후 모달 닫힘\n- 모달 X 버튼 클릭 → 모달 닫힘\n- 행 클릭 → 콘솔에 요청 ID 출력\n\n**사용 목적:**\n- 실제 사용자 플로우 테스트\n- 모달 인터랙션 확인\n- 버튼 클릭부터 제출까지 전체 흐름 검증\n- 다중 요청 처리 시나리오 테스트',
-      },
-    },
+    onPageChange: () => {},
+    onSortChange: () => {},
   },
 };

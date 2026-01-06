@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,9 +9,9 @@ import { inviteSignup } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
 import { setAuthCookies } from '@/utils/cookies';
 import InviteSignupTem from '@/features/auth/template/InviteSignupTem/InviteSignupTem';
-import { MAX_IMAGE_FILE_SIZE, FILE_ERROR_MESSAGES } from '@/constants';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
+import { uploadProfileImage, getImageUrl } from '@/features/products/api/products.api';
 
 interface InviteSignupSectionProps {
   name: string;
@@ -25,69 +25,55 @@ interface InviteSignupSectionProps {
  */
 const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) => {
   const [preview, setPreview] = useState<string | null>(null);
-  const [_profileImage, setProfileImage] = useState<File | null>(null);
-  const previewUrlRef = useRef<string | null>(null);
+  const [_uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
   const { setAuth } = useAuthStore();
 
   // useToast 훅 사용
   const { showToast, toastMessage, triggerToast, closeToast } = useToast();
 
-  // 컴포넌트 언마운트 시 preview URL 정리
-  useEffect(
-    () => () => {
-      if (previewUrlRef.current) {
-        URL.revokeObjectURL(previewUrlRef.current);
-      }
-    },
-    []
-  );
-
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // 파일 크기 제한
-      if (file.size > MAX_IMAGE_FILE_SIZE) {
-        triggerToast('custom', FILE_ERROR_MESSAGES.SIZE_EXCEEDED);
-        e.target.value = '';
-        setPreview(null);
-        setProfileImage(null);
-        if (previewUrlRef.current) {
-          URL.revokeObjectURL(previewUrlRef.current);
-          previewUrlRef.current = null;
-        }
-        return;
-      }
+    if (!file) return;
 
-      // 이미지 파일 타입 검증
-      if (!file.type.startsWith('image/')) {
-        triggerToast('custom', FILE_ERROR_MESSAGES.INVALID_TYPE);
-        e.target.value = '';
-        setPreview(null);
-        setProfileImage(null);
-        if (previewUrlRef.current) {
-          URL.revokeObjectURL(previewUrlRef.current);
-          previewUrlRef.current = null;
-        }
-        return;
-      }
-
-      try {
-        // 이전 preview URL 정리
-        if (previewUrlRef.current) {
-          URL.revokeObjectURL(previewUrlRef.current);
-        }
-
-        // 새 preview URL 생성
-        const newPreviewUrl = URL.createObjectURL(file);
-        previewUrlRef.current = newPreviewUrl;
-        setPreview(newPreviewUrl);
-        setProfileImage(file);
-      } catch (error) {
-        logger.error('[InviteSignupSection] 이미지 업로드 실패:', error);
-        triggerToast('custom', '이미지 업로드에 실패했습니다. 다시 시도해 주세요.');
-      }
+    // 파일 크기 검증 (5MB)
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    if (file.size > MAX_SIZE) {
+      triggerToast('error', '이미지 크기는 5MB 이하여야 합니다.');
+      e.target.value = '';
+      return;
     }
+
+    // 파일 형식 검증
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      triggerToast('error', '지원되는 형식: JPEG, JPG, PNG, GIF, WEBP');
+      e.target.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+
+    // 1. 이미지 업로드
+    uploadProfileImage(file)
+      .then(async (imageKey) => {
+        // 2. 업로드 후 GET API로 signed URL 가져오기
+        const { url: signedUrl } = await getImageUrl(imageKey);
+
+        // 3. signed URL을 미리보기에 사용
+        setPreview(signedUrl);
+        setUploadedImageKey(imageKey);
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : '이미지 업로드에 실패했습니다.';
+        triggerToast('error', message);
+        setPreview(null);
+        setUploadedImageKey(null);
+      })
+      .finally(() => {
+        setIsUploading(false);
+      });
   };
 
   const form = useForm<InviteSignupInput>({
@@ -108,6 +94,8 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
         email: values.email,
         password: values.password,
         inviteToken: token,
+        // TODO: API가 profileImage를 지원하는 경우 다음 줄의 주석을 해제하세요
+        // profileImage: uploadedImageKey || undefined,
       });
 
       logger.info('[InviteSignup] 초대 회원가입 API 성공:', { hasAccessToken: !!accessToken });
@@ -145,6 +133,7 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       setShowToast={closeToast}
       preview={preview}
       onImageChange={handleImageChange}
+      isUploading={isUploading}
       name={name}
     />
   );
