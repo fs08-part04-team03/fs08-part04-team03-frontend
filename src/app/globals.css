@@ -50,6 +50,7 @@ body {
   --breakpoint-desktop: 1024px;
 
   /* Z-Index 레이어 토큰 */
+  --z-back: 0;
   --z-base: 1;
   --z-dropdown: 10;
   --z-tooltip: 20;
