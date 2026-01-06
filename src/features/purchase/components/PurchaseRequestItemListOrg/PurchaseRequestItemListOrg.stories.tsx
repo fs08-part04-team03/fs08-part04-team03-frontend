@@ -63,14 +63,8 @@ export const AllVariants: Story = {
         createPurchaseItem('3', 'REJECTED', 3, 5000, 0, '2024-07-02T00:00:00.000Z'),
         createPurchaseItem('4', 'APPROVED', 1, 1500, 3000, '2024-07-01T00:00:00.000Z'),
       ]}
-      onReject={(id) => {
-        // eslint-disable-next-line no-console
-        console.log('반려 요청:', id);
-      }}
-      onApprove={(id) => {
-        // eslint-disable-next-line no-console
-        console.log('승인 요청:', id);
-      }}
+      onReject={() => {}}
+      onApprove={() => {}}
     />
   ),
   parameters: {
@@ -92,14 +86,8 @@ export const Urgent: Story = {
         createPurchaseItem('3', 'PENDING', 1, 8000, 0, '2024-07-02T00:00:00.000Z', true),
         createPurchaseItem('4', 'REJECTED', 1, 2000, 0, '2024-07-01T00:00:00.000Z'),
       ]}
-      onReject={(id) => {
-        // eslint-disable-next-line no-console
-        console.log('반려 요청:', id);
-      }}
-      onApprove={(id) => {
-        // eslint-disable-next-line no-console
-        console.log('승인 요청:', id);
-      }}
+      onReject={() => {}}
+      onApprove={() => {}}
     />
   ),
   parameters: {
