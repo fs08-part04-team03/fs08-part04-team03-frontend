@@ -117,9 +117,8 @@ export const Default: Story = {
     companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
-    onPageChange: (page) => {
+    onPageChange: () => {
       // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
     },
   },
   parameters: {
@@ -138,9 +137,8 @@ export const EmptyList: Story = {
     companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
-    onPageChange: (page) => {
+    onPageChange: () => {
       // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
     },
   },
   parameters: {
@@ -192,9 +190,8 @@ export const UrgentRequest: Story = {
     companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
-    onPageChange: (page) => {
+    onPageChange: () => {
       // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
     },
   },
   parameters: {
@@ -225,9 +222,8 @@ export const LongList: Story = {
     companyId: 'company-1',
     currentPage: 1,
     totalPages: 3,
-    onPageChange: (page) => {
+    onPageChange: () => {
       // eslint-disable-next-line no-console
-      console.log('페이지 변경:', page);
     },
   },
   parameters: {

@@ -48,14 +48,8 @@ export const AdminActions: Story = {
   args: {
     companyId: 'company-123',
     actionType: 'admin',
-    onApproveClick: () => {
-      // eslint-disable-next-line no-console
-      console.log('승인 버튼 클릭');
-    },
-    onRejectClick: () => {
-      // eslint-disable-next-line no-console
-      console.log('반려 버튼 클릭');
-    },
+    onApproveClick: () => {},
+    onRejectClick: () => {},
     isBudgetSufficient: true,
   },
   parameters: {
@@ -72,14 +66,8 @@ export const AdminActionsInsufficientBudget: Story = {
   args: {
     companyId: 'company-123',
     actionType: 'admin',
-    onApproveClick: () => {
-      // eslint-disable-next-line no-console
-      console.log('승인 버튼 클릭 (비활성화됨)');
-    },
-    onRejectClick: () => {
-      // eslint-disable-next-line no-console
-      console.log('반려 버튼 클릭');
-    },
+    onApproveClick: () => {},
+    onRejectClick: () => {},
     isBudgetSufficient: false,
   },
   parameters: {

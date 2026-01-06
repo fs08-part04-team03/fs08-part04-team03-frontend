@@ -96,7 +96,7 @@ const AdminUsersTemplate = ({
             )}
 
             {/* Mobile 초대 버튼 (Bottom) */}
-            <div className="fixed bottom-0 left-0 w-full p-24 bg-white border-t border-gray-100 tablet:hidden z-1 flex justify-center">
+            <div className="fixed bottom-0 left-0 w-full p-24 bg-white border-t border-gray-100 tablet:hidden z-[var(--z-base)] flex justify-center">
               <Button
                 variant="primary"
                 className="!w-[327px] !h-[64px] !p-[12px_16px] !rounded-[2px] !bg-[#222] !text-white !text-16 !font-bold tracking-[-0.4px]"

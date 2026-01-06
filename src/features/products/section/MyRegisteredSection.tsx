@@ -10,7 +10,7 @@ import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBl
 import ProductModal from '@/components/molecules/ProductModal/ProductModal';
 import { clsx } from '@/utils/clsx';
 import { getMyRegisteredProducts } from '@/features/products/api/products.api';
-import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
+import { ERROR_MESSAGES } from '@/constants';
 import { REGISTERED_PRODUCT_SORT_OPTIONS, DEFAULT_REGISTERED_PRODUCT_SORT } from '@/constants/sort';
 import { formatDate } from '@/utils/formatDate';
 import { logger } from '@/utils/logger';
@@ -95,17 +95,6 @@ const MyRegisteredSection = () => {
   ====================== */
   const formattedDate = useMemo(() => formatDate(new Date()), []);
 
-  // 로딩 중일 때는 로딩 메시지만 표시
-  if (isLoading) {
-    return (
-      <section className="w-full bg-white">
-        <div className="flex items-center justify-center min-h-screen">
-          <p>{LOADING_MESSAGES.DEFAULT}</p>
-        </div>
-      </section>
-    );
-  }
-
   // 에러 발생 시 에러 메시지만 표시
   if (queryError) {
     const errorMessage =
@@ -118,11 +107,6 @@ const MyRegisteredSection = () => {
         </div>
       </section>
     );
-  }
-
-  // 데이터가 없으면 null 반환
-  if (!data) {
-    return null;
   }
 
   return (
@@ -168,13 +152,14 @@ const MyRegisteredSection = () => {
           totalCount={totalCount}
           companyId={companyId || ''}
           onRegisterClick={() => setModalOpen(true)}
+          isLoading={isLoading}
         />
       </div>
 
       {/* =====================
           Pagination (데이터가 있을 때만 표시)
       ====================== */}
-      {totalCount > 0 && (
+      {!isLoading && totalCount > 0 && (
         <div className="flex justify-center mt-20 tablet:mt-30">
           <PaginationBlock
             current={currentPage}

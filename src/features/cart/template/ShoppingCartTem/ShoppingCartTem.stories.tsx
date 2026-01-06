@@ -81,15 +81,9 @@ export const User: Story = {
   args: {
     cartRole: 'user',
     items: mockItems,
-    onSubmit: (ids) => {
-      console.log('User submit:', ids);
-    },
-    onDeleteSelected: (ids) => {
-      console.log('User delete:', ids);
-    },
-    onQuantityChange: (id, qty) => {
-      console.log('User quantity change:', id, qty);
-    },
+    onSubmit: () => {},
+    onDeleteSelected: () => {},
+    onQuantityChange: () => {},
   },
 };
 
@@ -101,15 +95,9 @@ export const ManagerWithinBudget: Story = {
     cartRole: 'manager',
     items: mockItems,
     budget: 2_000_000,
-    onSubmit: (ids) => {
-      console.log('Manager submit:', ids);
-    },
-    onDeleteSelected: (ids) => {
-      console.log('Manager delete:', ids);
-    },
-    onQuantityChange: (id, qty) => {
-      console.log('Manager quantity change:', id, qty);
-    },
+    onSubmit: () => {},
+    onDeleteSelected: () => {},
+    onQuantityChange: () => {},
   },
 };
 
@@ -121,12 +109,8 @@ export const ManagerBudgetExceeded: Story = {
     cartRole: 'manager',
     items: mockItems,
     budget: 100_000,
-    onSubmit: (ids) => {
-      console.log('Manager urgent request:', ids);
-    },
-    onDeleteSelected: (ids) => {
-      console.log('Manager delete:', ids);
-    },
+    onSubmit: () => {},
+    onDeleteSelected: () => {},
   },
 };
 
@@ -138,12 +122,8 @@ export const AdminWithinBudget: Story = {
     cartRole: 'admin',
     items: mockItems,
     budget: 2_000_000,
-    onSubmit: (ids) => {
-      console.log('Admin submit:', ids);
-    },
-    onDeleteSelected: (ids) => {
-      console.log('Admin delete:', ids);
-    },
+    onSubmit: () => {},
+    onDeleteSelected: () => {},
   },
 };
 
@@ -155,11 +135,7 @@ export const AdminBudgetExceeded: Story = {
     cartRole: 'admin',
     items: mockItems,
     budget: 100_000,
-    onSubmit: (ids) => {
-      console.log('Admin submit (budget exceeded):', ids);
-    },
-    onGoBudgetManage: () => {
-      console.log('Admin go budget manage');
-    },
+    onSubmit: () => {},
+    onGoBudgetManage: () => {},
   },
 };

@@ -1,9 +1,11 @@
 'use client';
 
 import { fetchWithAuth, getApiUrl, AuthExpiredError } from '@/utils/api';
+import { useAuthStore } from '@/lib/store/authStore';
 import type { RegisteredProductOrgItem } from '@/features/products/components/RegisteredProductOrg/RegisteredProductOrg';
 import type { BackendProduct } from '@/features/products/utils/product.utils';
 import { getChildById, getParentById } from '@/constants/categories/categories.utils';
+import { logger } from '@/utils/logger';
 
 /**
  * 백엔드 API 응답 타입
@@ -53,19 +55,25 @@ const getCategoryLabel = (categoryId: number | null | undefined): string => {
 
     return `${parentCategory.name} > ${childCategory.name}`;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[getCategoryLabel] 카테고리 라벨 생성 오류:', error, { categoryId });
-    }
+    logger.error('Category label generation error', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      hasCategoryId: !!categoryId,
+    });
     return '미분류';
   }
 };
 
 /**
  * 백엔드 Product를 RegisteredProductOrgItem으로 변환
+ * SSR 하이드레이션 불일치를 방지하기 위해 상대 경로만 반환
+ * 클라이언트 사이드에서 전체 URL을 구성해야 함
  */
 const mapBackendProductToRegisteredItem = (product: BackendProduct): RegisteredProductOrgItem => {
-  const imageSrc = product.image ? `${getApiUrl()}/uploads/${product.image}` : '';
+  // 상대 경로만 반환 (클라이언트에서 origin 추가)
+  const imageSrc: string = product.image
+    ? `/api/product/image?key=${encodeURIComponent(product.image)}`
+    : '';
 
   return {
     id: product.id,
@@ -102,17 +110,7 @@ export async function getMyRegisteredProducts(
   const queryString = queryParams.toString();
   const url = `/api/v1/product/my${queryString ? `?${queryString}` : ''}`;
 
-  // 개발 환경에서 요청 URL 로깅
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[getMyRegisteredProducts] 요청 URL:', url, {
-      params,
-      queryString,
-      fullUrl: url,
-      hasIdInPath: url.includes('/undefined/') || url.includes('/null/'),
-      hasIdInQuery: url.includes('?id=') || url.includes('&id='),
-    });
-  }
+  // 개발 환경에서 요청 URL 로깅 제거 (의미 없는 디버그 로그)
 
   try {
     const response = await fetchWithAuth(url, {
@@ -195,17 +193,12 @@ export async function getMyRegisteredProducts(
       }
 
       // 개발 환경에서 상세 에러 로깅
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[getMyRegisteredProducts] API 에러 상세:', {
-          status: response.status,
-          statusText: response.statusText,
-          url,
-          errorMessage: finalErrorMessage,
-          errorDetails: errorDetails ? JSON.stringify(errorDetails, null, 2) : null,
-          errorDetailsRaw: errorDetails,
-        });
-      }
+      logger.error('Failed to fetch registered products', {
+        status: response.status,
+        statusText: response.statusText,
+        hasErrorMessage: !!finalErrorMessage,
+        hasErrorDetails: !!errorDetails,
+      });
 
       throw new Error(finalErrorMessage);
     }
@@ -227,14 +220,10 @@ export async function getMyRegisteredProducts(
       totalPages: result.pagination?.totalPages || 1,
     };
   } catch (error) {
-    // 개발 환경에서만 에러 로깅
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[getMyRegisteredProducts] API 에러:', {
-        url,
-        error,
-      });
-    }
+    logger.error('API error in getMyRegisteredProducts', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+    });
     throw error;
   }
 }
@@ -447,6 +436,163 @@ export async function getMyProductById(productId: string | number): Promise<Back
   }
 
   return result.data;
+}
+
+/**
+ * 이미지 업로드 응답 타입
+ */
+interface ImageUploadResponse {
+  key: string;
+  url: string;
+  signedUrl: string;
+  expiresIn: number;
+  originalName: string;
+  size: number;
+  mimeType: string;
+}
+
+/**
+ * 이미지 업로드
+ * @param file - 업로드할 이미지 파일
+ * @param folder - 이미지를 저장할 폴더 (products, users, companies, misc)
+ * @returns 업로드된 이미지의 S3 key
+ */
+export async function uploadProductImage(
+  file: File,
+  folder: 'products' | 'users' | 'companies' | 'misc' = 'products'
+): Promise<string> {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const { accessToken } = useAuthStore.getState();
+
+  // Next.js API 라우트를 통해 업로드
+  const url = new URL(
+    '/api/product/image',
+    typeof window !== 'undefined' ? window.location.origin : ''
+  );
+  url.searchParams.append('folder', folder);
+
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    credentials: 'include',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let errorMessage = '이미지 업로드에 실패했습니다.';
+    try {
+      const errorJson = JSON.parse(errorText) as {
+        message?: string;
+        error?: { message?: string };
+      };
+      errorMessage = errorJson.error?.message || errorJson.message || errorMessage;
+    } catch {
+      // JSON 파싱 실패 시 기본 메시지 사용
+    }
+    throw new Error(errorMessage);
+  }
+
+  const result = (await response.json()) as ApiResponse<ImageUploadResponse>;
+
+  if (!result.success || !result.data) {
+    throw new Error('이미지 업로드 응답 형식이 올바르지 않습니다.');
+  }
+
+  // S3 key 반환 (상품 API에서 사용)
+  return result.data.key;
+}
+
+/**
+ * 프로필 이미지 업로드
+ * @param file - 업로드할 이미지 파일
+ * @returns 업로드된 이미지의 S3 key
+ */
+export async function uploadProfileImage(file: File): Promise<string> {
+  return uploadProductImage(file, 'users');
+}
+
+/**
+ * 회사 이미지 업로드
+ * @param file - 업로드할 이미지 파일
+ * @returns 업로드된 이미지의 S3 key
+ */
+export async function uploadCompanyImage(file: File): Promise<string> {
+  return uploadProductImage(file, 'companies');
+}
+
+/**
+ * 이미지 URL 조회
+ * @param key - S3 객체 키 (URL 인코딩 필요)
+ * @param download - 다운로드 모드 활성화 여부
+ * @returns 이미지의 Signed URL
+ */
+export async function getImageUrl(
+  key: string,
+  download = false
+): Promise<{ key: string; url: string; expiresIn: number }> {
+  // S3 key를 URL 인코딩
+  const encodedKey = encodeURIComponent(key);
+  const url = new URL(`/api/v1/upload/image/${encodedKey}`, getApiUrl());
+  if (download) {
+    url.searchParams.append('download', 'true');
+  }
+
+  const response = await fetchWithAuth(url.toString().replace(getApiUrl(), ''), {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('이미지를 찾을 수 없습니다.');
+    }
+    throw new Error('이미지 URL 조회에 실패했습니다.');
+  }
+
+  const result = (await response.json()) as ApiResponse<{
+    key: string;
+    url: string;
+    expiresIn: number;
+  }>;
+
+  if (!result.success || !result.data) {
+    throw new Error('이미지 URL 조회 응답 형식이 올바르지 않습니다.');
+  }
+
+  return result.data;
+}
+
+/**
+ * 이미지 삭제
+ * @param key - S3 객체 키 (URL 인코딩 필요)
+ */
+export async function deleteImage(key: string): Promise<void> {
+  // S3 key를 URL 인코딩
+  const encodedKey = encodeURIComponent(key);
+
+  const response = await fetchWithAuth(`/api/v1/upload/image/${encodedKey}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    if (response.status === 403) {
+      throw new Error('이미지 삭제 권한이 없습니다.');
+    }
+    if (response.status === 404) {
+      throw new Error('이미지를 찾을 수 없습니다.');
+    }
+    throw new Error('이미지 삭제에 실패했습니다.');
+  }
+
+  const result = (await response.json()) as ApiResponse<unknown>;
+
+  if (!result.success) {
+    throw new Error('이미지 삭제에 실패했습니다.');
+  }
 }
 
 /**

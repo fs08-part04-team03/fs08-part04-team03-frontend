@@ -22,6 +22,7 @@ interface InviteSignupTemProps {
   setShowToast: (show: boolean) => void;
   preview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isUploading?: boolean;
   name: string;
 }
 
@@ -41,6 +42,7 @@ const InviteSignupTemContent = ({
   handleSubmit,
   preview,
   onImageChange,
+  isUploading,
   name,
   className,
 }: InviteSignupTemContentProps) => (
@@ -60,24 +62,36 @@ const InviteSignupTemContent = ({
       <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
       <div className="flex justify-center">
         <label htmlFor="invite-profile-image-upload" className="cursor-pointer">
-          <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
-            {preview ? (
-              <Image
-                src={preview}
-                alt="프로필 미리보기"
-                width={140}
-                height={140}
-                className="object-cover"
-              />
-            ) : (
-              <Image
-                src="/icons/photo-icon.svg"
-                alt="이미지 업로드"
-                width={48}
-                height={48}
-                className="opacity-40"
-              />
-            )}
+          <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors relative">
+            {(() => {
+              if (isUploading) {
+                return (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80">
+                    <div className="text-12 text-gray-600">업로드 중...</div>
+                  </div>
+                );
+              }
+              if (preview) {
+                return (
+                  <Image
+                    src={preview}
+                    alt="프로필 미리보기"
+                    width={140}
+                    height={140}
+                    className="object-cover"
+                  />
+                );
+              }
+              return (
+                <Image
+                  src="/icons/upload.svg"
+                  alt="이미지 업로드"
+                  width={140}
+                  height={140}
+                  className="object-contain"
+                />
+              );
+            })()}
           </div>
           <input
             id="invite-profile-image-upload"
@@ -117,6 +131,7 @@ export const InviteSignupTemMobile = ({
   handleSubmit,
   preview,
   onImageChange,
+  isUploading,
   name,
 }: InviteSignupTemViewProps) => (
   <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
@@ -130,6 +145,7 @@ export const InviteSignupTemMobile = ({
       handleSubmit={handleSubmit}
       preview={preview}
       onImageChange={onImageChange}
+      isUploading={isUploading}
       name={name}
       className="flex w-327 flex-col tablet:hidden desktop:hidden"
     />
@@ -149,6 +165,7 @@ export const InviteSignupTemDesktop = ({
   handleSubmit,
   preview,
   onImageChange,
+  isUploading,
   name,
 }: InviteSignupTemViewProps) => (
   <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
@@ -164,6 +181,7 @@ export const InviteSignupTemDesktop = ({
           handleSubmit={handleSubmit}
           preview={preview}
           onImageChange={onImageChange}
+          isUploading={isUploading}
           name={name}
           className="flex flex-col w-full tablet:w-480 desktop:w-480"
         />
@@ -191,6 +209,7 @@ const InviteSignupTem = ({
   setShowToast,
   preview,
   onImageChange,
+  isUploading,
   name,
 }: InviteSignupTemProps) => (
   <>
@@ -201,6 +220,7 @@ const InviteSignupTem = ({
       handleSubmit={handleSubmit}
       preview={preview}
       onImageChange={onImageChange}
+      isUploading={isUploading}
       name={name}
     />
     <InviteSignupTemDesktop
@@ -210,6 +230,7 @@ const InviteSignupTem = ({
       handleSubmit={handleSubmit}
       preview={preview}
       onImageChange={onImageChange}
+      isUploading={isUploading}
       name={name}
     />
     {/* Toast */}

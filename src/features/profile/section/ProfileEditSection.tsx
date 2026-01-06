@@ -7,7 +7,9 @@ import { profileEditSchema, type ProfileEditInput } from '@/features/profile/sch
 import { useAuthStore } from '@/lib/store/authStore';
 import { getCompany } from '@/features/profile/api/company.api';
 import { updateAdminProfile, updateUserProfile } from '@/features/profile/api/profile.api';
+import { logger } from '@/utils/logger';
 import ProfileEditTemplate from '@/features/profile/template/ProfileEditTemplate';
+import { useImageUpload } from '@/hooks/useImageUpload';
 
 const getRoleDisplayName = (role?: string) => {
   switch (role) {
@@ -27,6 +29,8 @@ const ProfileEditSection = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const { user, accessToken } = useAuthStore();
+  const { preview, uploadedImageKey, isUploading, handleImageChange, resetImage } =
+    useImageUpload();
 
   const form = useForm<ProfileEditInput>({
     resolver: zodResolver(profileEditSchema),
@@ -50,10 +54,10 @@ const ProfileEditSection = () => {
         const company = await getCompany(accessToken);
         form.setValue('companyName', company.name);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[ProfileEdit] 회사 정보 조회 실패:', error);
-        }
+        logger.error('Failed to fetch company information in ProfileEdit', {
+          hasError: true,
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        });
         // 실패 시 빈 값으로 설정하여 사용자가 직접 입력하도록 유도
         form.setValue('companyName', '');
       }
@@ -61,6 +65,7 @@ const ProfileEditSection = () => {
 
     // eslint-disable-next-line no-void
     void fetchCompanyData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]); // form.setValue는 안정적인 참조를 가짐
 
   useEffect(() => {
@@ -75,11 +80,6 @@ const ProfileEditSection = () => {
     setServerError(null);
 
     try {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[ProfileEdit] 프로필 수정:', values);
-      }
-
       if (!user?.id || !user?.companyId || !accessToken) {
         throw new Error('사용자 정보를 찾을 수 없습니다.');
       }
@@ -88,12 +88,13 @@ const ProfileEditSection = () => {
       const isAdmin = user.role === 'admin';
 
       if (isAdmin) {
-        // ADMIN: 회사명 + 비밀번호 변경 가능
+        // ADMIN: 회사명 + 비밀번호 + 프로필 이미지 변경 가능
         // 엔드포인트: PATCH /api/v1/user/admin/profile
         const hasCompanyNameChange = values.companyName && values.companyName.trim() !== '';
         const hasPasswordChange = values.password && values.password.trim() !== '';
+        const hasImageChange = uploadedImageKey !== null;
 
-        if (!hasCompanyNameChange && !hasPasswordChange) {
+        if (!hasCompanyNameChange && !hasPasswordChange && !hasImageChange) {
           throw new Error('변경할 내용을 입력해주세요.');
         }
 
@@ -101,21 +102,24 @@ const ProfileEditSection = () => {
           {
             companyName: hasCompanyNameChange ? values.companyName : undefined,
             password: hasPasswordChange ? values.password : undefined,
+            image: hasImageChange ? uploadedImageKey : undefined,
           },
           accessToken
         );
       } else {
-        // USER, MANAGER: 비밀번호만 변경 가능
+        // USER, MANAGER: 비밀번호 + 프로필 이미지 변경 가능
         // 엔드포인트: PATCH /api/v1/user/me/profile
         const hasPasswordChange = values.password && values.password.trim() !== '';
+        const hasImageChange = uploadedImageKey !== null;
 
-        if (!hasPasswordChange) {
+        if (!hasPasswordChange && !hasImageChange) {
           throw new Error('변경할 내용을 입력해주세요.');
         }
 
         await updateUserProfile(
           {
-            password: values.password,
+            password: hasPasswordChange ? values.password : undefined,
+            image: hasImageChange ? uploadedImageKey : undefined,
           },
           accessToken
         );
@@ -129,11 +133,12 @@ const ProfileEditSection = () => {
         password: '',
         passwordConfirm: '',
       });
+      resetImage();
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[ProfileEdit] 프로필 수정 실패:', error);
-      }
+      logger.error('Profile update failed', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
       const errorMessage = error instanceof Error ? error.message : '프로필 변경에 실패했습니다.';
       setToastMessage(errorMessage);
       setShowToast(true);
@@ -152,6 +157,9 @@ const ProfileEditSection = () => {
       toastMessage={toastMessage}
       setShowToast={setShowToast}
       isAdmin={user?.role === 'admin'}
+      preview={preview}
+      onImageChange={handleImageChange}
+      isUploading={isUploading}
     />
   );
 };

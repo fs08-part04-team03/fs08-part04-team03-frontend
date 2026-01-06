@@ -2,20 +2,54 @@ import type { Meta, StoryObj } from '@storybook/nextjs';
 import { User } from '@/features/admin/users/api/adminUser.api';
 import UserList from './UserListOrg';
 
-/**
- * 사용자 목록을 표시하는 컴포넌트입니다.
- * 관리자는 이 목록에서 사용자의 역할을 변경하거나 탈퇴 처리할 수 있습니다.
- */
 const meta: Meta<typeof UserList> = {
   title: 'Features/Admin/Users/UserListOrg',
   component: UserList,
   parameters: {
     layout: 'centered',
+    docs: {
+      description: {
+        component: `
+### 개요
+관리자 페이지의 사용자 목록 조회 컴포넌트입니다.
+
+### 주요 특징
+-   **반응형 디자인**: 모바일, 태블릿, 데스크탑 환경에 최적화된 레이아웃을 제공합니다.
+    -   모바일: 카드 형태의 리스트
+    -   테블릿/데스크탑: 테이블 형태의 리스트
+-   **사용자 관리**: 각 사용자의 권한 변경 및 계정 탈퇴 기능을 제공합니다.
+-   **데이터 없음 상태**: 표시할 사용자가 없을 때 안내 메시지를 보여줍니다.
+
+### 인터랙션
+-   **권한 변경**: 
+    -   모바일: 케밥 메뉴 > 권한 변경 선택
+    -   데스크탑: '권한 변경' 버튼 클릭
+-   **계정 탈퇴**:
+    -   데스크탑: '계정 탈퇴' 버튼 클릭
+`,
+      },
+    },
+    viewport: {
+      defaultViewport: 'responsive',
+    },
   },
   tags: ['autodocs'],
   argTypes: {
-    onRoleChange: { action: 'role changed' },
-    onDelete: { action: 'deleted' },
+    users: {
+      description: '표시할 사용자 목록 데이터입니다.',
+    },
+    onRoleChange: {
+      description: '권한 변경 버튼 클릭 시 호출되는 콜백 함수입니다.',
+    },
+    onDelete: {
+      description: '계정 탈퇴 버튼 클릭 시 호출되는 콜백 함수입니다.',
+    },
+  },
+  args: {
+    // eslint-disable-next-line no-alert
+    onRoleChange: () => alert('권한 변경 클릭됨'),
+    // eslint-disable-next-line no-alert
+    onDelete: () => alert('계정 탈퇴 클릭됨'),
   },
 };
 
@@ -62,21 +96,30 @@ const mockUsers: User[] = [
 ];
 
 /**
- * 기본 상태의 스토리입니다.
- * 가상 사용자 목록이 정상적으로 표시되는지 확인합니다.
+ * **기본 상태 (Default)**
+ *
+ * - 가상 사용자 목록이 표시됩니다.
+ * - 반응형 뷰포트를 조절하며 각 브레이크포인트에서의 변화를 확인할 수 있습니다.
  */
 export const Default: Story = {
   args: {
     users: mockUsers,
   },
+  render: (args) => (
+    <UserList users={args.users} onRoleChange={args.onRoleChange} onDelete={args.onDelete} />
+  ),
 };
 
 /**
- * 데이터가 없을 때의 스토리입니다.
- * 사용자 목록이 비어있을 때 안내 메시지가 표시되어야 합니다.
+ * **데이터가 없는 상태 (Empty)**
+ *
+ * - 사용자 목록이 비어있을 경우 메시지가 표시됩니다.
  */
 export const Empty: Story = {
   args: {
     users: [],
   },
+  render: (args) => (
+    <UserList users={args.users} onRoleChange={args.onRoleChange} onDelete={args.onDelete} />
+  ),
 };

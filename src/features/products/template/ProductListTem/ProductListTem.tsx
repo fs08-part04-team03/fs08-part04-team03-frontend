@@ -19,6 +19,7 @@ import Breadcrumb, { BreadcrumbItem } from '@/components/molecules/Breadcrumb/Br
 import DropDown, { Option } from '@/components/atoms/DropDown/DropDown';
 import { Divider } from '@/components/atoms/Divider/Divider';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
+import ProductListRowSkeleton from '@/components/molecules/ProductListRowSkeleton/ProductListRowSkeleton';
 import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBlock';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import ProductModal from '@/components/molecules/ProductModal/ProductModal';
@@ -48,6 +49,7 @@ interface ProductListTemProps {
 
   companyId: string;
   wishlistData?: GetWishlistResponse;
+  isLoading?: boolean;
 }
 
 /* =====================
@@ -85,6 +87,7 @@ const ProductListTem = ({
   products,
   companyId,
   wishlistData,
+  isLoading = false,
 }: ProductListTemProps) => {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -247,7 +250,6 @@ const ProductListTem = ({
                 <DropDown
                   items={sortOptions}
                   variant="small"
-                  buttonClassName="w-150"
                   selected={selectedSort}
                   onSelect={onChangeSort}
                 />
@@ -266,7 +268,7 @@ const ProductListTem = ({
               <div className="flex items-center justify-between pb-20">
                 <DropDown
                   items={sortOptions}
-                  variant="medium"
+                  variant="small"
                   selected={selectedSort}
                   onSelect={onChangeSort}
                 />
@@ -280,7 +282,9 @@ const ProductListTem = ({
 
           <Divider className="mb-20 tablet:mb-30" />
 
-          {isEmpty ? (
+          {isLoading && <ProductListRowSkeleton rows={itemsPerPage} />}
+
+          {!isLoading && isEmpty && (
             <div className="flex items-center justify-center h-522 tablet:h-604 desktop:h-938">
               <StatusNotice
                 title="등록된 상품이 없습니다"
@@ -289,7 +293,9 @@ const ProductListTem = ({
                 onButtonClick={() => setModalOpen(true)}
               />
             </div>
-          ) : (
+          )}
+
+          {!isLoading && !isEmpty && (
             <div
               className={clsx(
                 'grid',

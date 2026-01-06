@@ -1,12 +1,17 @@
 'use client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
-import { getApiUrl } from '@/utils/api';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
-import type { OrderCompletedItem } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
+import { logger } from '@/utils/logger';
+import { useAuthStore } from '@/lib/store/authStore';
+import { ROLE_LEVEL } from '@/utils/auth';
+import type {
+  OrderCompletedItem,
+  CartRole,
+} from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import OrderConfirmedTem from '../template/OrderConfirmedTem/OrderConfirmedTem';
 
 const OrderConfirmedSection = () => {
@@ -15,6 +20,13 @@ const OrderConfirmedSection = () => {
   const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
   const purchaseId = searchParams.get('id');
+  const { user } = useAuthStore();
+
+  // 사용자 역할에 따른 cartRole 결정
+  const cartRole: CartRole = useMemo(() => {
+    if (!user?.role) return 'user';
+    return ROLE_LEVEL[user.role] >= ROLE_LEVEL.manager ? 'manager' : 'user';
+  }, [user?.role]);
 
   // purchase ID로 구매 요청 상세 조회
   const {
@@ -29,22 +41,34 @@ const OrderConfirmedSection = () => {
       }
       try {
         const result = await getMyPurchaseDetail(purchaseId);
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('[OrderConfirmedSection] Purchase 조회 성공:', result);
-        }
         return result;
       } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('[OrderConfirmedSection] Purchase 조회 실패:', err);
-        }
+        logger.error('Failed to fetch purchase detail', {
+          hasError: true,
+          errorType: err instanceof Error ? err.constructor.name : 'Unknown',
+        });
         throw err;
       }
     },
     enabled: !!purchaseId,
     retry: false, // 에러 시 재시도하지 않음
   });
+
+  // 클라이언트 사이드에서만 이미지 URL 구성 (SSR 하이드레이션 불일치 방지)
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!purchaseData?.purchaseItems || typeof window === 'undefined') return;
+
+    const urls = purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
+      if (item.products.image) {
+        acc[item.products.id] =
+          `${window.location.origin}/api/product/image?key=${encodeURIComponent(item.products.image)}`;
+      }
+      return acc;
+    }, {});
+    setImageUrls(urls);
+  }, [purchaseData]);
 
   // PurchaseRequestItem을 OrderCompletedItem으로 변환
   const items: OrderCompletedItem[] = useMemo(() => {
@@ -55,44 +79,25 @@ const OrderConfirmedSection = () => {
       name: item.products.name,
       unitPrice: item.priceSnapshot,
       quantity: item.quantity,
-      imageSrc: item.products.image ? `${getApiUrl()}/uploads/${item.products.image}` : undefined,
+      imageSrc: imageUrls[item.products.id] || '',
     }));
-  }, [purchaseData]);
+  }, [purchaseData, imageUrls]);
 
   const requestMessage = purchaseData?.requestMessage || '';
-
-  // 디버깅 로그
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('[OrderConfirmedSection] 상태:', {
-        purchaseId,
-        isLoading,
-        hasError: !!error,
-        error,
-        hasData: !!purchaseData,
-        itemsLength: items.length,
-      });
-    }
-  }, [purchaseId, isLoading, error, purchaseData, items]);
 
   // purchase ID가 없거나 에러가 발생하거나 데이터가 없으면 장바구니로 리다이렉트
   useEffect(() => {
     if (!purchaseId) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[OrderConfirmedSection] Purchase ID가 없어서 장바구니로 리다이렉트');
-      }
       if (companyId) {
         router.push(`/${companyId}/cart`);
       }
       return;
     }
     if (error && !isLoading) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[OrderConfirmedSection] Purchase 조회 에러:', error);
-      }
+      logger.error('Purchase fetch error in OrderConfirmedSection', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
       if (companyId) {
         router.push(`/${companyId}/cart`);
       }
@@ -104,13 +109,6 @@ const OrderConfirmedSection = () => {
       purchaseData &&
       (!purchaseData.purchaseItems || purchaseData.purchaseItems.length === 0)
     ) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log(
-          '[OrderConfirmedSection] PurchaseItems가 없어서 장바구니로 리다이렉트:',
-          purchaseData
-        );
-      }
       if (companyId) {
         router.push(`/${companyId}/cart`);
       }
@@ -156,7 +154,7 @@ const OrderConfirmedSection = () => {
 
   return (
     <OrderConfirmedTem
-      cartRole="user"
+      cartRole={cartRole}
       userType="default"
       items={items}
       shippingFee={purchaseData?.shippingFee || 0}

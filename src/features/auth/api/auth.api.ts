@@ -4,6 +4,7 @@ import type { User } from '@/lib/store/authStore';
 import { useAuthStore } from '@/lib/store/authStore';
 import { AUTH_API_PATHS, HTTP_HEADERS } from '@/features/auth/utils/constants';
 import { getApiTimeout, getApiUrl } from '@/utils/api';
+import { logger } from '@/utils/logger';
 
 /**
  * 회원가입 API 요청 타입
@@ -11,6 +12,7 @@ import { getApiTimeout, getApiUrl } from '@/utils/api';
  */
 type SignupRequest = Omit<SignupInput, 'confirmPassword'> & {
   passwordConfirm: string;
+  imageKey?: string;
 };
 
 /**
@@ -118,15 +120,7 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     password: credentials.password,
   };
 
-  // 개발 환경에서만 요청 정보 로그
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('로그인 API 요청:', {
-      url: requestUrl,
-      method: 'POST',
-      body: { ...requestBody, password: '***' }, // 비밀번호는 마스킹
-    });
-  }
+  // 개발 환경에서 요청 정보 로그 제거 (의미 없는 디버그 로그)
 
   let response: Response;
   try {
@@ -148,16 +142,11 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
         `요청 시간이 초과되었습니다. (${timeoutSeconds}초) 서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.`
       );
     }
-    // 개발 환경에서만 에러 로그
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('로그인 API 요청 실패:', {
-        error,
-        errorName: error instanceof Error ? error.name : 'Unknown',
-        errorMessage: error instanceof Error ? error.message : String(error),
-        url: requestUrl,
-      });
-    }
+    logger.error('Login API request failed', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      errorName: error instanceof Error ? error.name : 'Unknown',
+    });
     // Failed to fetch 에러 처리
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       const errorMessage =
@@ -198,25 +187,11 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
   // 응답이 JSON인지 확인
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
-    // 개발 환경에서만 상세 에러 로그
-    if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
-      console.error('로그인 API 응답 형식 오류:', {
-        status: response.status,
-        statusText: response.statusText,
-        contentType,
-        body: responseText,
-        url: `${apiUrl}${AUTH_API_PATHS.LOGIN}`,
-      });
-    } else {
-      // 프로덕션에서는 민감한 정보 없이 요약만 로그
-      // eslint-disable-next-line no-console
-      console.error('로그인 API 응답 형식 오류:', {
-        status: response.status,
-        statusText: response.statusText,
-        contentType,
-      });
-    }
+    logger.error('Login API response format error', {
+      status: response.status,
+      statusText: response.statusText,
+      hasContentType: !!contentType,
+    });
     throw new Error('서버 응답 형식이 올바르지 않습니다.');
   }
 
@@ -224,24 +199,12 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
   try {
     result = JSON.parse(responseText) as ApiResponse<LoginResponseData>;
   } catch (parseError) {
-    // 개발 환경에서만 상세 에러 로그
-    if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
-      console.error('로그인 JSON 파싱 오류:', {
-        parseError,
-        responseText,
-        status: response.status,
-        statusText: response.statusText,
-      });
-    } else {
-      // 프로덕션에서는 민감한 정보 없이 요약만 로그
-      // eslint-disable-next-line no-console
-      console.error('로그인 JSON 파싱 오류:', {
-        parseError: parseError instanceof Error ? parseError.message : 'Unknown error',
-        status: response.status,
-        statusText: response.statusText,
-      });
-    }
+    logger.error('Login JSON parsing error', {
+      hasError: true,
+      errorType: parseError instanceof Error ? parseError.constructor.name : 'Unknown',
+      status: response.status,
+      statusText: response.statusText,
+    });
     throw new Error('서버 응답을 파싱할 수 없습니다.');
   }
 
@@ -256,19 +219,12 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
         ? result.error.details.map((d) => `${d.field}: ${d.message}`).join(', ')
         : undefined;
 
-    // 개발 환경에서만 상세 에러 로그
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('로그인 실패 응답:', {
-        success: result.success,
-        responseOk: response.ok,
-        status: response.status,
-        statusText: response.statusText,
-        errorMessage,
-        errorDetails,
-        fullResult: result,
-      });
-    }
+    logger.error('Login failed', {
+      status: response.status,
+      statusText: response.statusText,
+      hasErrorMessage: !!errorMessage,
+      hasErrorDetails: !!errorDetails,
+    });
 
     // 에러 메시지에 상세 정보 포함
     const fullErrorMessage = errorDetails ? `${errorMessage} (${errorDetails})` : errorMessage;
@@ -330,16 +286,11 @@ export async function signup(
     if (error instanceof Error && error.name === 'AbortError') {
       throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
     }
-    // 개발 환경에서만 에러 로그
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('회원가입 API 요청 실패:', {
-        error,
-        errorName: error instanceof Error ? error.name : 'Unknown',
-        errorMessage: error instanceof Error ? error.message : String(error),
-        url: `${apiUrl}${AUTH_API_PATHS.ADMIN_REGISTER}`,
-      });
-    }
+    logger.error('Signup API request failed', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      errorName: error instanceof Error ? error.name : 'Unknown',
+    });
     // Failed to fetch 에러 처리
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       const errorMessage =
@@ -363,25 +314,11 @@ export async function signup(
   // 응답이 JSON인지 확인
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
-    // 개발 환경에서만 상세 에러 로그
-    if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
-      console.error('회원가입 API 응답 형식 오류:', {
-        status: response.status,
-        statusText: response.statusText,
-        contentType,
-        body: responseText,
-        url: `${apiUrl}${AUTH_API_PATHS.ADMIN_REGISTER}`,
-      });
-    } else {
-      // 프로덕션에서는 민감한 정보 없이 요약만 로그
-      // eslint-disable-next-line no-console
-      console.error('회원가입 API 응답 형식 오류:', {
-        status: response.status,
-        statusText: response.statusText,
-        contentType,
-      });
-    }
+    logger.error('Signup API response format error', {
+      status: response.status,
+      statusText: response.statusText,
+      hasContentType: !!contentType,
+    });
     throw new Error('서버 응답 형식이 올바르지 않습니다.');
   }
 
@@ -389,24 +326,12 @@ export async function signup(
   try {
     result = JSON.parse(responseText) as ApiResponse<SignupResponseData>;
   } catch (parseError) {
-    // 개발 환경에서만 상세 에러 로그
-    if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
-      console.error('회원가입 JSON 파싱 오류:', {
-        parseError,
-        responseText,
-        status: response.status,
-        statusText: response.statusText,
-      });
-    } else {
-      // 프로덕션에서는 민감한 정보 없이 요약만 로그
-      // eslint-disable-next-line no-console
-      console.error('회원가입 JSON 파싱 오류:', {
-        parseError: parseError instanceof Error ? parseError.message : 'Unknown error',
-        status: response.status,
-        statusText: response.statusText,
-      });
-    }
+    logger.error('Signup JSON parsing error', {
+      hasError: true,
+      errorType: parseError instanceof Error ? parseError.constructor.name : 'Unknown',
+      status: response.status,
+      statusText: response.statusText,
+    });
     throw new Error('서버 응답을 파싱할 수 없습니다.');
   }
 
@@ -421,19 +346,12 @@ export async function signup(
         ? result.error.details.map((d) => `${d.field}: ${d.message}`).join(', ')
         : undefined;
 
-    // 개발 환경에서만 상세 에러 로그
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('회원가입 실패 응답:', {
-        success: result.success,
-        responseOk: response.ok,
-        status: response.status,
-        statusText: response.statusText,
-        errorMessage,
-        errorDetails,
-        fullResult: result,
-      });
-    }
+    logger.error('Signup failed', {
+      status: response.status,
+      statusText: response.statusText,
+      hasErrorMessage: !!errorMessage,
+      hasErrorDetails: !!errorDetails,
+    });
 
     const fullErrorMessage = errorDetails ? `${errorMessage} (${errorDetails})` : errorMessage;
 
@@ -508,16 +426,11 @@ export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoRespon
   // 응답이 JSON인지 확인
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
-    // 개발 환경에서만 상세 에러 로그
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('API 응답 형식 오류:', {
-        status: response.status,
-        statusText: response.statusText,
-        contentType,
-        body: responseText,
-      });
-    }
+    logger.error('API response format error in getInviteInfo', {
+      status: response.status,
+      statusText: response.statusText,
+      hasContentType: !!contentType,
+    });
     throw new Error('서버 응답 형식이 올바르지 않습니다.');
   }
 
@@ -525,14 +438,10 @@ export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoRespon
   try {
     result = JSON.parse(responseText) as ApiResponse<InviteInfoResponseData>;
   } catch (parseError) {
-    // 개발 환경에서만 상세 에러 로그
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('JSON 파싱 오류:', {
-        parseError,
-        responseText,
-      });
-    }
+    logger.error('JSON parsing error in getInviteInfo', {
+      hasError: true,
+      errorType: parseError instanceof Error ? parseError.constructor.name : 'Unknown',
+    });
     throw new Error('서버 응답을 파싱할 수 없습니다.');
   }
 
@@ -606,16 +515,11 @@ export async function inviteSignup(
     if (error instanceof Error && error.name === 'AbortError') {
       throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
     }
-    // 개발 환경에서만 에러 로그
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('초대 회원가입 API 요청 실패:', {
-        error,
-        errorName: error instanceof Error ? error.name : 'Unknown',
-        errorMessage: error instanceof Error ? error.message : String(error),
-        url: `${apiUrl}${AUTH_API_PATHS.REGISTER}`,
-      });
-    }
+    logger.error('Invite signup API request failed', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      errorName: error instanceof Error ? error.name : 'Unknown',
+    });
     // Failed to fetch 에러 처리
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       const errorMessage =
@@ -657,19 +561,12 @@ export async function inviteSignup(
         ? result.error.details.map((d) => `${d.field}: ${d.message}`).join(', ')
         : undefined;
 
-    // 개발 환경에서만 상세 에러 로그
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('초대 회원가입 실패 응답:', {
-        success: result.success,
-        responseOk: response.ok,
-        status: response.status,
-        statusText: response.statusText,
-        errorMessage,
-        errorDetails,
-        fullResult: result,
-      });
-    }
+    logger.error('Invite signup failed', {
+      status: response.status,
+      statusText: response.statusText,
+      hasErrorMessage: !!errorMessage,
+      hasErrorDetails: !!errorDetails,
+    });
 
     const fullErrorMessage = errorDetails ? `${errorMessage} (${errorDetails})` : errorMessage;
     throw new Error(fullErrorMessage);

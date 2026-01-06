@@ -92,9 +92,7 @@ export const DefaultWithManager: Story = {
     purchaseCount: 29,
     price: 2000,
     type: 'default',
-    onMenuClick: (action) => {
-      console.log('menu action:', action);
-    },
+    onMenuClick: () => {},
   },
   decorators: [withAuth('manager')],
   parameters: {
@@ -116,9 +114,7 @@ export const DefaultWithAdmin: Story = {
     purchaseCount: 29,
     price: 2000,
     type: 'default',
-    onMenuClick: (action) => {
-      console.log('menu action:', action);
-    },
+    onMenuClick: () => {},
   },
   decorators: [withAuth('admin')],
   parameters: {
@@ -140,9 +136,7 @@ export const DefaultWithUser: Story = {
     purchaseCount: 29,
     price: 2000,
     type: 'default',
-    onMenuClick: (action) => {
-      console.log('menu action:', action);
-    },
+    onMenuClick: () => {},
   },
   decorators: [withAuth('user')],
   parameters: {
@@ -164,9 +158,7 @@ export const Simple: Story = {
     purchaseCount: 29,
     price: 2000,
     type: 'simple',
-    onMenuClick: (action) => {
-      console.log('menu action:', action);
-    },
+    onMenuClick: () => {},
   },
   decorators: [withAuth('manager')],
   parameters: {

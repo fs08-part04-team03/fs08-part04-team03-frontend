@@ -21,6 +21,8 @@ export interface DetailPageLayoutProps {
     width?: number;
     height?: number;
   };
+  // eslint-disable-next-line react/no-unused-prop-types
+  productImageKey?: string | null; // 이미지 키 (URL 파싱 방지용, ProductEditModal에 전달용)
   productDetailHeader: ProductDetailHeaderProps & {
     type?: 'default' | 'simple';
   };
