@@ -75,6 +75,7 @@ const AdminUsersTemplate = ({
                 defaultValue={searchQuery}
                 onSearch={onSearchChange}
                 className="w-full"
+                instant
               />
             </div>
 
