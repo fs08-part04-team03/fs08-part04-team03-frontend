@@ -26,6 +26,14 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
     return '일반';
   };
 
+  // 권한 설정 (일반/관리자로 표시)
+  const getBadgeRole = (role: string): RoleBadgeRole => {
+    if (role === 'MANAGER' || role === 'ADMIN') {
+      return 'manager';
+    }
+    return 'user';
+  };
+
   // 사용자 목록이 없을 때
   if (users.length === 0) {
     return (
@@ -72,9 +80,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
                   <span className="text-gray-950 text-16 font-bold tracking-tight">
                     {user.name}
                   </span>
-                  <RoleBadge role={user.role.toLowerCase() as RoleBadgeRole}>
-                    {getRoleLabel(user.role)}
-                  </RoleBadge>
+                  <RoleBadge role={getBadgeRole(user.role)}>{getRoleLabel(user.role)}</RoleBadge>
                 </div>
                 <span className="w-[172px] text-gray-950 text-16 font-normal tracking-tight truncate">
                   {user.email}
@@ -119,9 +125,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
 
               {/* 권한 */}
               <div className="w-[72px] shrink-0 flex justify-center">
-                <RoleBadge role={user.role.toLowerCase() as RoleBadgeRole}>
-                  {getRoleLabel(user.role)}
-                </RoleBadge>
+                <RoleBadge role={getBadgeRole(user.role)}>{getRoleLabel(user.role)}</RoleBadge>
               </div>
 
               {/* 비고 */}
