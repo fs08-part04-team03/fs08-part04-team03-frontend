@@ -4,7 +4,6 @@ import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import { PurchaseRequestDetailTopOrg } from '@/features/purchase/components/PurchaseRequestDetailTopOrg/PurchaseRequestDetailTopOrg';
 import PurchaseRequestDetailOrg from '@/features/purchase/components/PurchaseRequestDetailOrg/PurchaseRequestDetailOrg';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
-import { getApiUrl } from '@/utils/api';
 import { logger } from '@/utils/logger';
 import PurchaseRequestDetailActionsOrg from '../../components/PurchaseRequestDetailActionsOrg/PurchaseRequestDetailActionsOrg';
 
@@ -75,12 +74,16 @@ const PurchaseRequestDetailTem = ({
           hasItemId: !!item.id,
         });
       }
+      // buildImageUrl은 async이므로 직접 URL 구성
+      const imageSrc = item.products.image
+        ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(item.products.image)}`
+        : '';
       return {
         id: Number.isNaN(parsedId) ? 0 : parsedId,
         title: item.products.name,
         price: item.priceSnapshot,
         quantity: item.quantity,
-        imageSrc: item.products.image ? `${getApiUrl()}/uploads/${item.products.image}` : undefined,
+        imageSrc,
       };
     }),
     deliveryFee: purchaseRequest.shippingFee,
