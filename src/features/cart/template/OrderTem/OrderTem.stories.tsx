@@ -88,7 +88,6 @@ userType="request"
 
 ---
 
-
 ### 사용 위치
 
 - Next.js Page / Route Segment 레벨
@@ -110,11 +109,7 @@ export const UserRequest: Story = {
   args: {
     items: mockItems,
     shippingFee: 3_000,
-    onGoCart: () => {
-      console.log('Go back to cart');
-    },
-    onGoOrderHistory: () => {
-      console.log('Go to order history');
-    },
+    onGoCart: () => {},
+    onGoOrderHistory: () => {},
   },
 };
