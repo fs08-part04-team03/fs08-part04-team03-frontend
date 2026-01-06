@@ -128,7 +128,7 @@ const DropDown: React.FC<DropDownProps> = ({
   };
 
   /** ✅ z-index 클래스 */
-  const zIndexClass = inModal ? 'z-modaldropdown' : 'z-dropdown';
+  const zIndexClass = inModal ? 'z-[var(--z-modaldropdown)]' : 'z-[var(--z-dropdown)]';
 
   return (
     <>
