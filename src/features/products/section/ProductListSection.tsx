@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ProductListTem from '@/features/products/template/ProductListTem/ProductListTem';
-import { CATEGORY_SECTIONS, BREADCRUMB_ITEMS, LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
+import { CATEGORY_SECTIONS, BREADCRUMB_ITEMS, ERROR_MESSAGES } from '@/constants';
 import { Option } from '@/components/atoms/DropDown/DropDown';
 import {
   mapBackendProductToTemplate,
@@ -106,15 +106,6 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     },
   ];
 
-  // 로딩 중일 때
-  if (isLoading) {
-    return (
-      <div className="mt-12 md:mt-20 flex items-center justify-center min-h-screen">
-        <p>{LOADING_MESSAGES.DEFAULT}</p>
-      </div>
-    );
-  }
-
   // 에러 발생 시
   if (error) {
     return (
@@ -135,9 +126,10 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
         sortOptions={SORT_OPTIONS}
         selectedSort={selectedSort}
         onChangeSort={setSelectedSort}
-        products={products}
+        products={isLoading ? [] : products}
         companyId={companyId}
         wishlistData={wishlistData}
+        isLoading={isLoading}
       />
     </div>
   );

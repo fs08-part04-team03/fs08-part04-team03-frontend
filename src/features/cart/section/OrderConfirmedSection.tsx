@@ -1,10 +1,9 @@
 'use client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
-import { buildImageUrl } from '@/utils/api';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import { logger } from '@/utils/logger';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -55,6 +54,22 @@ const OrderConfirmedSection = () => {
     retry: false, // 에러 시 재시도하지 않음
   });
 
+  // 클라이언트 사이드에서만 이미지 URL 구성 (SSR 하이드레이션 불일치 방지)
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!purchaseData?.purchaseItems || typeof window === 'undefined') return;
+
+    const urls = purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
+      if (item.products.image) {
+        acc[item.products.id] =
+          `${window.location.origin}/api/product/image?key=${encodeURIComponent(item.products.image)}`;
+      }
+      return acc;
+    }, {});
+    setImageUrls(urls);
+  }, [purchaseData]);
+
   // PurchaseRequestItem을 OrderCompletedItem으로 변환
   const items: OrderCompletedItem[] = useMemo(() => {
     if (!purchaseData?.purchaseItems) return [];
@@ -64,9 +79,9 @@ const OrderConfirmedSection = () => {
       name: item.products.name,
       unitPrice: item.priceSnapshot,
       quantity: item.quantity,
-      imageSrc: buildImageUrl(item.products.image),
+      imageSrc: imageUrls[item.products.id] || '',
     }));
-  }, [purchaseData]);
+  }, [purchaseData, imageUrls]);
 
   const requestMessage = purchaseData?.requestMessage || '';
 

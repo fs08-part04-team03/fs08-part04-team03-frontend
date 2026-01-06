@@ -1,5 +1,4 @@
 import type { OrderItem } from '@/features/cart/components/CartSummaryBlockOrg/CartSummaryBlockOrg';
-import { getApiUrl } from '@/utils/api';
 import type { CartItem } from '../api/cart.api';
 
 /**
@@ -16,5 +15,8 @@ export const adaptCartItemToOrderItem = (item: CartItem): OrderItem => ({
   name: item.product.name,
   price: item.product.price, // ✅ unitPrice → price
   quantity: item.quantity,
-  imageSrc: item.product.image ? `${getApiUrl()}/uploads/${item.product.image}` : undefined,
+  // buildImageUrl은 async이므로 직접 URL 구성
+  imageSrc: item.product.image
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(item.product.image)}`
+    : '',
 });

@@ -27,6 +27,7 @@ export interface UpdateProfileResponse {
 export interface UpdateAdminProfileInput {
   companyName?: string;
   password?: string;
+  image?: string;
 }
 
 /**
@@ -35,6 +36,7 @@ export interface UpdateAdminProfileInput {
  */
 export interface UpdateUserProfileInput {
   password?: string;
+  image?: string;
 }
 
 /**
@@ -198,7 +200,7 @@ export async function updateAdminProfile(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const requestBody: { companyName?: string; password?: string } = {};
+    const requestBody: { companyName?: string; password?: string; image?: string } = {};
 
     if (data.companyName && data.companyName.trim() !== '') {
       requestBody.companyName = data.companyName;
@@ -206,6 +208,10 @@ export async function updateAdminProfile(
 
     if (data.password && data.password.trim() !== '') {
       requestBody.password = data.password;
+    }
+
+    if (data.image) {
+      requestBody.image = data.image;
     }
 
     const response = await fetch(`${apiUrl}/api/v1/user/admin/profile`, {
@@ -270,10 +276,14 @@ export async function updateUserProfile(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const requestBody: { password?: string } = {};
+    const requestBody: { password?: string; image?: string } = {};
 
     if (data.password && data.password.trim() !== '') {
       requestBody.password = data.password;
+    }
+
+    if (data.image) {
+      requestBody.image = data.image;
     }
 
     const response = await fetch(`${apiUrl}/api/v1/user/me/profile`, {

@@ -139,6 +139,8 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
         fill
         className="object-contain"
         unoptimized
+        loading="eager"
+        priority
       />
     );
   }

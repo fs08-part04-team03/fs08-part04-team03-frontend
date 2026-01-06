@@ -149,7 +149,13 @@ export const NumberInput: React.FC<NumberInputProps> = ({
               'transition-transform active:scale-90 rounded-b-none -mb-1 cursor-pointer'
             )}
           >
-            <Image src="/icons/arrow-up.svg" alt="값 증가" width={10} height={10} />
+            <Image
+              src="/icons/arrow-up.svg"
+              alt="값 증가"
+              width={10}
+              height={10}
+              style={{ width: 'auto', height: 'auto' }}
+            />
           </IconButton>
           <IconButton
             size="sm"
@@ -161,7 +167,13 @@ export const NumberInput: React.FC<NumberInputProps> = ({
               'transition-transform active:scale-90 rounded-t-none -mt-1 cursor-pointer'
             )}
           >
-            <Image src="/icons/arrow-down.svg" alt="값 감소" width={10} height={10} />
+            <Image
+              src="/icons/arrow-down.svg"
+              alt="값 감소"
+              width={10}
+              height={10}
+              style={{ width: 'auto', height: 'auto' }}
+            />
           </IconButton>
         </div>
       </div>

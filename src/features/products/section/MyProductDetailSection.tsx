@@ -18,7 +18,6 @@ import {
   getCategoryLabelById,
   getSubCategoryLabelById,
 } from '@/constants';
-import { getApiUrl } from '@/utils/api';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
 import { useToast } from '@/hooks/useToast';
@@ -142,8 +141,9 @@ const MyProductDetailSection = () => {
         : []),
     ];
 
+    // buildImageUrl은 async이므로 직접 URL 구성
     const imageUrl = product.image
-      ? `${getApiUrl()}/uploads/${product.image}`
+      ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(product.image)}`
       : '/icons/no-image.svg';
 
     return {

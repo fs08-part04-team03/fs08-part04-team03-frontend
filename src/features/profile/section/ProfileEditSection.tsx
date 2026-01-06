@@ -9,6 +9,7 @@ import { getCompany } from '@/features/profile/api/company.api';
 import { updateAdminProfile, updateUserProfile } from '@/features/profile/api/profile.api';
 import { logger } from '@/utils/logger';
 import ProfileEditTemplate from '@/features/profile/template/ProfileEditTemplate';
+import { useImageUpload } from '@/hooks/useImageUpload';
 
 const getRoleDisplayName = (role?: string) => {
   switch (role) {
@@ -28,6 +29,8 @@ const ProfileEditSection = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const { user, accessToken } = useAuthStore();
+  const { preview, uploadedImageKey, isUploading, handleImageChange, resetImage } =
+    useImageUpload();
 
   const form = useForm<ProfileEditInput>({
     resolver: zodResolver(profileEditSchema),
@@ -62,6 +65,7 @@ const ProfileEditSection = () => {
 
     // eslint-disable-next-line no-void
     void fetchCompanyData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]); // form.setValue는 안정적인 참조를 가짐
 
   useEffect(() => {
@@ -84,12 +88,13 @@ const ProfileEditSection = () => {
       const isAdmin = user.role === 'admin';
 
       if (isAdmin) {
-        // ADMIN: 회사명 + 비밀번호 변경 가능
+        // ADMIN: 회사명 + 비밀번호 + 프로필 이미지 변경 가능
         // 엔드포인트: PATCH /api/v1/user/admin/profile
         const hasCompanyNameChange = values.companyName && values.companyName.trim() !== '';
         const hasPasswordChange = values.password && values.password.trim() !== '';
+        const hasImageChange = uploadedImageKey !== null;
 
-        if (!hasCompanyNameChange && !hasPasswordChange) {
+        if (!hasCompanyNameChange && !hasPasswordChange && !hasImageChange) {
           throw new Error('변경할 내용을 입력해주세요.');
         }
 
@@ -97,21 +102,24 @@ const ProfileEditSection = () => {
           {
             companyName: hasCompanyNameChange ? values.companyName : undefined,
             password: hasPasswordChange ? values.password : undefined,
+            image: hasImageChange ? uploadedImageKey : undefined,
           },
           accessToken
         );
       } else {
-        // USER, MANAGER: 비밀번호만 변경 가능
+        // USER, MANAGER: 비밀번호 + 프로필 이미지 변경 가능
         // 엔드포인트: PATCH /api/v1/user/me/profile
         const hasPasswordChange = values.password && values.password.trim() !== '';
+        const hasImageChange = uploadedImageKey !== null;
 
-        if (!hasPasswordChange) {
+        if (!hasPasswordChange && !hasImageChange) {
           throw new Error('변경할 내용을 입력해주세요.');
         }
 
         await updateUserProfile(
           {
-            password: values.password,
+            password: hasPasswordChange ? values.password : undefined,
+            image: hasImageChange ? uploadedImageKey : undefined,
           },
           accessToken
         );
@@ -125,6 +133,7 @@ const ProfileEditSection = () => {
         password: '',
         passwordConfirm: '',
       });
+      resetImage();
     } catch (error) {
       logger.error('Profile update failed', {
         hasError: true,
@@ -148,6 +157,9 @@ const ProfileEditSection = () => {
       toastMessage={toastMessage}
       setShowToast={setShowToast}
       isAdmin={user?.role === 'admin'}
+      preview={preview}
+      onImageChange={handleImageChange}
+      isUploading={isUploading}
     />
   );
 };
