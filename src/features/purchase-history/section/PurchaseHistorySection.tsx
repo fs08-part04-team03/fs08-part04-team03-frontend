@@ -12,7 +12,7 @@ import {
 import PurchaseHistoryTem from '@/features/purchase-history/template/PurchaseHistoryTem/PurchaseHistoryTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import { COMMON_SORT_OPTIONS, DEFAULT_SORT_KEY } from '@/constants/sort';
-import { QUERY_STALE_TIME_BUDGET, LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
+import { QUERY_STALE_TIME_BUDGET, ERROR_MESSAGES } from '@/constants';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
 
@@ -178,15 +178,6 @@ const PurchaseHistorySection = () => {
     setCurrentPage(page);
   };
 
-  // 로딩 중일 때
-  if (isPurchaseLoading || isBudgetLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>{LOADING_MESSAGES.DEFAULT}</p>
-      </div>
-    );
-  }
-
   // 에러 발생 시
   if (purchaseError || budgetError) {
     return (
@@ -215,6 +206,7 @@ const PurchaseHistorySection = () => {
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
+        isLoading={isPurchaseLoading || isBudgetLoading}
       />
       {showToast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-toast">

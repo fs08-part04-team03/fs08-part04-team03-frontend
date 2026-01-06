@@ -10,7 +10,6 @@ import {
   PURCHASE_REQUEST_STATUS_OPTIONS,
   SUCCESS_MESSAGES,
   PURCHASE_ERROR_MESSAGES,
-  LOADING_MESSAGES,
   ERROR_MESSAGES,
 } from '@/constants';
 import { COMMON_SORT_OPTIONS, DEFAULT_SORT_KEY } from '@/constants/sort';
@@ -132,14 +131,6 @@ const MyPurchaseRequestListSection = () => {
     }
   }, [cancelTargetItem, refetch, triggerToast]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>{LOADING_MESSAGES.DEFAULT}</p>
-      </div>
-    );
-  }
-
   if (queryError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -148,12 +139,8 @@ const MyPurchaseRequestListSection = () => {
     );
   }
 
-  if (!data) {
-    return null;
-  }
-
   // 페이지당 6개만 표시
-  const displayList = data.purchaseList.slice(0, 6);
+  const displayList = data?.purchaseList.slice(0, 6) || [];
 
   return (
     <div className="w-full">
@@ -164,8 +151,8 @@ const MyPurchaseRequestListSection = () => {
         cancelTargetItem={cancelTargetItem}
         onCancelModalClose={handleCancelModalClose}
         onCancelConfirm={handleCancelConfirm}
-        currentPage={data.currentPage}
-        totalPages={data.totalPages}
+        currentPage={data?.currentPage}
+        totalPages={data?.totalPages}
         onPageChange={handlePageChange}
         sortOptions={COMMON_SORT_OPTIONS}
         selectedSortOption={selectedSortOption}
@@ -173,6 +160,7 @@ const MyPurchaseRequestListSection = () => {
         statusOptions={PURCHASE_REQUEST_STATUS_OPTIONS}
         selectedStatusOption={selectedStatusOption}
         onStatusChange={handleStatusChange}
+        isLoading={isLoading}
       />
       {/* Toast */}
       {showToast && (

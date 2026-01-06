@@ -1,4 +1,5 @@
 import type { UserRole } from '@/constants/roles';
+import { logger } from '@/utils/logger';
 
 interface ErrorResponse {
   success: boolean;
@@ -37,8 +38,10 @@ export async function setAuthCookies(
       throw new Error(errorMessage);
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('쿠키 설정 실패:', error);
+    logger.error('Failed to set auth cookies', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+    });
     throw error;
   }
 }
@@ -64,8 +67,10 @@ export async function clearAuthCookies(): Promise<void> {
       throw new Error(errorMessage);
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('쿠키 삭제 실패:', error);
+    logger.error('Failed to clear auth cookies', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+    });
     throw error;
   }
 }

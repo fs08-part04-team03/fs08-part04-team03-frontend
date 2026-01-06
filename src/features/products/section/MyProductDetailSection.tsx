@@ -18,7 +18,6 @@ import {
   getCategoryLabelById,
   getSubCategoryLabelById,
 } from '@/constants';
-import { getApiUrl } from '@/utils/api';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
 import { useToast } from '@/hooks/useToast';
@@ -142,8 +141,9 @@ const MyProductDetailSection = () => {
         : []),
     ];
 
+    // 상대 경로 사용 (SSR 하이드레이션 불일치 방지)
     const imageUrl = product.image
-      ? `${getApiUrl()}/uploads/${product.image}`
+      ? `/api/product/image?key=${encodeURIComponent(product.image)}`
       : '/icons/no-image.svg';
 
     return {
@@ -152,6 +152,7 @@ const MyProductDetailSection = () => {
         src: imageUrl,
         alt: product.name,
       },
+      productImageKey: product.image || null,
       productDetailHeader: {
         productName: product.name,
         price: product.price,

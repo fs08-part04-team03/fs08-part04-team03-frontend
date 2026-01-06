@@ -106,6 +106,7 @@ export const PurchaseHistoryDetailTopOrg = ({
             src="/icons/arrow-up.svg"
             width={12}
             className={clsx('transition-transform duration-200', isOpen && 'rotate-180')}
+            style={{ width: 'auto', height: 'auto' }}
           />
         </IconButton>
       </div>
