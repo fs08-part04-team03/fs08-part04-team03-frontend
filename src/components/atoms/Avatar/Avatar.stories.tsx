@@ -63,10 +63,7 @@ export const BgColorGray50: Story = {
 export const Clickable: Story = {
   args: {
     size: 32,
-    onClick: () => {
-      // eslint-disable-next-line no-console
-      console.log('Avatar clicked');
-    },
+    onClick: () => {},
   },
 };
 
