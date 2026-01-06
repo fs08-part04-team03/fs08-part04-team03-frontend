@@ -23,7 +23,7 @@ import {
   getSubCategoryLabelById,
   PATHNAME,
 } from '@/constants';
-import { getApiUrl } from '@/utils/api';
+import { buildImageUrl } from '@/utils/api';
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
@@ -118,9 +118,9 @@ const ProductDetailSection = () => {
   // 장바구니 추가 mutation
   const addToCartMutation = useMutation({
     mutationFn: (qty: number) => cartApi.addToCart(Number(productId), qty),
-    onSuccess: () => {
-      // 캐시 즉시 제거하여 최신 데이터 보장
-      queryClient.removeQueries({ queryKey: ['cart'] });
+    onSuccess: async () => {
+      // 캐시 무효화하여 자동으로 최신 데이터를 다시 가져옴 (GNB 업데이트 포함)
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
       setIsCartAddSuccessModalOpen(true);
     },
     onError: () => {
@@ -202,9 +202,7 @@ const ProductDetailSection = () => {
         : []),
     ];
 
-    const imageUrl = product.image
-      ? `${getApiUrl()}/uploads/${product.image}`
-      : '/icons/no-image.svg';
+    const imageUrl = buildImageUrl(product.image) || '/icons/no-image.svg';
 
     return {
       breadcrumbItems,
@@ -256,6 +254,8 @@ const ProductDetailSection = () => {
         // 상품 상세와 목록 모두 invalidate하여 최신 데이터 보장
         await queryClient.invalidateQueries({ queryKey: ['product', productId] });
         await queryClient.invalidateQueries({ queryKey: ['products'] });
+        // 즉시 refetch하여 수정된 이미지가 바로 반영되도록 함
+        await queryClient.refetchQueries({ queryKey: ['product', productId] });
         setEditModalOpen(false);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : '상품 수정에 실패했습니다.';
@@ -349,7 +349,7 @@ const ProductDetailSection = () => {
             initialName={product?.name || ''}
             initialPrice={product?.price ? String(product.price) : ''}
             initialLink={initialLink}
-            initialImage={product?.image ? `${getApiUrl()}/uploads/${product.image}` : null}
+            initialImage={buildImageUrl(product?.image) || null}
             initialCategory={initialCategoryOption}
             initialSubCategory={initialSubCategoryOption}
           />

@@ -11,6 +11,7 @@ import { PARENT_CATEGORY_OPTIONS, CATEGORY_SECTIONS, type ParentCategoryKey } fr
 import { getChildById } from '@/constants/categories/categories.utils';
 import { useQuery } from '@tanstack/react-query';
 import { getProductById } from '@/features/products/api/products.api';
+import { cartApi } from '@/features/cart/api/cart.api';
 import { logger } from '@/utils/logger';
 import GNB from './GNB';
 
@@ -78,11 +79,19 @@ export const GNBWrapper: React.FC = () => {
     });
   };
 
-  // TODO: Cart API 연결 후 실제 데이터로 교체
-  // const { data: cartData } = useCartQuery();
-  // const cartCount = cartData?.totalItems || 0;
-
   const companyId = (params?.companyId as string) || user?.companyId || '';
+
+  // 장바구니 아이템 개수 조회
+  const { data: cartData } = useQuery({
+    queryKey: ['cart', 1, 1], // 장바구니 페이지와 동일한 queryKey 패턴 사용
+    queryFn: () => cartApi.getMyCart(1, 1), // 최소한의 데이터만 조회 (summary만 필요)
+    enabled: !!companyId && !!user, // companyId와 user가 있을 때만 조회
+    staleTime: 0, // 캐시 없이 항상 최신 데이터 사용
+    refetchOnWindowFocus: true, // 창 포커스 시 자동 refetch
+    refetchOnMount: true, // 마운트 시 항상 refetch
+  });
+
+  const cartCount = cartData?.summary?.totalItems || 0;
   const userProfile = user ? (
     <UserProfile
       name={user.name}
@@ -181,7 +190,7 @@ export const GNBWrapper: React.FC = () => {
   return (
     <GNB
       role={user?.role || 'user'}
-      cartCount={0}
+      cartCount={cartCount}
       onLogout={handleLogout}
       userProfile={userProfile}
       categories={isProductOrWishlistPage && activeCategoryId ? PARENT_CATEGORY_OPTIONS : undefined}
