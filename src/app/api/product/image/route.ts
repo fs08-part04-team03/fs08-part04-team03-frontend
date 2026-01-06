@@ -75,6 +75,12 @@ export async function POST(req: Request) {
   const url = new URL(req.url);
   const folder = url.searchParams.get('folder') || 'products';
 
+  // 허용된 폴더 검증
+  const allowedFolders = ['products', 'users', 'companies', 'misc'];
+  if (!allowedFolders.includes(folder)) {
+    return NextResponse.json({ success: false, message: 'Invalid folder' }, { status: 400 });
+  }
+
   let formData: FormData;
   try {
     formData = await req.formData();

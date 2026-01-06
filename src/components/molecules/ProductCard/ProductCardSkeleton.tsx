@@ -14,9 +14,8 @@ const ProductCardSkeleton = ({ variant = 'product', className }: ProductCardSkel
     'rounded-default bg-white text-left',
     'shadow-card',
 
-    // Product / Order
-    (variant === 'product' || variant === 'order') &&
-      'w-155 h-241 tablet:w-156 tablet:h-252 desktop:w-367 desktop:h-439',
+    // Product / Order - 이미지 + 텍스트를 수용할 수 있도록 h-auto 사용
+    (variant === 'product' || variant === 'order') && 'w-155 h-auto tablet:w-156 desktop:w-367',
 
     // Wishlist
     variant === 'wishlist' && 'w-155 h-251 tablet:w-219 tablet:h-315 desktop:w-373 desktop:h-445',
@@ -31,7 +30,7 @@ const ProductCardSkeleton = ({ variant = 'product', className }: ProductCardSkel
         className={clsx(
           'relative rounded-default bg-gray-50 flex items-center justify-center overflow-hidden',
           (variant === 'product' || variant === 'order') &&
-            'w-155 h-241 tablet:w-156 tablet:h-252 desktop:w-367 desktop:h-439',
+            'w-155 h-155 tablet:w-156 tablet:h-156 desktop:w-367 desktop:h-280',
           variant === 'wishlist' &&
             'w-155 h-155 tablet:w-219 tablet:h-219 desktop:w-373 desktop:h-373'
         )}
