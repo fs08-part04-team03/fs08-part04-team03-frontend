@@ -116,12 +116,8 @@ export const User: Story = {
     items: mockItems,
     shippingFee: 3_000,
     requestMessage: '문 앞에 놓아주세요.',
-    onGoCart: () => {
-      console.log('Go cart');
-    },
-    onGoOrderHistory: () => {
-      console.log('Go order history');
-    },
+    onGoCart: () => {},
+    onGoOrderHistory: () => {},
   },
 };
 
@@ -133,12 +129,8 @@ export const Manager: Story = {
     cartRole: 'manager',
     items: mockItems,
     shippingFee: 3_000,
-    onGoCart: () => {
-      console.log('Manager go cart');
-    },
-    onGoOrderHistory: () => {
-      console.log('Manager go order history');
-    },
+    onGoCart: () => {},
+    onGoOrderHistory: () => {},
   },
 };
 
@@ -150,11 +142,7 @@ export const Admin: Story = {
     cartRole: 'admin',
     items: mockItems,
     shippingFee: 3_000,
-    onGoCart: () => {
-      console.log('Admin go cart');
-    },
-    onGoOrderHistory: () => {
-      console.log('Admin go order history');
-    },
+    onGoCart: () => {},
+    onGoOrderHistory: () => {},
   },
 };
