@@ -12,8 +12,8 @@ import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBl
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
+import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
 import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
-import { getApiUrl } from '@/utils/api';
 
 const TABLE_CELL_BASE_STYLES = {
   header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 pl-20',
@@ -50,6 +50,7 @@ export interface PurchaseRequestListTemProps {
   sortOptions?: Option[];
   selectedSortOption?: Option;
   onSortChange?: (sort: string | undefined) => void;
+  isLoading?: boolean;
 }
 
 interface PurchaseRequestTableRowProps {
@@ -194,6 +195,7 @@ const PurchaseRequestListTem = ({
   sortOptions,
   selectedSortOption,
   onSortChange,
+  isLoading = false,
 }: PurchaseRequestListTemProps) => {
   const finalTotalPages = totalPages ?? 1;
 
@@ -222,40 +224,90 @@ const PurchaseRequestListTem = ({
             ? selectedRequest.requester.avatarSrc
             : undefined,
       },
-      items: selectedRequest.purchaseItems.map((item, index) => ({
-        id: index,
-        title: item.products.name,
-        price: item.priceSnapshot,
-        quantity: item.quantity,
-        imageSrc: item.products.image ? `${getApiUrl()}/uploads/${item.products.image}` : undefined,
-      })),
+      items: selectedRequest.purchaseItems.map((item, index) => {
+        // buildImageUrl은 async이므로 직접 URL 구성
+        const imageSrc = item.products.image
+          ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(item.products.image)}`
+          : '';
+        return {
+          id: index,
+          title: item.products.name,
+          price: item.priceSnapshot,
+          quantity: item.quantity,
+          imageSrc,
+        };
+      }),
       deliveryFee: selectedRequest.shippingFee,
       budget,
     };
   }, [selectedRequest, budget]);
 
+  const isEmpty = purchaseList.length === 0;
+  const shouldShowTableHeader = isLoading || !isEmpty;
+
+  const renderTableContent = () => {
+    if (isLoading) {
+      return <ListSkeletonUI rows={6} />;
+    }
+
+    if (isEmpty) {
+      return (
+        <div className="w-full mt-200 flex justify-center">
+          <StatusNotice
+            title="요청 내역이 없어요"
+            description="상품 리스트를 둘러보고
+상품을 담아보세요"
+            buttonText="상품 리스트로 이동"
+            onButtonClick={onNavigateToProducts}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full">
+        {purchaseList.map((item) => (
+          <PurchaseRequestTableRowDesktop
+            key={item.id}
+            item={item}
+            companyId={companyId}
+            onRejectClick={onRejectClick}
+            onApproveClick={onApproveClick}
+            onRowClick={onRowClick}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className={clsx('w-full', className)}>
       {/* 모바일 뷰 */}
       <div className="tablet:hidden">
-        {purchaseList.length === 0 ? (
-          <div className="w-full mt-200 flex justify-center">
-            <StatusNotice
-              title="구매 요청한 내역이 없어요"
-              description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-              buttonText="상품 리스트로 이동"
-              onButtonClick={onNavigateToProducts}
+        {(() => {
+          if (isLoading) return <ListSkeletonUI rows={6} />;
+          if (isEmpty) {
+            return (
+              <div className="w-full mt-200 flex justify-center">
+                <StatusNotice
+                  title="구매 요청한 내역이 없어요"
+                  description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
+                  buttonText="상품 리스트로 이동"
+                  onButtonClick={onNavigateToProducts}
+                />
+              </div>
+            );
+          }
+          return (
+            <PurchaseRequestItemListOrg
+              purchaseList={purchaseList}
+              onReject={onRejectClick}
+              onApprove={onApproveClick}
+              onRowClick={onRowClick}
+              companyId={companyId}
             />
-          </div>
-        ) : (
-          <PurchaseRequestItemListOrg
-            purchaseList={purchaseList}
-            onReject={onRejectClick}
-            onApprove={onApproveClick}
-            onRowClick={onRowClick}
-            companyId={companyId}
-          />
-        )}
+          );
+        })()}
       </div>
 
       {/* 태블릿/데스크톱 뷰 */}
@@ -282,7 +334,18 @@ const PurchaseRequestListTem = ({
                   )}
                 </div>
               </div>
-              {purchaseList.length > 0 && <Divider variant="thin" className="w-full" />}
+              {shouldShowTableHeader && (
+                <>
+                  <Divider variant="thin" className="w-full" />
+                  <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200">
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           <div className="hidden desktop:block">
@@ -305,7 +368,7 @@ const PurchaseRequestListTem = ({
                   )}
                 </div>
               </div>
-              {purchaseList.length > 0 && (
+              {shouldShowTableHeader && (
                 <>
                   <Divider variant="thin" className="w-full" />
                   <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200">
@@ -320,51 +383,12 @@ const PurchaseRequestListTem = ({
             </div>
           </div>
 
-          {purchaseList.length === 0 ? (
-            <div className="w-full mt-200 flex justify-center">
-              <StatusNotice
-                title="요청 내역이 없어요"
-                description="상품 리스트를 둘러보고
-상품을 담아보세요"
-                buttonText="상품 리스트로 이동"
-                onButtonClick={onNavigateToProducts}
-              />
-            </div>
-          ) : (
-            <>
-              {/* 태블릿 테이블 헤더 */}
-              <div className="hidden tablet:block desktop:hidden">
-                <div className="w-full">
-                  <Divider variant="thin" className="w-full" />
-                  <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200">
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-full">
-                {purchaseList.map((item) => (
-                  <PurchaseRequestTableRowDesktop
-                    key={item.id}
-                    item={item}
-                    companyId={companyId}
-                    onRejectClick={onRejectClick}
-                    onApproveClick={onApproveClick}
-                    onRowClick={onRowClick}
-                  />
-                ))}
-              </div>
-            </>
-          )}
+          {renderTableContent()}
         </div>
       </div>
 
       {/* 페이지네이션 */}
-      {purchaseList.length > 0 && finalTotalPages > 0 && onPageChange && (
+      {!isEmpty && !isLoading && finalTotalPages > 0 && onPageChange && (
         <div className="flex justify-start mt-20">
           <PaginationBlock
             current={currentPage}
