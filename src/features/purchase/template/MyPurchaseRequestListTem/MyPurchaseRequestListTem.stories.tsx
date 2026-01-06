@@ -92,9 +92,9 @@ export const Default: Story = {
   render: () => (
     <MyPurchaseRequestListTem
       purchaseList={[
-        createPurchaseItem('1', 'APPROVED', 2),
-        createPurchaseItem('2', 'PENDING', 1, 3000),
-        createPurchaseItem('3', 'REJECTED', 3, 5000),
+        createPurchaseItem('1', 'APPROVED', 2, 1900, 0, '2024-07-04T00:00:00.000Z'),
+        createPurchaseItem('2', 'PENDING', 1, 3000, 0, '2024-07-03T00:00:00.000Z'),
+        createPurchaseItem('3', 'REJECTED', 3, 5000, 0, '2024-07-02T00:00:00.000Z'),
       ]}
       onCancelClick={() => {}}
       cancelModalOpen={false}
@@ -135,9 +135,9 @@ export const Urgent: Story = {
   render: () => (
     <MyPurchaseRequestListTem
       purchaseList={[
-        createPurchaseItem('1', 'PENDING', 1, 5000, 0, undefined, true),
-        createPurchaseItem('2', 'APPROVED', 2, 3000),
-        createPurchaseItem('3', 'PENDING', 1, 8000, 0, undefined, true),
+        createPurchaseItem('1', 'PENDING', 1, 5000, 0, '2024-07-04T00:00:00.000Z', true),
+        createPurchaseItem('2', 'APPROVED', 2, 3000, 0, '2024-07-03T00:00:00.000Z'),
+        createPurchaseItem('3', 'PENDING', 1, 8000, 0, '2024-07-02T00:00:00.000Z', true),
       ]}
       onCancelClick={() => {}}
       cancelModalOpen={false}
@@ -165,9 +165,9 @@ export const Interactive: Story = {
     const [cancelTargetItem, setCancelTargetItem] = useState<PurchaseRequestItem | null>(null);
 
     const purchaseList = [
-      createPurchaseItem('1', 'PENDING', 1, 5000, 0, undefined, true),
-      createPurchaseItem('2', 'APPROVED', 2, 3000),
-      createPurchaseItem('3', 'PENDING', 1, 8000),
+      createPurchaseItem('1', 'PENDING', 1, 5000, 0, '2024-07-04T00:00:00.000Z', true),
+      createPurchaseItem('2', 'APPROVED', 2, 3000, 0, '2024-07-03T00:00:00.000Z'),
+      createPurchaseItem('3', 'PENDING', 1, 8000, 0, '2024-07-02T00:00:00.000Z'),
     ];
 
     return (
