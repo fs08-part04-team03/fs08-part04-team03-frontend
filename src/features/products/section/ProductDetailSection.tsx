@@ -231,6 +231,7 @@ const ProductDetailSection = () => {
         src: imageUrl,
         alt: product.name,
       },
+      productImageKey: product.image || null,
       productDetailHeader: {
         productName: product.name,
         price: product.price,
@@ -371,6 +372,7 @@ const ProductDetailSection = () => {
             initialPrice={product?.price ? String(product.price) : ''}
             initialLink={initialLink}
             initialImage={editModalImageUrl}
+            initialImageKey={product?.image || null}
             initialCategory={initialCategoryOption}
             initialSubCategory={initialSubCategoryOption}
           />

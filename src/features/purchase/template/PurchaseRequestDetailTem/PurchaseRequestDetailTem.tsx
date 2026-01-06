@@ -74,9 +74,9 @@ const PurchaseRequestDetailTem = ({
           hasItemId: !!item.id,
         });
       }
-      // buildImageUrl은 async이므로 직접 URL 구성
+      // 상대 경로 사용 (SSR 하이드레이션 불일치 방지)
       const imageSrc = item.products.image
-        ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(item.products.image)}`
+        ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
         : '';
       return {
         id: Number.isNaN(parsedId) ? 0 : parsedId,
