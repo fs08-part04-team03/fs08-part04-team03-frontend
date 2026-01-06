@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Divider } from '@/components/atoms/Divider/Divider';
@@ -38,11 +38,16 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
 }) => {
   const isEmpty = products.length === 0;
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // 클라이언트 사이드에서만 전체 URL 구성 (SSR 하이드레이션 불일치 방지)
   const productsWithFullUrls = useMemo(() => {
-    if (typeof window === 'undefined') {
+    if (!isClient) {
       // 서버 사이드에서는 상대 경로 그대로 반환
       return products;
     }
@@ -54,7 +59,7 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
           ? `${window.location.origin}${product.imageSrc}`
           : product.imageSrc,
     }));
-  }, [products]);
+  }, [products, isClient]);
 
   const handleImageError = (productId: number) => {
     setImageErrors((prev) => ({ ...prev, [productId]: true }));

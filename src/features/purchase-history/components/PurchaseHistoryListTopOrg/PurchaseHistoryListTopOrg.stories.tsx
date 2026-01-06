@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import type { Option } from '@/components/atoms/DropDown/DropDown';
 import { COMMON_SORT_OPTIONS } from '@/constants/sort';
 import PurchaseHistoryListTopOrg from './PurchaseHistoryListTopOrg';
 
@@ -65,10 +64,7 @@ export const Default: Story = {
     thisYearTotalSpending: 10000000,
     lastYearTotalSpending: 4000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: (option: Option) => {
-      // eslint-disable-next-line no-console
-      console.log('정렬 변경:', option);
-    },
+    onSortChange: () => {},
   },
   parameters: {
     docs: {
@@ -89,10 +85,7 @@ export const LowSpending: Story = {
     thisYearTotalSpending: 5000000,
     lastYearTotalSpending: 6000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: (option: Option) => {
-      // eslint-disable-next-line no-console
-      console.log('정렬 변경:', option);
-    },
+    onSortChange: () => {},
   },
   parameters: {
     docs: {
@@ -113,10 +106,7 @@ export const HighSpending: Story = {
     thisYearTotalSpending: 15000000,
     lastYearTotalSpending: 10000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: (option: Option) => {
-      // eslint-disable-next-line no-console
-      console.log('정렬 변경:', option);
-    },
+    onSortChange: () => {},
   },
   parameters: {
     docs: {
@@ -137,10 +127,7 @@ export const SameAsLastYear: Story = {
     thisYearTotalSpending: 5000000,
     lastYearTotalSpending: 5000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: (option: Option) => {
-      // eslint-disable-next-line no-console
-      console.log('정렬 변경:', option);
-    },
+    onSortChange: () => {},
   },
   parameters: {
     docs: {
