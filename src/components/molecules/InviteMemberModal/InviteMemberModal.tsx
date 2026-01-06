@@ -96,7 +96,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMem
       <div
         ref={modalRef}
         className={clsx(
-          'bg-white rounded-16 flex flex-col relative z-[var(--z-dropdown)]',
+          'bg-white rounded-16 flex flex-col relative z-[var(--z-modaldropdown)]',
           // Mobile
           'mobile:w-375 mobile:h-812 mobile:px-24 mobile:py-24',
           // Tablet & Desktop
@@ -144,7 +144,7 @@ const InviteMemberModal = ({ open, onClose, onSubmit, defaultValues }: InviteMem
             </div>
 
             {/* 권한 */}
-            <div className="flex flex-col relative z-[var(--z-dropdown)]">
+            <div className="flex flex-col relative z-[var(--z-modaldropdown)]">
               <span className="mb-2 text-16 font-bold text-gray-950">권한</span>
               <DropDown
                 items={roleOptions}
