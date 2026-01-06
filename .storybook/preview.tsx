@@ -1,7 +1,16 @@
 import type { Preview } from '@storybook/nextjs';
 import '../src/app/globals.css';
 
+import { ReactQueryProvider } from '../src/shared/providers/ReactQueryProvider';
+
 const preview: Preview = {
+  decorators: [
+    (Story) => (
+      <ReactQueryProvider>
+        <Story />
+      </ReactQueryProvider>
+    ),
+  ],
   parameters: {
     nextjs: {
       appDirectory: true,
@@ -50,4 +59,5 @@ const preview: Preview = {
     },
   },
 };
+
 export default preview;
