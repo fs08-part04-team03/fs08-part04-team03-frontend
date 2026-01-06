@@ -44,8 +44,11 @@ export const GNBPrimaryNavDesktop = ({
 
   const items = getGNBPrimaryNavConfig(role);
 
+  // 데스크탑에서는 찜목록(wishlist)을 제외
+  const desktopItems = items.filter((item) => item.key !== 'wishlist');
+
   // 더 구체적인 경로가 우선되도록 정렬 (긴 경로가 먼저)
-  const sortedItems = [...items].sort((a, b) => b.href.length - a.href.length);
+  const sortedItems = [...desktopItems].sort((a, b) => b.href.length - a.href.length);
 
   // 활성화된 메뉴 찾기 (가장 구체적인 매칭만 활성화)
   const activeKeys = new Set<AppRouteKey>();
@@ -59,7 +62,7 @@ export const GNBPrimaryNavDesktop = ({
       aria-label="주요 페이지"
       className={clsx('flex justify-center items-center gap-13', navClassName, className)}
     >
-      {items.map((item: GNBPrimaryNavItem) => {
+      {desktopItems.map((item: GNBPrimaryNavItem) => {
         const href = item.href.replace('[companyId]', companyId);
         const active = activeKeys.has(item.key);
 
