@@ -104,7 +104,6 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   const isExternalUrl = isValidImageUrl
     ? imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
     : false;
-  const isProxyApiUrl = isValidImageUrl ? imageUrl.startsWith('/api/product/image') : false;
 
   // 반응형 이미지 크기 설정 (CLS 방지)
   // Wishlist: Mobile 115px, Tablet 200px, Desktop 345px
@@ -138,7 +137,6 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           onError={() => setImgError(true)}
           className="object-contain"
           style={{ objectPosition: 'center' }}
-          unoptimized={isProxyApiUrl}
         />
       );
     }

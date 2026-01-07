@@ -63,7 +63,6 @@ const ProfileEditForm = ({
   const isExternalUrl = hasImage
     ? preview.startsWith('http://') || preview.startsWith('https://')
     : false;
-  const isProxyApiUrl = hasImage ? preview.startsWith('/api/product/image') : false;
 
   return (
     <form
@@ -102,7 +101,6 @@ const ProfileEditForm = ({
                   width={140}
                   height={140}
                   className="object-contain pointer-events-none"
-                  unoptimized={isProxyApiUrl}
                 />
               )}
               {!hasImage && (

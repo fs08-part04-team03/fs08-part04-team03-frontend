@@ -37,7 +37,6 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   const isExternalUrl = isValidImageUrl
     ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
     : false;
-  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('tablet:hidden', className)}>
@@ -63,7 +62,6 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
                     onError={() => setImageError(true)}
-                    unoptimized={isProxyApiUrl}
                   />
                 )}
               </div>
@@ -119,7 +117,6 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   const isExternalUrl = isValidImageUrl
     ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
     : false;
-  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
@@ -145,7 +142,6 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
                     onError={() => setImageError(true)}
-                    unoptimized={isProxyApiUrl}
                   />
                 )}
               </div>
@@ -207,7 +203,6 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   const isExternalUrl = isValidImageUrl
     ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
     : false;
-  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('hidden desktop:flex', className)}>
@@ -233,7 +228,6 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
                     onError={() => setImageError(true)}
-                    unoptimized={isProxyApiUrl}
                   />
                 )}
               </div>
