@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   images: {
-    // allow direct remote fetch (for diagnostics) and same-origin local proxy
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -34,10 +34,7 @@ const nextConfig: NextConfig = {
         pathname: '/uploads/**',
       },
     ],
-    localPatterns: [
-      // allow same-origin image proxy with path like /api/product/image/<file>
-      { pathname: '/api/product/image/**' },
-    ],
+    localPatterns: [{ pathname: '/api/product/image/**' }],
   },
 
   async rewrites() {
