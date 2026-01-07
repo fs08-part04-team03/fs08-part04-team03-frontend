@@ -276,21 +276,11 @@ const ProductEditModal = ({
     };
 
     try {
-      // 이미지 삭제가 요청된 경우
-      if (imageToDelete) {
-        try {
-          await deleteImage(imageToDelete);
-          formData.image = undefined; // 이미지 삭제
-        } catch (deleteError) {
-          const message =
-            deleteError instanceof Error ? deleteError.message : '이미지 삭제에 실패했습니다.';
-          triggerToast('error', message);
-          throw deleteError;
-        }
-      }
-      // 새 이미지가 업로드된 경우 (이미 업로드되어 uploadedImageKey에 저장됨)
-      else if (uploadedImageKey) {
+      // 새 이미지가 업로드된 경우
+      if (uploadedImageKey) {
         formData.image = uploadedImageKey;
+      } else if (imageToDelete) {
+        formData.image = undefined; // 이미지 삭제 표시
       } else if (
         preview &&
         preview === initialImage &&
@@ -298,11 +288,25 @@ const ProductEditModal = ({
         !initialImage?.includes('no-image') &&
         !initialImage?.includes('upload.svg')
       ) {
-        // 기존 이미지 유지 (initialImageKey 사용)
+        // 기존 이미지 유지
         formData.image = currentImageKey;
       }
 
       await onSubmit(formData);
+
+      // onSubmit 성공 후 이미지 삭제 (필요한 경우)
+      if (imageToDelete) {
+        try {
+          await deleteImage(imageToDelete);
+        } catch (deleteError) {
+          // 이미 제출은 성공했으므로 로그만 남김
+          logger.error('Image deletion after submit failed', {
+            hasError: true,
+            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+            hasKey: !!imageToDelete,
+          });
+        }
+      }
     } catch (error) {
       logger.error('Product edit submission failed', {
         hasError: true,
@@ -471,8 +475,12 @@ const ProductEditModal = ({
         <form
           className="w-full flex flex-col flex-1 gap-20"
           onSubmit={(e) => {
-            handleSubmit(e).catch(() => {
-              // 에러는 handleSubmit 내부에서 처리됨
+            handleSubmit(e).catch((error) => {
+              // 에러를 상위로 전파하여 부모 컴포넌트가 처리할 수 있도록 함
+              logger.error('ProductEditModal submit error', {
+                hasError: true,
+                errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+              });
             });
           }}
         >

@@ -69,12 +69,27 @@ const ProductImageBox = ({
 }) => {
   const [imgError, setImgError] = useState(false);
 
-  const imageSrc = productImage && !imgError ? productImage.src : '/icons/no-image.svg';
+  // imageUrl이 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
+  const isValidImageUrl =
+    productImage?.src && typeof productImage.src === 'string' && productImage.src.trim().length > 0;
+
+  // 유효한 imageUrl이 있고 에러가 없을 때만 실제 이미지 표시
+  const shouldShowImage = isValidImageUrl && !imgError;
+
+  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
+  const isExternalUrl = isValidImageUrl
+    ? productImage.src.startsWith('http://') || productImage.src.startsWith('https://')
+    : false;
+  const isProxyApiUrl = isValidImageUrl ? productImage.src.startsWith('/api/product/image') : false;
+
+  const imageSrc = shouldShowImage ? productImage.src : '/icons/no-image.svg';
   const imageAlt = productImage?.alt || '이미지 없음';
 
   const isNoImage = imageSrc === '/icons/no-image.svg';
-  // 외부 URL인지 확인 (http:// 또는 https://로 시작)
-  const isExternalUrl = imageSrc.startsWith('http://') || imageSrc.startsWith('https://');
+
+  // 반응형 이미지 크기 설정 (CLS 방지)
+  // Mobile: 300px, Tablet: 456px, Desktop: 500px
+  const imageSizes = '(max-width: 767px) 300px, (max-width: 1199px) 456px, 500px';
 
   return (
     <div className={clsx('relative bg-gray-100 rounded-8 shadow-lg', sizeClass)}>
@@ -87,28 +102,55 @@ const ProductImageBox = ({
               width={50}
               height={50}
               unoptimized
+              loading="eager"
+              priority
             />
           </div>
         ) : (
-          <div className="relative w-full h-full">
-            {isExternalUrl ? (
-              // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
-              <img
-                src={imageSrc}
-                alt={imageAlt}
-                className="absolute inset-0 w-full h-full object-contain"
-                onError={() => setImgError(true)}
-                crossOrigin="anonymous"
-              />
-            ) : (
-              <Image
-                src={imageSrc}
-                alt={imageAlt}
-                fill
-                className="object-contain"
-                onError={() => setImgError(true)}
-              />
-            )}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {(() => {
+              if (isExternalUrl) {
+                // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+                return (
+                  <img
+                    src={imageSrc}
+                    alt={imageAlt}
+                    className="max-w-full max-h-full w-auto h-auto object-contain"
+                    onError={() => setImgError(true)}
+                    crossOrigin="anonymous"
+                  />
+                );
+              }
+
+              if (isProxyApiUrl) {
+                // 프록시 API URL은 unoptimized 사용 (Next.js Image 최적화 우회)
+                return (
+                  <Image
+                    src={imageSrc}
+                    alt={imageAlt}
+                    fill
+                    sizes={imageSizes}
+                    className="object-contain"
+                    style={{ objectPosition: 'center' }}
+                    onError={() => setImgError(true)}
+                    unoptimized
+                  />
+                );
+              }
+
+              // 내부 이미지는 Next.js Image 최적화 사용
+              return (
+                <Image
+                  src={imageSrc}
+                  alt={imageAlt}
+                  fill
+                  sizes={imageSizes}
+                  className="object-contain"
+                  style={{ objectPosition: 'center' }}
+                  onError={() => setImgError(true)}
+                />
+              );
+            })()}
           </div>
         )}
       </div>

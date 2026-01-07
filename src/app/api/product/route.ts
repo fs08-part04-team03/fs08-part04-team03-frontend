@@ -184,24 +184,39 @@ export async function POST(req: Request) {
   const authHeader = req.headers.get('authorization');
   const cookie = req.headers.get('cookie');
 
+  const contentType = req.headers.get('content-type') || '';
+  const isFormData = contentType.includes('multipart/form-data');
+
   let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ success: false, message: 'Invalid JSON' }, { status: 400 });
+  let requestBody: BodyInit;
+  const requestHeaders: HeadersInit = {
+    ...(authHeader ? { Authorization: authHeader } : {}),
+    ...(cookie ? { cookie } : {}),
+    Accept: 'application/json',
+  };
+
+  if (isFormData) {
+    // FormData인 경우 그대로 전달
+    body = await req.formData();
+    requestBody = body as FormData;
+    // FormData는 Content-Type을 자동으로 설정하므로 명시하지 않음
+  } else {
+    // JSON인 경우
+    try {
+      body = await req.json();
+      requestBody = JSON.stringify(body);
+      requestHeaders['Content-Type'] = 'application/json';
+    } catch {
+      return NextResponse.json({ success: false, message: 'Invalid JSON' }, { status: 400 });
+    }
   }
 
   const target = new URL('/api/v1/product', apiBase);
 
   const res = await fetch(target.toString(), {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(authHeader ? { Authorization: authHeader } : {}),
-      ...(cookie ? { cookie } : {}),
-      Accept: 'application/json',
-    },
-    body: JSON.stringify(body),
+    headers: requestHeaders,
+    body: requestBody,
   });
 
   const text = await res.text();

@@ -1,6 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
@@ -10,6 +12,121 @@ import type { Option } from '@/components/atoms/DropDown/DropDown';
 
 export type OrderItemCardVariant = 'default' | 'confirm';
 
+/**
+ * 이미지 렌더링 컴포넌트
+ */
+interface ProductImageProps {
+  imageSrc?: string;
+  name: string;
+  productId?: number;
+  onProductClick?: () => void;
+  onImageError: () => void;
+  imageSizes: string;
+  isExternalUrl: boolean;
+  shouldShowImage: boolean;
+}
+
+const ProductImage: React.FC<ProductImageProps> = ({
+  imageSrc,
+  name,
+  productId,
+  onProductClick,
+  onImageError,
+  imageSizes,
+  isExternalUrl,
+  shouldShowImage,
+}) => {
+  const containerClassName = clsx(
+    'relative overflow-hidden rounded-8 bg-gray-50',
+    'w-85 h-85',
+    'tablet:w-140 tablet:h-140',
+    'desktop:w-140 desktop:h-140',
+    productId && 'cursor-pointer'
+  );
+
+  const imageContent = shouldShowImage ? (
+    <div className="absolute inset-0 flex items-center justify-center">
+      {isExternalUrl ? (
+        <img
+          src={imageSrc}
+          alt={name}
+          className="max-w-full max-h-full w-auto h-auto object-contain"
+          onError={onImageError}
+          crossOrigin="anonymous"
+        />
+      ) : (
+        <Image
+          src={imageSrc!}
+          alt={name}
+          fill
+          sizes={imageSizes}
+          className="object-contain"
+          style={{ objectPosition: 'center' }}
+          onError={onImageError}
+        />
+      )}
+    </div>
+  ) : (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <img
+        src="/icons/photo-icon.svg"
+        alt=""
+        width={28}
+        height={28}
+        className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
+        loading="eager"
+      />
+    </div>
+  );
+
+  if (productId && onProductClick) {
+    return (
+      <button
+        type="button"
+        className={clsx(containerClassName, 'p-0 border-0')}
+        onClick={onProductClick}
+        aria-label={`${name} 상세 페이지로 이동`}
+      >
+        {imageContent}
+      </button>
+    );
+  }
+
+  return <div className={containerClassName}>{imageContent}</div>;
+};
+
+/**
+ * 상품명 렌더링 컴포넌트
+ */
+interface ProductNameProps {
+  name: string;
+  productId?: number;
+  onProductClick?: () => void;
+  className?: string;
+}
+
+const ProductName: React.FC<ProductNameProps> = ({
+  name,
+  productId,
+  onProductClick,
+  className,
+}) => {
+  if (productId && onProductClick) {
+    return (
+      <button
+        type="button"
+        className={clsx(className, 'bg-transparent p-0 border-0 text-left')}
+        onClick={onProductClick}
+        aria-label={`${name} 상세 페이지로 이동`}
+      >
+        {name}
+      </button>
+    );
+  }
+
+  return <p className={className}>{name}</p>;
+};
+
 export interface OrderItemCardProps {
   variant?: OrderItemCardVariant;
   name: string;
@@ -18,6 +135,7 @@ export interface OrderItemCardProps {
   shippingCost?: number;
   shippingLabelText?: string;
   imageSrc?: string;
+  productId?: number; // ✅ 상품 상세 페이지 이동을 위한 productId 추가
   checked?: boolean;
   onCheckboxChange?: (checked: boolean) => void;
   onQuantityChange?: (option: Option) => void;
@@ -35,6 +153,7 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
   shippingCost = 0,
   shippingLabelText = '택배',
   imageSrc,
+  productId,
   checked = false,
   onCheckboxChange,
   onQuantityChange,
@@ -43,7 +162,27 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
   purchaseButtonDisabled,
   className,
 }) => {
+  const router = useRouter();
+  const params = useParams();
+  // companyId가 배열인 경우 첫 번째 요소 사용, 문자열이면 그대로 사용
+  let companyId = '';
+  if (typeof params?.companyId === 'string') {
+    companyId = params.companyId;
+  } else if (Array.isArray(params?.companyId) && params.companyId.length > 0) {
+    const firstElement = params.companyId[0];
+    if (typeof firstElement === 'string') {
+      companyId = firstElement;
+    }
+  }
+  const [imageError, setImageError] = useState(false);
   const displayTotalPrice = unitPrice * quantity;
+
+  // 상품 상세 페이지로 이동
+  const handleProductClick = () => {
+    if (productId && companyId) {
+      router.push(`/${companyId}/products/${productId}`);
+    }
+  };
 
   /** 상품명 공통 클래스 */
   const productNameClass = clsx(
@@ -52,8 +191,31 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
     'truncate whitespace-nowrap overflow-hidden',
     'max-w-76.83', // mobile
     'tablet:max-w-270', // tablet
-    'desktop:max-w-none' // desktop (제한 없음)
+    'desktop:max-w-none', // desktop (제한 없음)
+    productId && 'cursor-pointer hover:underline' // ✅ 클릭 가능한 경우 스타일 추가
   );
+
+  // 이미지 URL 유효성 검증 및 타입 확인
+  const isValidImageUrl = Boolean(
+    imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0
+  );
+  const shouldShowImage = isValidImageUrl && !imageError;
+
+  // imageSrc 변경 시 imageError 초기화
+  useEffect(() => {
+    if (isValidImageUrl) {
+      setImageError(false);
+    }
+  }, [imageSrc, isValidImageUrl]);
+
+  // 외부 URL인지 확인
+  const isExternalUrl =
+    isValidImageUrl && imageSrc
+      ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
+      : false;
+
+  // 이미지 크기 설정 (CLS 방지)
+  const imageSizes = '(max-width: 767px) 85px, 140px';
 
   // Confirm variant
   if (variant === 'confirm') {
@@ -69,29 +231,24 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
       >
         {/* 이미지 & 상품 정보 */}
         <div className="flex items-center gap-12">
-          <div
-            className={clsx(
-              'overflow-hidden rounded-8 bg-gray-50 p-10',
-              'w-85 h-85',
-              'tablet:w-140 tablet:h-140',
-              'desktop:w-140 desktop:h-140'
-            )}
-          >
-            {imageSrc ? (
-              <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                <img
-                  src="/icons/photo-icon.svg"
-                  alt=""
-                  className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
-                />
-              </div>
-            )}
-          </div>
+          <ProductImage
+            imageSrc={imageSrc}
+            name={name}
+            productId={productId}
+            onProductClick={handleProductClick}
+            onImageError={() => setImageError(true)}
+            imageSizes={imageSizes}
+            isExternalUrl={isExternalUrl}
+            shouldShowImage={shouldShowImage}
+          />
 
           <div className="flex flex-col gap-4">
-            <p className={productNameClass}>{name}</p>
+            <ProductName
+              name={name}
+              productId={productId}
+              onProductClick={handleProductClick}
+              className={productNameClass}
+            />
 
             <PriceText
               value={unitPrice}
@@ -137,29 +294,24 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
           className="shrink-0"
         />
 
-        <div
-          className={clsx(
-            'overflow-hidden rounded-8 bg-gray-50 p-10',
-            'w-85 h-85',
-            'tablet:w-140 tablet:h-140',
-            'desktop:w-140 desktop:h-140'
-          )}
-        >
-          {imageSrc ? (
-            <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-50">
-              <img
-                src="/icons/photo-icon.svg"
-                alt=""
-                className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
-              />
-            </div>
-          )}
-        </div>
+        <ProductImage
+          imageSrc={imageSrc}
+          name={name}
+          productId={productId}
+          onProductClick={handleProductClick}
+          onImageError={() => setImageError(true)}
+          imageSizes={imageSizes}
+          isExternalUrl={isExternalUrl}
+          shouldShowImage={shouldShowImage}
+        />
 
         <div className="flex flex-col gap-4">
-          <p className={productNameClass}>{name}</p>
+          <ProductName
+            name={name}
+            productId={productId}
+            onProductClick={handleProductClick}
+            className={productNameClass}
+          />
 
           <PriceText
             value={unitPrice}

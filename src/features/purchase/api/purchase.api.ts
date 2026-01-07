@@ -27,6 +27,25 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
   // utils/api.ts의 fetchWithAuth 사용 (refreshToken 자동 갱신 포함)
   const response = await fetchWithAuthUtil(url, options);
 
+  // 404 Not Found 에러 처리
+  if (response.status === 404) {
+    let errorMessage = '구매 내역을 찾을 수 없습니다.';
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        const errorResult = (await response.json()) as { message?: string };
+        errorMessage = errorResult.message || errorMessage;
+      } catch (parseError) {
+        // JSON 파싱 실패 시 기본 메시지 사용
+        logger.warn('Failed to parse 404 error response', {
+          hasError: true,
+          errorType: parseError instanceof Error ? parseError.constructor.name : 'Unknown',
+        });
+      }
+    }
+    throw new Error(errorMessage);
+  }
+
   // 429 Too Many Requests 에러 처리
   if (response.status === 429) {
     const retryAfter = response.headers.get('Retry-After');
@@ -345,14 +364,22 @@ export async function managePurchaseRequests(
 export async function getPurchaseRequestDetail(
   purchaseRequestId: string
 ): Promise<PurchaseRequestItem> {
-  const result = await fetchWithAuth<PurchaseRequestItem>(
-    `${PURCHASE_API_PATHS.ADMIN_GET_PURCHASE_REQUEST_DETAIL}/${purchaseRequestId}`,
-    {
-      method: 'GET',
-    }
-  );
+  try {
+    const result = await fetchWithAuth<PurchaseRequestItem>(
+      `${PURCHASE_API_PATHS.ADMIN_GET_PURCHASE_REQUEST_DETAIL}/${purchaseRequestId}`,
+      {
+        method: 'GET',
+      }
+    );
 
-  return result.data;
+    return result.data;
+  } catch (error) {
+    // 404 에러는 fetchWithAuth에서 이미 처리되지만, 추가로 명확한 메시지 제공
+    if (error instanceof Error && error.message.includes('찾을 수 없습니다')) {
+      throw new Error(`구매 요청을 찾을 수 없습니다. (ID: ${purchaseRequestId})`);
+    }
+    throw error;
+  }
 }
 
 /**

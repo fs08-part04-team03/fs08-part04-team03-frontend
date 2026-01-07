@@ -41,6 +41,7 @@ const ShoppingCartSection = () => {
     queryKey: ['cart', currentPage, pageSize],
     queryFn: () => cartApi.getMyCart(currentPage, pageSize),
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    refetchOnMount: true, // ✅ 페이지 마운트 시 항상 최신 데이터 가져오기
   });
 
   // 월 예산 조회 (manager만)

@@ -12,6 +12,7 @@ export interface User {
   name: string;
   role: UserRole;
   companyId: string;
+  image?: string; // 프로필 이미지 키 (선택적)
 }
 
 /**

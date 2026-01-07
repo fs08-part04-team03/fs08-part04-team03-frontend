@@ -228,15 +228,23 @@ const PurchaseRequestTableRowDesktop = ({
     (item.totalPrice && item.totalPrice > 0 ? item.totalPrice : calculatedTotalPrice) +
     (item.shippingFee ?? 0);
 
-  const handleRowClick = () => {
-    if (!companyId) return;
+  const handleRowClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!companyId) {
+      console.warn('companyId가 없어서 이동할 수 없습니다.');
+      return;
+    }
     router.push(`/${companyId}/my/purchase-requests/${item.id}`);
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleRowClick();
+      e.stopPropagation();
+      if (!companyId) {
+        console.warn('companyId가 없어서 이동할 수 없습니다.');
+        return;
+      }
+      router.push(`/${companyId}/my/purchase-requests/${item.id}`);
     }
   };
 
@@ -274,8 +282,31 @@ const PurchaseRequestTableRowDesktop = ({
         className={clsx(
           TABLE_CELL_BASE_STYLES.cell,
           COLUMN_WIDTHS.product,
-          'text-gray-700 text-14 min-w-0 line-clamp-2 wrap-break-word'
+          'text-gray-700 text-14 min-w-0 line-clamp-2 wrap-break-word',
+          'cursor-pointer',
+          'hover:underline',
+          'hover:text-primary-500'
         )}
+        onClick={(e) => {
+          e.stopPropagation(); // row 클릭 이벤트 전파 방지
+          if (companyId && item.purchaseItems.length > 0 && item.purchaseItems[0]?.products.id) {
+            router.push(`/${companyId}/products/${item.purchaseItems[0].products.id}`);
+          }
+        }}
+        onKeyDown={(e) => {
+          if (
+            (e.key === 'Enter' || e.key === ' ') &&
+            companyId &&
+            item.purchaseItems.length > 0 &&
+            item.purchaseItems[0]?.products.id
+          ) {
+            e.preventDefault();
+            e.stopPropagation();
+            router.push(`/${companyId}/products/${item.purchaseItems[0].products.id}`);
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         {formatItemDescription(item.purchaseItems)}
       </div>
@@ -330,6 +361,15 @@ const MyPurchaseRequestListTem = ({
     router.push(`/${companyId}/products`);
   }, [router, companyId]);
 
+  const handleRowClick = useCallback(
+    (purchaseRequestId: string) => {
+      if (companyId) {
+        router.push(`/${companyId}/my/purchase-requests/${purchaseRequestId}`);
+      }
+    },
+    [companyId, router]
+  );
+
   const isEmpty = !purchaseList || purchaseList.length === 0;
   const shouldShowTableHeader = isLoading || !isEmpty;
 
@@ -357,6 +397,7 @@ const MyPurchaseRequestListTem = ({
       <PurchaseRequestItemListOrg
         purchaseList={purchaseList}
         onCancel={onCancelClick}
+        onRowClick={handleRowClick}
         companyId={companyId}
       />
     );

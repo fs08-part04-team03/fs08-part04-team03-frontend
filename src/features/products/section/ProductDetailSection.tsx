@@ -19,14 +19,16 @@ import {
   CATEGORY_SECTIONS,
   BREADCRUMB_ITEMS,
   ERROR_MESSAGES,
-  getCategoryLabelById,
-  getSubCategoryLabelById,
   PATHNAME,
+  getChildById,
+  getParentById,
+  buildProductBreadcrumb,
 } from '@/constants';
 import { buildImageUrl } from '@/utils/api';
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
+import { logger } from '@/utils/logger';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import LinkText from '@/components/atoms/LinkText/LinkText';
 import ProductEditModal, {
@@ -48,7 +50,6 @@ const ProductDetailSection = () => {
   const [isCartAddSuccessModalOpen, setIsCartAddSuccessModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [productImageUrl, setProductImageUrl] = useState<string | null>(null);
   const [editModalImageUrl, setEditModalImageUrl] = useState<string | null>(null);
 
   // 메니저 이상급만 ItemMenu 사용 가능
@@ -67,6 +68,7 @@ const ProductDetailSection = () => {
     queryFn: () => getProductById(productId),
     enabled: !!productId,
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    refetchOnMount: true, // ✅ 페이지 마운트 시 항상 최신 데이터 가져오기
   });
 
   // 위시리스트 목록 조회
@@ -108,22 +110,23 @@ const ProductDetailSection = () => {
     },
   });
 
-  // 상품 이미지 URL 로드
+  // 수정 모달용 이미지 URL 로드 (signed URL 필요)
   useEffect(() => {
     const loadImageUrl = async () => {
       if (product?.image) {
-        const url = await buildImageUrl(product.image);
-        setProductImageUrl(url || null);
-        setEditModalImageUrl(url || null);
+        try {
+          const url = await buildImageUrl(product.image);
+          setEditModalImageUrl(url || null);
+        } catch {
+          // 이미지 로딩 실패 시 null로 설정
+          setEditModalImageUrl(null);
+        }
       } else {
-        setProductImageUrl(null);
         setEditModalImageUrl(null);
       }
     };
     loadImageUrl().catch(() => {
-      // 이미지 로딩 실패 시 기본 이미지 사용
-      setProductImageUrl(null);
-      setEditModalImageUrl(null);
+      // 에러는 이미 loadImageUrl 내부에서 처리됨
     });
   }, [product?.image]);
 
@@ -171,8 +174,21 @@ const ProductDetailSection = () => {
 
   const handleGoToCart = useCallback(() => {
     setIsCartAddSuccessModalOpen(false);
-    router.push(PATHNAME.CART(companyId));
-  }, [companyId, router]);
+    // 장바구니 캐시를 무효화하고 refetch하여 최신 데이터를 가져오도록 함
+    (async () => {
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+      await queryClient.refetchQueries({ queryKey: ['cart'] });
+      router.push(PATHNAME.CART(companyId));
+    })().catch((refetchError) => {
+      // 에러 발생 시 로그만 남기고 계속 진행
+      logger.error('Failed to refetch cart before navigation', {
+        hasError: true,
+        errorType: refetchError instanceof Error ? refetchError.constructor.name : 'Unknown',
+      });
+      // 에러가 발생해도 페이지 이동은 진행
+      router.push(PATHNAME.CART(companyId));
+    });
+  }, [companyId, router, queryClient]);
 
   const handleGoToProducts = useCallback(() => {
     setIsCartAddSuccessModalOpen(false);
@@ -191,10 +207,8 @@ const ProductDetailSection = () => {
       };
     }
 
-    const categoryLabel = product.categoryId ? getCategoryLabelById(product.categoryId) : null;
-    const subCategoryLabel = product.categoryId
-      ? getSubCategoryLabelById(product.categoryId)
-      : null;
+    // buildProductBreadcrumb를 사용하여 대분류와 소분류를 모두 포함한 breadcrumb 생성
+    const categoryBreadcrumbItems = buildProductBreadcrumb({ categoryId: product.categoryId });
 
     const breadcrumbItems = [
       {
@@ -205,25 +219,17 @@ const ProductDetailSection = () => {
         label: BREADCRUMB_ITEMS.PRODUCTS.label,
         href: BREADCRUMB_ITEMS.PRODUCTS.href(companyId),
       },
-      ...(categoryLabel
-        ? [
-            {
-              label: categoryLabel,
-              href: BREADCRUMB_ITEMS.PRODUCTS.href(companyId),
-            },
-          ]
-        : []),
-      ...(subCategoryLabel
-        ? [
-            {
-              label: subCategoryLabel,
-              href: BREADCRUMB_ITEMS.PRODUCTS.href(companyId),
-            },
-          ]
-        : []),
+      // buildProductBreadcrumb에서 반환된 대분류와 소분류 추가
+      ...categoryBreadcrumbItems.map((item) => ({
+        label: item.label,
+        href: item.href,
+      })),
     ];
 
-    const imageUrl = productImageUrl || '/icons/no-image.svg';
+    // 프록시 API를 통해 이미지 로드 (CORS 방지)
+    const imageUrl = product?.image
+      ? `/api/product/image?key=${encodeURIComponent(product.image)}`
+      : '/icons/no-image.svg';
 
     return {
       breadcrumbItems,
@@ -265,26 +271,38 @@ const ProductDetailSection = () => {
       liked: isLiked,
       onToggleLike: handleToggleLike,
     };
-  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu, productImageUrl]);
+  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu]);
 
   // 수정 모달 핸들러
   const handleEditSubmit = useCallback(
-    async (data: ProductEditFormData): Promise<void> => {
+    async (
+      data: ProductEditFormData,
+      options?: { imageFile?: File; removeImage?: boolean }
+    ): Promise<void> => {
       try {
-        await updateMyProduct(productId, data);
-        triggerToast('success', '상품이 수정되었습니다.');
+        await updateMyProduct(productId, data, options);
         // 상품 상세와 목록 모두 invalidate하여 최신 데이터 보장
         await queryClient.invalidateQueries({ queryKey: ['product', productId] });
         await queryClient.invalidateQueries({ queryKey: ['products'] });
-        // 즉시 refetch하여 수정된 이미지가 바로 반영되도록 함
-        await queryClient.refetchQueries({ queryKey: ['product', productId] });
+        // myProduct 쿼리도 invalidate (내 상품 디테일 페이지와 동기화)
+        await queryClient.invalidateQueries({ queryKey: ['myProduct', productId] });
+        // 쿼리를 완전히 리셋하고 다시 가져오기
+        await queryClient.resetQueries({ queryKey: ['product', productId] });
+        // 즉시 refetch하여 수정된 데이터가 바로 반영되도록 함
+        await queryClient.refetchQueries({
+          queryKey: ['product', productId],
+          type: 'active',
+        });
         setEditModalOpen(false);
+        // 페이지를 강제로 새로고침하여 최신 데이터 반영
+        router.refresh();
+        triggerToast('success', '상품이 수정되었습니다.');
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : '상품 수정에 실패했습니다.';
         triggerToast('error', message);
       }
     },
-    [productId, queryClient, triggerToast]
+    [productId, queryClient, triggerToast, router]
   );
 
   // 삭제 모달 핸들러
@@ -307,26 +325,25 @@ const ProductDetailSection = () => {
   // 카테고리 옵션 초기화 (수정 모달용)
   const initialCategoryOption = useMemo((): Option | null => {
     if (!product?.categoryId) return null;
-    const categoryLabel = getCategoryLabelById(product.categoryId);
-    // 카테고리 라벨을 Option 형식으로 변환 (간단한 매핑)
-    const categoryMap: Record<string, Option> = {
-      스낵: { key: '1', label: '스낵' },
-      음료: { key: '2', label: '음료' },
-      생수: { key: '3', label: '생수' },
-      간편식: { key: '4', label: '간편식' },
-      신선식: { key: '5', label: '신선식' },
-      원두커피: { key: '6', label: '원두커피' },
-      비품: { key: '7', label: '비품' },
-    };
-    return categoryLabel ? (categoryMap[categoryLabel] ?? null) : null;
+    // categoryId는 소분류 ID이므로, 소분류를 찾아서 대분류를 가져옴
+    const childCategory = getChildById(product.categoryId);
+    if (!childCategory) return null;
+
+    const parentCategory = getParentById(childCategory.parentId);
+    if (!parentCategory) return null;
+
+    // 대분류 ID를 문자열 key로 변환 (드롭다운에서 사용하는 형식)
+    return { key: String(parentCategory.id), label: parentCategory.name };
   }, [product?.categoryId]);
 
   const initialSubCategoryOption = useMemo((): Option | null => {
     if (!product?.categoryId) return null;
-    const subCategoryLabel = getSubCategoryLabelById(product.categoryId);
-    // 서브카테고리 라벨을 Option 형식으로 변환 (간단한 매핑)
-    // 실제로는 더 정확한 매핑이 필요할 수 있음
-    return subCategoryLabel ? { key: subCategoryLabel, label: subCategoryLabel } : null;
+    // categoryId는 소분류 ID이므로, 소분류를 직접 찾음
+    const childCategory = getChildById(product.categoryId);
+    if (!childCategory) return null;
+
+    // 소분류 key와 name을 사용하여 Option 생성
+    return { key: childCategory.key, label: childCategory.name };
   }, [product?.categoryId]);
 
   const initialLink = useMemo(() => product?.link || '', [product?.link]);

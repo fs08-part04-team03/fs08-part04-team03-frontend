@@ -35,6 +35,7 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
 
   const searchQueryFromUrl = searchParams?.get('q') || '';
 
+  // URL에서 초기값 설정 (딥 링킹 지원)
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(categoryIdFromUrl);
   const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [selectedSort, setSelectedSort] = useState<Option>({
@@ -85,9 +86,10 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['products', selectedCategoryId, selectedSort.key, searchQuery],
     queryFn: async () => {
+      // 초기 진입 시 categoryId가 null이면 필터링 없이 전체 상품 조회
       const result = await getAllProducts({
         sort: selectedSort.key,
-        categoryId: selectedCategoryId,
+        categoryId: selectedCategoryId, // null이면 쿼리 파라미터에 포함되지 않음
         accessToken,
         q: searchQuery,
       });
