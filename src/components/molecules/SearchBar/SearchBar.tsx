@@ -42,7 +42,7 @@ const SearchBar = ({
 
   const handleSubmit = (e?: FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
-    if (onSearch && query.trim()) {
+    if (onSearch) {
       onSearch(query.trim());
     }
   };
