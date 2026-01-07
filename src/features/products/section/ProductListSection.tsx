@@ -35,35 +35,19 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
 
   const searchQueryFromUrl = searchParams?.get('q') || '';
 
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  // URL에서 초기값 설정 (딥 링킹 지원)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(categoryIdFromUrl);
   const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [selectedSort, setSelectedSort] = useState<Option>({
     key: 'latest',
     label: '최신순',
   });
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // 페이지 마운트 시 URL에서 categoryId 제거 (필터 초기화)
+  // URL 쿼리 파라미터가 변경되면 state 동기화
   useEffect(() => {
-    if (!isInitialized && searchParams?.has('categoryId')) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('categoryId');
-      const newUrl = `/${companyId}/products${params.toString() ? `?${params.toString()}` : ''}`;
-      router.replace(newUrl);
-      setIsInitialized(true);
-    } else if (!isInitialized) {
-      setIsInitialized(true);
-    }
-  }, [isInitialized, searchParams, companyId, router]);
-
-  // URL 쿼리 파라미터가 변경되면 state 동기화 (초기화 후에만)
-  // categoryId가 URL에 명시적으로 있을 때만 필터 적용
-  useEffect(() => {
-    if (isInitialized) {
-      setSelectedCategoryId(categoryIdFromUrl);
-      setSearchQuery(searchQueryFromUrl);
-    }
-  }, [categoryIdFromUrl, searchQueryFromUrl, isInitialized]);
+    setSelectedCategoryId(categoryIdFromUrl);
+    setSearchQuery(searchQueryFromUrl);
+  }, [categoryIdFromUrl, searchQueryFromUrl]);
 
   // 카테고리 변경 핸들러 - URL 쿼리 파라미터 업데이트
   const handleCategoryChange = (categoryId: number | null) => {
@@ -112,7 +96,7 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
       return result;
     },
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
-    enabled: !!companyId && isInitialized, // 초기화 완료 후에만 쿼리 실행
+    enabled: !!companyId, // companyId가 있을 때만 쿼리 실행
     refetchOnMount: true, // 마운트 시 refetch (삭제 후 리다이렉트 시 최신 데이터 보장)
   });
 

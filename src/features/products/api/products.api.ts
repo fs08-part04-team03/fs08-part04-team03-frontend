@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchWithAuth, AuthExpiredError } from '@/utils/api';
+import { fetchWithAuth, AuthExpiredError, getApiUrl } from '@/utils/api';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { RegisteredProductOrgItem } from '@/features/products/components/RegisteredProductOrg/RegisteredProductOrg';
 import type { BackendProduct } from '@/features/products/utils/product.utils';
@@ -392,7 +392,8 @@ export async function getAllProducts(
         } as GetAllProductsResponse;
       }
 
-      return retryParsed as GetAllProductsResponse;
+      // data 필드가 없거나 배열이 아닌 경우 에러 발생
+      throw new Error('product fetch failed: invalid response format - missing data array');
     }
 
     throw new Error(`product fetch failed: ${res.status} ${bodyText}`);
@@ -412,7 +413,8 @@ export async function getAllProducts(
     } as GetAllProductsResponse;
   }
 
-  return result as GetAllProductsResponse;
+  // data 필드가 없거나 배열이 아닌 경우 에러 발생
+  throw new Error('product fetch failed: invalid response format - missing data array');
 }
 
 /**
@@ -512,7 +514,7 @@ export async function uploadProductImage(
     uploadUrl = `/api/product/image?folder=${encodeURIComponent(folder)}`;
   } else {
     // 서버 사이드에서는 절대 URL 사용
-    const baseUrl = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || '';
+    const baseUrl = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
     uploadUrl = `${baseUrl}/api/product/image?folder=${encodeURIComponent(folder)}`;
   }
 
