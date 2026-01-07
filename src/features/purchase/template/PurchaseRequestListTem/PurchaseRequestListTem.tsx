@@ -88,7 +88,6 @@ const PurchaseRequestTableRowDesktop = ({
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       e.stopPropagation();
-      handleRowClick();
       onRowClick?.(item.id);
     }
   };
