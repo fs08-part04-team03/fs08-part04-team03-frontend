@@ -198,7 +198,7 @@ const PurchaseRequestDetailSection = () => {
     const isNotFoundError =
       queryError instanceof Error && queryError.message.includes('찾을 수 없습니다');
 
-    let errorMessage = ERROR_MESSAGES.FETCH_ERROR;
+    let errorMessage: string = ERROR_MESSAGES.FETCH_ERROR;
     if (isNotFoundError && queryError instanceof Error) {
       errorMessage = queryError.message;
     } else if (isNotFoundError) {
