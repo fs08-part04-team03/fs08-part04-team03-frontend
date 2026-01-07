@@ -12,7 +12,6 @@ import DetailPageLayout, {
 } from '@/components/organisms/DetailPageLayout/DetailPageLayout';
 import ProductEditModal, {
   type ProductEditFormData,
-  type ProductEditOptions,
 } from '@/components/molecules/ProductEditModal/ProductEditModal';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import { Option } from '@/components/atoms/DropDown/DropDown';
@@ -21,6 +20,7 @@ import {
   deleteMyProduct,
   type GetRegisteredProductsResponse,
   type GetAllProductsResponse,
+  type UpdateMyProductOptions,
 } from '@/features/products/api/products.api';
 import { useToast } from '@/hooks/useToast';
 
@@ -140,7 +140,7 @@ const MyProductDetailTem = ({
 
   const handleEditSubmit = async (
     data: ProductEditFormData,
-    options?: ProductEditOptions
+    options?: UpdateMyProductOptions
   ): Promise<void> => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
