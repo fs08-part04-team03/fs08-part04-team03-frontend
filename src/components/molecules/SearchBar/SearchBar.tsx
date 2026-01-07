@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -27,12 +27,18 @@ const SearchBar = ({
   const [query, setQuery] = useState(String(defaultValue));
   const debouncedQuery = useDebounce(query, debounceDelay);
 
+  const onSearchRef = useRef(onSearch);
+
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+
   // instant 모드일 경우 debounce 된 검색어로 자동 검색 실행
   useEffect(() => {
-    if (instant && onSearch) {
-      onSearch(debouncedQuery.trim());
+    if (instant && onSearchRef.current) {
+      onSearchRef.current(debouncedQuery.trim());
     }
-  }, [debouncedQuery, instant, onSearch]);
+  }, [debouncedQuery, instant]);
 
   const handleSubmit = (e?: FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
