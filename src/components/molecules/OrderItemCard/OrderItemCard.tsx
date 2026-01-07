@@ -23,7 +23,6 @@ interface ProductImageProps {
   onImageError: () => void;
   imageSizes: string;
   isExternalUrl: boolean;
-  isProxyApiUrl: boolean;
   shouldShowImage: boolean;
 }
 
@@ -35,7 +34,6 @@ const ProductImage: React.FC<ProductImageProps> = ({
   onImageError,
   imageSizes,
   isExternalUrl,
-  isProxyApiUrl,
   shouldShowImage,
 }) => {
   const containerClassName = clsx(
@@ -65,7 +63,6 @@ const ProductImage: React.FC<ProductImageProps> = ({
           className="object-contain"
           style={{ objectPosition: 'center' }}
           onError={onImageError}
-          unoptimized={isProxyApiUrl}
         />
       )}
     </div>
@@ -172,7 +169,10 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
   if (typeof params?.companyId === 'string') {
     companyId = params.companyId;
   } else if (Array.isArray(params?.companyId) && params.companyId.length > 0) {
-    [companyId] = params.companyId;
+    const firstElement = params.companyId[0];
+    if (typeof firstElement === 'string') {
+      companyId = firstElement;
+    }
   }
   const [imageError, setImageError] = useState(false);
   const displayTotalPrice = unitPrice * quantity;
@@ -213,8 +213,6 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
     isValidImageUrl && imageSrc
       ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
       : false;
-  const isProxyApiUrl =
-    isValidImageUrl && imageSrc ? imageSrc.startsWith('/api/product/image') : false;
 
   // 이미지 크기 설정 (CLS 방지)
   const imageSizes = '(max-width: 767px) 85px, 140px';
@@ -241,7 +239,6 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
             onImageError={() => setImageError(true)}
             imageSizes={imageSizes}
             isExternalUrl={isExternalUrl}
-            isProxyApiUrl={isProxyApiUrl}
             shouldShowImage={shouldShowImage}
           />
 
@@ -305,7 +302,6 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
           onImageError={() => setImageError(true)}
           imageSizes={imageSizes}
           isExternalUrl={isExternalUrl}
-          isProxyApiUrl={isProxyApiUrl}
           shouldShowImage={shouldShowImage}
         />
 
