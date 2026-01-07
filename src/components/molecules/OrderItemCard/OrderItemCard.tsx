@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
@@ -74,6 +74,13 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
   // 이미지 URL 유효성 검증 및 타입 확인
   const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
   const shouldShowImage = isValidImageUrl && !imageError;
+
+  // imageSrc 변경 시 imageError 초기화
+  useEffect(() => {
+    if (isValidImageUrl) {
+      setImageError(false);
+    }
+  }, [imageSrc, isValidImageUrl]);
 
   // 외부 URL인지 확인
   const isExternalUrl = isValidImageUrl

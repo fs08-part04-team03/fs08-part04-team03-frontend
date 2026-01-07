@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { getApiUrl } from '@/utils/api';
+import { getApiUrl, getApiTimeout } from '@/utils/api';
 
 /**
  * 이미지 URL 조회 프록시
@@ -166,9 +166,13 @@ export async function GET(req: Request) {
 
     if (result.success && result.data?.url) {
       // signed URL에서 이미지를 서버 측에서 가져와서 프록시
+      // 별도의 타임아웃 컨트롤러 생성 (S3 페치용)
+      const s3Timeout = getApiTimeout();
+      const s3Controller = new AbortController();
+      const s3TimeoutId = setTimeout(() => s3Controller.abort(), s3Timeout);
       try {
         const imageRes = await fetch(result.data.url, {
-          signal: controller.signal,
+          signal: s3Controller.signal,
         });
 
         if (!imageRes.ok) {
@@ -178,6 +182,7 @@ export async function GET(req: Request) {
           );
         }
 
+        clearTimeout(s3TimeoutId);
         const imageBuffer = await imageRes.arrayBuffer();
         const imageContentType = imageRes.headers.get('content-type') || 'image/jpeg';
 
@@ -190,6 +195,7 @@ export async function GET(req: Request) {
           },
         });
       } catch (fetchError) {
+        clearTimeout(s3TimeoutId);
         if (fetchError instanceof Error && fetchError.name === 'AbortError') {
           return NextResponse.json({ success: false, message: 'Request timeout' }, { status: 504 });
         }

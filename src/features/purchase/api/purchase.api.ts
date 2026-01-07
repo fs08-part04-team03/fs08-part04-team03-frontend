@@ -29,17 +29,21 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
 
   // 404 Not Found 에러 처리
   if (response.status === 404) {
+    let errorMessage = '구매 내역을 찾을 수 없습니다.';
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       try {
         const errorResult = (await response.json()) as { message?: string };
-        throw new Error(errorResult.message || '구매 내역을 찾을 수 없습니다.');
-      } catch {
+        errorMessage = errorResult.message || errorMessage;
+      } catch (parseError) {
         // JSON 파싱 실패 시 기본 메시지 사용
-        throw new Error('구매 내역을 찾을 수 없습니다.');
+        logger.warn('Failed to parse 404 error response', {
+          hasError: true,
+          errorType: parseError instanceof Error ? parseError.constructor.name : 'Unknown',
+        });
       }
     }
-    throw new Error('구매 내역을 찾을 수 없습니다.');
+    throw new Error(errorMessage);
   }
 
   // 429 Too Many Requests 에러 처리

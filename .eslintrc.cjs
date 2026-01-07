@@ -11,8 +11,8 @@ module.exports = {
       jsx: true,
     },
   },
-  extends: ['airbnb', 'airbnb/hooks', 'plugin:react/recommended', 'plugin:react-hooks/recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier', 'plugin:storybook/recommended'],
-  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'prettier'],
+  extends: ['airbnb', 'airbnb/hooks', 'plugin:react/recommended', 'plugin:react-hooks/recommended', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'plugin:@next/next/recommended', 'prettier', 'plugin:storybook/recommended'],
+  plugins: ['@typescript-eslint', 'react', 'react-hooks', '@next/next', 'prettier'],
   rules: {
     'prettier/prettier': 'error',
 

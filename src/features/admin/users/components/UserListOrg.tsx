@@ -94,7 +94,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
                 </button>
 
                 {openMenuId === user.id && (
-                  <div className="absolute right-0 top-full mt-0 w-[120px] bg-white border border-gray-100 rounded-md shadow-lg z-[var(--z-dropdown)] w-fit whitespace-nowrap">
+                  <div className="absolute right-0 top-full mt-0 bg-white border border-gray-100 rounded-md shadow-lg z-[var(--z-dropdown)] w-fit whitespace-nowrap">
                     <button
                       type="button"
                       className="w-full px-16 py-12 text-left text-gray-950 text-16 font-normal tracking-tight hover:bg-gray-50"

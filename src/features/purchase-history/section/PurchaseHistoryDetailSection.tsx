@@ -66,7 +66,7 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
               ? {
                   name: err.name,
                   message: err.message,
-                  stack: err.stack,
+                  ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
                 }
               : err,
         });
