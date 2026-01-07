@@ -146,11 +146,17 @@ const OrderConfirmedSection = () => {
   const handleGoOrderHistory = () => {
     if (companyId) {
       // 구매 요청 목록 쿼리 invalidate 및 refetch
-      queryClient.invalidateQueries({ queryKey: ['myPurchases'] }).catch(() => {
-        // 에러 무시
+      queryClient.invalidateQueries({ queryKey: ['myPurchases'] }).catch((error) => {
+        logger.error('Failed to invalidate myPurchases queries', {
+          hasError: true,
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        });
       });
-      queryClient.refetchQueries({ queryKey: ['myPurchases'], type: 'active' }).catch(() => {
-        // 에러 무시
+      queryClient.refetchQueries({ queryKey: ['myPurchases'], type: 'active' }).catch((error) => {
+        logger.error('Failed to refetch myPurchases queries', {
+          hasError: true,
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        });
       });
       // 페이지 이동 후 리프레시
       router.push(`/${companyId}/my/purchase-requests`);

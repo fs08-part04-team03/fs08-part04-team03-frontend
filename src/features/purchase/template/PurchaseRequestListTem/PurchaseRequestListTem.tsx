@@ -86,7 +86,9 @@ const PurchaseRequestTableRowDesktop = ({
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
       e.stopPropagation();
+      handleRowClick();
       onRowClick?.(item.id);
     }
   };

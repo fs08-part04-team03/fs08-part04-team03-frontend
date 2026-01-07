@@ -211,7 +211,7 @@ const PurchaseRequestDetailSection = () => {
         {isNotFoundError && (
           <button
             type="button"
-            onClick={() => router.push(`/${companyId}/requests`)}
+            onClick={() => router.push(`/${companyId}/purchase-requests`)}
             className="px-20 py-10 bg-primary-500 text-white rounded-8 hover:bg-primary-600 transition-colors"
           >
             구매 요청 목록으로 돌아가기

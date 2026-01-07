@@ -49,7 +49,7 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
           : undefined;
 
         return (
-          <React.Fragment key={item.id || `item-${index}`}>
+          <React.Fragment key={item.id ?? `item-${index}`}>
             <div className="my-16 mx-10">
               <OrderItemDetailCard
                 name={item.products.name}

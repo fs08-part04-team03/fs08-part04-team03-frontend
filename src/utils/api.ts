@@ -184,7 +184,8 @@ export async function tryRefreshToken(): Promise<string | null> {
     // 브라우저에서는 상대 경로를 사용하여 Next.js rewrites를 거치도록 함 (CORS 회피)
     // 서버 사이드에서는 절대 URL 사용
     const isBrowserEnv = isBrowser();
-    const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || '';
+    const backendOrigin =
+      process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
 
     let refreshUrl: string;
     if (isBrowserEnv) {
