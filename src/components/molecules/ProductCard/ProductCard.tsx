@@ -104,6 +104,15 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   const isExternalUrl = isValidImageUrl
     ? imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
     : false;
+  const isProxyApiUrl = isValidImageUrl ? imageUrl.startsWith('/api/product/image') : false;
+
+  // 반응형 이미지 크기 설정 (CLS 방지)
+  // Wishlist: Mobile 115px, Tablet 200px, Desktop 345px
+  // Product/Order: Mobile 150px, Tablet 150px, Desktop 350px
+  const imageSizes =
+    variant === 'wishlist'
+      ? '(max-width: 767px) 115px, (max-width: 1199px) 200px, 345px'
+      : '(max-width: 767px) 150px, (max-width: 1199px) 150px, 350px';
 
   let imageContent;
   if (shouldShowImage) {
@@ -113,7 +122,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
         <img
           src={imageUrl}
           alt={name}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="max-w-full max-h-full w-auto h-auto object-contain"
           onError={() => setImgError(true)}
           crossOrigin="anonymous"
         />
@@ -125,8 +134,11 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           src={imageUrl}
           alt={name}
           fill
+          sizes={imageSizes}
           onError={() => setImgError(true)}
-          className="object-cover"
+          className="object-contain"
+          style={{ objectPosition: 'center' }}
+          unoptimized={isProxyApiUrl}
         />
       );
     }
@@ -137,7 +149,9 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
         src="/icons/no-image.svg"
         alt="이미지 없음"
         fill
+        sizes={imageSizes}
         className="object-contain"
+        style={{ objectPosition: 'center' }}
         unoptimized
       />
     );
@@ -187,14 +201,14 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       ====================== */}
       <div
         className={clsx(
-          'relative rounded-default bg-gray-50 flex items-center justify-center overflow-hidden',
+          'relative rounded-default bg-gray-50 overflow-hidden',
           (variant === 'product' || variant === 'order') &&
             'w-155 h-241 tablet:w-156 tablet:h-252 desktop:w-367 desktop:h-439',
           variant === 'wishlist' &&
             'w-155 h-155 tablet:w-219 tablet:h-219 desktop:w-373 desktop:h-373'
         )}
       >
-        <div className="relative w-full h-full">{imageContent}</div>
+        <div className="absolute inset-0 flex items-center justify-center">{imageContent}</div>
 
         {/* Heart 버튼 */}
         <button
