@@ -1,6 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
@@ -18,6 +20,7 @@ export interface OrderItemCardProps {
   shippingCost?: number;
   shippingLabelText?: string;
   imageSrc?: string;
+  productId?: number; // ✅ 상품 상세 페이지 이동을 위한 productId 추가
   checked?: boolean;
   onCheckboxChange?: (checked: boolean) => void;
   onQuantityChange?: (option: Option) => void;
@@ -35,6 +38,7 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
   shippingCost = 0,
   shippingLabelText = '택배',
   imageSrc,
+  productId,
   checked = false,
   onCheckboxChange,
   onQuantityChange,
@@ -43,7 +47,18 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
   purchaseButtonDisabled,
   className,
 }) => {
+  const router = useRouter();
+  const params = useParams();
+  const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
+  const [imageError, setImageError] = useState(false);
   const displayTotalPrice = unitPrice * quantity;
+
+  // 상품 상세 페이지로 이동
+  const handleProductClick = () => {
+    if (productId && companyId) {
+      router.push(`/${companyId}/products/${productId}`);
+    }
+  };
 
   /** 상품명 공통 클래스 */
   const productNameClass = clsx(
@@ -52,8 +67,22 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
     'truncate whitespace-nowrap overflow-hidden',
     'max-w-76.83', // mobile
     'tablet:max-w-270', // tablet
-    'desktop:max-w-none' // desktop (제한 없음)
+    'desktop:max-w-none', // desktop (제한 없음)
+    productId && 'cursor-pointer hover:underline' // ✅ 클릭 가능한 경우 스타일 추가
   );
+
+  // 이미지 URL 유효성 검증 및 타입 확인
+  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
+  const shouldShowImage = isValidImageUrl && !imageError;
+
+  // 외부 URL인지 확인
+  const isExternalUrl = isValidImageUrl
+    ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
+    : false;
+  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
+
+  // 이미지 크기 설정 (CLS 방지)
+  const imageSizes = '(max-width: 767px) 85px, 140px';
 
   // Confirm variant
   if (variant === 'confirm') {
@@ -69,29 +98,114 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
       >
         {/* 이미지 & 상품 정보 */}
         <div className="flex items-center gap-12">
-          <div
-            className={clsx(
-              'overflow-hidden rounded-8 bg-gray-50 p-10',
-              'w-85 h-85',
-              'tablet:w-140 tablet:h-140',
-              'desktop:w-140 desktop:h-140'
-            )}
-          >
-            {imageSrc ? (
-              <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                <img
-                  src="/icons/photo-icon.svg"
-                  alt=""
-                  className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
-                />
-              </div>
-            )}
-          </div>
+          {productId ? (
+            <button
+              type="button"
+              className={clsx(
+                'relative overflow-hidden rounded-8 bg-gray-50 cursor-pointer p-0 border-0',
+                'w-85 h-85',
+                'tablet:w-140 tablet:h-140',
+                'desktop:w-140 desktop:h-140'
+              )}
+              onClick={handleProductClick}
+              aria-label={`${name} 상세 페이지로 이동`}
+            >
+              {shouldShowImage ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {isExternalUrl ? (
+                    <img
+                      src={imageSrc}
+                      alt={name}
+                      className="max-w-full max-h-full w-auto h-auto object-contain"
+                      onError={() => setImageError(true)}
+                      crossOrigin="anonymous"
+                    />
+                  ) : (
+                    <Image
+                      src={imageSrc}
+                      alt={name}
+                      fill
+                      sizes={imageSizes}
+                      className="object-contain"
+                      style={{ objectPosition: 'center' }}
+                      onError={() => setImageError(true)}
+                      unoptimized={isProxyApiUrl}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <img
+                    src="/icons/photo-icon.svg"
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
+                    loading="eager"
+                  />
+                </div>
+              )}
+            </button>
+          ) : (
+            <div
+              className={clsx(
+                'relative overflow-hidden rounded-8 bg-gray-50',
+                'w-85 h-85',
+                'tablet:w-140 tablet:h-140',
+                'desktop:w-140 desktop:h-140'
+              )}
+            >
+              {shouldShowImage ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {isExternalUrl ? (
+                    <img
+                      src={imageSrc}
+                      alt={name}
+                      className="max-w-full max-h-full w-auto h-auto object-contain"
+                      onError={() => setImageError(true)}
+                      crossOrigin="anonymous"
+                    />
+                  ) : (
+                    <Image
+                      src={imageSrc}
+                      alt={name}
+                      fill
+                      sizes={imageSizes}
+                      className="object-contain"
+                      style={{ objectPosition: 'center' }}
+                      onError={() => setImageError(true)}
+                      unoptimized={isProxyApiUrl}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <img
+                    src="/icons/photo-icon.svg"
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
+                    loading="eager"
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
-            <p className={productNameClass}>{name}</p>
+            {productId ? (
+              <button
+                type="button"
+                className={clsx(productNameClass, 'bg-transparent p-0 border-0 text-left')}
+                onClick={handleProductClick}
+                aria-label={`${name} 상세 페이지로 이동`}
+              >
+                {name}
+              </button>
+            ) : (
+              <p className={productNameClass}>{name}</p>
+            )}
 
             <PriceText
               value={unitPrice}
@@ -137,29 +251,114 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
           className="shrink-0"
         />
 
-        <div
-          className={clsx(
-            'overflow-hidden rounded-8 bg-gray-50 p-10',
-            'w-85 h-85',
-            'tablet:w-140 tablet:h-140',
-            'desktop:w-140 desktop:h-140'
-          )}
-        >
-          {imageSrc ? (
-            <img src={imageSrc} alt={name} className="w-full h-full object-contain" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-50">
-              <img
-                src="/icons/photo-icon.svg"
-                alt=""
-                className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
-              />
-            </div>
-          )}
-        </div>
+        {productId ? (
+          <button
+            type="button"
+            className={clsx(
+              'relative overflow-hidden rounded-8 bg-gray-50 cursor-pointer p-0 border-0',
+              'w-85 h-85',
+              'tablet:w-140 tablet:h-140',
+              'desktop:w-140 desktop:h-140'
+            )}
+            onClick={handleProductClick}
+            aria-label={`${name} 상세 페이지로 이동`}
+          >
+            {shouldShowImage ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                {isExternalUrl ? (
+                  <img
+                    src={imageSrc}
+                    alt={name}
+                    className="max-w-full max-h-full w-auto h-auto object-contain"
+                    onError={() => setImageError(true)}
+                    crossOrigin="anonymous"
+                  />
+                ) : (
+                  <Image
+                    src={imageSrc}
+                    alt={name}
+                    fill
+                    sizes={imageSizes}
+                    className="object-contain"
+                    style={{ objectPosition: 'center' }}
+                    onError={() => setImageError(true)}
+                    unoptimized={isProxyApiUrl}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img
+                  src="/icons/photo-icon.svg"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
+                  loading="eager"
+                />
+              </div>
+            )}
+          </button>
+        ) : (
+          <div
+            className={clsx(
+              'relative overflow-hidden rounded-8 bg-gray-50',
+              'w-85 h-85',
+              'tablet:w-140 tablet:h-140',
+              'desktop:w-140 desktop:h-140'
+            )}
+          >
+            {shouldShowImage ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                {isExternalUrl ? (
+                  <img
+                    src={imageSrc}
+                    alt={name}
+                    className="max-w-full max-h-full w-auto h-auto object-contain"
+                    onError={() => setImageError(true)}
+                    crossOrigin="anonymous"
+                  />
+                ) : (
+                  <Image
+                    src={imageSrc}
+                    alt={name}
+                    fill
+                    sizes={imageSizes}
+                    className="object-contain"
+                    style={{ objectPosition: 'center' }}
+                    onError={() => setImageError(true)}
+                    unoptimized={isProxyApiUrl}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img
+                  src="/icons/photo-icon.svg"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
+                  loading="eager"
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-col gap-4">
-          <p className={productNameClass}>{name}</p>
+          {productId ? (
+            <button
+              type="button"
+              className={clsx(productNameClass, 'bg-transparent p-0 border-0 text-left')}
+              onClick={handleProductClick}
+              aria-label={`${name} 상세 페이지로 이동`}
+            >
+              {name}
+            </button>
+          ) : (
+            <p className={productNameClass}>{name}</p>
+          )}
 
           <PriceText
             value={unitPrice}

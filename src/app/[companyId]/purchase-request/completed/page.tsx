@@ -5,9 +5,7 @@ export const metadata: Metadata = {
 };
 
 const PurchaseRequestCompletedPage = () => (
-  <div>
-    <p>PurchaseRequestCompletedPage — 구매요청 완료 페이지</p>
-  </div>
+  <div>{/* TODO: 구매 요청 완료 페이지 컴포넌트 구현 필요 */}</div>
 );
 
 export default PurchaseRequestCompletedPage;

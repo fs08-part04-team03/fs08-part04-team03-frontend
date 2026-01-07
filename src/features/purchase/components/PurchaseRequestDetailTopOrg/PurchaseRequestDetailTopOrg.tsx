@@ -42,23 +42,30 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
 
   return (
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
-      {items.map((item, index) => (
-        <React.Fragment key={item.id || `item-${index}`}>
-          <div className="my-16 mx-10">
-            <OrderItemDetailCard
-              name={item.products.name}
-              unitPrice={item.priceSnapshot}
-              quantity={item.quantity}
-              imageSrc={item.products.image}
-            />
-          </div>
-          {index < items.length - 1 && (
-            <div className="mx-10">
-              <Divider />
+      {items.map((item, index) => {
+        // 프록시 API를 통해 이미지 로드 (CORS 방지)
+        const imageSrc = item.products.image
+          ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
+          : undefined;
+
+        return (
+          <React.Fragment key={item.id || `item-${index}`}>
+            <div className="my-16 mx-10">
+              <OrderItemDetailCard
+                name={item.products.name}
+                unitPrice={item.priceSnapshot}
+                quantity={item.quantity}
+                imageSrc={imageSrc}
+              />
             </div>
-          )}
-        </React.Fragment>
-      ))}
+            {index < items.length - 1 && (
+              <div className="mx-10">
+                <Divider />
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };

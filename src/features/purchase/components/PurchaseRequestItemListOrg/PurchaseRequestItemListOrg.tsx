@@ -50,19 +50,31 @@ const PurchaseRequestItemRowMobile = ({
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
-  const handleRowClick = () => {
+  const handleRowClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     if (onRowClick) {
       onRowClick(item.id);
     } else if (companyId) {
       // 기본값: 사용자용 경로 (onRowClick이 없을 때만)
       router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+    } else {
+      console.warn('companyId가 없어서 이동할 수 없습니다.');
     }
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      handleRowClick();
+      e.stopPropagation();
+      if (onRowClick) {
+        onRowClick(item.id);
+      } else if (companyId) {
+        router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+      } else {
+        console.warn('companyId가 없어서 이동할 수 없습니다.');
+      }
     }
   };
 
@@ -97,7 +109,7 @@ const PurchaseRequestItemRowMobile = ({
         isUrgent && 'bg-red-100',
         'cursor-pointer hover:bg-gray-50'
       )}
-      onClick={handleRowClick}
+      onClick={(e) => handleRowClick(e)}
       onKeyDown={handleRowKeyDown}
     >
       {/* 첫 번째 줄: 2개 컬럼 (왼쪽: 날짜/제목/금액, 오른쪽: 요청인) */}
@@ -109,8 +121,40 @@ const PurchaseRequestItemRowMobile = ({
             {formatDate(item.createdAt)}
           </div>
 
-          {/* 아이템 설명 */}
-          <div className={clsx('text-gray-700', 'text-14')}>
+          {/* 아이템 설명 - 클릭 가능 */}
+          <div
+            className={clsx(
+              'text-gray-700',
+              'text-14',
+              'cursor-pointer',
+              'hover:underline',
+              'hover:text-primary-500'
+            )}
+            onClick={(e) => {
+              e.stopPropagation(); // row 클릭 이벤트 전파 방지
+              if (
+                companyId &&
+                item.purchaseItems.length > 0 &&
+                item.purchaseItems[0]?.products.id
+              ) {
+                router.push(`/${companyId}/products/${item.purchaseItems[0].products.id}`);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (
+                (e.key === 'Enter' || e.key === ' ') &&
+                companyId &&
+                item.purchaseItems.length > 0 &&
+                item.purchaseItems[0]?.products.id
+              ) {
+                e.preventDefault();
+                e.stopPropagation();
+                router.push(`/${companyId}/products/${item.purchaseItems[0].products.id}`);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
             {formatItemDescription(item.purchaseItems)}
           </div>
 
@@ -192,19 +236,31 @@ const PurchaseRequestItemRowDesktop = ({
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
-  const handleRowClick = () => {
+  const handleRowClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     if (onRowClick) {
       onRowClick(item.id);
     } else if (companyId) {
       // 기본값: 사용자용 경로 (onRowClick이 없을 때만)
       router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+    } else {
+      console.warn('companyId가 없어서 이동할 수 없습니다.');
     }
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      handleRowClick();
+      e.stopPropagation();
+      if (onRowClick) {
+        onRowClick(item.id);
+      } else if (companyId) {
+        router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+      } else {
+        console.warn('companyId가 없어서 이동할 수 없습니다.');
+      }
     }
   };
 
@@ -238,7 +294,7 @@ const PurchaseRequestItemRowDesktop = ({
         isUrgent && 'bg-red-100',
         'cursor-pointer hover:bg-gray-50'
       )}
-      onClick={handleRowClick}
+      onClick={(e) => handleRowClick(e)}
       onKeyDown={handleRowKeyDown}
     >
       {/* 구매 요청일 */}
@@ -258,7 +314,7 @@ const PurchaseRequestItemRowDesktop = ({
         {formatDate(item.createdAt)}
       </div>
 
-      {/* 상품 정보 */}
+      {/* 상품 정보 - 클릭 가능 */}
       <div
         className={clsx(
           'text-gray-700',
@@ -269,8 +325,31 @@ const PurchaseRequestItemRowDesktop = ({
           'min-w-0',
           'py-20',
           'tablet:px-0',
-          'desktop:px-40'
+          'desktop:px-40',
+          'cursor-pointer',
+          'hover:underline',
+          'hover:text-primary-500'
         )}
+        onClick={(e) => {
+          e.stopPropagation(); // row 클릭 이벤트 전파 방지
+          if (companyId && item.purchaseItems.length > 0 && item.purchaseItems[0]?.products.id) {
+            router.push(`/${companyId}/products/${item.purchaseItems[0].products.id}`);
+          }
+        }}
+        onKeyDown={(e) => {
+          if (
+            (e.key === 'Enter' || e.key === ' ') &&
+            companyId &&
+            item.purchaseItems.length > 0 &&
+            item.purchaseItems[0]?.products.id
+          ) {
+            e.preventDefault();
+            e.stopPropagation();
+            router.push(`/${companyId}/products/${item.purchaseItems[0].products.id}`);
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         {formatItemDescription(item.purchaseItems)}
       </div>

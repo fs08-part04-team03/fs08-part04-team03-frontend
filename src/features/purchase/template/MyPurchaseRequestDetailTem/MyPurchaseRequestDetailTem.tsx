@@ -35,7 +35,11 @@ const MyPurchaseRequestDetailTem = ({
       <div className="tablet:mt-30 desktop:mt-60 mb-54 desktop:mb-254 tablet:mb-132">
         <PurchaseRequestDetailTopOrg purchaseRequest={purchaseRequest} />
         <PurchaseRequestDetailOrg purchaseRequest={purchaseRequest} approvedInfo={approvedInfo} />
-        <PurchaseRequestDetailActionsOrg companyId={companyId} actionType="user" />
+        <PurchaseRequestDetailActionsOrg
+          companyId={companyId}
+          actionType="user"
+          purchaseRequest={purchaseRequest}
+        />
       </div>
     </div>
   );
