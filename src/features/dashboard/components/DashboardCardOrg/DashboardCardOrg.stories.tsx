@@ -68,6 +68,9 @@ export const DefaultWithExpense: Story = {
     monthlyExpense: 320000,
     yearlyExpense: 4580000,
     showProgressBar: true,
+    progressValue: 65,
+    currentBudget: 1200000,
+    lastBudget: 900000,
   },
 };
 
@@ -214,6 +217,10 @@ export const CustomStyle: Story = {
     defaultType: 'summary',
     monthlyExpense: 500000,
     yearlyExpense: 6200000,
+    showProgressBar: true,
+    progressValue: 80,
+    currentBudget: 800000,
+    lastBudget: 1000000,
     className: 'ring-1 ring-gray-300',
   },
 };
