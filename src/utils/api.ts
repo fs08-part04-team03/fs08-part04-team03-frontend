@@ -318,10 +318,11 @@ export async function fetchWithAuth(
 
   // FormData인 경우 Content-Type을 설정하지 않음 (브라우저가 자동으로 boundary 포함)
   const isFormData = requestOptions.body instanceof FormData;
+  // Authorization 헤더는 항상 최종 값이어야 하므로 마지막에 스프레드
   const defaultHeaders: HeadersInit = {
-    Authorization: `Bearer ${token}`,
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...requestOptions.headers,
+    Authorization: `Bearer ${token}`,
   };
 
   try {
@@ -352,10 +353,11 @@ export async function fetchWithAuth(
         const retryController = new AbortController();
         const retryTimeoutId = setTimeout(() => retryController.abort(), timeout);
         try {
+          // Authorization 헤더는 항상 최종 값이어야 하므로 마지막에 스프레드
           const retryHeaders: HeadersInit = {
-            Authorization: `Bearer ${newToken}`,
             ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
             ...requestOptions.headers,
+            Authorization: `Bearer ${newToken}`,
           };
           const retryResponse = await fetch(finalUrl, {
             ...requestOptions,
