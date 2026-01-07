@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { AdminSidebar } from '@/components/molecules/AdminSideBar/AdminSideBar';
 import DashboardCard from '@/features/dashboard/components/DashboardCardOrg/DashboardCardOrg';
 import Button from '@/components/atoms/Button/Button';
@@ -28,7 +27,7 @@ interface DashboardTemProps {
   snackRank: LargeChartItem[];
 }
 
-const DashboardTem: React.FC<DashboardTemProps> = ({
+const DashboardTem = ({
   companyId,
   user,
   userRole = 'admin',
@@ -37,7 +36,7 @@ const DashboardTem: React.FC<DashboardTemProps> = ({
   newUsers,
   changedUsers,
   snackRank,
-}) => {
+}: DashboardTemProps) => {
   /** ================= Click Handlers ================= */
   const handleEmergencyClick = () => {
     // TODO: 긴급 알림 기능 연결
@@ -160,6 +159,9 @@ const DashboardTem: React.FC<DashboardTemProps> = ({
             monthlyExpense={350000}
             yearlyExpense={4200000}
             showProgressBar
+            progressValue={65}
+            currentBudget={1200000}
+            lastBudget={900000}
           />
 
           <DashboardCard
