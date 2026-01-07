@@ -47,15 +47,7 @@ const PurchaseRequestDetailSection = () => {
       if (!requestId) {
         throw new Error('Request ID is required');
       }
-      try {
-        return await getPurchaseRequestDetail(requestId);
-      } catch (error) {
-        // 404 에러인 경우 사용자에게 명확한 메시지 표시
-        if (error instanceof Error && error.message.includes('찾을 수 없습니다')) {
-          triggerToast('error', error.message);
-        }
-        throw error;
-      }
+      return getPurchaseRequestDetail(requestId);
     },
     enabled: !!requestId,
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
