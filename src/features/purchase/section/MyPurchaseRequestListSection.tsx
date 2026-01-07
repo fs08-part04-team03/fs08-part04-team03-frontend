@@ -95,6 +95,9 @@ const MyPurchaseRequestListSection = () => {
         currentPage: 1, // 필터링 후 첫 페이지로 리셋
       };
     },
+    retry: false, // 401 에러 시 재시도 방지
+    refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   const handleCancelClick = useCallback(

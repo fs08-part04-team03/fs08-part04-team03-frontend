@@ -79,14 +79,15 @@ const PurchaseRequestTableRowDesktop = ({
   const isUrgent = item.urgent === true;
   const totalPrice = item.totalPrice + item.shippingFee;
 
-  const handleRowClick = () => {
+  const handleRowClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     onRowClick?.(item.id);
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleRowClick();
+      e.stopPropagation();
+      onRowClick?.(item.id);
     }
   };
 
@@ -225,9 +226,9 @@ const PurchaseRequestListTem = ({
             : undefined,
       },
       items: selectedRequest.purchaseItems.map((item, index) => {
-        // buildImageUrl은 async이므로 직접 URL 구성
+        // 프록시 API를 통해 이미지 로드 (CORS 방지)
         const imageSrc = item.products.image
-          ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(item.products.image)}`
+          ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
           : '';
         return {
           id: index,

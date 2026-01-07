@@ -41,9 +41,9 @@ const WishlistSection = () => {
   // 백엔드 데이터를 WishlistItem으로 변환
   const wishlistItems: WishlistItem[] =
     wishlistProducts?.data.map((item) => {
-      // buildImageUrl은 async이므로 직접 URL 구성
+      // 프록시 API를 통해 이미지 로드 (CORS 방지)
       const imageUrl = item.product.image
-        ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(item.product.image)}`
+        ? `/api/product/image?key=${encodeURIComponent(item.product.image)}`
         : '';
       return {
         id: item.product.id,
