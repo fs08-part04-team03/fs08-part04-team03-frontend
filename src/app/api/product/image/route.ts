@@ -87,8 +87,9 @@ export async function GET(req: Request) {
 
   const target = new URL(`/api/v1/upload/image/${encodedKey}`, apiBase);
 
+  const timeout = getApiTimeout();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
     const res = await fetch(target.toString(), {
@@ -279,8 +280,9 @@ export async function POST(req: Request) {
   const target = new URL('/api/v1/upload/image', apiBase);
   target.searchParams.append('folder', folder);
 
+  const timeout = getApiTimeout();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
     // FormData를 전달할 때는 Content-Type 헤더를 설정하지 않음

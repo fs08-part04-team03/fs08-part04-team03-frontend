@@ -167,7 +167,13 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
 }) => {
   const router = useRouter();
   const params = useParams();
-  const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
+  // companyId가 배열인 경우 첫 번째 요소 사용, 문자열이면 그대로 사용
+  let companyId = '';
+  if (typeof params?.companyId === 'string') {
+    companyId = params.companyId;
+  } else if (Array.isArray(params?.companyId) && params.companyId.length > 0) {
+    [companyId] = params.companyId;
+  }
   const [imageError, setImageError] = useState(false);
   const displayTotalPrice = unitPrice * quantity;
 
