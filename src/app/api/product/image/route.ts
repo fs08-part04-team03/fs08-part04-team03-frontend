@@ -17,6 +17,11 @@ export async function GET(req: Request) {
     );
   }
 
+  // 빈 문자열이나 공백만 있는 경우
+  if (imageKey.trim().length === 0) {
+    return NextResponse.json({ success: false, message: 'Image key is required' }, { status: 400 });
+  }
+
   // 기본적인 입력 검증 (경로 탐색 공격 방지)
   if (imageKey.includes('..') || imageKey.startsWith('/') || imageKey.includes('\\')) {
     return NextResponse.json({ success: false, message: 'Invalid key format' }, { status: 400 });
@@ -28,11 +33,6 @@ export async function GET(req: Request) {
       { success: false, message: 'Invalid key format: URL format is not allowed' },
       { status: 400 }
     );
-  }
-
-  // 빈 문자열이나 공백만 있는 경우
-  if (!imageKey || imageKey.trim().length === 0) {
-    return NextResponse.json({ success: false, message: 'Image key is required' }, { status: 400 });
   }
 
   // 허용된 폴더 prefix 검증 (레거시 형식 지원: prefix 없는 파일명도 허용)

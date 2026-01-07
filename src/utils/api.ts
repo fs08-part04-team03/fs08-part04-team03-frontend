@@ -184,8 +184,7 @@ export async function tryRefreshToken(): Promise<string | null> {
     // 브라우저에서는 상대 경로를 사용하여 Next.js rewrites를 거치도록 함 (CORS 회피)
     // 서버 사이드에서는 절대 URL 사용
     const isBrowserEnv = isBrowser();
-    const backendOrigin =
-      process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
+    const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
 
     let refreshUrl: string;
     if (isBrowserEnv) {
@@ -292,7 +291,7 @@ export async function fetchWithAuth(
   // 브라우저에서는 항상 상대 URL만 사용 (Next.js rewrites를 통해)
   // 서버 사이드에서는 절대 URL 사용 (환경 변수에서 가져오기)
   const isBrowserEnv = isBrowser();
-  const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || '';
+  const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
 
   // 브라우저에서는 절대 URL을 상대 경로로 변환
   let path = url;
@@ -312,8 +311,7 @@ export async function fetchWithAuth(
     path = path.startsWith('/') ? path : `/${path}`;
   } else {
     // 서버 사이드에서는 절대 URL 사용
-    const base = backendOrigin || '';
-    path = joinUrl(base, url);
+    path = joinUrl(backendOrigin, url);
   }
 
   const finalUrl = path;
