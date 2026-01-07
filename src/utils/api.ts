@@ -105,9 +105,10 @@ export async function buildImageUrl(
 
   try {
     // S3 키를 쿼리 파라미터로 전달하여 Next.js API 라우트를 통해 조회
+    // 브라우저에서는 상대 경로 사용 (Next.js rewrites를 통해)
     const encodedKey = encodeURIComponent(imageKey);
-    const baseUrl = window.location.origin;
-    const response = await fetch(`${baseUrl}/api/product/image?key=${encodedKey}`, {
+    const imageUrl = `/api/product/image?key=${encodedKey}`;
+    const response = await fetch(imageUrl, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -123,11 +124,17 @@ export async function buildImageUrl(
       return undefined;
     }
 
+    // 응답이 이미지 스트림인 경우(프록시가 직접 반환)에는 프록시 URL을 그대로 사용
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.startsWith('image/')) {
+      return imageUrl;
+    }
+
+    // JSON 응답인 경우(signed URL 제공) 처리
     const result = (await response.json()) as {
       success: boolean;
       data?: { url: string };
     };
-
     if (result.success && result.data?.url) {
       return result.data.url;
     }
@@ -145,11 +152,28 @@ export async function buildImageUrl(
 }
 
 /**
+ * 브라우저 환경인지 확인
+ */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined';
+}
+
+/**
+ * URL을 결합하는 헬퍼 함수
+ * @param base - 기본 URL (빈 문자열이면 상대 경로)
+ * @param path - 경로
+ * @returns 결합된 URL
+ */
+function joinUrl(base: string, path: string): string {
+  if (!base) return path; // base가 없으면 상대 경로 반환
+  return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+}
+
+/**
  * refreshToken을 사용하여 토큰 갱신 시도
  * refreshToken이 httpOnly 쿠키에 있다면 백엔드가 자동으로 확인합니다
  */
 export async function tryRefreshToken(): Promise<string | null> {
-  const apiUrl = getApiUrl();
   const timeout = getApiTimeout();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -157,7 +181,23 @@ export async function tryRefreshToken(): Promise<string | null> {
   try {
     // refreshToken이 httpOnly 쿠키에 있다면 body 없이 쿠키만 전송
     // 백엔드가 쿠키의 refreshToken을 자동으로 확인하고 새 accessToken 발급
-    const response = await fetch(`${apiUrl}${AUTH_API_PATHS.REFRESH}`, {
+    // 브라우저에서는 상대 경로를 사용하여 Next.js rewrites를 거치도록 함 (CORS 회피)
+    // 서버 사이드에서는 절대 URL 사용
+    const isBrowserEnv = isBrowser();
+    const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || '';
+
+    let refreshUrl: string;
+    if (isBrowserEnv) {
+      // 브라우저에서는 항상 상대 경로 사용
+      refreshUrl = AUTH_API_PATHS.REFRESH.startsWith('/')
+        ? AUTH_API_PATHS.REFRESH
+        : `/${AUTH_API_PATHS.REFRESH}`;
+    } else {
+      // 서버 사이드에서는 절대 URL 사용
+      refreshUrl = joinUrl(backendOrigin, AUTH_API_PATHS.REFRESH);
+    }
+
+    const response = await fetch(refreshUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -183,10 +223,17 @@ export async function tryRefreshToken(): Promise<string | null> {
       }
     } else {
       clearTimeout(timeoutId);
+      // 401 에러는 refresh token이 만료되었거나 없을 때 정상적인 동작
+      // 조용히 처리 (에러를 던지지 않음, 로그도 남기지 않음)
+      if (response.status === 401) {
+        return null;
+      }
+      // 401이 아닌 다른 에러는 로깅하지 않고 조용히 처리
     }
   } catch {
     clearTimeout(timeoutId);
     // refreshToken 갱신 실패는 무시 (로그아웃 처리로 진행)
+    // 네트워크 에러 등은 조용히 처리
   }
 
   return null;
@@ -229,7 +276,6 @@ export async function fetchWithAuth(
   options?: RequestInit,
   accessToken?: string
 ): Promise<Response> {
-  const apiUrl = getApiUrl();
   const timeout = getApiTimeout();
   const requestOptions = options || {};
 
@@ -242,16 +288,47 @@ export async function fetchWithAuth(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  const finalUrl = `${apiUrl}${url}`;
+  // 브라우저에서는 항상 상대 URL만 사용 (Next.js rewrites를 통해)
+  // 서버 사이드에서는 절대 URL 사용 (환경 변수에서 가져오기)
+  const isBrowserEnv = isBrowser();
+  const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || '';
+
+  // 브라우저에서는 절대 URL을 상대 경로로 변환
+  let path = url;
+  if (isBrowserEnv) {
+    // 브라우저에서는 절대 URL이어도 상대 경로로 변환
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      // 절대 URL에서 경로만 추출
+      try {
+        const urlObj = new URL(url);
+        path = urlObj.pathname + urlObj.search;
+      } catch {
+        // URL 파싱 실패 시 원본 사용
+        path = url;
+      }
+    }
+    // 상대 경로로 정규화 (앞에 /가 없으면 추가)
+    path = path.startsWith('/') ? path : `/${path}`;
+  } else {
+    // 서버 사이드에서는 절대 URL 사용
+    const base = backendOrigin || '';
+    path = joinUrl(base, url);
+  }
+
+  const finalUrl = path;
+
+  // FormData인 경우 Content-Type을 설정하지 않음 (브라우저가 자동으로 boundary 포함)
+  const isFormData = requestOptions.body instanceof FormData;
+  const defaultHeaders: HeadersInit = {
+    Authorization: `Bearer ${token}`,
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    ...requestOptions.headers,
+  };
 
   try {
     const response = await fetch(finalUrl, {
       ...requestOptions,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        ...requestOptions.headers,
-      },
+      headers: defaultHeaders,
       credentials: 'include', // 쿠키 기반 인증을 위해 필요
       signal: controller.signal,
     });
@@ -276,13 +353,14 @@ export async function fetchWithAuth(
         const retryController = new AbortController();
         const retryTimeoutId = setTimeout(() => retryController.abort(), timeout);
         try {
+          const retryHeaders: HeadersInit = {
+            Authorization: `Bearer ${newToken}`,
+            ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+            ...requestOptions.headers,
+          };
           const retryResponse = await fetch(finalUrl, {
             ...requestOptions,
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${newToken}`,
-              ...requestOptions.headers,
-            },
+            headers: retryHeaders,
             credentials: 'include',
             signal: retryController.signal,
           });
