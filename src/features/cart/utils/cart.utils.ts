@@ -15,8 +15,8 @@ export const adaptCartItemToOrderItem = (item: CartItem): OrderItem => ({
   name: item.product.name,
   price: item.product.price, // ✅ unitPrice → price
   quantity: item.quantity,
-  // buildImageUrl은 async이므로 직접 URL 구성
+  // 상대 경로 사용 (SSR 하이드레이션 불일치 방지)
   imageSrc: item.product.image
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(item.product.image)}`
+    ? `/api/product/image?key=${encodeURIComponent(item.product.image)}`
     : '',
 });

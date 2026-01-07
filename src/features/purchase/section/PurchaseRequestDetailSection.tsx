@@ -51,6 +51,7 @@ const PurchaseRequestDetailSection = () => {
     },
     enabled: !!requestId,
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    retry: false, // 404 에러는 재시도하지 않음
   });
 
   // 예산 조회
@@ -185,9 +186,29 @@ const PurchaseRequestDetailSection = () => {
   }
 
   if (queryError) {
+    // 404 에러인 경우 더 명확한 메시지 표시
+    const isNotFoundError =
+      queryError instanceof Error && queryError.message.includes('찾을 수 없습니다');
+
+    let errorMessage: string = ERROR_MESSAGES.FETCH_ERROR;
+    if (isNotFoundError && queryError instanceof Error) {
+      errorMessage = queryError.message;
+    } else if (isNotFoundError) {
+      errorMessage = '구매 요청을 찾을 수 없습니다.';
+    }
+
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>{ERROR_MESSAGES.FETCH_ERROR}</p>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-20">
+        <p className="text-16 text-gray-900">{errorMessage}</p>
+        {isNotFoundError && (
+          <button
+            type="button"
+            onClick={() => router.push(`/${companyId}/purchase-requests`)}
+            className="px-20 py-10 bg-primary-500 text-white rounded-8 hover:bg-primary-600 transition-colors"
+          >
+            구매 요청 목록으로 돌아가기
+          </button>
+        )}
       </div>
     );
   }

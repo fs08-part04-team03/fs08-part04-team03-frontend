@@ -35,26 +35,40 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
 
   const target = new URL(`/api/v1/upload/image/${encodedKey}`, apiBase);
 
-  const res = await fetch(target.toString(), {
-    method: 'GET',
-    headers: {
-      ...(authHeader ? { Authorization: authHeader } : {}),
-      ...(cookie ? { cookie } : {}),
-    },
-    credentials: 'include',
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
 
-  const text = await res.text();
-  let parsed: unknown;
   try {
-    parsed = JSON.parse(text);
-  } catch {
-    parsed = text;
-  }
+    const res = await fetch(target.toString(), {
+      method: 'GET',
+      headers: {
+        ...(authHeader ? { Authorization: authHeader } : {}),
+        ...(cookie ? { cookie } : {}),
+      },
+      credentials: 'include',
+      signal: controller.signal,
+    });
 
-  if (!res.ok) {
+    clearTimeout(timeoutId);
+
+    const text = await res.text();
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = text;
+    }
+
+    if (!res.ok) {
+      return NextResponse.json(parsed, { status: res.status });
+    }
+
     return NextResponse.json(parsed, { status: res.status });
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json({ success: false, message: 'Request timeout' }, { status: 504 });
+    }
+    return NextResponse.json({ success: false, message: 'Failed to fetch image' }, { status: 502 });
   }
-
-  return NextResponse.json(parsed, { status: res.status });
 }

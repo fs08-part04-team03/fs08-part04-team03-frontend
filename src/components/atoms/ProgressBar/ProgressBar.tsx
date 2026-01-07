@@ -28,6 +28,14 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   else if (diff < 0) diffText = ' 더 사용했어요';
   else diffText = ' 동일하게 사용했어요';
 
+  // 퍼센트 값을 00.0% 형식으로 포맷팅
+  const formattedPercentage = (() => {
+    const fixed = clampedValue.toFixed(1);
+    const [intPart, decPart] = fixed.split('.');
+    const paddedInt = (intPart ?? '0').padStart(2, '0');
+    return `${paddedInt}.${decPart ?? '0'}%`;
+  })();
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -85,7 +93,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
             'desktop:tracking--0.35 tablet:tracking--0.35 mobile:tracking--0.3'
           )}
         >
-          {clampedValue}%
+          {formattedPercentage}
         </span>
       </div>
 

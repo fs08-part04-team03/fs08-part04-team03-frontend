@@ -64,9 +64,7 @@ export const Default: Story = {
     thisYearTotalSpending: 10000000,
     lastYearTotalSpending: 4000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: () => {
-      // eslint-disable-next-line no-console
-    },
+    onSortChange: () => {},
   },
   parameters: {
     docs: {
@@ -87,9 +85,7 @@ export const LowSpending: Story = {
     thisYearTotalSpending: 5000000,
     lastYearTotalSpending: 6000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: () => {
-      // eslint-disable-next-line no-console
-    },
+    onSortChange: () => {},
   },
   parameters: {
     docs: {
@@ -110,9 +106,7 @@ export const HighSpending: Story = {
     thisYearTotalSpending: 15000000,
     lastYearTotalSpending: 10000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: () => {
-      // eslint-disable-next-line no-console
-    },
+    onSortChange: () => {},
   },
   parameters: {
     docs: {
@@ -133,9 +127,7 @@ export const SameAsLastYear: Story = {
     thisYearTotalSpending: 5000000,
     lastYearTotalSpending: 5000000,
     selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: () => {
-      // eslint-disable-next-line no-console
-    },
+    onSortChange: () => {},
   },
   parameters: {
     docs: {

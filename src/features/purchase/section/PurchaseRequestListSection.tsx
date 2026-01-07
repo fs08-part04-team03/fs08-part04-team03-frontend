@@ -41,8 +41,8 @@ const PurchaseRequestListSection = () => {
 
   const { page, size, sort } = paginationParams;
 
-  // requests 페이지에서는 상태 필터링 없음 (항상 모든 상태 조회)
-  const effectiveStatus = undefined;
+  // requests 페이지에서는 PENDING 상태만 조회 (현재 요청되어 있는 것들만)
+  const effectiveStatus = 'PENDING';
 
   // 프론트엔드 드롭다운 옵션 (사용자 친화적인 레이블)
   const purchaseRequestSortOptions: Option[] = [

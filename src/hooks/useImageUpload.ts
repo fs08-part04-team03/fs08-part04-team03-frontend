@@ -37,6 +37,10 @@ export const useImageUpload = (): UseImageUploadReturn => {
       if (!file) return;
 
       // 파일 크기 검증 (5MB)
+      // ⚠️ 주의: 클라이언트 측 검증은 우회 가능하므로, 백엔드 서버에서도 반드시 검증해야 합니다.
+      // - 파일 크기: 5MB 이하
+      // - 허용된 파일 형식: JPEG, JPG, PNG, GIF, WEBP
+      // 백엔드 API(/api/v1/upload/image)에서 이러한 검증이 수행되고 있는지 확인해 주세요.
       const MAX_SIZE = 5 * 1024 * 1024; // 5MB
       if (file.size > MAX_SIZE) {
         triggerToast('error', '이미지 크기는 5MB 이하여야 합니다.');

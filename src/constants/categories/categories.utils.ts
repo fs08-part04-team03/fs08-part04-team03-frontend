@@ -82,11 +82,19 @@ export function buildProductBreadcrumb(params: {
 }
 
 // Panel 관련
-export const PARENT_CATEGORY_OPTIONS: ParentCategoryOption[] = PARENT_CATEGORIES.map((parent) => ({
-  id: parent.key,
-  label: parent.name,
-  parentId: parent.id,
-}));
+export const PARENT_CATEGORY_OPTIONS: ParentCategoryOption[] = [
+  // "상품" 옵션을 맨 앞에 추가 (모든 상품 보기)
+  {
+    id: 'all' as ParentCategoryKey,
+    label: '상품',
+    parentId: 1 as ParentCategoryId, // 특수 값 (실제로는 사용되지 않음, 타입 호환을 위해 1 사용)
+  },
+  ...PARENT_CATEGORIES.map((parent) => ({
+    id: parent.key,
+    label: parent.name,
+    parentId: parent.id,
+  })),
+];
 
 /**
  * 카테고리 데이터를 CategoryPanel 형식으로 변환

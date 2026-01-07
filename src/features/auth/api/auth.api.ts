@@ -9,10 +9,13 @@ import { logger } from '@/utils/logger';
 /**
  * 회원가입 API 요청 타입
  * confirmPassword를 passwordConfirm으로 변환
+ *
+ * Note: imageKey는 타입에 정의되어 있으나, 현재 백엔드 API가 프로필 이미지 업로드를 지원하지 않습니다.
+ * 백엔드에서 지원하는 경우, signup() 함수의 request body에 imageKey를 추가해야 합니다.
  */
 type SignupRequest = Omit<SignupInput, 'confirmPassword'> & {
   passwordConfirm: string;
-  imageKey?: string;
+  imageKey?: string; // TODO: 백엔드 API 지원 시 request body에 포함 필요
 };
 
 /**
