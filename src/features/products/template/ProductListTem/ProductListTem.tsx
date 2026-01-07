@@ -24,6 +24,7 @@ import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBl
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import ProductModal from '@/components/molecules/ProductModal/ProductModal';
 import { BREADCRUMB_ITEMS } from '@/constants';
+import SearchBar from '@/components/molecules/SearchBar/SearchBar';
 
 /* =====================
  * Props
@@ -51,6 +52,8 @@ interface ProductListTemProps {
   companyId: string;
   wishlistData?: GetWishlistResponse;
   isLoading?: boolean;
+  searchQuery?: string;
+  onSearch?: (query: string) => void;
 }
 
 /* =====================
@@ -89,6 +92,8 @@ const ProductListTem = ({
   companyId,
   wishlistData,
   isLoading = false,
+  searchQuery,
+  onSearch,
 }: ProductListTemProps) => {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -278,6 +283,7 @@ const ProductListTem = ({
               <div className="pt-14 pb-10">
                 <Breadcrumb items={breadcrumbForRender} />
               </div>
+
               <div className="flex items-center justify-between pb-20">
                 <DropDown
                   items={sortOptions}
@@ -294,6 +300,18 @@ const ProductListTem = ({
           </div>
 
           <Divider className="mb-20 tablet:mb-30" />
+
+          <div className="pb-20">
+            <div className="w-full tablet:w-[320px] desktop:w-[366px] mr-auto">
+              <SearchBar
+                placeholder="상품명으로 검색하세요"
+                defaultValue={searchQuery}
+                onSearch={onSearch}
+                instant
+                className="w-full"
+              />
+            </div>
+          </div>
 
           {isLoading && <ProductListRowSkeleton rows={itemsPerPage} />}
 

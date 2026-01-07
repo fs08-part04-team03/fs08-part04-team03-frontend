@@ -55,6 +55,7 @@ export async function GET(req: Request) {
   const pageSize = Number(searchParams.get('limit') ?? 100);
   const sort = searchParams.get('sort') ?? undefined;
   const categoryId = searchParams.get('categoryId') ?? undefined;
+  const q = searchParams.get('q') ?? undefined;
 
   const fetchPage = async (page: number): Promise<FetchPageResult<Product>> => {
     const params = new URLSearchParams();
@@ -62,6 +63,7 @@ export async function GET(req: Request) {
     params.set('limit', String(pageSize));
     if (sort) params.set('sort', sort);
     if (categoryId) params.set('categoryId', categoryId);
+    if (q) params.set('q', q);
 
     const target = new URL(`/api/v1/product?${params.toString()}`, apiBase);
 
@@ -145,7 +147,7 @@ export async function GET(req: Request) {
   const searchParamsForProxy = url.searchParams;
 
   // 허용된 쿼리 파라미터만 백엔드로 전달
-  const allowedKeys = ['limit', 'sort', 'categoryId', 'page', 'all'];
+  const allowedKeys = ['limit', 'sort', 'categoryId', 'page', 'all', 'q'];
   allowedKeys.forEach((key) => {
     const value = searchParamsForProxy.get(key);
     if (value !== null) {
