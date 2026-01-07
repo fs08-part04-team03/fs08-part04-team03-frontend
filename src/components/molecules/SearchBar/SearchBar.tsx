@@ -33,6 +33,11 @@ const SearchBar = ({
     onSearchRef.current = onSearch;
   }, [onSearch]);
 
+  // defaultValue가 변경되면 내부 상태도 업데이트 (부모에서 초기화 등 제어할 때 필요)
+  useEffect(() => {
+    setQuery(String(defaultValue));
+  }, [defaultValue]);
+
   // instant 모드일 경우 debounce 된 검색어로 자동 검색 실행
   useEffect(() => {
     if (instant && onSearchRef.current) {
