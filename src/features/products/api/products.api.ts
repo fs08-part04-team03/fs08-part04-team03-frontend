@@ -235,6 +235,7 @@ export interface GetAllProductsParams {
   sort?: string | null;
   categoryId?: number | null;
   accessToken?: string | null;
+  q?: string | null;
 }
 
 /**
@@ -250,13 +251,13 @@ export interface GetAllProductsResponse {
 
 /**
  * 전체 상품 목록 조회 (카테고리 필터링 및 정렬 지원)
- * @param params - 조회 파라미터 (sort, categoryId, accessToken)
+ * @param params - 조회 파라미터 (sort, categoryId, accessToken, q)
  * @returns 상품 목록 데이터
  */
 export async function getAllProducts(
   params?: GetAllProductsParams
 ): Promise<GetAllProductsResponse> {
-  const { sort, categoryId, accessToken } = params || {};
+  const { sort, categoryId, accessToken, q } = params || {};
   const qs = new URLSearchParams();
 
   // 모든 상품을 가져오기 위해 all=true 사용
@@ -277,6 +278,7 @@ export async function getAllProducts(
   }
 
   if (categoryId != null) qs.set('categoryId', String(categoryId));
+  if (q) qs.set('q', q);
 
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
