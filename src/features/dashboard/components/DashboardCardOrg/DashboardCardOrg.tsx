@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { clsx } from '@/utils/clsx';
 import ProgressBar from '@/components/atoms/ProgressBar/ProgressBar';
 import dynamic from 'next/dynamic';
@@ -55,6 +54,10 @@ export interface DashboardCardProps {
   yearlyExpense?: number;
   showProgressBar?: boolean;
 
+  progressValue?: number;
+  currentBudget?: number;
+  lastBudget?: number;
+
   monthlyExpensesByYear?: number[];
 
   monthlyNewUsers?: NewUser[];
@@ -81,7 +84,7 @@ const variantStyles: Record<DashboardCardVariant, string> = {
   `,
 };
 
-const DashboardCardOrg: React.FC<DashboardCardProps> = ({
+const DashboardCardOrg = ({
   variant = 'default',
   defaultType = 'summary',
   className,
@@ -90,12 +93,16 @@ const DashboardCardOrg: React.FC<DashboardCardProps> = ({
   yearlyExpense = 0,
   showProgressBar = false,
 
+  progressValue = 0,
+  currentBudget = 0,
+  lastBudget = 0,
+
   monthlyExpensesByYear = [],
   monthlyNewUsers = [],
   monthlyChangedUsers = [],
 
   largeChartData = [],
-}) => {
+}: DashboardCardProps) => {
   const maxValue = Math.max(...monthlyExpensesByYear, 0);
 
   const chartData = monthlyExpensesByYear.map((value, index) => ({
@@ -142,9 +149,9 @@ const DashboardCardOrg: React.FC<DashboardCardProps> = ({
 
           {showProgressBar && (
             <ProgressBar
-              value={65}
-              currentBudget={1200000}
-              lastBudget={900000}
+              value={progressValue}
+              currentBudget={currentBudget}
+              lastBudget={lastBudget}
               className="w-full"
             />
           )}
@@ -272,7 +279,7 @@ const DashboardCardOrg: React.FC<DashboardCardProps> = ({
           <div
             className="
               flex items-start flex-1
-              gap-12 tablet:gap-330 desktop:gap-24
+              gap-50 tablet:gap-330 desktop:gap-24
               overflow-hidden
             "
           >
@@ -309,7 +316,8 @@ const DashboardCardOrg: React.FC<DashboardCardProps> = ({
                   />
                   <span className="flex-1 truncate">{item.label}</span>
                   <span className="text-gray-500 shrink-0">
-                    {item.value}회 · {((item.value / largeTotal) * 100).toFixed(1)}%
+                    {item.value}회 ·{' '}
+                    {largeTotal === 0 ? '0.0' : ((item.value / largeTotal) * 100).toFixed(1)}%
                   </span>
                 </li>
               ))}
