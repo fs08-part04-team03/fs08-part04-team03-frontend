@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ProductListTem from '@/features/products/template/ProductListTem/ProductListTem';
@@ -27,13 +27,16 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
   const searchParams = useSearchParams();
   const { accessToken } = useAuthStore();
 
-  // URL 쿼리 파라미터에서 categoryId 읽기
+  // URL 쿼리 파라미터에서 categoryId, q 읽기
   const categoryIdFromUrl = useMemo(() => {
     const param = searchParams?.get('categoryId');
     return param ? Number.parseInt(param, 10) : null;
   }, [searchParams]);
 
+  const searchQueryFromUrl = searchParams?.get('q') || '';
+
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(categoryIdFromUrl);
+  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [selectedSort, setSelectedSort] = useState<Option>({
     key: 'latest',
     label: '최신순',
@@ -42,7 +45,8 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
   // URL 쿼리 파라미터가 변경되면 state 동기화
   useEffect(() => {
     setSelectedCategoryId(categoryIdFromUrl);
-  }, [categoryIdFromUrl]);
+    setSearchQuery(searchQueryFromUrl);
+  }, [categoryIdFromUrl, searchQueryFromUrl]);
 
   // 카테고리 변경 핸들러 - URL 쿼리 파라미터 업데이트
   const handleCategoryChange = (categoryId: number | null) => {
@@ -52,17 +56,40 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     } else {
       params.set('categoryId', String(categoryId));
     }
+
+    // 카테고리 변경 시 검색어 초기화
+    params.delete('q');
+
     const newUrl = `/${companyId}/products${params.toString() ? `?${params.toString()}` : ''}`;
     router.push(newUrl);
   };
 
+  // 검색 핸들러
+  const handleSearch = useCallback(
+    (query: string) => {
+      const currentQuery = searchParams?.get('q') || '';
+      if (currentQuery === query) return;
+
+      const params = new URLSearchParams(searchParams?.toString() || '');
+      if (query) {
+        params.set('q', query);
+      } else {
+        params.delete('q');
+      }
+      const newUrl = `/${companyId}/products${params.toString() ? `?${params.toString()}` : ''}`;
+      router.push(newUrl);
+    },
+    [companyId, router, searchParams]
+  );
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['products', selectedCategoryId, selectedSort.key],
+    queryKey: ['products', selectedCategoryId, selectedSort.key, searchQuery],
     queryFn: async () => {
       const result = await getAllProducts({
         sort: selectedSort.key,
         categoryId: selectedCategoryId,
         accessToken,
+        q: searchQuery,
       });
       return result;
     },
@@ -130,6 +157,8 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
         companyId={companyId}
         wishlistData={wishlistData}
         isLoading={isLoading}
+        searchQuery={searchQuery}
+        onSearch={handleSearch}
       />
     </div>
   );
