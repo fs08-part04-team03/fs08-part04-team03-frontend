@@ -221,7 +221,7 @@ const DashboardCardOrg = ({
                     const changeText =
                       user.changeType === 'withdraw'
                         ? '탈퇴'
-                        : `${user.beforeRole} → ${user.afterRole}`;
+                        : `${user.beforeRole ?? '알 수 없음'} → ${user.afterRole ?? '알 수 없음'}`;
 
                     return (
                       <tr key={user.id} className="border-b border-gray-100 last:border-0">
