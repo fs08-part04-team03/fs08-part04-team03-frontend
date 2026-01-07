@@ -8,10 +8,9 @@ import Button from '@/components/atoms/Button/Button';
 import InputField from '@/components/molecules/InputField/InputField';
 import { useToast } from '@/hooks/useToast';
 import { CATEGORY_SECTIONS } from '@/constants';
-import { useAuthStore } from '@/lib/store/authStore';
 import { formatPrice, isInvalidPrice, isValidUrl, isValidPriceInput } from '@/utils/validation';
 import { logger } from '@/utils/logger';
-import { uploadProductImage, getImageUrl } from '@/features/products/api/products.api';
+import { fetchWithAuth } from '@/utils/api';
 
 interface ProductModalProps {
   open: boolean;
@@ -66,10 +65,8 @@ const ProductModal = ({
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Option | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<Option | null>(null);
-  const [_selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [touched, setTouched] = useState({
     name: false,
     price: false,
@@ -95,7 +92,6 @@ const ProductModal = ({
     : [];
 
   const { triggerToast } = useToast();
-  const { accessToken } = useAuthStore();
 
   const validate = useCallback(() => {
     const newErrors = {
@@ -115,6 +111,8 @@ const ProductModal = ({
     }
 
     if (!link.trim()) newErrors.link = '제품 링크를 입력해주세요.';
+    else if (link.trim().length < 1 || link.trim().length > 255)
+      newErrors.link = '제품 링크는 1자 이상 255자 이하여야 합니다.';
     else if (!isValidUrl(link))
       newErrors.link = 'http:// 또는 https://로 시작하는 URL을 입력해주세요.';
 
@@ -138,22 +136,31 @@ const ProductModal = ({
       link: link.trim(),
     };
 
-    // 이미지가 업로드된 경우 (이미 업로드되어 uploadedImageKey에 저장됨)
-    if (uploadedImageKey) {
-      body.image = uploadedImageKey;
+    // 이미지 파일이 선택된 경우 FormData로 전송
+    let requestBody: string | FormData;
+    const headers: HeadersInit = {};
+
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append('name', body.name as string);
+      formData.append('price', String(body.price));
+      formData.append('link', body.link as string);
+      formData.append('categoryId', String(body.categoryId));
+      formData.append('image', selectedFile);
+      requestBody = formData;
+      // FormData는 Content-Type을 자동으로 설정하므로 명시하지 않음
+    } else {
+      requestBody = JSON.stringify(body);
+      headers['Content-Type'] = 'application/json';
     }
 
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/product', {
+      const res = await fetchWithAuth('/api/product', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        },
-        credentials: 'include',
-        body: JSON.stringify(body),
+        body: requestBody,
+        headers,
       });
 
       const text = await res.text();
@@ -166,9 +173,51 @@ const ProductModal = ({
       }
 
       if (!res.ok || !result.success) {
-        const message = result.error?.message ?? result.message ?? '상품 등록에 실패했습니다.';
-        triggerToast('error', message);
-        throw new Error(message);
+        // 백엔드 에러 메시지 파싱 (validation error 등)
+        let errorMessage = '상품 등록에 실패했습니다.';
+
+        if (result.error) {
+          // validation error인 경우
+          if (typeof result.error === 'object' && result.error !== null) {
+            const errorObj = result.error as Record<string, unknown>;
+            // 각 필드별 에러 메시지 추출
+            const fieldErrors: string[] = [];
+            Object.keys(errorObj).forEach((key) => {
+              if (key !== 'code' && key !== 'message') {
+                const fieldError = errorObj[key];
+                if (typeof fieldError === 'object' && fieldError !== null) {
+                  const fieldErrorObj = fieldError as { message?: string };
+                  if (fieldErrorObj.message) {
+                    fieldErrors.push(fieldErrorObj.message);
+                  }
+                } else if (typeof fieldError === 'string') {
+                  fieldErrors.push(fieldError);
+                }
+              }
+            });
+            if (fieldErrors.length > 0) {
+              errorMessage = fieldErrors.join(', ');
+            } else if (errorObj.message && typeof errorObj.message === 'string') {
+              errorMessage = errorObj.message;
+            }
+          } else if (typeof result.error === 'string') {
+            errorMessage = result.error;
+          }
+        } else if (result.message) {
+          errorMessage = result.message;
+        }
+
+        logger.error('Product registration failed', {
+          hasError: true,
+          errorType: 'ApiError',
+          status: res.status,
+          statusText: res.statusText,
+          responseText: text,
+          requestBody: body,
+          parsedErrorMessage: errorMessage,
+        });
+        triggerToast('error', errorMessage);
+        throw new Error(errorMessage);
       }
 
       triggerToast('success', '상품이 등록되었습니다.');
@@ -178,9 +227,15 @@ const ProductModal = ({
       logger.error('Product registration failed', {
         hasError: true,
         errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+        requestBody: body,
       });
       if (!(error instanceof Error && error.message.includes('이미지 업로드'))) {
-        triggerToast('error', '상품 등록 중 오류가 발생했습니다.');
+        const errorMessage =
+          error instanceof Error && error.message
+            ? error.message
+            : '상품 등록 중 오류가 발생했습니다.';
+        triggerToast('error', errorMessage);
       }
     } finally {
       setIsSubmitting(false);
@@ -280,8 +335,7 @@ const ProductModal = ({
     link.trim() &&
     selectedCategory &&
     selectedSubCategory &&
-    Object.values(errors).every((msg) => msg === '') &&
-    !isUploading;
+    Object.values(errors).every((msg) => msg === '');
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center">
@@ -340,43 +394,56 @@ const ProductModal = ({
                 }
 
                 setSelectedFile(file);
-                setIsUploading(true);
 
-                // 1. 이미지 업로드
-                uploadProductImage(file, 'products')
-                  .then(async (imageKey) => {
-                    // 2. 업로드 후 GET API로 signed URL 가져오기
-                    const { url: signedUrl } = await getImageUrl(imageKey);
-
-                    // 3. signed URL을 미리보기에 사용
-                    if (previewUrlRef.current) {
-                      URL.revokeObjectURL(previewUrlRef.current);
-                    }
-                    setPreview(signedUrl);
-                    setUploadedImageKey(imageKey);
-                  })
-                  .catch((error) => {
-                    const message =
-                      error instanceof Error ? error.message : '이미지 업로드에 실패했습니다.';
-                    triggerToast('error', message);
-                    setSelectedFile(null);
-                    setPreview(null);
-                    setUploadedImageKey(null);
-                  })
-                  .finally(() => {
-                    setIsUploading(false);
-                  });
+                // 로컬 파일을 미리보기용 URL로 변환
+                if (previewUrlRef.current) {
+                  URL.revokeObjectURL(previewUrlRef.current);
+                }
+                const previewUrl = URL.createObjectURL(file);
+                previewUrlRef.current = previewUrl;
+                setPreview(previewUrl);
               }}
             />
-            {preview ? (
-              <Image src={preview} alt="preview" fill className="object-contain" />
+            {preview && !preview.includes('no-image') && !preview.includes('upload.svg') ? (
+              <>
+                <Image
+                  src={preview}
+                  alt="preview"
+                  width={140}
+                  height={140}
+                  className="object-contain pointer-events-none"
+                  unoptimized
+                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (previewUrlRef.current) {
+                      URL.revokeObjectURL(previewUrlRef.current);
+                      previewUrlRef.current = null;
+                    }
+                    setPreview('/icons/upload.svg');
+                    setSelectedFile(null);
+                  }}
+                  className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50"
+                  aria-label="이미지 삭제"
+                >
+                  <Image
+                    src="/icons/close-circle.svg"
+                    alt="삭제"
+                    width={24}
+                    height={24}
+                    className="pointer-events-none"
+                  />
+                </button>
+              </>
             ) : (
               <Image
                 src="/icons/upload.svg"
                 alt="upload"
                 width={140}
                 height={140}
-                className="object-contain"
+                className="object-contain pointer-events-none"
               />
             )}
           </div>
@@ -470,7 +537,7 @@ const ProductModal = ({
               }}
               onBlur={() => setTouched((prev) => ({ ...prev, link: true }))}
               type="text"
-              maxLength={50}
+              maxLength={255}
             />
             {touched.link && errors.link && (
               <span className="text-red-500 text-12">{errors.link}</span>
@@ -494,11 +561,7 @@ const ProductModal = ({
               inactive={!isValid || isSubmitting}
               className="mobile:w-153 mobile:h-64 tablet:w-216 tablet:h-64 desktop:w-216 desktop:h-64 text-16 cursor-pointer"
             >
-              {(() => {
-                if (isUploading) return '이미지 업로드 중...';
-                if (isSubmitting) return '등록중...';
-                return '등록하기';
-              })()}
+              {isSubmitting ? '등록 중...' : '등록하기'}
             </Button>
           </div>
         </form>

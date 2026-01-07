@@ -15,8 +15,7 @@ import {
   BREADCRUMB_ITEMS,
   LOADING_MESSAGES,
   ERROR_MESSAGES,
-  getCategoryLabelById,
-  getSubCategoryLabelById,
+  buildProductBreadcrumb,
 } from '@/constants';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
@@ -41,6 +40,7 @@ const MyProductDetailSection = () => {
     queryKey: ['myProduct', productId],
     queryFn: () => getMyProductById(productId),
     enabled: !!productId,
+    refetchOnMount: true, // ✅ 페이지 마운트 시 항상 최신 데이터 가져오기
   });
 
   // 위시리스트 목록 조회
@@ -109,10 +109,8 @@ const MyProductDetailSection = () => {
       };
     }
 
-    const categoryLabel = product.categoryId ? getCategoryLabelById(product.categoryId) : null;
-    const subCategoryLabel = product.categoryId
-      ? getSubCategoryLabelById(product.categoryId)
-      : null;
+    // buildProductBreadcrumb를 사용하여 대분류와 소분류를 모두 포함한 breadcrumb 생성
+    const categoryBreadcrumbItems = buildProductBreadcrumb({ categoryId: product.categoryId });
 
     const breadcrumbItems = [
       {
@@ -123,22 +121,11 @@ const MyProductDetailSection = () => {
         label: '상품 등록 내역',
         href: `/${companyId}/products/my`,
       },
-      ...(categoryLabel
-        ? [
-            {
-              label: categoryLabel,
-              href: `/${companyId}/products/my`,
-            },
-          ]
-        : []),
-      ...(subCategoryLabel
-        ? [
-            {
-              label: subCategoryLabel,
-              href: `/${companyId}/products/my`,
-            },
-          ]
-        : []),
+      // buildProductBreadcrumb에서 반환된 대분류와 소분류 추가
+      ...categoryBreadcrumbItems.map((item) => ({
+        label: item.label,
+        href: item.href,
+      })),
     ];
 
     // 상대 경로 사용 (SSR 하이드레이션 불일치 방지)
