@@ -98,7 +98,7 @@ const ProfileEditSection = () => {
       setPreview('/icons/upload.svg');
       setInitialImageKey(null);
     }
-  }, [myProfile?.profileImage]);
+  }, [myProfile?.profileImage, myProfile]);
 
   // 회사 정보 조회 (폼 초기값 설정)
   useEffect(() => {
