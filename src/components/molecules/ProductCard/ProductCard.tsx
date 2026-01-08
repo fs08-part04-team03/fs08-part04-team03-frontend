@@ -105,6 +105,9 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
     ? imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
     : false;
 
+  // 프록시 API URL인지 확인
+  const isProxyApiUrl = isValidImageUrl ? imageUrl.startsWith('/api/product/image') : false;
+
   // 반응형 이미지 크기 설정 (CLS 방지)
   // Wishlist: Mobile 115px, Tablet 200px, Desktop 345px
   // Product/Order: Mobile 150px, Tablet 150px, Desktop 350px
@@ -128,6 +131,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       );
     } else {
       // 내부 이미지는 Next.js Image 컴포넌트 사용
+      // 프록시 API URL은 unoptimized로 처리 (이미 최적화된 이미지를 반환하므로)
       imageContent = (
         <Image
           src={imageUrl}
@@ -137,6 +141,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           onError={() => setImgError(true)}
           className="object-contain"
           style={{ objectPosition: 'center' }}
+          unoptimized={isProxyApiUrl}
         />
       );
     }
