@@ -11,6 +11,7 @@ import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
+import { logger } from '@/utils/logger';
 
 /**
  * PurchaseRequestItemListOrg Props
@@ -60,7 +61,7 @@ const PurchaseRequestItemRowMobile = ({
       // 기본값: 사용자용 경로 (onRowClick이 없을 때만)
       router.push(`/${companyId}/my/purchase-requests/${item.id}`);
     } else {
-      console.warn('companyId가 없어서 이동할 수 없습니다.');
+      logger.warn('companyId가 없어서 이동할 수 없습니다.');
     }
   };
 
@@ -73,7 +74,7 @@ const PurchaseRequestItemRowMobile = ({
       } else if (companyId) {
         router.push(`/${companyId}/my/purchase-requests/${item.id}`);
       } else {
-        console.warn('companyId가 없어서 이동할 수 없습니다.');
+        logger.warn('companyId가 없어서 이동할 수 없습니다.');
       }
     }
   };
@@ -246,7 +247,7 @@ const PurchaseRequestItemRowDesktop = ({
       // 기본값: 사용자용 경로 (onRowClick이 없을 때만)
       router.push(`/${companyId}/my/purchase-requests/${item.id}`);
     } else {
-      console.warn('companyId가 없어서 이동할 수 없습니다.');
+      logger.warn('companyId가 없어서 이동할 수 없습니다.');
     }
   };
 
@@ -259,7 +260,7 @@ const PurchaseRequestItemRowDesktop = ({
       } else if (companyId) {
         router.push(`/${companyId}/my/purchase-requests/${item.id}`);
       } else {
-        console.warn('companyId가 없어서 이동할 수 없습니다.');
+        logger.warn('companyId가 없어서 이동할 수 없습니다.');
       }
     }
   };

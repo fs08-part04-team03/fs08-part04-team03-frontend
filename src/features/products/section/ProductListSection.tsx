@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import ProductListTem from '@/features/products/template/ProductListTem/ProductListTem';
 import { CATEGORY_SECTIONS, BREADCRUMB_ITEMS, ERROR_MESSAGES } from '@/constants';
 import { Option } from '@/components/atoms/DropDown/DropDown';
@@ -25,7 +25,9 @@ const SORT_OPTIONS: Option[] = [
 const ProductListSection = ({ companyId }: { companyId: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { accessToken } = useAuthStore();
+  const queryClient = useQueryClient();
 
   // URL 쿼리 파라미터에서 categoryId, q 읽기
   const categoryIdFromUrl = useMemo(() => {
@@ -83,7 +85,7 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     [companyId, router, searchParams]
   );
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['products', selectedCategoryId, selectedSort.key, searchQuery],
     queryFn: async () => {
       // 초기 진입 시 categoryId가 null이면 필터링 없이 전체 상품 조회
@@ -95,10 +97,31 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
       });
       return result;
     },
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: 0, // 캐시 없이 항상 최신 데이터 가져오기
     enabled: !!companyId, // companyId가 있을 때만 쿼리 실행
-    refetchOnMount: true, // 마운트 시 refetch (삭제 후 리다이렉트 시 최신 데이터 보장)
+    refetchOnMount: 'always', // ✅ 마운트 시 항상 refetch (어떤 경로에서 와도)
+    refetchOnWindowFocus: true, // ✅ 윈도우 포커스 시 refetch
   });
+
+  // 컴포넌트가 마운트되거나 경로가 변경될 때마다 강제로 refetch
+  // GNB에서 상품 페이지로 이동하거나 새로고침할 때 항상 최신 데이터를 보장
+  useEffect(() => {
+    if (!companyId || !pathname?.includes('/products')) {
+      return;
+    }
+
+    // 모든 products 쿼리를 무효화하고 현재 쿼리만 refetch
+    // 이렇게 하면 GNB에서 상품 페이지로 이동할 때도 항상 최신 데이터를 가져옵니다
+    queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {
+      // 에러는 무시 (이미 useQuery에서 처리됨)
+    });
+
+    // 현재 쿼리 파라미터에 맞는 쿼리만 refetch
+    refetch().catch(() => {
+      // 에러는 무시 (이미 useQuery에서 처리됨)
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId, pathname]); // pathname 변경만 감지 (queryKey 변경은 useQuery가 자동 처리)
 
   // 위시리스트 목록 조회
   const { data: wishlistData } = useQuery({
