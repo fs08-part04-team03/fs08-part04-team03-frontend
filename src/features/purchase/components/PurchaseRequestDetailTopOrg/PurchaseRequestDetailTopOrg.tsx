@@ -103,9 +103,9 @@ export const PurchaseRequestDetailTopOrg = ({
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
-  const { totalPrice, shippingFee } = purchaseRequest;
-  const orderAmount = totalPrice;
-  const totalAmount = totalPrice + shippingFee;
+  const { itemsTotalPrice, shippingFee, totalPrice } = purchaseRequest;
+  const orderAmount = itemsTotalPrice ?? totalPrice ?? 0;
+  const totalAmount = orderAmount + shippingFee;
 
   return (
     <div className="flex flex-col gap-30">

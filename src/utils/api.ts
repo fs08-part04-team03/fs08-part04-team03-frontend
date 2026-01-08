@@ -259,7 +259,7 @@ export async function tryRefreshToken(): Promise<string | null> {
       // 하지만 다른 쿠키가 있는지 확인하여 쿠키 자체가 작동하는지 확인
       const cookieNames = allCookies
         .split(';')
-        .map((c) => c.split('=')[0].trim())
+        .map((c) => c.split('=')[0]?.trim() ?? '')
         .filter(Boolean);
       cookieInfo = {
         hasCookies: allCookies.length > 0,

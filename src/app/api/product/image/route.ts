@@ -124,7 +124,8 @@ export async function GET(req: Request) {
         errorText = 'Failed to read error response';
       }
 
-      // 개발 환경에서 백엔드 응답 상세 로그 (logger는 개발 환경에서만 동작)
+      // 개발 환경에서 백엔드 응답 상세 로그
+      // logger.error는 개발 환경에서만 실제로 로그를 출력합니다
       logger.error('[Image Proxy] Backend error:', {
         status: res.status,
         statusText: res.statusText,

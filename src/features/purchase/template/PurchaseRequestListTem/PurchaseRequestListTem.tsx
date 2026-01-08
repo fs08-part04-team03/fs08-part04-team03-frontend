@@ -79,7 +79,7 @@ const PurchaseRequestTableRowDesktop = ({
   onRowClick,
 }: PurchaseRequestTableRowProps) => {
   const isUrgent = item.urgent === true;
-  const totalPrice = item.totalPrice + item.shippingFee;
+  const totalPrice = (item.itemsTotalPrice ?? item.totalPrice ?? 0) + item.shippingFee;
 
   const handleRowClick = (e: React.MouseEvent) => {
     e.stopPropagation();

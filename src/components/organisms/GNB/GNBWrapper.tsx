@@ -7,7 +7,12 @@ import { clearAuthCookies } from '@/utils/cookies';
 import { logout } from '@/features/auth/api/auth.api';
 import { getCompany } from '@/features/profile/api/company.api';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
-import { PARENT_CATEGORY_OPTIONS, CATEGORY_SECTIONS, type ParentCategoryKey } from '@/constants';
+import {
+  PARENT_CATEGORY_OPTIONS,
+  CATEGORY_SECTIONS,
+  type ParentCategoryKey,
+  type AppRouteKey,
+} from '@/constants';
 import { getChildById } from '@/constants/categories/categories.utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getProductById } from '@/features/products/api/products.api';
@@ -229,42 +234,22 @@ export const GNBWrapper: React.FC = () => {
     return 'all' as ParentCategoryKey;
   }, [isProductOrWishlistPage, isProductDetailPage, productCategoryId, searchParams]);
 
-  // 상품 페이지로 이동할 때마다 products 쿼리 refetch
-  useEffect(() => {
-    if (pathname?.includes('/products') && !pathname.includes('/products/my')) {
-      // 상품 목록 페이지로 이동할 때 products 쿼리 무효화 및 리페치
-      queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {
-        // 에러는 무시 (이미 useQuery에서 처리됨)
-      });
-      queryClient
-        .refetchQueries({
-          queryKey: ['products'],
-          type: 'active',
-        })
-        .catch(() => {
-          // 에러는 무시 (이미 useQuery에서 처리됨)
-        });
-    }
-  }, [pathname, queryClient]);
-
   // 카테고리 변경 핸들러 (대분류)
   const handleCategoryChange = (categoryKey: ParentCategoryKey | 'all') => {
     if (!isProductOrWishlistPage) return;
 
     // "all" 선택 시 모든 상품 보기 (쿼리 파라미터 없이)
     if (categoryKey === 'all') {
-      // products 쿼리 무효화 및 리페치
+      // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
       queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
-      queryClient.refetchQueries({ queryKey: ['products'] }).catch(() => {});
       router.push(`/${companyId}/products`);
       return;
     }
 
     const category = PARENT_CATEGORY_OPTIONS.find((c) => c.id === categoryKey);
     if (category) {
-      // products 쿼리 무효화 및 리페치
+      // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
       queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
-      queryClient.refetchQueries({ queryKey: ['products'] }).catch(() => {});
       // 상품 페이지로 이동하면서 카테고리 쿼리 파라미터 추가
       router.push(`/${companyId}/products?category=${category.parentId}`);
     }
@@ -273,18 +258,16 @@ export const GNBWrapper: React.FC = () => {
   // 소분류 카테고리 변경 핸들러
   const handleSubCategoryChange = (subCategoryId: number) => {
     if (!isProductOrWishlistPage) return;
-    // products 쿼리 무효화 및 리페치
+    // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
     queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
-    queryClient.refetchQueries({ queryKey: ['products'] }).catch(() => {});
     // 소분류 ID로 필터링하기 위해 categoryId 쿼리 파라미터 업데이트
     router.push(`/${companyId}/products?categoryId=${subCategoryId}`);
   };
 
   // 네비게이션 아이템 클릭 핸들러 (상품 페이지로 이동 시 refetch)
-  const handleNavItemClick = (key: string) => {
+  const handleNavItemClick = (key: AppRouteKey) => {
     // 상품 페이지로 이동하는 경우 products 쿼리 refetch
     if (key === 'product-list') {
-      queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
       queryClient.refetchQueries({ queryKey: ['products'] }).catch(() => {});
     }
   };
