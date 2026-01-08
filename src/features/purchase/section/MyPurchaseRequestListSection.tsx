@@ -52,48 +52,43 @@ const MyPurchaseRequestListSection = () => {
   } = useQuery({
     queryKey: ['myPurchases', page, size, status, sort],
     queryFn: async () => {
-      const response = await getMyPurchases({ page, size, status, sort });
+      try {
+        // 정렬 옵션을 API 스펙에 맞게 변환
+        let sortBy: 'createdAt' | 'updatedAt' | 'totalPrice' | undefined = 'createdAt';
+        let order: 'asc' | 'desc' = 'desc';
 
-      logger.info('[MyPurchaseRequestList] API 응답:', {
-        totalItems: response.totalItems,
-        purchaseListLength: response.purchaseList.length,
-        status,
-        requestedStatus: status,
-      });
+        if (sort === 'LATEST' || !sort || sort === DEFAULT_SORT_KEY) {
+          sortBy = 'createdAt';
+          order = 'desc';
+        } else if (sort === 'PRICE_LOW') {
+          sortBy = 'totalPrice';
+          order = 'asc';
+        } else if (sort === 'PRICE_HIGH') {
+          sortBy = 'totalPrice';
+          order = 'desc';
+        }
 
-      // 클라이언트 측에서 상태 필터링 적용 (백엔드 필터링이 제대로 작동하지 않을 수 있으므로)
-      let filteredList = [...response.purchaseList];
-      if (status && status !== 'ALL') {
-        filteredList = filteredList.filter((item) => item.status === status);
-        logger.info('[MyPurchaseRequestList] 상태 필터링 적용:', {
-          originalCount: response.purchaseList.length,
-          filteredCount: filteredList.length,
+        const response = await getMyPurchases({
+          page,
+          limit: size,
+          sortBy,
+          order,
           status,
         });
-      }
 
-      // 클라이언트 측에서 정렬 적용 (백엔드 정렬이 제대로 작동하지 않을 수 있으므로)
-      const sortedList = [...filteredList];
-      if (sort === 'PRICE_LOW') {
-        sortedList.sort((a, b) => a.totalPrice - b.totalPrice);
-      } else if (sort === 'PRICE_HIGH') {
-        sortedList.sort((a, b) => b.totalPrice - a.totalPrice);
-      } else {
-        // LATEST 또는 기본값: createdAt 기준 내림차순 (최신순)
-        // 날짜가 늦은 것(최신)부터 오래된 것 순서로 정렬
-        sortedList.sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        // 백엔드에서 이미 정렬/필터링된 데이터를 받으므로 클라이언트 측 추가 처리는 최소화
+        // 페이지네이션은 백엔드에서 처리하므로 그대로 사용
+        return response;
+      } catch (error) {
+        logger.error('[MyPurchaseRequestList] API 호출 실패:', {
+          error: error instanceof Error ? error.message : String(error),
+          page,
+          size,
+          status,
+          sort,
+        });
+        throw error;
       }
-
-      return {
-        ...response,
-        purchaseList: sortedList,
-        totalItems: filteredList.length, // 필터링된 개수로 업데이트
-        // 클라이언트 필터링 시 페이지네이션도 재계산
-        totalPages: Math.ceil(filteredList.length / size) || 1,
-        currentPage: 1, // 필터링 후 첫 페이지로 리셋
-      };
     },
     retry: false, // 401 에러 시 재시도 방지
     refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지

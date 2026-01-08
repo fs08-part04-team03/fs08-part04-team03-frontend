@@ -48,19 +48,42 @@ const ApprovalRequestModal = ({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const calculatedItems = items.map((item) => ({
-    ...item,
-    totalPrice: item.price * item.quantity,
-    icon: (
-      <Image
-        src={item.imageSrc || '/icons/no-image-small.svg'}
-        width={40}
-        height={40}
-        alt={item.title}
-        className="w-40 h-40 shrink-0 object-cover"
-      />
-    ),
-  }));
+  const calculatedItems = items.map((item) => {
+    // S3 이미지 키를 프록시 API로 변환
+    // imageSrc가 이미 프록시 API URL(/api/product/image?key=...)이 아닌 경우,
+    // S3 키로 간주하고 프록시 API URL로 변환
+    const { imageSrc: originalImageSrc } = item;
+    let imageSrc = originalImageSrc;
+
+    // 빈 문자열이나 undefined인 경우 처리
+    if (!imageSrc || imageSrc.trim() === '') {
+      imageSrc = undefined;
+    } else if (
+      !imageSrc.startsWith('/api/') &&
+      !imageSrc.startsWith('http://') &&
+      !imageSrc.startsWith('https://')
+    ) {
+      // S3 키를 프록시 API URL로 변환
+      imageSrc = `/api/product/image?key=${encodeURIComponent(imageSrc)}`;
+    }
+
+    const finalImageSrc = imageSrc || '/icons/no-image-small.svg';
+
+    return {
+      ...item,
+      totalPrice: item.price * item.quantity,
+      icon: (
+        <Image
+          src={finalImageSrc}
+          width={40}
+          height={40}
+          alt={item.title}
+          className="w-40 h-40 shrink-0 object-cover"
+          unoptimized={imageSrc?.startsWith('/api/product/image')}
+        />
+      ),
+    };
+  });
 
   const orderAmount = calculatedItems.reduce((sum, item) => sum + item.totalPrice, 0);
   const totalAmount = orderAmount + deliveryFee;
@@ -190,8 +213,8 @@ const ApprovalRequestModal = ({
             });
           }}
         >
-          <header className="flex flex-col items-center mb-12 py-16 px-8 tablet:mb-20 tablet:py-0 tablet:px-0 desktop:mb-20 desktop:py-0 desktop:px-0">
-            <h2 className="text-18 font-bold tracking-tight">{headerText}</h2>
+          <header className="flex flex-col items-center mb-12 py-16 px-8 tablet:mb-20 tablet:py-0 tablet:px-0 desktop:mb-20 desktop:py-15 desktop:px-0">
+            <h2 className="text-20 font-bold tracking-tight">{headerText}</h2>
           </header>
 
           <section className="flex flex-col gap-20 mb-20">
@@ -202,8 +225,8 @@ const ApprovalRequestModal = ({
               avatarSrc={user.avatarSrc}
             />
             <div className="flex gap-6 items-baseline">
-              <span className="text-16 font-bold text-gray-950 tracking-tight">요청 품목</span>
-              <span className="text-14 tablet:text-16 text-gray-950 tracking-tight">
+              <span className="text-14 font-bold text-gray-950 tracking-tight">요청 품목</span>
+              <span className="text-12 tablet:text-16 text-gray-950 tracking-tight">
                 총 {items.length}개
               </span>
             </div>
@@ -211,19 +234,22 @@ const ApprovalRequestModal = ({
 
           <section
             className={clsx(
-              'w-full rounded-8 border border-gray-200 bg-white shadow-sm mb-20 p-20 flex flex-col gap-20',
+              'w-full rounded-8 border border-gray-200 bg-white shadow-sm mb-20 px-20 pt-20 pb-5 flex flex-col gap-10',
               isScrollable && 'max-h-300 overflow-y-auto scrollbar-none'
             )}
           >
             <div className="flex flex-col w-full">
               {calculatedItems.map((item) => (
-                <div key={item.id} className="w-full py-20 px-2 border-b border-gray-200">
+                <div
+                  key={`${item.id}-${item.title}`}
+                  className="w-full py-20 px-2 border-b border-gray-200"
+                >
                   <div className="flex w-full justify-between items-center">
                     <div className="flex items-center gap-12">
                       {item.icon}
                       <div className="flex flex-col">
-                        <span className="text-14 tablet:text-16 text-gray-900">{item.title}</span>
-                        <span className="text-14 tablet:text-16 text-gray-900">
+                        <span className="text-12 tablet:text-14 text-gray-900">{item.title}</span>
+                        <span className="text-12 tablet:text-14 text-gray-900">
                           {item.price.toLocaleString()}원
                         </span>
                       </div>
@@ -234,10 +260,10 @@ const ApprovalRequestModal = ({
                         'tablet:flex-row tablet:items-center tablet:gap-90'
                       )}
                     >
-                      <span className="text-13 tablet:text-16 text-gray-500 whitespace-nowrap">
+                      <span className="text-13 tablet:text-14 text-gray-500 whitespace-nowrap">
                         수량 {item.quantity}개
                       </span>
-                      <span className="text-16 tablet:text-20 text-gray-700 whitespace-nowrap">
+                      <span className="text-16 tablet:text-18 text-gray-700 whitespace-nowrap">
                         {item.totalPrice.toLocaleString()}원
                       </span>
                     </div>
@@ -246,31 +272,33 @@ const ApprovalRequestModal = ({
               ))}
             </div>
 
-            <div className="flex flex-col gap-10 text-16">
-              <div className="flex justify-between items-center">
-                <span className="text-16 text-gray-700 tablet:text-18">주문 금액</span>
-                <span className="text-20 text-gray-700 tablet:text-24">
-                  {orderAmount.toLocaleString()}원
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-16 text-gray-700 tablet:text-18">배송비</span>
-                <span className="text-20 text-gray-700 tablet:text-24">
-                  {deliveryFee.toLocaleString()}원
-                </span>
-              </div>
-              <div className="flex justify-between items-center font-bold mt-1">
-                <span className="text-16 text-gray-950 tablet:text-18">총 주문 금액</span>
-                <div className="text-20 text-gray-950 tablet:text-24 font-bold">
-                  <span>{totalAmount.toLocaleString()}원</span>
+            <div className="sticky bottom-0 bg-white pt-16 pb-8 border-t border-gray-200 mt-16">
+              <div className="flex flex-col text-14">
+                <div className="flex justify-between items-center">
+                  <span className="text-12 text-gray-700 tablet:text-14">주문 금액</span>
+                  <span className="text-16 text-gray-700 tablet:text-16">
+                    {orderAmount.toLocaleString()}원
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-12 text-gray-700 tablet:text-14">배송비</span>
+                  <span className="text-16 text-gray-700 tablet:text-16">
+                    {deliveryFee.toLocaleString()}원
+                  </span>
+                </div>
+                <div className="flex justify-between items-center font-bold mt-1">
+                  <span className="text-12 text-gray-950 tablet:text-16">총 주문 금액</span>
+                  <div className="text-16 text-gray-950 tablet:text-18 font-bold">
+                    <span>{totalAmount.toLocaleString()}원</span>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
           <section className="w-full border border-gray-100 rounded-8 py-16 px-8 mb-20 flex justify-between items-center">
-            <span className="text-16 tablet:text-18 font-bold">남은 예산 금액</span>
-            <span className="text-20 tablet:text-24 font-bold">
+            <span className="text-14 tablet:text-16 font-bold">남은 예산 금액</span>
+            <span className="text-18 tablet:text-20 font-bold">
               {remainBudget.toLocaleString()}원
             </span>
           </section>
@@ -278,7 +306,7 @@ const ApprovalRequestModal = ({
           <section className="mb-18 tablet:mb-9 flex flex-col gap-1">
             <label
               htmlFor="approvalMessage"
-              className="text-16 font-bold text-gray-950 tracking-tight mb-12"
+              className="text-14 font-bold text-gray-950 tracking-tight mb-12"
             >
               {labelText}
             </label>
