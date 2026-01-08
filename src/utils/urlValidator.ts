@@ -24,7 +24,10 @@ export const sanitizeImageUrl = (url: string | null): string => {
   if (trimmed.startsWith('blob:')) {
     try {
       const blobUrl = new URL(trimmed);
-      if (blobUrl.protocol === 'blob:') return trimmed;
+      // blob: 스킴만 허용하며, 호스트/오리진이 존재하는 정상적인 형태만 통과시킵니다.
+      if (blobUrl.protocol === 'blob:' && blobUrl.origin && blobUrl.host) {
+        return trimmed;
+      }
       return '';
     } catch {
       return '';
