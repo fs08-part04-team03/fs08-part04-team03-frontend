@@ -49,6 +49,11 @@ cp .env.example .env
 NEXT_PUBLIC_API_URL=https://snock.tplinkdns.com:4000
 NEXT_PUBLIC_API_TIMEOUT=10000
 
+# Next.js 앱 URL (서버 사이드 이미지 업로드에 필요)
+# 개발 환경: http://localhost:3000
+# 프로덕션 환경: 실제 배포된 도메인 URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
 # JWT 토큰 검증을 위한 시크릿 키
 # 프로덕션 환경에서는 반드시 강력한 랜덤 문자열로 설정하세요
 # 예: openssl rand -base64 32
