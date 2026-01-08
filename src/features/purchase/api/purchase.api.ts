@@ -27,6 +27,25 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
   // utils/api.ts의 fetchWithAuth 사용 (refreshToken 자동 갱신 포함)
   const response = await fetchWithAuthUtil(url, options);
 
+  // 404 Not Found 에러 처리
+  if (response.status === 404) {
+    let errorMessage = '구매 내역을 찾을 수 없습니다.';
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        const errorResult = (await response.json()) as { message?: string };
+        errorMessage = errorResult.message || errorMessage;
+      } catch (parseError) {
+        // JSON 파싱 실패 시 기본 메시지 사용
+        logger.warn('Failed to parse 404 error response', {
+          hasError: true,
+          errorType: parseError instanceof Error ? parseError.constructor.name : 'Unknown',
+        });
+      }
+    }
+    throw new Error(errorMessage);
+  }
+
   // 429 Too Many Requests 에러 처리
   if (response.status === 429) {
     const retryAfter = response.headers.get('Retry-After');
@@ -258,8 +277,10 @@ export interface PurchaseRequestItem {
   id: string;
   createdAt: string;
   updatedAt: string;
-  totalPrice: number;
+  approvedAt?: string; // 승인일 (새로운 필드)
+  itemsTotalPrice: number; // 상품 금액 (API 스펙에 맞게 변경)
   shippingFee: number;
+  finalTotalPrice: number; // 최종 금액 (새로운 필드)
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
   requestMessage?: string;
   rejectReason?: string;
@@ -268,6 +289,7 @@ export interface PurchaseRequestItem {
     id: string;
     quantity: number;
     priceSnapshot: number;
+    itemTotal: number; // 항목 소계 (새로운 필드)
     products: {
       id: number;
       name: string;
@@ -287,6 +309,8 @@ export interface PurchaseRequestItem {
     name: string;
     email: string;
   };
+  // 하위 호환성을 위한 필드 (기존 코드 지원)
+  totalPrice?: number; // itemsTotalPrice의 별칭 (deprecated)
 }
 
 /**
@@ -340,19 +364,72 @@ export async function managePurchaseRequests(
 
 /**
  * 구매 요청 상세 조회 (관리자)
- * GET /api/v1/purchase/admin/purchaseRequest/{id}
+ * GET /api/v1/purchase/admin/getPurchaseRequestDetail/{purchaseRequestId}
  */
 export async function getPurchaseRequestDetail(
   purchaseRequestId: string
 ): Promise<PurchaseRequestItem> {
-  const result = await fetchWithAuth<PurchaseRequestItem>(
-    `${PURCHASE_API_PATHS.ADMIN_GET_PURCHASE_REQUEST_DETAIL}/${purchaseRequestId}`,
-    {
-      method: 'GET',
+  try {
+    // API 응답 타입 (실제 백엔드 응답 구조)
+    interface ApiPurchaseRequestDetail {
+      id: string;
+      createdAt: string;
+      updatedAt: string;
+      approvedAt?: string;
+      itemsTotalPrice: number;
+      shippingFee: number;
+      finalTotalPrice: number;
+      status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+      requestMessage?: string;
+      rejectReason?: string;
+      purchaseItems: Array<{
+        id: string;
+        quantity: number;
+        priceSnapshot: number;
+        itemTotal: number;
+        products: {
+          id: number;
+          name: string;
+          image?: string;
+          link?: string;
+        };
+      }>;
+      requester: {
+        id: string;
+        name: string;
+        email: string;
+        company?: string;
+        avatarSrc?: string;
+      };
+      approver?: {
+        id: string;
+        name: string;
+        email: string;
+      };
     }
-  );
 
-  return result.data;
+    const result = await fetchWithAuth<ApiPurchaseRequestDetail>(
+      `${PURCHASE_API_PATHS.ADMIN_GET_PURCHASE_REQUEST_DETAIL}/${purchaseRequestId}`,
+      {
+        method: 'GET',
+      }
+    );
+
+    // API 응답을 PurchaseRequestItem 타입으로 변환 (하위 호환성 유지)
+    const purchaseRequestItem: PurchaseRequestItem = {
+      ...result.data,
+      // itemsTotalPrice를 totalPrice로도 매핑 (기존 코드 호환성)
+      totalPrice: result.data.itemsTotalPrice,
+    };
+
+    return purchaseRequestItem;
+  } catch (error) {
+    // 404 에러는 fetchWithAuth에서 이미 처리되지만, 추가로 명확한 메시지 제공
+    if (error instanceof Error && error.message.includes('찾을 수 없습니다')) {
+      throw new Error(`구매 요청을 찾을 수 없습니다. (ID: ${purchaseRequestId})`);
+    }
+    throw error;
+  }
 }
 
 /**
@@ -476,16 +553,55 @@ export async function getPurchaseDashboard(): Promise<PurchaseDashboardResponse>
 
 // 사용자 API
 
-// 내 구매 내역 조회
+/**
+ * 내 구매 내역 조회
+ * GET /api/v1/purchase/user/getMyPurchases
+ */
 export interface GetMyPurchasesParams {
-  page?: number;
-  size?: number;
-  status?: string;
-  sort?: string;
+  page?: number; // 페이지 번호 (기본값: 1)
+  limit?: number; // 페이지당 항목 수 (기본값: 10)
+  sortBy?: 'createdAt' | 'updatedAt' | 'totalPrice'; // 정렬 기준 (기본값: createdAt)
+  order?: 'asc' | 'desc'; // 정렬 순서 (기본값: desc)
+  status?: string; // 상태 필터 (스펙에 없지만 하위 호환성을 위해 유지)
 }
 
 /**
- * 구매 요청 목록 응답 타입 (실제 API 응답 구조)
+ * API 응답 타입 (백엔드 실제 응답 구조)
+ */
+interface ApiMyPurchasesResponse {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  totalPrice: number;
+  shippingFee: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  requestMessage?: string;
+  rejectReason?: string;
+  purchaseItems: Array<{
+    id: string;
+    quantity: number;
+    priceSnapshot: number;
+    products: {
+      id: number;
+      name: string;
+      image: string;
+      link: string;
+    };
+  }>;
+  requester: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  approver?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+/**
+ * 구매 요청 목록 응답 타입 (프론트엔드에서 사용하는 구조)
  */
 export interface GetMyPurchasesResponse {
   purchaseList: PurchaseRequestItem[];
@@ -502,66 +618,264 @@ export async function getMyPurchases(
 ): Promise<GetMyPurchasesResponse> {
   const queryParams = new URLSearchParams();
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
-  if (params?.size !== undefined) queryParams.append('size', params.size.toString());
-  // status가 undefined이거나 'ALL'일 때는 파라미터를 포함하지 않음 (모든 상태 조회)
-  // 백엔드가 status 없을 때 모든 상태를 반환하도록 설계되어 있다고 가정
+  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+  if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+  if (params?.order) queryParams.append('order', params.order);
+  // status는 스펙에 없지만 하위 호환성을 위해 유지
   if (params?.status && params.status !== 'ALL' && params.status !== undefined) {
     queryParams.append('status', params.status);
   }
-  if (params?.sort) queryParams.append('sort', params.sort);
 
   const queryString = queryParams.toString();
   const url = `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASES}${queryString ? `?${queryString}` : ''}`;
 
-  // 개발 환경에서 요청 정보 로깅 제거 (의미 없는 디버그 로그)
+  try {
+    const result = await fetchWithAuth<ApiMyPurchasesResponse[]>(url, {
+      method: 'GET',
+    });
 
-  const result = await fetchWithAuth<PurchaseRequestItem[]>(url, {
-    method: 'GET',
-  });
+    // 응답 데이터 검증
+    if (!Array.isArray(result.data)) {
+      logger.error('getMyPurchases: 응답 데이터가 배열이 아닙니다.', { data: result.data });
+      throw new Error('서버 응답 형식이 올바르지 않습니다.');
+    }
 
-  // 백엔드 응답 구조: { success, data: [], pagination: { page, limit, total, totalPages } }
-  // 프론트엔드 응답 구조로 변환
-  return {
-    purchaseList: result.data,
-    currentPage: result.pagination?.page || 1,
-    totalPages: result.pagination?.totalPages || 1,
-    totalItems: result.pagination?.total || 0,
-    itemsPerPage: result.pagination?.limit || 10,
-    hasNextPage: result.pagination ? result.pagination.page < result.pagination.totalPages : false,
-    hasPreviousPage: result.pagination ? result.pagination.page > 1 : false,
-  };
+    // 개발 환경에서 응답 데이터 로깅 (디버깅용)
+    if (process.env.NODE_ENV === 'development' && result.data.length > 0) {
+      const sampleItem = result.data[0];
+      logger.info('getMyPurchases: API 응답 샘플 데이터', {
+        sampleItem,
+        purchaseItems: sampleItem?.purchaseItems,
+        purchaseItemsLength: sampleItem?.purchaseItems?.length,
+        firstPurchaseItem: sampleItem?.purchaseItems?.[0],
+        firstProduct: sampleItem?.purchaseItems?.[0]?.products,
+        totalItems: result.data.length,
+      });
+      // logger.info는 개발 환경에서만 동작하므로 console.log는 제거
+    }
+
+    // API 응답을 PurchaseRequestItem 타입으로 변환 (안전하게)
+    const purchaseList: PurchaseRequestItem[] = result.data
+      .filter((item) => {
+        // 필수 필드 검증
+        if (!item?.id || !item.createdAt || !item.updatedAt) {
+          logger.warn('getMyPurchases: 필수 필드가 없는 항목을 건너뜁니다.', { item });
+          return false;
+        }
+        return true;
+      })
+      .map((item) => ({
+        id: item.id,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        itemsTotalPrice: item.totalPrice ?? 0,
+        shippingFee: item.shippingFee ?? 0,
+        finalTotalPrice: (item.totalPrice ?? 0) + (item.shippingFee ?? 0),
+        status: item.status,
+        requestMessage: item.requestMessage,
+        rejectReason: item.rejectReason,
+        // 하위 호환성을 위한 필드
+        totalPrice: item.totalPrice ?? 0,
+        purchaseItems: Array.isArray(item.purchaseItems)
+          ? (item.purchaseItems
+              .map((purchaseItem, index) => {
+                // purchaseItem과 products가 없으면 경고하고 빈 값 반환
+                if (!purchaseItem) {
+                  logger.warn('getMyPurchases: purchaseItem이 없습니다.', {
+                    itemId: item.id,
+                    index,
+                  });
+                  return null;
+                }
+
+                if (!purchaseItem.products) {
+                  logger.warn('getMyPurchases: products가 없습니다.', {
+                    purchaseItem,
+                    itemId: item.id,
+                    index,
+                  });
+                  return null;
+                }
+
+                const productName = purchaseItem.products.name;
+                if (!productName || productName.trim() === '') {
+                  logger.warn('getMyPurchases: 상품 이름이 없습니다.', {
+                    purchaseItem,
+                    itemId: item.id,
+                    index,
+                    products: purchaseItem.products,
+                  });
+                }
+
+                return {
+                  id: purchaseItem.id ?? '',
+                  quantity: purchaseItem.quantity ?? 0,
+                  priceSnapshot: purchaseItem.priceSnapshot ?? 0,
+                  itemTotal: (purchaseItem.quantity ?? 0) * (purchaseItem.priceSnapshot ?? 0),
+                  products: {
+                    id: purchaseItem.products.id ?? 0,
+                    name: productName ?? '이름 없음',
+                    image: purchaseItem.products.image ?? '',
+                    link: purchaseItem.products.link ?? '',
+                  },
+                };
+              })
+              .filter(
+                (filteredItem) => filteredItem !== null
+              ) as PurchaseRequestItem['purchaseItems'])
+          : [],
+        requester: {
+          id: item.requester?.id ?? '',
+          name: item.requester?.name ?? '',
+          email: item.requester?.email ?? '',
+        },
+        approver: item.approver
+          ? {
+              id: item.approver.id,
+              name: item.approver.name ?? '',
+              email: item.approver.email ?? '',
+            }
+          : undefined,
+      }));
+
+    // 백엔드 응답 구조: { success, data: [], pagination: { page, limit, total, totalPages } }
+    // 프론트엔드 응답 구조로 변환
+    return {
+      purchaseList,
+      currentPage: result.pagination?.page || 1,
+      totalPages: result.pagination?.totalPages || 1,
+      totalItems: result.pagination?.total || 0,
+      itemsPerPage: result.pagination?.limit || 10,
+      hasNextPage: result.pagination
+        ? result.pagination.page < result.pagination.totalPages
+        : false,
+      hasPreviousPage: result.pagination ? result.pagination.page > 1 : false,
+    };
+  } catch (error) {
+    logger.error('getMyPurchases: API 호출 중 오류 발생', {
+      error: error instanceof Error ? error.message : String(error),
+      url,
+      params,
+    });
+    throw error;
+  }
 }
 
 /**
  * 내 구매 상세 조회
+ * GET /api/v1/purchase/user/getMyPurchaseDetail/{purchaseRequestId}
  */
-export interface MyPurchaseDetail extends PurchaseRequestItem {
-  product: {
-    id: string;
-    name: string;
-    description?: string;
-    imageUrl?: string;
-    price: number;
-    categoryId: string;
-    categoryName: string;
-  };
-  requestHistory: Array<{
-    action: string;
-    performedBy: string;
-    performedAt: string;
-    comment?: string;
-  }>;
-}
-
-export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<MyPurchaseDetail> {
-  const result = await fetchWithAuth<MyPurchaseDetail>(
-    `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASE_DETAIL}/${purchaseRequestId}`,
-    {
-      method: 'GET',
+export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<PurchaseRequestItem> {
+  try {
+    // API 응답 타입 (실제 백엔드 응답 구조)
+    interface ApiMyPurchaseDetail {
+      id: string;
+      createdAt: string;
+      updatedAt: string;
+      totalPrice: number;
+      shippingFee: number;
+      status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+      requestMessage: string;
+      rejectReason: string;
+      purchaseItems: Array<{
+        id: string;
+        quantity: number;
+        priceSnapshot: number;
+        products: {
+          id: number;
+          name: string;
+          image: string;
+          link: string;
+        };
+      }>;
+      requester: {
+        id: string;
+        name: string;
+        email: string;
+      };
+      approver?: {
+        id: string;
+        name: string;
+        email: string;
+      };
     }
-  );
 
-  return result.data;
+    const result = await fetchWithAuth<ApiMyPurchaseDetail>(
+      `${PURCHASE_API_PATHS.USER_GET_MY_PURCHASE_DETAIL}/${purchaseRequestId}`,
+      {
+        method: 'GET',
+      }
+    );
+
+    // 개발 환경에서 응답 데이터 로깅 (디버깅용)
+    if (process.env.NODE_ENV === 'development') {
+      logger.info('getMyPurchaseDetail: API 응답 데이터', {
+        purchaseRequestId,
+        data: result.data,
+        purchaseItems: result.data.purchaseItems,
+      });
+    }
+
+    // API 응답을 PurchaseRequestItem 타입으로 변환 (안전하게)
+    const purchaseRequestItem: PurchaseRequestItem = {
+      id: result.data.id,
+      createdAt: result.data.createdAt,
+      updatedAt: result.data.updatedAt,
+      itemsTotalPrice: result.data.totalPrice ?? 0,
+      shippingFee: result.data.shippingFee ?? 0,
+      finalTotalPrice: (result.data.totalPrice ?? 0) + (result.data.shippingFee ?? 0),
+      status: result.data.status,
+      requestMessage: result.data.requestMessage ?? '',
+      rejectReason: result.data.rejectReason ?? '',
+      // 하위 호환성을 위한 필드
+      totalPrice: result.data.totalPrice ?? 0,
+      purchaseItems: Array.isArray(result.data.purchaseItems)
+        ? (result.data.purchaseItems
+            .map((item) => {
+              if (!item || !item.products) {
+                logger.warn('getMyPurchaseDetail: purchaseItem 또는 products가 없습니다.', {
+                  item,
+                  purchaseRequestId,
+                });
+                return null;
+              }
+              return {
+                id: item.id ?? '',
+                quantity: item.quantity ?? 0,
+                priceSnapshot: item.priceSnapshot ?? 0,
+                itemTotal: (item.quantity ?? 0) * (item.priceSnapshot ?? 0),
+                products: {
+                  id: item.products.id ?? 0,
+                  name: item.products.name ?? '',
+                  image: item.products.image ?? '',
+                  link: item.products.link ?? '',
+                },
+              };
+            })
+            .filter((item) => item !== null) as PurchaseRequestItem['purchaseItems'])
+        : [],
+      requester: {
+        id: result.data.requester?.id ?? '',
+        name: result.data.requester?.name ?? '',
+        email: result.data.requester?.email ?? '',
+      },
+      approver: result.data.approver
+        ? {
+            id: result.data.approver.id ?? '',
+            name: result.data.approver.name ?? '',
+            email: result.data.approver.email ?? '',
+          }
+        : undefined,
+    };
+
+    return purchaseRequestItem;
+  } catch (error) {
+    // 404 에러는 fetchWithAuth에서 이미 처리되지만, 추가로 명확한 메시지 제공
+    if (error instanceof Error && error.message.includes('찾을 수 없습니다')) {
+      throw new Error(`구매 요청을 찾을 수 없습니다. (ID: ${purchaseRequestId})`);
+    }
+    throw error;
+  }
 }
 
 /**

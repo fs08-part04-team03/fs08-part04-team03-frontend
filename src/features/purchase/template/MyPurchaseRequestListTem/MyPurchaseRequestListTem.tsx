@@ -22,6 +22,7 @@ import {
   formatItemDescription,
   getStatusTagVariant,
 } from '@/features/purchase/utils/purchase.utils';
+import { logger } from '@/utils/logger';
 
 const TABLE_CELL_BASE_STYLES = {
   header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 pl-20',
@@ -220,23 +221,57 @@ const PurchaseRequestTableRowDesktop = ({
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   // totalPrice가 0이거나 없을 경우 purchaseItems에서 계산
-  const calculatedTotalPrice = item.purchaseItems.reduce(
-    (sum, purchaseItem) => sum + purchaseItem.priceSnapshot * purchaseItem.quantity,
-    0
-  );
+  const calculatedTotalPrice =
+    item.purchaseItems?.reduce(
+      (sum, purchaseItem) => sum + (purchaseItem.priceSnapshot || 0) * (purchaseItem.quantity || 0),
+      0
+    ) || 0;
   const totalPrice =
     (item.totalPrice && item.totalPrice > 0 ? item.totalPrice : calculatedTotalPrice) +
     (item.shippingFee ?? 0);
 
-  const handleRowClick = () => {
-    if (!companyId) return;
-    router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+  const handleRowClick = (e: React.MouseEvent) => {
+    // 버튼을 클릭한 경우는 row 클릭으로 처리하지 않음
+    const target = e.target as HTMLElement;
+
+    // 버튼을 클릭한 경우만 제외
+    if (target.closest('button')) {
+      return;
+    }
+
+    // 나머지 모든 영역(상품명 포함)을 클릭한 경우 구매 요청 상세로 이동
+    if (!companyId || !item.id) {
+      logger.warn('구매 요청 상세 페이지 이동 실패:', {
+        companyId,
+        itemId: item.id,
+      });
+      return;
+    }
+
+    const targetPath = `/${companyId}/my/purchase-requests/${item.id}`;
+    logger.info('구매 요청 상세 페이지로 이동:', {
+      companyId,
+      itemId: item.id,
+      path: targetPath,
+      target: target.tagName,
+      className: target.className,
+    });
+    router.push(targetPath);
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      handleRowClick();
+      e.stopPropagation();
+      if (!companyId || !item.id) {
+        logger.warn('구매 요청 상세 페이지 이동 실패:', {
+          companyId,
+          itemId: item.id,
+        });
+        return;
+      }
+      const targetPath = `/${companyId}/my/purchase-requests/${item.id}`;
+      router.push(targetPath);
     }
   };
 
@@ -250,6 +285,7 @@ const PurchaseRequestTableRowDesktop = ({
     <div
       role="button"
       tabIndex={0}
+      data-row-click="true"
       className={clsx(
         'flex items-center w-full justify-between',
         'cursor-pointer hover:bg-gray-50',
@@ -274,7 +310,10 @@ const PurchaseRequestTableRowDesktop = ({
         className={clsx(
           TABLE_CELL_BASE_STYLES.cell,
           COLUMN_WIDTHS.product,
-          'text-gray-700 text-14 min-w-0 line-clamp-2 wrap-break-word'
+          'text-gray-700 text-14 min-w-0 line-clamp-2 wrap-break-word',
+          'cursor-pointer',
+          'hover:underline',
+          'hover:text-primary-500'
         )}
       >
         {formatItemDescription(item.purchaseItems)}
@@ -330,6 +369,15 @@ const MyPurchaseRequestListTem = ({
     router.push(`/${companyId}/products`);
   }, [router, companyId]);
 
+  const handleRowClick = useCallback(
+    (purchaseRequestId: string) => {
+      if (companyId) {
+        router.push(`/${companyId}/my/purchase-requests/${purchaseRequestId}`);
+      }
+    },
+    [companyId, router]
+  );
+
   const isEmpty = !purchaseList || purchaseList.length === 0;
   const shouldShowTableHeader = isLoading || !isEmpty;
 
@@ -357,6 +405,7 @@ const MyPurchaseRequestListTem = ({
       <PurchaseRequestItemListOrg
         purchaseList={purchaseList}
         onCancel={onCancelClick}
+        onRowClick={handleRowClick}
         companyId={companyId}
       />
     );

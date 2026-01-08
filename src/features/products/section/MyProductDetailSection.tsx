@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import MyProductDetailTem from '@/features/products/template/MyProductDetailTem/MyProductDetailTem';
 import { getMyProductById } from '@/features/products/api/products.api';
 import {
@@ -15,8 +15,7 @@ import {
   BREADCRUMB_ITEMS,
   LOADING_MESSAGES,
   ERROR_MESSAGES,
-  getCategoryLabelById,
-  getSubCategoryLabelById,
+  buildProductBreadcrumb,
 } from '@/constants';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
@@ -32,6 +31,8 @@ const MyProductDetailSection = () => {
 
   const queryClient = useQueryClient();
   const { triggerToast } = useToast();
+  // 이미지 리프레시를 위한 타임스탬프 (상품 수정 후 이미지 강제 재로드)
+  const [imageRefreshKey, setImageRefreshKey] = useState<number>(Date.now());
 
   const {
     data: product,
@@ -41,6 +42,9 @@ const MyProductDetailSection = () => {
     queryKey: ['myProduct', productId],
     queryFn: () => getMyProductById(productId),
     enabled: !!productId,
+    staleTime: 0, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
+    refetchOnMount: true, // ✅ 페이지 마운트 시 항상 최신 데이터 가져오기
+    refetchOnWindowFocus: true, // ✅ 윈도우 포커스 시 refetch
   });
 
   // 위시리스트 목록 조회
@@ -109,10 +113,8 @@ const MyProductDetailSection = () => {
       };
     }
 
-    const categoryLabel = product.categoryId ? getCategoryLabelById(product.categoryId) : null;
-    const subCategoryLabel = product.categoryId
-      ? getSubCategoryLabelById(product.categoryId)
-      : null;
+    // buildProductBreadcrumb를 사용하여 대분류와 소분류를 모두 포함한 breadcrumb 생성
+    const categoryBreadcrumbItems = buildProductBreadcrumb({ categoryId: product.categoryId });
 
     const breadcrumbItems = [
       {
@@ -123,27 +125,17 @@ const MyProductDetailSection = () => {
         label: '상품 등록 내역',
         href: `/${companyId}/products/my`,
       },
-      ...(categoryLabel
-        ? [
-            {
-              label: categoryLabel,
-              href: `/${companyId}/products/my`,
-            },
-          ]
-        : []),
-      ...(subCategoryLabel
-        ? [
-            {
-              label: subCategoryLabel,
-              href: `/${companyId}/products/my`,
-            },
-          ]
-        : []),
+      // buildProductBreadcrumb에서 반환된 대분류와 소분류 추가
+      ...categoryBreadcrumbItems.map((item) => ({
+        label: item.label,
+        href: item.href,
+      })),
     ];
 
     // 상대 경로 사용 (SSR 하이드레이션 불일치 방지)
+    // imageRefreshKey를 사용하여 이미지 업데이트 시 캐시 무효화
     const imageUrl = product.image
-      ? `/api/product/image?key=${encodeURIComponent(product.image)}`
+      ? `/api/product/image?key=${encodeURIComponent(product.image)}&t=${imageRefreshKey}`
       : '/icons/no-image.svg';
 
     return {
@@ -179,7 +171,12 @@ const MyProductDetailSection = () => {
       liked: isLiked,
       onToggleLike: handleToggleLike,
     };
-  }, [product, companyId, isLiked, handleToggleLike]);
+  }, [product, companyId, isLiked, handleToggleLike, imageRefreshKey]);
+
+  // 상품 수정 성공 시 이미지 리프레시
+  const handleProductUpdated = useCallback(() => {
+    setImageRefreshKey(Date.now());
+  }, []);
 
   if (isLoading) {
     return (
@@ -208,6 +205,7 @@ const MyProductDetailSection = () => {
       productId={productId}
       companyId={companyId}
       canUseMenu={canUseMenu}
+      onProductUpdated={handleProductUpdated}
     />
   );
 };

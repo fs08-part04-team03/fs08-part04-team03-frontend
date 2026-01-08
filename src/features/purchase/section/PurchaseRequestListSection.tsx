@@ -8,6 +8,7 @@ import {
   approvePurchaseRequest,
   rejectPurchaseRequest,
   getBudget,
+  getPurchaseRequestDetail,
 } from '@/features/purchase/api/purchase.api';
 import PurchaseRequestListTem from '@/features/purchase/template/PurchaseRequestListTem/PurchaseRequestListTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
@@ -41,8 +42,8 @@ const PurchaseRequestListSection = () => {
 
   const { page, size, sort } = paginationParams;
 
-  // requests 페이지에서는 상태 필터링 없음 (항상 모든 상태 조회)
-  const effectiveStatus = undefined;
+  // requests 페이지에서는 PENDING 상태만 조회 (현재 요청되어 있는 것들만)
+  const effectiveStatus = 'PENDING';
 
   // 프론트엔드 드롭다운 옵션 (사용자 친화적인 레이블)
   const purchaseRequestSortOptions: Option[] = [
@@ -87,6 +88,20 @@ const PurchaseRequestListSection = () => {
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+
+  // 모달용 상세 데이터 조회 (모달이 열릴 때만 호출)
+  const { data: modalDetailData, isLoading: isModalDetailLoading } = useQuery({
+    queryKey: ['purchaseRequestDetailForModal', selectedRequestId],
+    queryFn: async () => {
+      if (!selectedRequestId) {
+        throw new Error('Request ID is required');
+      }
+      return getPurchaseRequestDetail(selectedRequestId);
+    },
+    enabled: !!selectedRequestId && (approveModalOpen || rejectModalOpen),
+    staleTime: 0, // 모달용이므로 캐시 없이 항상 최신 데이터
+    retry: false,
+  });
 
   const {
     data,
@@ -278,6 +293,8 @@ const PurchaseRequestListSection = () => {
         onApproveClick={handleApproveClick}
         onRowClick={handleRowClick}
         selectedRequestId={selectedRequestId}
+        selectedRequestDetail={modalDetailData || undefined}
+        isModalDetailLoading={isModalDetailLoading}
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}
         onApproveModalClose={handleApproveModalClose}

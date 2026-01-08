@@ -20,6 +20,7 @@ import {
   deleteMyProduct,
   type GetRegisteredProductsResponse,
   type GetAllProductsResponse,
+  type UpdateMyProductOptions,
 } from '@/features/products/api/products.api';
 import { useToast } from '@/hooks/useToast';
 
@@ -32,6 +33,7 @@ interface MyProductDetailTemProps {
   productId: string;
   companyId: string;
   canUseMenu: boolean;
+  onProductUpdated?: () => void; // 상품 수정 성공 시 호출되는 콜백
 }
 
 /* =====================
@@ -93,6 +95,7 @@ const MyProductDetailTem = ({
   productId,
   companyId,
   canUseMenu,
+  onProductUpdated,
 }: MyProductDetailTemProps) => {
   // type을 전달하지 않으면 ProductDetailHeader에서 역할에 따라 자동 결정
   // canUseMenu는 이미 MyProductDetailSection에서 계산되어 전달됨
@@ -137,19 +140,33 @@ const MyProductDetailTem = ({
     return typeof linkPanel.content === 'string' ? linkPanel.content : '';
   }, [detailPageProps.accordionPanels]);
 
-  const handleEditSubmit = async (data: ProductEditFormData): Promise<void> => {
+  const handleEditSubmit = async (
+    data: ProductEditFormData,
+    options?: UpdateMyProductOptions
+  ): Promise<void> => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      await updateMyProduct(productId, data);
-      triggerToast('success', '상품이 수정되었습니다.');
+      await updateMyProduct(productId, data, options);
       // 상품 상세와 목록 모두 invalidate하여 최신 데이터 보장
       await queryClient.invalidateQueries({ queryKey: ['myProduct', productId] });
       await queryClient.invalidateQueries({ queryKey: ['myRegisteredProducts'] });
       // 일반 상품 목록도 invalidate하여 수정된 상품이 목록에 반영되도록 보장
       await queryClient.invalidateQueries({ queryKey: ['products'] });
-      // 즉시 refetch하여 수정된 이미지가 바로 반영되도록 함
-      await queryClient.refetchQueries({ queryKey: ['myProduct', productId] });
+      // 추가로 product 쿼리도 invalidate (일반 상품 디테일 페이지와 동기화)
+      await queryClient.invalidateQueries({ queryKey: ['product', productId] });
+      // 쿼리를 완전히 리셋하고 다시 가져오기
+      await queryClient.resetQueries({ queryKey: ['myProduct', productId] });
+      // 즉시 refetch하여 수정된 데이터가 바로 반영되도록 함
+      await queryClient.refetchQueries({
+        queryKey: ['myProduct', productId],
+        type: 'active',
+      });
       setEditModalOpen(false);
+      // 이미지 리프레시를 위한 콜백 호출
+      onProductUpdated?.();
+      // 페이지를 강제로 새로고침하여 최신 데이터 반영
+      router.refresh();
+      triggerToast('success', '상품이 수정되었습니다.');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '상품 수정에 실패했습니다.';
       triggerToast('error', message);

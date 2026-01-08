@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import ProductListTem from '@/features/products/template/ProductListTem/ProductListTem';
 import { CATEGORY_SECTIONS, BREADCRUMB_ITEMS, ERROR_MESSAGES } from '@/constants';
 import { Option } from '@/components/atoms/DropDown/DropDown';
@@ -25,15 +25,21 @@ const SORT_OPTIONS: Option[] = [
 const ProductListSection = ({ companyId }: { companyId: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { accessToken } = useAuthStore();
+  const queryClient = useQueryClient();
 
-  // URL 쿼리 파라미터에서 categoryId 읽기
+  // URL 쿼리 파라미터에서 categoryId, q 읽기
   const categoryIdFromUrl = useMemo(() => {
     const param = searchParams?.get('categoryId');
     return param ? Number.parseInt(param, 10) : null;
   }, [searchParams]);
 
+  const searchQueryFromUrl = searchParams?.get('q') || '';
+
+  // URL에서 초기값 설정 (딥 링킹 지원)
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(categoryIdFromUrl);
+  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [selectedSort, setSelectedSort] = useState<Option>({
     key: 'latest',
     label: '최신순',
@@ -42,7 +48,8 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
   // URL 쿼리 파라미터가 변경되면 state 동기화
   useEffect(() => {
     setSelectedCategoryId(categoryIdFromUrl);
-  }, [categoryIdFromUrl]);
+    setSearchQuery(searchQueryFromUrl);
+  }, [categoryIdFromUrl, searchQueryFromUrl]);
 
   // 카테고리 변경 핸들러 - URL 쿼리 파라미터 업데이트
   const handleCategoryChange = (categoryId: number | null) => {
@@ -52,24 +59,60 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     } else {
       params.set('categoryId', String(categoryId));
     }
+
+    // 카테고리 변경 시 검색어 초기화
+    params.delete('q');
+
     const newUrl = `/${companyId}/products${params.toString() ? `?${params.toString()}` : ''}`;
     router.push(newUrl);
   };
 
+  // 검색 핸들러
+  const handleSearch = useCallback(
+    (query: string) => {
+      const currentQuery = searchParams?.get('q') || '';
+      if (currentQuery === query) return;
+
+      const params = new URLSearchParams(searchParams?.toString() || '');
+      if (query) {
+        params.set('q', query);
+      } else {
+        params.delete('q');
+      }
+      const newUrl = `/${companyId}/products${params.toString() ? `?${params.toString()}` : ''}`;
+      router.push(newUrl);
+    },
+    [companyId, router, searchParams]
+  );
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['products', selectedCategoryId, selectedSort.key],
+    queryKey: ['products', selectedCategoryId, selectedSort.key, searchQuery],
     queryFn: async () => {
+      // 초기 진입 시 categoryId가 null이면 필터링 없이 전체 상품 조회
       const result = await getAllProducts({
         sort: selectedSort.key,
-        categoryId: selectedCategoryId,
+        categoryId: selectedCategoryId, // null이면 쿼리 파라미터에 포함되지 않음
         accessToken,
+        q: searchQuery,
       });
       return result;
     },
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: 60000, // 1분간 캐시 유지 (데이터 변경 빈도에 따라 조정 가능)
     enabled: !!companyId, // companyId가 있을 때만 쿼리 실행
-    refetchOnMount: true, // 마운트 시 refetch (삭제 후 리다이렉트 시 최신 데이터 보장)
   });
+
+  // 상품 페이지 진입 시 모든 products 쿼리를 무효화하여 최신 데이터 보장
+  // invalidateQueries는 활성 쿼리를 자동으로 refetch하므로 수동 refetch 불필요
+  useEffect(() => {
+    if (!companyId || !pathname?.includes('/products')) {
+      return;
+    }
+
+    // 상품 페이지 진입 시 모든 products 쿼리를 무효화하여 최신 데이터 보장
+    // invalidateQueries는 활성 쿼리를 자동으로 refetch하므로 수동 refetch 불필요
+    // eslint-disable-next-line no-void
+    void queryClient.invalidateQueries({ queryKey: ['products'] });
+  }, [companyId, pathname, queryClient]);
 
   // 위시리스트 목록 조회
   const { data: wishlistData } = useQuery({
@@ -130,6 +173,8 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
         companyId={companyId}
         wishlistData={wishlistData}
         isLoading={isLoading}
+        searchQuery={searchQuery}
+        onSearch={handleSearch}
       />
     </div>
   );

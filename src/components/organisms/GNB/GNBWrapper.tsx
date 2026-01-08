@@ -7,11 +7,17 @@ import { clearAuthCookies } from '@/utils/cookies';
 import { logout } from '@/features/auth/api/auth.api';
 import { getCompany } from '@/features/profile/api/company.api';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
-import { PARENT_CATEGORY_OPTIONS, CATEGORY_SECTIONS, type ParentCategoryKey } from '@/constants';
+import {
+  PARENT_CATEGORY_OPTIONS,
+  CATEGORY_SECTIONS,
+  type ParentCategoryKey,
+  type AppRouteKey,
+} from '@/constants';
 import { getChildById } from '@/constants/categories/categories.utils';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getProductById } from '@/features/products/api/products.api';
 import { cartApi } from '@/features/cart/api/cart.api';
+import { getMyProfile } from '@/features/profile/api/profile.api';
 import { logger } from '@/utils/logger';
 import GNB from './GNB';
 
@@ -29,6 +35,7 @@ export const GNBWrapper: React.FC = () => {
   const params = useParams();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const [companyName, setCompanyName] = useState<string>('');
 
   // 회사 정보 조회 (GNB에 표시할 회사명)
@@ -92,10 +99,50 @@ export const GNBWrapper: React.FC = () => {
   });
 
   const cartCount = cartData?.summary?.totalItems || 0;
+
+  // 사용자 프로필 정보 조회 (profileImage 포함)
+  const { data: myProfile } = useQuery({
+    queryKey: ['myProfile'],
+    queryFn: () => getMyProfile(),
+    enabled: !!user && !!accessToken,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    refetchOnWindowFocus: false,
+  });
+
+  // 프로필 이미지 URL 생성
+  // profileImage가 URL 형식이면 그대로 사용, S3 키 형식이면 프록시 API URL로 변환
+  const avatarSrc = (() => {
+    if (!myProfile?.profileImage) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.info('[GNBWrapper] profileImage 없음', { hasMyProfile: !!myProfile });
+      }
+      return undefined;
+    }
+    const { profileImage } = myProfile;
+
+    // 개발 환경에서 로깅
+    if (process.env.NODE_ENV === 'development') {
+      logger.info('[GNBWrapper] profileImage 처리', {
+        profileImage,
+        isUrl: profileImage.startsWith('http://') || profileImage.startsWith('https://'),
+      });
+    }
+
+    // 이미 URL 형식이면 그대로 사용
+    if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
+      return profileImage;
+    }
+    // S3 키 형식이면 프록시 API URL로 변환
+    // users/ 접두사가 없으면 추가 (프록시 API가 자동으로 처리하지만 명시적으로 추가)
+    const imageKey = profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
+    return `/api/product/image?key=${encodeURIComponent(imageKey)}`;
+  })();
+
   const userProfile = user ? (
     <UserProfile
       name={user.name}
       company={{ name: companyName }}
+      avatarSrc={avatarSrc}
       profileHref={`/${companyId}/my/profile`}
       variant="secondary"
     />
@@ -152,8 +199,16 @@ export const GNBWrapper: React.FC = () => {
       return productCategoryId;
     }
 
-    // categoryId 쿼리 파라미터에서 소분류 ID를 읽어서 대분류 찾기
+    // categoryId 쿼리 파라미터가 없으면 "all" (모든 상품)
     const categoryIdParam = searchParams?.get('categoryId');
+    const categoryParam = searchParams?.get('category');
+
+    // categoryId나 category 파라미터가 없으면 "all" 반환
+    if (!categoryIdParam && !categoryParam) {
+      return 'all' as ParentCategoryKey;
+    }
+
+    // categoryId 쿼리 파라미터에서 소분류 ID를 읽어서 대분류 찾기
     if (categoryIdParam) {
       const childCategoryId = Number.parseInt(categoryIdParam, 10);
       // 소분류 ID로 대분류 찾기
@@ -166,15 +221,35 @@ export const GNBWrapper: React.FC = () => {
       }
     }
 
-    // 기본값: 첫 번째 카테고리
-    return PARENT_CATEGORY_OPTIONS[0]?.id;
+    // category 파라미터로 대분류 찾기
+    if (categoryParam) {
+      const categoryId = Number.parseInt(categoryParam, 10);
+      const parentCategory = PARENT_CATEGORY_OPTIONS.find((c) => c.parentId === categoryId);
+      if (parentCategory) {
+        return parentCategory.id;
+      }
+    }
+
+    // 기본값: "all" (모든 상품)
+    return 'all' as ParentCategoryKey;
   }, [isProductOrWishlistPage, isProductDetailPage, productCategoryId, searchParams]);
 
   // 카테고리 변경 핸들러 (대분류)
-  const handleCategoryChange = (categoryKey: ParentCategoryKey) => {
+  const handleCategoryChange = (categoryKey: ParentCategoryKey | 'all') => {
     if (!isProductOrWishlistPage) return;
+
+    // "all" 선택 시 모든 상품 보기 (쿼리 파라미터 없이)
+    if (categoryKey === 'all') {
+      // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
+      queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
+      router.push(`/${companyId}/products`);
+      return;
+    }
+
     const category = PARENT_CATEGORY_OPTIONS.find((c) => c.id === categoryKey);
     if (category) {
+      // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
+      queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
       // 상품 페이지로 이동하면서 카테고리 쿼리 파라미터 추가
       router.push(`/${companyId}/products?category=${category.parentId}`);
     }
@@ -183,8 +258,18 @@ export const GNBWrapper: React.FC = () => {
   // 소분류 카테고리 변경 핸들러
   const handleSubCategoryChange = (subCategoryId: number) => {
     if (!isProductOrWishlistPage) return;
+    // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
+    queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
     // 소분류 ID로 필터링하기 위해 categoryId 쿼리 파라미터 업데이트
     router.push(`/${companyId}/products?categoryId=${subCategoryId}`);
+  };
+
+  // 네비게이션 아이템 클릭 핸들러 (상품 페이지로 이동 시 refetch)
+  const handleNavItemClick = (key: AppRouteKey) => {
+    // 상품 페이지로 이동하는 경우 products 쿼리 refetch
+    if (key === 'product-list') {
+      queryClient.refetchQueries({ queryKey: ['products'] }).catch(() => {});
+    }
   };
 
   return (
@@ -202,6 +287,7 @@ export const GNBWrapper: React.FC = () => {
       onSubCategoryChange={
         isProductOrWishlistPage && activeCategoryId ? handleSubCategoryChange : undefined
       }
+      onNavItemClick={handleNavItemClick}
     />
   );
 };

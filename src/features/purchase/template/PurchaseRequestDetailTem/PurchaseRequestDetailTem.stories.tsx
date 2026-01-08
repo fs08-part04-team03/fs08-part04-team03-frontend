@@ -43,8 +43,10 @@ const mockPurchaseRequest: PurchaseRequestItem = {
   id: '1',
   createdAt: '2025-06-03T00:00:00.000Z',
   updatedAt: '2025-06-03T00:00:00.000Z',
-  totalPrice: 15000,
+  itemsTotalPrice: 15000,
   shippingFee: 3000,
+  finalTotalPrice: 18000,
+  totalPrice: 15000,
   status: 'APPROVED',
   requestMessage: '빠른 배송 부탁드립니다.',
   purchaseItems: [
@@ -52,6 +54,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
       id: 'item-1',
       quantity: 1,
       priceSnapshot: 5000,
+      itemTotal: 5000,
       products: {
         id: 1,
         name: '코카콜라 제로',
@@ -62,6 +65,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
       id: 'item-2',
       quantity: 2,
       priceSnapshot: 5000,
+      itemTotal: 10000,
       products: {
         id: 2,
         name: '펩시 콜라',

@@ -40,7 +40,7 @@ const ShoppingCartSection = () => {
   } = useQuery({
     queryKey: ['cart', currentPage, pageSize],
     queryFn: () => cartApi.getMyCart(currentPage, pageSize),
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: 30 * 1000, // 30초간 캐시 유지 (이미지 업데이트 반영 + 성능 균형)
   });
 
   // 월 예산 조회 (manager만)

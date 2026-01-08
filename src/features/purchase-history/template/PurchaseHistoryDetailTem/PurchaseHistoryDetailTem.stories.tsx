@@ -25,14 +25,17 @@ const mockPurchaseRequest: PurchaseRequestItem = {
   id: 'req-1',
   createdAt: '2025-07-05T09:30:00.000Z',
   updatedAt: '2025-07-05T14:20:00.000Z',
-  totalPrice: 63000, // (15000 * 2 + 12000 * 1 + 6000 * 3) + 3000 = 60000 + 3000 = 63000
+  itemsTotalPrice: 60000, // (15000 * 2 + 12000 * 1 + 6000 * 3) = 60000
   shippingFee: 3000,
+  finalTotalPrice: 63000,
+  totalPrice: 63000, // 하위 호환성
   status: 'APPROVED',
   purchaseItems: [
     {
       id: 'item-1',
       quantity: 2,
       priceSnapshot: 15000,
+      itemTotal: 30000,
       products: {
         id: 1,
         name: '코카콜라 제로',
@@ -42,6 +45,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
       id: 'item-2',
       quantity: 1,
       priceSnapshot: 12000,
+      itemTotal: 12000,
       products: {
         id: 2,
         name: '펩시콜라',
@@ -51,6 +55,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
       id: 'item-3',
       quantity: 3,
       priceSnapshot: 6000,
+      itemTotal: 18000,
       products: {
         id: 3,
         name: '생수 2L',
