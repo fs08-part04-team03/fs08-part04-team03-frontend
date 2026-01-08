@@ -660,14 +660,17 @@ function isValidImageKey(key: string): boolean {
  *
  * @param key - S3 객체 키 (URL 인코딩 필요, 예: products/123-abc.jpg)
  * @throws {Error} 403 - 이미지 삭제 권한이 없습니다
- * @throws {Error} 400 - 잘못된 요청 (키 없음)
  * @throws {Error} 401 - 인증 실패
  * @throws {Error} 500 - 이미지 삭제 실패
+ * @remarks 400, 404 상태는 이미 삭제된 것으로 간주하고 성공 처리됨 (idempotent 삭제 패턴)
  */
 export async function deleteImage(key: string): Promise<void> {
   // 유효하지 않은 키는 삭제하지 않음
   if (!isValidImageKey(key)) {
-    // 유효하지 않은 키는 조용히 무시 (에러를 던지지 않음)
+    // 개발 환경에서 경고 로그 출력
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('[deleteImage] Invalid image key skipped', { key });
+    }
     return;
   }
 
