@@ -117,9 +117,16 @@ export async function GET(req: Request) {
     clearTimeout(timeoutId);
 
     if (!res.ok) {
+      // 응답 본문을 한 번만 읽어서 저장 (재사용을 위해)
+      let errorText = '';
+      try {
+        errorText = await res.text();
+      } catch {
+        errorText = 'Failed to read error response';
+      }
+
       // 개발 환경에서 백엔드 응답 상세 로그
       if (process.env.NODE_ENV === 'development') {
-        const errorText = await res.text().catch(() => 'Failed to read error response');
         console.error('[Image Proxy] Backend error:', {
           status: res.status,
           statusText: res.statusText,
@@ -157,13 +164,12 @@ export async function GET(req: Request) {
         return NextResponse.json({ success: false, message: errorMessage }, { status: 400 });
       }
 
-      // 기타 에러는 그대로 전달
-      const text = await res.text();
+      // 기타 에러는 그대로 전달 (이미 읽은 errorText 사용)
       let parsed: unknown;
       try {
-        parsed = JSON.parse(text);
+        parsed = JSON.parse(errorText);
       } catch {
-        parsed = text;
+        parsed = errorText;
       }
       return NextResponse.json(parsed, { status: res.status });
     }
