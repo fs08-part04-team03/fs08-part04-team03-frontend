@@ -446,6 +446,19 @@ export async function getProductById(productId: string | number): Promise<Backen
 
   const result = (await response.json()) as ApiResponse<BackendProduct>;
 
+  // 개발 환경에서 응답 로깅
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[getProductById] 상품 조회 응답:', {
+      productId,
+      success: result.success,
+      hasData: !!result.data,
+      productIdFromResponse: result.data?.id,
+      hasImage: !!result.data?.image,
+      image: result.data?.image,
+      imageLength: result.data?.image?.length,
+    });
+  }
+
   if (!result.success || !result.data) {
     throw new Error('상품 데이터 형식이 올바르지 않습니다.');
   }
@@ -547,8 +560,23 @@ export async function uploadProductImage(
 
   const result = (await response.json()) as ApiResponse<ImageUploadResponse>;
 
+  // 개발 환경에서 응답 로깅
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[uploadProductImage] 이미지 업로드 응답:', {
+      success: result.success,
+      hasData: !!result.data,
+      hasKey: !!result.data?.key,
+      key: result.data?.key,
+      fullResponse: JSON.stringify(result).substring(0, 300),
+    });
+  }
+
   if (!result.success || !result.data) {
     throw new Error('이미지 업로드 응답 형식이 올바르지 않습니다.');
+  }
+
+  if (!result.data.key) {
+    throw new Error('이미지 업로드 응답에 key가 없습니다.');
   }
 
   // S3 key 반환 (상품 API에서 사용)
@@ -715,6 +743,7 @@ export interface UpdateMyProductData {
   price: number;
   link: string;
   categoryId: number;
+  image?: string; // 이미지 S3 키 (이미 업로드된 이미지의 키)
 }
 
 export interface UpdateMyProductOptions {
@@ -727,27 +756,117 @@ export async function updateMyProduct(
   data: UpdateMyProductData,
   options?: UpdateMyProductOptions
 ): Promise<BackendProduct> {
-  // multipart/form-data로 전송
-  const formData = new FormData();
-  formData.append('name', data.name);
-  formData.append('price', String(data.price));
-  formData.append('link', data.link);
-  formData.append('categoryId', String(data.categoryId));
+  let requestBody: FormData | string;
+  const headers: HeadersInit = {};
 
-  // 새 이미지 파일이 있으면 추가
   if (options?.imageFile) {
+    // 새 이미지 파일이 있으면 FormData로 전송
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('price', String(data.price));
+    formData.append('link', data.link);
+    formData.append('categoryId', String(data.categoryId));
     formData.append('image', options.imageFile);
+    requestBody = formData;
+    // FormData는 Content-Type을 자동으로 설정하므로 명시하지 않음
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[updateMyProduct] 이미지 파일로 전송 (FormData):', {
+        fileName: options.imageFile.name,
+        fileSize: options.imageFile.size,
+        fileType: options.imageFile.type,
+      });
+    }
+  } else {
+    // 이미 업로드된 이미지 키가 있거나 이미지 삭제하는 경우
+    // 백엔드가 multipart/form-data에서 문자열 image를 처리하지 않으므로
+    // JSON body로 전송 시도 (백엔드가 PATCH에서 JSON을 받을 수도 있음)
+    const jsonBody: Record<string, unknown> = {
+      name: data.name,
+      price: data.price,
+      link: data.link,
+      categoryId: data.categoryId,
+    };
+
+    if (data.image) {
+      // 이미 업로드된 이미지 키 포함
+      jsonBody.image = data.image;
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[updateMyProduct] 이미지 키로 전송 (JSON body):', {
+          imageKey: data.image,
+          imageKeyLength: data.image.length,
+          jsonBody: JSON.stringify(jsonBody),
+        });
+      }
+    } else if (options?.removeImage) {
+      // 이미지 삭제
+      jsonBody.image = null;
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[updateMyProduct] 이미지 삭제 (JSON body):', {
+          jsonBody: JSON.stringify(jsonBody),
+        });
+      }
+    } else if (process.env.NODE_ENV === 'development') {
+      console.log('[updateMyProduct] 이미지 없음 (JSON body):', {
+        hasImageFile: !!options?.imageFile,
+        hasImageKey: !!data.image,
+        removeImage: options?.removeImage,
+        jsonBody: JSON.stringify(jsonBody),
+      });
+    }
+
+    requestBody = JSON.stringify(jsonBody);
+    headers['Content-Type'] = 'application/json';
   }
 
-  // URL에 removeImage 쿼리 파라미터 추가
+  // URL에 쿼리 파라미터 추가
   let url = `/api/v1/product/${productId}`;
-  if (options?.removeImage) {
-    url += '?removeImage=true';
+  const urlParams = new URLSearchParams();
+
+  if (!options?.imageFile && options?.removeImage) {
+    // 이미지 삭제
+    urlParams.append('removeImage', 'true');
+  } else if (data.image && !options?.imageFile) {
+    // 이미 업로드된 이미지 키를 쿼리 파라미터로 전송
+    // 백엔드가 multipart/form-data에서 문자열 image를 처리하지 않으므로
+    // 쿼리 파라미터로 전송 시도
+    urlParams.append('imageKey', data.image);
+    // 혹시 다른 필드명도 시도
+    urlParams.append('image', data.image);
+  }
+
+  if (urlParams.toString()) {
+    url += `?${urlParams.toString()}`;
+  }
+
+  // 개발 환경에서 최종 요청 정보 로깅
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[updateMyProduct] 최종 요청 정보:', {
+      url,
+      method: 'PATCH',
+      hasFormData: requestBody instanceof FormData,
+      isJson: typeof requestBody === 'string',
+      formDataEntries:
+        requestBody instanceof FormData
+          ? {
+              name: requestBody.get('name'),
+              price: requestBody.get('price'),
+              link: requestBody.get('link'),
+              categoryId: requestBody.get('categoryId'),
+              image: requestBody.get('image'),
+              imageKey: requestBody.get('imageKey'),
+              imageUrl: requestBody.get('imageUrl'),
+            }
+          : null,
+      jsonBody: typeof requestBody === 'string' ? requestBody : null,
+      headers,
+    });
   }
 
   const response = await fetchWithAuth(url, {
     method: 'PATCH',
-    body: formData,
+    body: requestBody,
+    headers,
   });
 
   if (!response.ok) {
@@ -779,6 +898,17 @@ export async function updateMyProduct(
   }
 
   const result = (await response.json()) as ApiResponse<BackendProduct>;
+
+  // 개발 환경에서 응답 로깅
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[updateMyProduct] 상품 수정 응답:', {
+      success: result.success,
+      hasData: !!result.data,
+      hasImage: !!result.data?.image,
+      image: result.data?.image,
+      productId: result.data?.id,
+    });
+  }
 
   if (!result.success || !result.data) {
     throw new Error(result.message || '상품 수정 데이터 형식이 올바르지 않습니다.');

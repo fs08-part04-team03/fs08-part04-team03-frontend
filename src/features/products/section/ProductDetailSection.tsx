@@ -51,6 +51,8 @@ const ProductDetailSection = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editModalImageUrl, setEditModalImageUrl] = useState<string | null>(null);
+  // 이미지 리프레시를 위한 타임스탬프 (상품 수정 후 이미지 강제 재로드)
+  const [imageRefreshKey, setImageRefreshKey] = useState(0);
 
   // 메니저 이상급만 ItemMenu 사용 가능
   const canUseMenu = useMemo(() => {
@@ -227,8 +229,11 @@ const ProductDetailSection = () => {
     ];
 
     // 프록시 API를 통해 이미지 로드 (CORS 방지)
+    // 이미지 변경 시 브라우저 캐시 무효화를 위해 타임스탬프 추가
+    // product.image가 변경되거나 imageRefreshKey가 변경되면 useMemo가 재계산되어 이미지 URL이 재생성됨
+    // 타임스탬프를 쿼리 파라미터로 추가하여 브라우저 캐시 무효화
     const imageUrl = product?.image
-      ? `/api/product/image?key=${encodeURIComponent(product.image)}`
+      ? `/api/product/image?key=${encodeURIComponent(product.image)}&t=${imageRefreshKey}`
       : '/icons/no-image.svg';
 
     return {
@@ -271,7 +276,7 @@ const ProductDetailSection = () => {
       liked: isLiked,
       onToggleLike: handleToggleLike,
     };
-  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu]);
+  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu, imageRefreshKey]);
 
   // 수정 모달 핸들러
   const handleEditSubmit = useCallback(
@@ -294,7 +299,10 @@ const ProductDetailSection = () => {
           type: 'active',
         });
         setEditModalOpen(false);
-        // 페이지를 강제로 새로고침하여 최신 데이터 반영
+        // 이미지 강제 재로드를 위한 타임스탬프 업데이트
+        // imageRefreshKey가 변경되면 useMemo가 재계산되어 이미지 URL에 새로운 타임스탬프가 추가됨
+        setImageRefreshKey((prev) => prev + 1);
+        // 페이지를 강제로 새로고침하여 이미지 캐시도 무효화
         router.refresh();
         triggerToast('success', '상품이 수정되었습니다.');
       } catch (err: unknown) {

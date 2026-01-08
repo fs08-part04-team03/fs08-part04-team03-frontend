@@ -29,7 +29,7 @@ interface InfoSectionProps {
 
 const InfoSection = ({ title, children }: InfoSectionProps) => (
   <div className="flex flex-col">
-    <h2 className="font-bold text-14 tablet:text-16 py-14">{title}</h2>
+    <h2 className="font-bold text-14 tablet:text-14 py-14">{title}</h2>
     <Divider orientation="horizontal" variant="thick" />
     {children}
   </div>
@@ -57,10 +57,10 @@ const InfoRowTwoColumns = ({ label1, value1, label2, value2 }: InfoRowTwoColumns
 
     {/* Tablet/Desktop: 한 행에 2x2 그리드 */}
     <div className="hidden tablet:grid grid-cols-[140px_1fr_140px_1fr] border-b border-gray-100">
-      <p className="text-16 border-r border-gray-100 py-8 px-20">{label1}</p>
-      <p className="text-16 border-r border-gray-100 py-8 px-20">{value1}</p>
-      <p className="text-16 border-r border-gray-100 py-8 px-20">{label2}</p>
-      <p className="text-16 py-8 px-20">{value2}</p>
+      <p className="text-14 border-r border-gray-100 py-8 px-20">{label1}</p>
+      <p className="text-14 border-r border-gray-100 py-8 px-20">{value1}</p>
+      <p className="text-14 border-r border-gray-100 py-8 px-20">{label2}</p>
+      <p className="text-14 py-8 px-20">{value2}</p>
     </div>
   </>
 );
@@ -76,10 +76,10 @@ const InfoRowSingle = ({ label, value, fullWidth = false }: InfoRowSingleProps) 
   <div
     className={`grid ${fullWidth ? 'grid-cols-[140px_3fr]' : 'grid-cols-[140px_1fr]'} border-b border-gray-100`}
   >
-    <p className="text-14 tablet:text-16 border-r border-gray-100 py-8 px-16 tablet:px-20">
+    <p className="text-14 tablet:text-14 border-r border-gray-100 py-8 px-16 tablet:px-20">
       {label}
     </p>
-    <p className="text-14 tablet:text-16 py-8 px-16 tablet:px-20 break-words">{value}</p>
+    <p className="text-14 tablet:text-14 py-8 px-16 tablet:px-20 break-words">{value}</p>
   </div>
 );
 
@@ -97,7 +97,7 @@ const RequestInfo = ({ requester, createdAt, requestMessage }: RequestInfoProps)
         label1="요청인"
         value1={requester.name}
         label2="요청 날짜"
-        value2={<DateText date={createdAt} className="text-14 tablet:text-16" />}
+        value2={<DateText date={createdAt} className="text-14 tablet:text-14" />}
       />
       {requestMessage && <InfoRowSingle label="요청 메시지" value={requestMessage} fullWidth />}
     </InfoSection>

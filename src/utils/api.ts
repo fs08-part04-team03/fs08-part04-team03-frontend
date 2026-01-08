@@ -4,7 +4,7 @@ import {
   ENV_KEYS,
   AUTH_API_PATHS,
 } from '@/features/auth/utils/constants';
-import { useAuthStore } from '@/lib/store/authStore';
+import { useAuthStore, type User } from '@/lib/store/authStore';
 import { logger } from '@/utils/logger';
 
 /**
@@ -120,7 +120,17 @@ export async function buildImageUrl(
     });
 
     if (!response.ok) {
-      logger.warn('Failed to fetch image URL', { imageKey, status: response.status });
+      // 404 에러는 이미지가 존재하지 않음을 의미 (이미 삭제되었거나 잘못된 키)
+      // 이 경우 undefined를 반환하여 fallback 이미지를 표시하도록 함
+      if (response.status === 404) {
+        logger.warn('Image not found (404)', {
+          imageKey,
+          status: response.status,
+          message: '이미지가 존재하지 않습니다. 이미 삭제되었거나 잘못된 키일 수 있습니다.',
+        });
+      } else {
+        logger.warn('Failed to fetch image URL', { imageKey, status: response.status });
+      }
       return undefined;
     }
 
@@ -197,15 +207,50 @@ export async function tryRefreshToken(): Promise<string | null> {
       refreshUrl = joinUrl(backendOrigin, AUTH_API_PATHS.REFRESH);
     }
 
+    if (process.env.NODE_ENV === 'development') {
+      logger.info('[tryRefreshToken] 리프레시 토큰 요청 시작', {
+        refreshUrl,
+        isBrowser: isBrowserEnv,
+        // httpOnly 쿠키는 JavaScript에서 읽을 수 없으므로
+        // 실제 쿠키 전송 여부는 브라우저 개발자 도구의 Network 탭에서 확인해야 함
+      });
+    }
+
+    // 요청 전 현재 도메인과 URL 확인 (개발 환경)
+    if (process.env.NODE_ENV === 'development') {
+      if (typeof window !== 'undefined') {
+        logger.info('[tryRefreshToken] 요청 정보', {
+          refreshUrl,
+          currentOrigin: window.location.origin,
+          currentHost: window.location.host,
+          isRelativePath: refreshUrl.startsWith('/'),
+          // httpOnly 쿠키는 JavaScript에서 읽을 수 없지만,
+          // 브라우저 개발자 도구에서 확인 가능
+        });
+      }
+    }
+
     const response = await fetch(refreshUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({}), // 빈 body 또는 refreshToken (백엔드 구현에 따라)
-      credentials: 'include', // httpOnly 쿠키 포함
+      body: JSON.stringify({}), // 빈 body - 백엔드가 쿠키에서 refreshToken을 읽어야 함
+      credentials: 'include', // httpOnly 쿠키 포함 (SameSite 설정에 따라 전송 여부 결정)
       signal: controller.signal,
     });
+
+    if (process.env.NODE_ENV === 'development') {
+      // 응답 헤더에서 쿠키 관련 정보 확인
+      const setCookieHeaders = response.headers.get('set-cookie');
+      logger.info('[tryRefreshToken] 응답 헤더 확인', {
+        status: response.status,
+        hasSetCookie: !!setCookieHeaders,
+        // 실제 쿠키 값은 보안상 로깅하지 않음
+        // 중요: 브라우저 개발자 도구 > Network 탭 > refresh 요청 > Headers에서
+        // Request Headers의 Cookie 섹션에 refreshToken이 있는지 확인하세요
+      });
+    }
 
     if (response.ok) {
       clearTimeout(timeoutId);
@@ -213,25 +258,103 @@ export async function tryRefreshToken(): Promise<string | null> {
         success: boolean;
         data?: { accessToken: string };
       };
+
+      if (process.env.NODE_ENV === 'development') {
+        logger.info('[tryRefreshToken] 응답 수신', {
+          success: result.success,
+          hasAccessToken: !!result.data?.accessToken,
+        });
+      }
+
       if (result.success && result.data?.accessToken) {
         // 새 accessToken을 store에 저장
         const { setAuth, user } = useAuthStore.getState();
-        if (user) {
-          setAuth({ user, accessToken: result.data.accessToken });
+
+        // user가 없으면 localStorage에서 복원 시도
+        let userToSave = user;
+        if (!userToSave && typeof window !== 'undefined') {
+          try {
+            const stored = localStorage.getItem('auth-storage');
+            if (stored) {
+              const parsedData = JSON.parse(stored) as {
+                state?: { user?: unknown; accessToken?: string };
+              };
+              if (parsedData?.state?.user) {
+                userToSave = parsedData.state.user as User;
+                if (process.env.NODE_ENV === 'development') {
+                  logger.info('[tryRefreshToken] localStorage에서 user 정보 복원');
+                }
+              }
+            }
+          } catch (storageError) {
+            if (process.env.NODE_ENV === 'development') {
+              logger.warn('[tryRefreshToken] localStorage에서 user 복원 실패', storageError);
+            }
+          }
+        }
+
+        if (userToSave) {
+          setAuth({ user: userToSave, accessToken: result.data.accessToken });
+          if (process.env.NODE_ENV === 'development') {
+            logger.info('[tryRefreshToken] 리프레시 토큰 발급 성공');
+          }
           return result.data.accessToken;
         }
+        if (process.env.NODE_ENV === 'development') {
+          logger.warn('[tryRefreshToken] 사용자 정보가 없어 토큰 저장 실패');
+        }
+      } else if (process.env.NODE_ENV === 'development') {
+        logger.warn('[tryRefreshToken] 응답은 성공했지만 accessToken이 없음', {
+          success: result.success,
+          hasData: !!result.data,
+        });
       }
     } else {
       clearTimeout(timeoutId);
+      const responseText = await response
+        .clone()
+        .text()
+        .catch(() => 'Failed to read response');
+
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('[tryRefreshToken] 리프레시 토큰 요청 실패', {
+          status: response.status,
+          statusText: response.statusText,
+          responseText: responseText.substring(0, 200),
+          url: refreshUrl,
+        });
+
+        // 401 에러의 경우 쿠키 전송 문제일 수 있음
+        if (response.status === 401) {
+          logger.warn('[tryRefreshToken] 401 에러 - 가능한 원인:', {
+            message: 'refreshToken 쿠키가 전송되지 않았거나 만료되었을 수 있습니다.',
+            checkPoints: [
+              '브라우저 개발자 도구 > Network 탭에서 refresh 요청의 Request Headers > Cookie 확인',
+              'Application 탭 > Cookies에서 refreshToken 쿠키 존재 여부 확인',
+              '로그인 응답의 Set-Cookie 헤더에서 refreshToken 쿠키 설정 여부 확인',
+              '쿠키의 도메인/경로/SameSite 설정 확인',
+            ],
+          });
+        }
+      }
+
       // 401 에러는 refresh token이 만료되었거나 없을 때 정상적인 동작
-      // 조용히 처리 (에러를 던지지 않음, 로그도 남기지 않음)
+      // 조용히 처리 (에러를 던지지 않음, 프로덕션에서는 로그도 남기지 않음)
       if (response.status === 401) {
         return null;
       }
-      // 401이 아닌 다른 에러는 로깅하지 않고 조용히 처리
+      // 401이 아닌 다른 에러는 조용히 처리
     }
-  } catch {
+  } catch (error) {
     clearTimeout(timeoutId);
+
+    if (process.env.NODE_ENV === 'development') {
+      logger.error('[tryRefreshToken] 리프레시 토큰 요청 중 에러 발생', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+      });
+    }
     // refreshToken 갱신 실패는 무시 (로그아웃 처리로 진행)
     // 네트워크 에러 등은 조용히 처리
   }
@@ -242,21 +365,55 @@ export async function tryRefreshToken(): Promise<string | null> {
 /**
  * 401 에러 처리 및 리다이렉트
  * refreshToken으로 토큰 갱신을 먼저 시도하고, 실패 시 로그아웃 처리
+ * 단, 새로고침 직후나 마운트 시에는 사용자가 명시적으로 로그아웃하지 않는 한
+ * 자동 로그아웃을 방지하기 위해 localStorage에 사용자 정보가 있으면 유지
  */
 export async function handle401Error(): Promise<void> {
+  // 개발 환경에서 401 에러 상세 로깅
+  if (process.env.NODE_ENV === 'development') {
+    logger.info('[handle401Error] 401 에러 발생, 토큰 갱신 시도');
+  }
+
   // refreshToken으로 토큰 갱신 시도
   const newToken = await tryRefreshToken();
 
-  // 토큰 갱신 실패 시 로그아웃 처리
+  // 토큰 갱신 실패 시
   if (!newToken) {
-    const { clearAuth } = useAuthStore.getState();
-    clearAuth();
-    // 리다이렉트를 약간 지연시켜 React Query가 에러를 처리할 수 있도록 함
+    // localStorage에 사용자 정보가 있는지 확인
+    // (새로고침 직후 refreshToken 쿠키가 없을 수 있으므로)
+    let hasStoredUser = false;
     if (typeof window !== 'undefined') {
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 100);
+      try {
+        const stored = localStorage.getItem('auth-storage');
+        if (stored) {
+          const parsedData = JSON.parse(stored) as { state?: { user?: unknown } };
+          hasStoredUser = !!parsedData?.state?.user;
+        }
+      } catch {
+        // 파싱 실패는 무시
+      }
     }
+
+    // localStorage에 사용자 정보가 없거나, 명시적인 API 요청 실패인 경우에만 로그아웃
+    if (!hasStoredUser) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('[handle401Error] 토큰 갱신 실패 및 저장된 사용자 정보 없음, 로그아웃 처리');
+      }
+      const { clearAuth } = useAuthStore.getState();
+      clearAuth();
+      // 리다이렉트를 약간 지연시켜 React Query가 에러를 처리할 수 있도록 함
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 100);
+      }
+    } else if (process.env.NODE_ENV === 'development') {
+      logger.info(
+        '[handle401Error] 토큰 갱신 실패했지만 localStorage에 사용자 정보가 있어 로그인 상태 유지'
+      );
+    }
+  } else if (process.env.NODE_ENV === 'development') {
+    logger.info('[handle401Error] 토큰 갱신 성공');
   }
 }
 
@@ -345,10 +502,27 @@ export async function fetchWithAuth(
 
     // 401 Unauthorized 에러 처리
     if (response.status === 401) {
+      // 개발 환경에서 401 에러 상세 로깅
+      if (process.env.NODE_ENV === 'development') {
+        const responseText = await response
+          .clone()
+          .text()
+          .catch(() => 'Failed to read response');
+        logger.error('[fetchWithAuth] 401 에러 발생:', {
+          url: finalUrl,
+          method: requestOptions.method || 'GET',
+          hasToken: !!token,
+          responseText: responseText.substring(0, 200), // 처음 200자만
+        });
+      }
+
       await handle401Error();
       // 토큰 갱신 후 원래 요청 재시도
       const newToken = useAuthStore.getState().accessToken;
       if (newToken && newToken !== token) {
+        if (process.env.NODE_ENV === 'development') {
+          logger.info('[fetchWithAuth] 새 토큰으로 재시도');
+        }
         // 새 토큰으로 원래 요청 재시도
         const retryController = new AbortController();
         const retryTimeoutId = setTimeout(() => retryController.abort(), timeout);

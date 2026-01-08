@@ -2,8 +2,10 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTokenRefresh } from '@/hooks/useTokenRefresh';
+import { useAuthStore } from '@/lib/store/authStore';
+import { logger } from '@/utils/logger';
 
 export const Providers = ({ children }: { children: React.ReactNode }) => {
   const [queryClient] = useState(
@@ -30,6 +32,36 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
         },
       })
   );
+
+  const { isHydrated, user, setAuth } = useAuthStore();
+
+  // 마운트 시 localStorage에서 인증 정보 복원 확인 (fallback)
+  useEffect(() => {
+    if (!isHydrated || user) return; // 이미 복원되었거나 사용자가 있으면 스킵
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('auth-storage');
+        if (stored) {
+          const parsedData = JSON.parse(stored) as {
+            state?: { user?: unknown; accessToken?: string };
+            version?: number;
+          };
+
+          if (parsedData?.state?.user && !user) {
+            logger.info('[Providers] localStorage에서 인증 정보 발견, 복원 시도');
+            setAuth({
+              user: parsedData.state.user as Parameters<typeof setAuth>[0]['user'],
+              accessToken: parsedData.state.accessToken || null,
+            });
+            logger.info('[Providers] 인증 정보 복원 완료');
+          }
+        }
+      } catch (error) {
+        logger.error('[Providers] localStorage 복원 실패:', error);
+      }
+    }
+  }, [isHydrated, user, setAuth]);
 
   // Access token 자동 갱신 (4분마다, 5분 만료 기준)
   useTokenRefresh();

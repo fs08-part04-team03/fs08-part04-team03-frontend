@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
+import { logger } from '@/utils/logger';
 
 export interface OrderItemDetailCardProps {
   name: string;
@@ -30,13 +31,20 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
+  const isValidImageUrl =
+    imageSrc &&
+    typeof imageSrc === 'string' &&
+    imageSrc.trim().length > 0 &&
+    (imageSrc.startsWith('/') || imageSrc.startsWith('http://') || imageSrc.startsWith('https://'));
   const shouldShowImage = isValidImageUrl && !imageError;
 
   // 외부 URL인지 확인
   const isExternalUrl = isValidImageUrl
     ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
     : false;
+
+  // 프록시 API URL인지 확인 (프록시 API는 unoptimized로 처리)
+  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('tablet:hidden', className)}>
@@ -55,13 +63,23 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
                   />
                 ) : (
                   <Image
-                    src={imageSrc}
+                    src={imageSrc || '/icons/no-image.svg'}
                     alt={name}
                     fill
                     sizes="85px"
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
-                    onError={() => setImageError(true)}
+                    onError={(e) => {
+                      if (process.env.NODE_ENV === 'development') {
+                        logger.warn('[OrderItemDetailCard] 이미지 로딩 실패 (모바일)', {
+                          productName: name,
+                          attemptedSrc: imageSrc,
+                          error: e,
+                        });
+                      }
+                      setImageError(true);
+                    }}
+                    unoptimized={isProxyApiUrl}
                   />
                 )}
               </div>
@@ -110,13 +128,36 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
+  const isValidImageUrl =
+    imageSrc &&
+    typeof imageSrc === 'string' &&
+    imageSrc.trim().length > 0 &&
+    (imageSrc.startsWith('/') || imageSrc.startsWith('http://') || imageSrc.startsWith('https://'));
   const shouldShowImage = isValidImageUrl && !imageError;
 
   // 외부 URL인지 확인
   const isExternalUrl = isValidImageUrl
     ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
     : false;
+
+  // 프록시 API URL인지 확인 (프록시 API는 unoptimized로 처리)
+  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
+
+  // 디버깅: 이미지 로딩 정보 로깅
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && imageSrc) {
+      logger.info('[OrderItemDetailCard] 이미지 정보 (태블릿)', {
+        productName: name,
+        hasImageSrc: !!imageSrc,
+        imageSrc,
+        isValidImageUrl,
+        isExternalUrl,
+        isProxyApiUrl,
+        shouldShowImage,
+        imageError,
+      });
+    }
+  }, [imageSrc, isValidImageUrl, isExternalUrl, isProxyApiUrl, shouldShowImage, imageError, name]);
 
   return (
     <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
@@ -135,13 +176,23 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
                   />
                 ) : (
                   <Image
-                    src={imageSrc}
+                    src={imageSrc || '/icons/no-image.svg'}
                     alt={name}
                     fill
                     sizes="140px"
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
-                    onError={() => setImageError(true)}
+                    onError={(e) => {
+                      if (process.env.NODE_ENV === 'development') {
+                        logger.warn('[OrderItemDetailCard] 이미지 로딩 실패 (태블릿)', {
+                          productName: name,
+                          attemptedSrc: imageSrc,
+                          error: e,
+                        });
+                      }
+                      setImageError(true);
+                    }}
+                    unoptimized={isProxyApiUrl}
                   />
                 )}
               </div>
@@ -196,13 +247,20 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
+  const isValidImageUrl =
+    imageSrc &&
+    typeof imageSrc === 'string' &&
+    imageSrc.trim().length > 0 &&
+    (imageSrc.startsWith('/') || imageSrc.startsWith('http://') || imageSrc.startsWith('https://'));
   const shouldShowImage = isValidImageUrl && !imageError;
 
   // 외부 URL인지 확인
   const isExternalUrl = isValidImageUrl
     ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
     : false;
+
+  // 프록시 API URL인지 확인 (프록시 API는 unoptimized로 처리)
+  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('hidden desktop:flex', className)}>
@@ -221,13 +279,23 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
                   />
                 ) : (
                   <Image
-                    src={imageSrc}
+                    src={imageSrc || '/icons/no-image.svg'}
                     alt={name}
                     fill
                     sizes="140px"
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
-                    onError={() => setImageError(true)}
+                    onError={(e) => {
+                      if (process.env.NODE_ENV === 'development') {
+                        logger.warn('[OrderItemDetailCard] 이미지 로딩 실패 (데스크탑)', {
+                          productName: name,
+                          attemptedSrc: imageSrc,
+                          error: e,
+                        });
+                      }
+                      setImageError(true);
+                    }}
+                    unoptimized={isProxyApiUrl}
                   />
                 )}
               </div>

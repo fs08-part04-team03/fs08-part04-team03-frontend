@@ -51,6 +51,16 @@ export async function GET(req: Request) {
   const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
   const apiBase = backendOrigin;
 
+  // 개발 환경에서 백엔드 URL 확인
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Image Proxy] Backend URL:', {
+      BACKEND_ORIGIN: process.env.BACKEND_ORIGIN,
+      BACKEND_API_URL: process.env.BACKEND_API_URL,
+      getApiUrlResult: getApiUrl(),
+      finalApiBase: apiBase,
+    });
+  }
+
   // 서버 사이드에서 쿠키 읽기 (Next.js cookies() API 사용)
   let accessToken: string | undefined;
   let allCookies: Array<{ name: string; value: string }> = [];
@@ -104,6 +114,14 @@ export async function GET(req: Request) {
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Image Proxy] Fetching from backend:', {
+        targetUrl: target.toString(),
+        hasAuthorization: !!authorizationHeader,
+        hasCookies: !!finalCookieString,
+      });
+    }
+
     const res = await fetch(target.toString(), {
       method: 'GET',
       headers: {
@@ -115,6 +133,15 @@ export async function GET(req: Request) {
     });
 
     clearTimeout(timeoutId);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Image Proxy] Backend response:', {
+        status: res.status,
+        statusText: res.statusText,
+        contentType: res.headers.get('content-type'),
+        ok: res.ok,
+      });
+    }
 
     if (!res.ok) {
       // 응답 본문을 한 번만 읽어서 저장 (재사용을 위해)
@@ -311,6 +338,18 @@ export async function POST(req: Request) {
   const target = new URL('/api/v1/upload/image', apiBase);
   target.searchParams.append('folder', folder);
 
+  // 개발 환경에서 디버깅 로그
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Image Upload] Request details:', {
+      targetUrl: target.toString(),
+      folder,
+      hasAuth: !!authorizationHeader,
+      hasCookies: !!finalCookieString,
+      hasFormData: !!formData,
+      formDataEntries: formData ? Array.from(formData.entries()).map(([key]) => key) : [],
+    });
+  }
+
   const timeout = getApiTimeout();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -342,13 +381,43 @@ export async function POST(req: Request) {
       parsed = text;
     }
 
+    // 개발 환경에서 응답 로깅
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Image Upload] Backend response:', {
+        status: res.status,
+        statusText: res.statusText,
+        hasResponseData: !!text,
+        responsePreview:
+          typeof parsed === 'object' && parsed !== null
+            ? JSON.stringify(parsed).substring(0, 200)
+            : String(parsed).substring(0, 200),
+      });
+    }
+
     if (!res.ok) {
+      // 개발 환경에서 에러 로깅
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[Image Upload] Backend error:', {
+          status: res.status,
+          statusText: res.statusText,
+          errorResponse: parsed,
+        });
+      }
       return NextResponse.json(parsed, { status: res.status });
     }
 
     return NextResponse.json(parsed, { status: res.status });
   } catch (error) {
     clearTimeout(timeoutId);
+    // 개발 환경에서 에러 로깅
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[Image Upload] Request error:', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+        isAbortError: error instanceof Error && error.name === 'AbortError',
+      });
+    }
     if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json({ success: false, message: 'Request timeout' }, { status: 504 });
     }

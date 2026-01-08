@@ -116,7 +116,7 @@ export const UserProfileNameOnly: React.FC<UserProfileBaseProps> = ({
     className={clsx('flex items-center gap-8 hover:opacity-80 transition-opacity', className)}
   >
     <Avatar src={avatarSrc} alt={name} name={name} size={32} />
-    <span className={clsx('text-14 tablet:text-16 font-normal text-gray-900 line-clamp-2')}>
+    <span className={clsx('text-14 tablet:text-14 font-normal text-gray-900 line-clamp-2')}>
       {name}
     </span>
   </Link>

@@ -42,19 +42,31 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
 
   return (
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
-      {items.map((item, index) => (
-        <React.Fragment key={item.id || `item-${index}`}>
-          <div className="my-16">
-            <OrderItemDetailCard
-              name={item.products.name}
-              unitPrice={item.priceSnapshot}
-              quantity={item.quantity}
-              imageSrc={item.products.image}
-            />
-          </div>
-          {index < items.length - 1 && <Divider />}
-        </React.Fragment>
-      ))}
+      {items.map((item, index) => {
+        // 이미지 URL 유효성 검증
+        const imageSrc = item.products.image;
+        const isValidImageUrl =
+          imageSrc &&
+          typeof imageSrc === 'string' &&
+          imageSrc.trim().length > 0 &&
+          (imageSrc.startsWith('/') ||
+            imageSrc.startsWith('http://') ||
+            imageSrc.startsWith('https://'));
+
+        return (
+          <React.Fragment key={item.id || `item-${index}`}>
+            <div className="my-16">
+              <OrderItemDetailCard
+                name={item.products.name}
+                unitPrice={item.priceSnapshot}
+                quantity={item.quantity}
+                imageSrc={isValidImageUrl ? imageSrc : undefined}
+              />
+            </div>
+            {index < items.length - 1 && <Divider />}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };

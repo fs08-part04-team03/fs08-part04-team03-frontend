@@ -47,7 +47,25 @@ const PurchaseRequestDetailSection = () => {
       if (!requestId) {
         throw new Error('Request ID is required');
       }
-      return getPurchaseRequestDetail(requestId);
+      const result = await getPurchaseRequestDetail(requestId);
+
+      // 디버깅: 구매 요청 상세 데이터 로깅
+      if (process.env.NODE_ENV === 'development') {
+        logger.info('[PurchaseRequestDetailSection] 구매 요청 상세 데이터', {
+          requestId,
+          hasData: !!result,
+          purchaseItemsCount: result?.purchaseItems?.length ?? 0,
+          purchaseItems: result?.purchaseItems?.map((item) => ({
+            id: item.id,
+            productId: item.products.id,
+            productName: item.products.name,
+            hasImage: !!item.products.image,
+            imageKey: item.products.image,
+          })),
+        });
+      }
+
+      return result;
     },
     enabled: !!requestId,
     staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
@@ -75,7 +93,7 @@ const PurchaseRequestDetailSection = () => {
   // 예산 검증: 예산 데이터가 없으면 승인 불가 (보안상 안전)
   const budget: number = budgetData?.budget ?? 0;
   const monthlySpending: number = budgetData?.monthlySpending ?? 0;
-  const totalOrderAmount = data ? data.totalPrice + data.shippingFee : 0;
+  const totalOrderAmount = data ? (data.totalPrice ?? data.itemsTotalPrice) + data.shippingFee : 0;
   const remainingBudget = budget - monthlySpending;
 
   // 예산 데이터 로딩 실패 시 승인 불가

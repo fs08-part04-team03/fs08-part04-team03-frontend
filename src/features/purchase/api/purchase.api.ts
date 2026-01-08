@@ -277,8 +277,10 @@ export interface PurchaseRequestItem {
   id: string;
   createdAt: string;
   updatedAt: string;
-  totalPrice: number;
+  approvedAt?: string; // 승인일 (새로운 API 스펙)
+  itemsTotalPrice: number; // 상품 금액 합계 (새로운 API 스펙에서는 itemsTotalPrice)
   shippingFee: number;
+  finalTotalPrice: number; // 최종 금액 (새로운 API 스펙)
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
   requestMessage?: string;
   rejectReason?: string;
@@ -287,6 +289,7 @@ export interface PurchaseRequestItem {
     id: string;
     quantity: number;
     priceSnapshot: number;
+    itemTotal: number; // 항목 소계 (새로운 API 스펙)
     products: {
       id: number;
       name: string;
@@ -306,6 +309,8 @@ export interface PurchaseRequestItem {
     name: string;
     email: string;
   };
+  // 하위 호환성을 위해 기존 필드명도 지원
+  totalPrice?: number; // itemsTotalPrice의 별칭
 }
 
 /**
@@ -359,7 +364,13 @@ export async function managePurchaseRequests(
 
 /**
  * 구매 요청 상세 조회 (관리자)
- * GET /api/v1/purchase/admin/purchaseRequest/{id}
+ * GET /api/v1/purchase/admin/getPurchaseRequestDetail/{purchaseRequestId}
+ *
+ * 새로운 API 스펙에 맞게 업데이트:
+ * - itemsTotalPrice: 상품 금액 합계
+ * - finalTotalPrice: 최종 금액
+ * - approvedAt: 승인일
+ * - purchaseItems[].itemTotal: 항목 소계
  */
 export async function getPurchaseRequestDetail(
   purchaseRequestId: string
@@ -372,7 +383,16 @@ export async function getPurchaseRequestDetail(
       }
     );
 
-    return result.data;
+    const { data } = result;
+
+    // 하위 호환성을 위해 totalPrice 필드 추가 (itemsTotalPrice와 동일)
+    // 항상 설정하여 타입 안전성 보장
+    const responseData: PurchaseRequestItem & { totalPrice: number } = {
+      ...data,
+      totalPrice: data.itemsTotalPrice ?? 0,
+    };
+
+    return responseData;
   } catch (error) {
     // 404 에러는 fetchWithAuth에서 이미 처리되지만, 추가로 명확한 메시지 제공
     if (error instanceof Error && error.message.includes('찾을 수 없습니다')) {

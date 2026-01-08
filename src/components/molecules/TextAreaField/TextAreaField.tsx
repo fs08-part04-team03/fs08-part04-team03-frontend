@@ -33,7 +33,9 @@ const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
           id={inputId}
           placeholder={placeholder}
           className={clsx(
-            'w-327 tablet:w-480 h-140',
+            // 기본 width: w-327 tablet:w-480 (className에 w-full이 없을 때만 적용)
+            !className?.includes('w-full') && 'w-327 tablet:w-480',
+            'h-140',
             'px-12 py-8',
             'text-16 tracking-tight',
             'font-sans font-normal text-gray-950',
@@ -43,7 +45,8 @@ const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
             'focus:outline-none focus:border-gray-500',
             error && 'border-error-500 focus:border-error-500',
             'placeholder:text-gray-500',
-            'disabled:text-gray-300 disabled:border-gray-200 disabled:cursor-not-allowed'
+            'disabled:text-gray-300 disabled:border-gray-200 disabled:cursor-not-allowed',
+            className
           )}
           // eslint-disable-next-line react/jsx-props-no-spreading
           {...props}

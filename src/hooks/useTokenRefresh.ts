@@ -6,7 +6,7 @@ import { tryRefreshToken } from '@/utils/api';
 import { logger } from '@/utils/logger';
 
 export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
-  const { accessToken, user } = useAuthStore();
+  const { accessToken, user, isHydrated } = useAuthStore();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const inFlightRef = useRef(false); // 중복 refresh 방지
   const mountedRef = useRef(false); // 언마운트 레이스 방지
@@ -14,7 +14,15 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
   useEffect(() => {
     mountedRef.current = true;
 
-    if (!accessToken || !user) {
+    // isHydrated가 완료되지 않았으면 대기
+    if (!isHydrated) {
+      return () => {
+        mountedRef.current = false;
+      };
+    }
+
+    // user가 없으면 리프레시 토큰 시도를 할 수 없음 (로그아웃 상태)
+    if (!user) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -25,16 +33,31 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
     }
 
     const refreshToken = async () => {
-      if (inFlightRef.current) return;
+      if (inFlightRef.current) {
+        if (process.env.NODE_ENV === 'development') {
+          logger.info('[useTokenRefresh] 이미 진행 중인 리프레시 토큰 요청이 있어 스킵');
+        }
+        return;
+      }
       inFlightRef.current = true;
+
+      if (process.env.NODE_ENV === 'development') {
+        logger.info('[useTokenRefresh] 리프레시 토큰 갱신 시도 시작');
+      }
 
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        await tryRefreshToken();
+        const newToken = await tryRefreshToken();
+        if (process.env.NODE_ENV === 'development') {
+          logger.info('[useTokenRefresh] 리프레시 토큰 갱신 완료', {
+            hasNewToken: !!newToken,
+          });
+        }
       } catch (error: unknown) {
-        logger.warn('Token refresh failed', {
+        logger.warn('[useTokenRefresh] Token refresh failed', {
           hasError: true,
           errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          errorMessage: error instanceof Error ? error.message : String(error),
         });
       } finally {
         // 언마운트 이후라도 플래그는 정리 (메모리/상태 누수 방지)
@@ -59,5 +82,5 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
         intervalRef.current = null;
       }
     };
-  }, [accessToken, user, refreshInterval]);
+  }, [accessToken, user, isHydrated, refreshInterval]);
 }

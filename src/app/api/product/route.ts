@@ -181,8 +181,37 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const apiBase = getApiUrl();
 
+  // 서버 사이드에서 쿠키 읽기 (Next.js cookies() API 사용)
+  let accessToken: string | undefined;
+  let allCookies: Array<{ name: string; value: string }> = [];
+
+  try {
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    accessToken = cookieStore.get('accessToken')?.value;
+    allCookies = cookieStore.getAll();
+  } catch {
+    // cookies() API 실패 시 무시 (인증 없이 진행)
+  }
+
+  // 요청 헤더에서 인증 정보 가져오기 (클라이언트에서 직접 전달된 경우)
   const authHeader = req.headers.get('authorization');
-  const cookie = req.headers.get('cookie');
+  const cookieHeader = req.headers.get('cookie');
+
+  // 쿠키에서 모든 쿠키를 문자열로 구성
+  const cookieString =
+    allCookies.length > 0
+      ? allCookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ')
+      : undefined;
+
+  // Authorization 헤더 구성 (쿠키의 accessToken 우선, 없으면 요청 헤더 사용)
+  const authorizationHeader = accessToken ? `Bearer ${accessToken}` : authHeader || undefined;
+
+  // 쿠키 문자열 구성 (서버 쿠키와 요청 헤더 쿠키 병합)
+  const finalCookieString =
+    cookieString && cookieHeader
+      ? `${cookieString}; ${cookieHeader}`
+      : cookieString || cookieHeader || undefined;
 
   const contentType = req.headers.get('content-type') || '';
   const isFormData = contentType.includes('multipart/form-data');
@@ -190,8 +219,8 @@ export async function POST(req: Request) {
   let body: unknown;
   let requestBody: BodyInit;
   const requestHeaders: HeadersInit = {
-    ...(authHeader ? { Authorization: authHeader } : {}),
-    ...(cookie ? { cookie } : {}),
+    ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
+    ...(finalCookieString ? { cookie: finalCookieString } : {}),
     Accept: 'application/json',
   };
 
@@ -213,14 +242,72 @@ export async function POST(req: Request) {
 
   const target = new URL('/api/v1/product', apiBase);
 
-  const res = await fetch(target.toString(), {
-    method: 'POST',
+  // 개발 환경에서 디버깅 로그
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Product POST] Request details:', {
+      targetUrl: target.toString(),
+      hasAuth: !!authorizationHeader,
+      hasCookies: !!finalCookieString,
+      isFormData,
+    });
+  }
+
+  // PATCH 요청도 처리 (상품 수정)
+  const isPatch = req.method === 'PATCH';
+  const targetUrl = isPatch
+    ? new URL(
+        `/api/v1/product/${(req as unknown as { params?: { id?: string } })?.params?.id || ''}`,
+        apiBase
+      )
+    : target;
+
+  // PATCH 요청 시 URL 파라미터 확인
+  if (isPatch && process.env.NODE_ENV === 'development') {
+    const urlParts = req.url.split('/');
+    const productIdIndex = urlParts.indexOf('product') + 1;
+    const productId = urlParts[productIdIndex];
+    console.log('[Product PATCH] Request details:', {
+      targetUrl: targetUrl.toString(),
+      productId,
+      hasAuth: !!authorizationHeader,
+      hasCookies: !!finalCookieString,
+      isFormData,
+      formDataEntries: isFormData ? 'FormData' : 'JSON',
+    });
+  }
+
+  const res = await fetch(targetUrl.toString(), {
+    method: isPatch ? 'PATCH' : 'POST',
     headers: requestHeaders,
     body: requestBody,
+    credentials: 'include',
   });
 
   const text = await res.text();
   const parsed = jsonParseSafe(text);
+
+  // 개발 환경에서 에러 로깅
+  if (!res.ok && process.env.NODE_ENV === 'development') {
+    console.error(`[Product ${isPatch ? 'PATCH' : 'POST'}] Backend error:`, {
+      status: res.status,
+      statusText: res.statusText,
+      responseText: text.substring(0, 500), // 처음 500자만
+      targetUrl: targetUrl.toString(),
+      hasAuth: !!authorizationHeader,
+    });
+  }
+
+  // 개발 환경에서 성공 응답 로깅
+  if (res.ok && process.env.NODE_ENV === 'development' && isPatch) {
+    console.log('[Product PATCH] Backend success:', {
+      status: res.status,
+      hasResponseData: !!text,
+      responsePreview:
+        typeof parsed === 'object' && parsed !== null
+          ? JSON.stringify(parsed).substring(0, 300)
+          : String(parsed).substring(0, 300),
+    });
+  }
 
   if (!res.ok) {
     return NextResponse.json(parsed, { status: res.status });

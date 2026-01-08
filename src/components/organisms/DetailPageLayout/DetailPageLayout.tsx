@@ -93,7 +93,8 @@ const ProductImageBox = ({
 
   return (
     <div className={clsx('relative bg-gray-100 rounded-8 shadow-lg', sizeClass)}>
-      <div className="absolute inset-0 bg-white rounded-8 p-[73px_120px]">
+      {/* 이미지 컨테이너 - 명확한 높이 설정 (fill prop 경고 해결) */}
+      <div className="absolute inset-0 bg-white rounded-8 p-[73px_120px] min-h-0">
         {isNoImage ? (
           <div className="relative w-full h-full flex items-center justify-center">
             <Image
@@ -111,6 +112,7 @@ const ProductImageBox = ({
             {(() => {
               if (isExternalUrl) {
                 // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+                // LCP 요소이므로 loading="eager" 추가
                 return (
                   <img
                     src={imageSrc}
@@ -118,14 +120,44 @@ const ProductImageBox = ({
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                     onError={() => setImgError(true)}
                     crossOrigin="anonymous"
+                    loading="eager"
                   />
                 );
               }
 
               if (isProxyApiUrl) {
                 // 프록시 API URL은 unoptimized 사용 (Next.js Image 최적화 우회)
+                // LCP 요소이므로 priority 및 loading="eager" 추가
+                // 전체 imageSrc를 key로 사용하여 타임스탬프 변경 시에도 강제 리렌더링 (캐시 무효화)
+                // fill prop 사용 시 부모 요소가 명확한 높이를 가져야 함
+                // imageSrc에 타임스탬프가 포함되어 있으므로, 전체 URL을 key로 사용
                 return (
+                  <div className="relative w-full h-full min-h-0">
+                    <Image
+                      key={imageSrc} // 전체 URL을 key로 사용하여 타임스탬프 변경 시 강제 리렌더링
+                      src={imageSrc}
+                      alt={imageAlt}
+                      fill
+                      sizes={imageSizes}
+                      className="object-contain"
+                      style={{ objectPosition: 'center' }}
+                      onError={() => setImgError(true)}
+                      unoptimized
+                      priority
+                      loading="eager"
+                    />
+                  </div>
+                );
+              }
+
+              // 내부 이미지는 Next.js Image 최적화 사용
+              // LCP 요소이므로 priority 및 loading="eager" 추가
+              // fill prop 사용 시 부모 요소가 명확한 높이를 가져야 함
+              // 전체 imageSrc를 key로 사용하여 타임스탬프 변경 시에도 강제 리렌더링
+              return (
+                <div className="relative w-full h-full min-h-0">
                   <Image
+                    key={imageSrc} // 전체 URL을 key로 사용하여 타임스탬프 변경 시 강제 리렌더링
                     src={imageSrc}
                     alt={imageAlt}
                     fill
@@ -133,22 +165,10 @@ const ProductImageBox = ({
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
                     onError={() => setImgError(true)}
-                    unoptimized
+                    priority
+                    loading="eager"
                   />
-                );
-              }
-
-              // 내부 이미지는 Next.js Image 최적화 사용
-              return (
-                <Image
-                  src={imageSrc}
-                  alt={imageAlt}
-                  fill
-                  sizes={imageSizes}
-                  className="object-contain"
-                  style={{ objectPosition: 'center' }}
-                  onError={() => setImgError(true)}
-                />
+                </div>
               );
             })()}
           </div>

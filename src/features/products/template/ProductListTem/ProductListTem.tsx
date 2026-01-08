@@ -335,8 +335,10 @@ const ProductListTem = ({
                 'desktop:gap-y-60 tablet:gap-y-50 gap-y-40'
               )}
             >
-              {currentProducts.map((product) => {
+              {currentProducts.map((product, index) => {
                 const liked = isProductLiked(product.id);
+                // 첫 페이지의 첫 6개 상품 이미지에 priority 적용 (LCP 최적화)
+                const isPriorityImage = page === 1 && index < 6;
                 return (
                   <ProductCard
                     key={product.id}
@@ -348,6 +350,7 @@ const ProductListTem = ({
                     onClick={() => handleProductClick(product.id)}
                     liked={liked}
                     onToggleLike={() => handleToggleLike(product.id, liked)}
+                    priority={isPriorityImage}
                   />
                 );
               })}

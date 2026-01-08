@@ -6,6 +6,7 @@ import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import TextAreaField from '@/components/molecules/TextAreaField/TextAreaField';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
+import { logger } from '@/utils/logger';
 
 interface Item {
   id: number;
@@ -13,7 +14,7 @@ interface Item {
   price: number;
   quantity: number;
   icon?: React.ReactNode;
-  imageSrc?: string;
+  imageSrc?: string | undefined; // undefined가 될 수 있음 (이미지가 없는 경우)
 }
 
 type ModalAction = 'approve' | 'reject';
@@ -48,19 +49,78 @@ const ApprovalRequestModal = ({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const calculatedItems = items.map((item) => ({
-    ...item,
-    totalPrice: item.price * item.quantity,
-    icon: (
-      <Image
-        src={item.imageSrc || '/icons/no-image-small.svg'}
-        width={40}
-        height={40}
-        alt={item.title}
-        className="w-40 h-40 shrink-0 object-cover"
-      />
-    ),
-  }));
+  const calculatedItems = items.map((item) => {
+    // 이미지 URL 유효성 확인 (undefined, null, 빈 문자열 모두 처리)
+    const rawImageSrc = item.imageSrc;
+    const isValidImageUrl =
+      rawImageSrc !== undefined &&
+      rawImageSrc !== null &&
+      typeof rawImageSrc === 'string' &&
+      rawImageSrc.trim().length > 0;
+
+    const imageSrc: string = isValidImageUrl ? rawImageSrc : '/icons/no-image-small.svg';
+
+    const isProxyApiUrl =
+      isValidImageUrl &&
+      typeof rawImageSrc === 'string' &&
+      rawImageSrc.startsWith('/api/product/image');
+
+    // 디버깅: 이미지 로딩 정보 로깅 (항상 로깅)
+    logger.info('[ApprovalRequestModal] 이미지 정보', {
+      itemId: item.id,
+      itemTitle: item.title,
+      rawImageSrc: rawImageSrc ?? null,
+      hasImageSrc: rawImageSrc !== undefined && rawImageSrc !== null,
+      imageSrcType: typeof rawImageSrc,
+      imageSrcLength: typeof rawImageSrc === 'string' ? rawImageSrc.length : 0,
+      isValidImageUrl,
+      finalImageSrc: imageSrc,
+      isProxyApiUrl,
+      willUseFallback: !isValidImageUrl,
+    });
+
+    return {
+      ...item,
+      totalPrice: item.price * item.quantity,
+      icon: (
+        <Image
+          src={imageSrc}
+          width={40}
+          height={40}
+          alt={item.title}
+          className="w-40 h-40 shrink-0 object-cover rounded-4"
+          unoptimized={isProxyApiUrl || false}
+          priority={false}
+          onError={(e) => {
+            // 이미지 로딩 실패 시 fallback 이미지로 변경
+            const target = e.target as HTMLImageElement;
+            logger.warn('[ApprovalRequestModal] 이미지 로딩 실패', {
+              itemId: item.id,
+              itemTitle: item.title,
+              attemptedSrc: target.src,
+              rawImageSrc: item.imageSrc ?? null,
+              imageSrcType: typeof item.imageSrc,
+              isValidImageUrl,
+              isProxyApiUrl,
+              errorEvent: e.type,
+            });
+            if (target.src && !target.src.includes('/icons/no-image-small.svg')) {
+              target.src = '/icons/no-image-small.svg';
+            }
+          }}
+          onLoad={() => {
+            logger.info('[ApprovalRequestModal] 이미지 로딩 성공', {
+              itemId: item.id,
+              itemTitle: item.title,
+              loadedSrc: imageSrc,
+              rawImageSrc: item.imageSrc ?? null,
+              isProxyApiUrl,
+            });
+          }}
+        />
+      ),
+    };
+  });
 
   const orderAmount = calculatedItems.reduce((sum, item) => sum + item.totalPrice, 0);
   const totalAmount = orderAmount + deliveryFee;
@@ -190,7 +250,7 @@ const ApprovalRequestModal = ({
             });
           }}
         >
-          <header className="flex flex-col items-center mb-12 py-16 px-8 tablet:mb-20 tablet:py-0 tablet:px-0 desktop:mb-20 desktop:py-0 desktop:px-0">
+          <header className="flex flex-col items-center mb-12 py-16 px-8 tablet:mb-20 tablet:py-0 tablet:px-0 desktop:mb-20 desktop:py-15 desktop:px-0">
             <h2 className="text-18 font-bold tracking-tight">{headerText}</h2>
           </header>
 
@@ -234,10 +294,10 @@ const ApprovalRequestModal = ({
                         'tablet:flex-row tablet:items-center tablet:gap-90'
                       )}
                     >
-                      <span className="text-13 tablet:text-16 text-gray-500 whitespace-nowrap">
+                      <span className="text-12 tablet:text-13 text-gray-500 whitespace-nowrap">
                         수량 {item.quantity}개
                       </span>
-                      <span className="text-16 tablet:text-20 text-gray-700 whitespace-nowrap">
+                      <span className="text-16 tablet:text-18 text-gray-700 whitespace-nowrap">
                         {item.totalPrice.toLocaleString()}원
                       </span>
                     </div>
@@ -246,22 +306,22 @@ const ApprovalRequestModal = ({
               ))}
             </div>
 
-            <div className="flex flex-col gap-10 text-16">
+            <div className="flex flex-col gap-5 text-16">
               <div className="flex justify-between items-center">
-                <span className="text-16 text-gray-700 tablet:text-18">주문 금액</span>
-                <span className="text-20 text-gray-700 tablet:text-24">
+                <span className="text-16 text-gray-700 tablet:text-16">주문 금액</span>
+                <span className="text-20 text-gray-700 tablet:text-20">
                   {orderAmount.toLocaleString()}원
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-16 text-gray-700 tablet:text-18">배송비</span>
-                <span className="text-20 text-gray-700 tablet:text-24">
+                <span className="text-16 text-gray-700 tablet:text-16">배송비</span>
+                <span className="text-20 text-gray-700 tablet:text-20">
                   {deliveryFee.toLocaleString()}원
                 </span>
               </div>
               <div className="flex justify-between items-center font-bold mt-1">
-                <span className="text-16 text-gray-950 tablet:text-18">총 주문 금액</span>
-                <div className="text-20 text-gray-950 tablet:text-24 font-bold">
+                <span className="text-16 text-gray-950 tablet:text-16">총 주문 금액</span>
+                <div className="text-20 text-gray-950 tablet:text-20 font-bold">
                   <span>{totalAmount.toLocaleString()}원</span>
                 </div>
               </div>
@@ -269,8 +329,8 @@ const ApprovalRequestModal = ({
           </section>
 
           <section className="w-full border border-gray-100 rounded-8 py-16 px-8 mb-20 flex justify-between items-center">
-            <span className="text-16 tablet:text-18 font-bold">남은 예산 금액</span>
-            <span className="text-20 tablet:text-24 font-bold">
+            <span className="text-16 tablet:text-16 font-bold">남은 예산 금액</span>
+            <span className="text-20 tablet:text-20 font-bold">
               {remainBudget.toLocaleString()}원
             </span>
           </section>
@@ -298,7 +358,7 @@ const ApprovalRequestModal = ({
               className="scrollbar-none"
             />
 
-            <div className="flex justify-between mt-1 text-14">
+            <div className="flex justify-between mt-1 text-14 w-full text-right">
               <span className="text-red-500">
                 {touched && !isMessageValid ? `${placeholderText} (최대 50자)` : '\u00A0'}
               </span>

@@ -146,18 +146,21 @@ const OrderConfirmedSection = () => {
   const handleGoOrderHistory = () => {
     if (companyId) {
       // 구매 요청 목록 쿼리 invalidate 및 refetch
-      queryClient.invalidateQueries({ queryKey: ['myPurchases'] }).catch((error) => {
+      queryClient.invalidateQueries({ queryKey: ['myPurchases'] }).catch((invalidateError) => {
         logger.error('Failed to invalidate myPurchases queries', {
           hasError: true,
-          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          errorType:
+            invalidateError instanceof Error ? invalidateError.constructor.name : 'Unknown',
         });
       });
-      queryClient.refetchQueries({ queryKey: ['myPurchases'], type: 'active' }).catch((error) => {
-        logger.error('Failed to refetch myPurchases queries', {
-          hasError: true,
-          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      queryClient
+        .refetchQueries({ queryKey: ['myPurchases'], type: 'active' })
+        .catch((refetchError) => {
+          logger.error('Failed to refetch myPurchases queries', {
+            hasError: true,
+            errorType: refetchError instanceof Error ? refetchError.constructor.name : 'Unknown',
+          });
         });
-      });
       // 페이지 이동 후 리프레시
       router.push(`/${companyId}/my/purchase-requests`);
       router.refresh();

@@ -39,10 +39,14 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     const backendUrl = process.env.BACKEND_API_URL || 'https://snock.tplinkdns.com:4000';
+    // Next.js의 Route Handler는 rewrites보다 우선순위가 높으므로,
+    // /api/product/image, /api/product, /api/auth/* 같은 Route Handler가 있는 경로는
+    // rewrites를 통과하지 않고 Route Handler가 처리됩니다.
+    // 따라서 /api/v1/* 경로만 백엔드로 프록시합니다.
     return [
       {
-        source: '/api/:path*',
-        destination: `${backendUrl}/api/:path*`,
+        source: '/api/v1/:path*',
+        destination: `${backendUrl}/api/v1/:path*`,
       },
     ];
   },

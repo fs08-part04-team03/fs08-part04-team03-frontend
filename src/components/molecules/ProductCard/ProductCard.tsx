@@ -24,6 +24,9 @@ interface BaseProductCardProps {
   /** ✅ 위시리스트 상태 */
   liked?: boolean;
   onToggleLike?: () => void;
+
+  /** LCP 최적화: 첫 번째 몇 개의 상품 이미지에 priority 적용 */
+  priority?: boolean;
 }
 
 const ProductCard: React.FC<BaseProductCardProps> = ({
@@ -39,6 +42,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   onUnlike,
   liked: externalLiked,
   onToggleLike,
+  priority = false,
 }) => {
   const [internalLiked, setInternalLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
@@ -119,6 +123,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   let imageContent;
   if (shouldShowImage) {
     // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+    // LCP 최적화: priority가 true인 경우 eager loading 적용
     if (isExternalUrl) {
       imageContent = (
         <img
@@ -127,11 +132,13 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           className="max-w-full max-h-full w-auto h-auto object-contain"
           onError={() => setImgError(true)}
           crossOrigin="anonymous"
+          loading={priority ? 'eager' : undefined}
         />
       );
     } else {
       // 내부 이미지는 Next.js Image 컴포넌트 사용
       // 프록시 API URL은 unoptimized로 처리 (이미 최적화된 이미지를 반환하므로)
+      // LCP 최적화: priority가 true인 경우 eager loading 및 priority 적용
       imageContent = (
         <Image
           src={imageUrl}
@@ -142,6 +149,8 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           className="object-contain"
           style={{ objectPosition: 'center' }}
           unoptimized={isProxyApiUrl}
+          priority={priority}
+          loading={priority ? 'eager' : undefined}
         />
       );
     }

@@ -235,6 +235,64 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     throw new Error(fullErrorMessage);
   }
 
+  // 개발 환경에서 로그인 응답의 Set-Cookie 헤더 확인
+  if (process.env.NODE_ENV === 'development') {
+    // 모든 Set-Cookie 헤더 가져오기 (Set-Cookie는 복수 헤더일 수 있음)
+    const setCookieHeaders = response.headers.getSetCookie?.() || [];
+    const setCookieHeader = response.headers.get('set-cookie');
+
+    // Set-Cookie 헤더 분석
+    const hasRefreshTokenCookie = setCookieHeader
+      ? setCookieHeader.includes('refreshToken') ||
+        setCookieHeader.includes('refresh_token') ||
+        setCookieHeader.includes('RefreshToken') ||
+        setCookieHeader.toLowerCase().includes('refresh')
+      : false;
+
+    // 모든 응답 헤더 확인 (디버깅용)
+    const allHeaders: Record<string, string> = {};
+    response.headers.forEach((value, key) => {
+      // Set-Cookie는 보안상 전체 값을 로깅하지 않음
+      if (key.toLowerCase() === 'set-cookie') {
+        allHeaders[key] = '[쿠키 존재]';
+      } else {
+        allHeaders[key] = value;
+      }
+    });
+
+    logger.info('[Login] 로그인 응답 쿠키 확인', {
+      hasSetCookieHeader: !!setCookieHeader,
+      setCookieHeaderCount: setCookieHeaders.length,
+      hasRefreshTokenCookie,
+      requestUrl,
+      responseHeaders: Object.keys(allHeaders),
+      // 실제 쿠키 값은 보안상 로깅하지 않음
+      // 중요: 브라우저 개발자 도구 > Network 탭 > login 요청 > Response Headers에서
+      // Set-Cookie 헤더에 refreshToken이 있는지 확인하세요
+    });
+
+    if (!hasRefreshTokenCookie && setCookieHeader) {
+      logger.warn('[Login] Set-Cookie 헤더는 있지만 refreshToken 쿠키가 포함되지 않음', {
+        // 쿠키 이름 힌트 (보안상 값은 로깅하지 않음)
+        cookieNamesHint: setCookieHeaders
+          .map((cookie) => {
+            const nameMatch = cookie.split(';')[0].trim().split('=')[0];
+            return nameMatch;
+          })
+          .filter(Boolean),
+      });
+    } else if (!setCookieHeader && setCookieHeaders.length === 0) {
+      logger.error('[Login] ⚠️ Set-Cookie 헤더가 응답에 없습니다.', {
+        message: '백엔드가 로그인 시 refreshToken 쿠키를 설정하지 않았습니다.',
+        solution: [
+          '1. 백엔드 로그인 API에서 refreshToken을 Set-Cookie 헤더로 설정하는지 확인',
+          '2. CORS 설정에서 credentials: true 및 exposedHeaders에 Set-Cookie가 포함되어 있는지 확인',
+          '3. 브라우저 개발자 도구 > Network 탭 > login 요청 > Response Headers에서 Set-Cookie 확인',
+        ],
+      });
+    }
+  }
+
   return {
     user: {
       id: result.data.user.id,

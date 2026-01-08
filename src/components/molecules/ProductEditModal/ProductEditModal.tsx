@@ -248,6 +248,52 @@ const ProductEditModal = ({
 
   if (!open) return null;
 
+  const handleDeleteImage = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+
+    // 기존 이미지가 있으면 즉시 삭제 (DELETE /api/v1/upload/image/{key})
+    const keyToDelete = currentImageKey;
+    if (keyToDelete) {
+      logger.info('[ProductEditModal] 이미지 삭제 버튼 클릭, 즉시 삭제 시작', {
+        imageKey: keyToDelete.substring(0, 50),
+      });
+      try {
+        await deleteImage(keyToDelete);
+        logger.info('[ProductEditModal] 이미지 삭제 성공 (X 버튼 클릭)');
+        triggerToast('success', '이미지가 삭제되었습니다.');
+      } catch (deleteError) {
+        logger.error('[ProductEditModal] 이미지 삭제 실패 (X 버튼 클릭)', {
+          hasError: true,
+          errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+          errorMessage: deleteError instanceof Error ? deleteError.message : String(deleteError),
+          imageKey: keyToDelete.substring(0, 50),
+        });
+        const message =
+          deleteError instanceof Error ? deleteError.message : '이미지 삭제에 실패했습니다.';
+        triggerToast('error', message);
+        // 삭제 실패해도 UI는 업데이트 (이미 S3에 업로드된 새 이미지로 교체 예정이므로)
+      }
+    }
+
+    // 미리보기를 upload.svg로 설정
+    setPreview('/icons/upload.svg');
+    setSelectedFile(null);
+    setUploadedImageKey(null);
+    setCurrentImageKey(null);
+    // 이미 삭제했으므로 imageToDelete 초기화
+    setImageToDelete(null);
+  };
+
+  const handleDeleteImageClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    handleDeleteImage(e).catch(() => {
+      // 에러는 handleDeleteImage 내부에서 처리됨
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // submit 시 모든 필드를 touched로 표시
@@ -279,8 +325,14 @@ const ProductEditModal = ({
       // 새 이미지가 업로드된 경우
       if (uploadedImageKey) {
         formData.image = uploadedImageKey;
+        logger.info('[ProductEditModal] handleSubmit: 새 이미지 키 사용', {
+          imageKey: uploadedImageKey.substring(0, 50),
+        });
       } else if (imageToDelete) {
         formData.image = undefined; // 이미지 삭제 표시
+        logger.info('[ProductEditModal] handleSubmit: 이미지 삭제 표시', {
+          imageKeyToDelete: imageToDelete.substring(0, 50),
+        });
       } else if (
         preview &&
         preview === initialImage &&
@@ -290,23 +342,28 @@ const ProductEditModal = ({
       ) {
         // 기존 이미지 유지
         formData.image = currentImageKey;
+        logger.info('[ProductEditModal] handleSubmit: 기존 이미지 유지', {
+          imageKey: currentImageKey.substring(0, 50),
+        });
+      } else {
+        logger.info('[ProductEditModal] handleSubmit: 이미지 필드 없음', {
+          hasUploadedImageKey: !!uploadedImageKey,
+          hasImageToDelete: !!imageToDelete,
+          hasPreview: !!preview,
+          previewEqualsInitial: preview === initialImage,
+          hasCurrentImageKey: !!currentImageKey,
+        });
       }
+
+      logger.info('[ProductEditModal] handleSubmit: 상품 수정 요청 시작', {
+        hasImage: !!formData.image,
+        imageKey: formData.image?.substring(0, 50),
+      });
 
       await onSubmit(formData);
 
-      // onSubmit 성공 후 이미지 삭제 (필요한 경우)
-      if (imageToDelete) {
-        try {
-          await deleteImage(imageToDelete);
-        } catch (deleteError) {
-          // 이미 제출은 성공했으므로 로그만 남김
-          logger.error('Image deletion after submit failed', {
-            hasError: true,
-            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
-            hasKey: !!imageToDelete,
-          });
-        }
-      }
+      // 이미지 삭제는 X 아이콘 클릭 시 즉시 처리되므로, 여기서는 추가 삭제 불필요
+      // (X 아이콘 클릭 시 이미 deleteImage 호출됨)
     } catch (error) {
       logger.error('Product edit submission failed', {
         hasError: true,
@@ -393,6 +450,10 @@ const ProductEditModal = ({
                 // 1. 이미지 업로드
                 uploadProductImage(file, 'products')
                   .then(async (imageKey) => {
+                    logger.info('[ProductEditModal] 이미지 업로드 성공', {
+                      hasImageKey: !!imageKey,
+                      imageKey: imageKey?.substring(0, 50),
+                    });
                     // 2. 업로드 후 GET API로 signed URL 가져오기
                     const { url: signedUrl } = await getImageUrl(imageKey);
 
@@ -405,6 +466,11 @@ const ProductEditModal = ({
                     setCurrentImageKey(imageKey);
                   })
                   .catch((error) => {
+                    logger.error('[ProductEditModal] 이미지 업로드 실패', {
+                      hasError: true,
+                      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+                      errorMessage: error instanceof Error ? error.message : String(error),
+                    });
                     const message =
                       error instanceof Error ? error.message : '이미지 업로드에 실패했습니다.';
                     triggerToast('error', message);
@@ -429,24 +495,7 @@ const ProductEditModal = ({
                 />
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (previewUrlRef.current) {
-                      URL.revokeObjectURL(previewUrlRef.current);
-                      previewUrlRef.current = null;
-                    }
-
-                    // 기존 이미지가 있으면 삭제할 key 사용
-                    if (currentImageKey) {
-                      setImageToDelete(currentImageKey);
-                    }
-
-                    // 미리보기를 upload.svg로 설정
-                    setPreview('/icons/upload.svg');
-                    setSelectedFile(null);
-                    setUploadedImageKey(null);
-                    setCurrentImageKey(null);
-                  }}
+                  onClick={handleDeleteImageClick}
                   className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50"
                   aria-label="이미지 삭제"
                 >

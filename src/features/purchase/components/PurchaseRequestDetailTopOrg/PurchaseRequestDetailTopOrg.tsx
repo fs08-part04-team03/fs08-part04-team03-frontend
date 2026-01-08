@@ -43,10 +43,31 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
   return (
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
       {items.map((item, index) => {
+        // 이미지 키 유효성 검증 (null, undefined, 빈 문자열, 공백만 있는 경우 처리)
+        const hasValidImage =
+          item.products.image &&
+          typeof item.products.image === 'string' &&
+          item.products.image.trim().length > 0;
+
         // 프록시 API를 통해 이미지 로드 (CORS 방지)
-        const imageSrc = item.products.image
-          ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
+        const imageSrc = hasValidImage
+          ? `/api/product/image?key=${encodeURIComponent(item.products.image.trim())}`
           : undefined;
+
+        // 디버깅: 이미지 정보 로깅
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log('[PurchaseRequestDetailTopOrg] 상품 이미지 정보', {
+            productId: item.products.id,
+            productName: item.products.name,
+            rawImageField: item.products.image,
+            hasImageField: !!item.products.image,
+            imageFieldType: typeof item.products.image,
+            hasValidImage,
+            imageKey: hasValidImage ? item.products.image.trim() : null,
+            imageSrc,
+          });
+        }
 
         return (
           <React.Fragment key={item.id ?? `item-${index}`}>

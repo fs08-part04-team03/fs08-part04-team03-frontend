@@ -14,6 +14,7 @@ import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
 import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
 import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
+import { logger } from '@/utils/logger';
 
 const TABLE_CELL_BASE_STYLES = {
   header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 pl-20',
@@ -226,13 +227,55 @@ const PurchaseRequestListTem = ({
             ? selectedRequest.requester.avatarSrc
             : undefined,
       },
-      items: selectedRequest.purchaseItems.map((item, index) => {
-        // 프록시 API를 통해 이미지 로드 (CORS 방지)
-        const imageSrc = item.products.image
-          ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
-          : '';
+      items: selectedRequest.purchaseItems.map((item) => {
+        const parsedId = Number.parseInt(item.id, 10);
+        if (Number.isNaN(parsedId)) {
+          logger.warn('[PurchaseRequestListTem] Invalid item id in purchase request', {
+            hasItemId: !!item.id,
+            itemId: item.id,
+          });
+        }
+
+        // 이미지 키 유효성 검증 (null, undefined, 빈 문자열, 공백만 있는 경우 처리)
+        const hasValidImage =
+          item.products.image &&
+          typeof item.products.image === 'string' &&
+          item.products.image.trim().length > 0;
+
+        // 이미지 URL 생성: 백엔드에서 받은 image 키를 프록시 API 경로로 변환
+        // 상대 경로 사용 (SSR 하이드레이션 불일치 방지)
+        const imageSrc =
+          hasValidImage && item.products.image
+            ? `/api/product/image?key=${encodeURIComponent(item.products.image.trim())}`
+            : undefined;
+
+        // 디버깅: 이미지 정보 로깅
+        if (process.env.NODE_ENV === 'development') {
+          logger.info('[PurchaseRequestListTem] 상품 이미지 정보', {
+            productId: item.products.id,
+            productName: item.products.name,
+            rawImageField: item.products.image ?? null,
+            hasImageField: !!item.products.image,
+            imageFieldType: typeof item.products.image,
+            imageFieldLength: item.products.image?.length ?? 0,
+            hasValidImage,
+            imageKey: hasValidImage && item.products.image ? item.products.image.trim() : null,
+            imageSrc,
+          });
+        }
+
+        // 이미지가 없는 경우 경고 로깅
+        if (!hasValidImage) {
+          logger.warn('[PurchaseRequestListTem] 상품 이미지가 없음', {
+            productId: item.products.id,
+            productName: item.products.name,
+            rawImageField: item.products.image ?? null,
+            imageFieldType: typeof item.products.image,
+          });
+        }
+
         return {
-          id: index,
+          id: Number.isNaN(parsedId) ? 0 : parsedId,
           title: item.products.name,
           price: item.priceSnapshot,
           quantity: item.quantity,
