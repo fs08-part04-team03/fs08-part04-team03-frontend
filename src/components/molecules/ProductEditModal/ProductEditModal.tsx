@@ -23,7 +23,7 @@ export interface ProductEditFormData {
 interface ProductEditModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: ProductEditFormData) => void | Promise<void>;
+  onSubmit: (data: ProductEditFormData, options?: { imageFile: File }) => void | Promise<void>;
 
   initialName: string;
   initialPrice: string;
@@ -135,7 +135,7 @@ const ProductEditModal = ({
   const [selectedSubCategory, setSelectedSubCategory] = useState<Option | null>(null);
   const [_selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
-  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
+  const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [currentImageKey, setCurrentImageKey] = useState<string | null>(initialImageKey || null);
   const [touched, setTouched] = useState({
@@ -184,7 +184,7 @@ const ProductEditModal = ({
       setSelectedSubCategory(initialSubCategory);
       setSelectedFile(null);
       setUploadedImageKey(null);
-      setImageToDelete(null);
+      setUploadedImageFile(null);
       setCurrentImageKey(initialImageKey || null);
       setErrors({ name: '', price: '', link: '', category: '', subCategory: '', image: '' });
       setTouched({
@@ -276,21 +276,12 @@ const ProductEditModal = ({
     };
 
     try {
-      // 이미지 삭제가 요청된 경우
-      if (imageToDelete) {
-        try {
-          await deleteImage(imageToDelete);
-          formData.image = undefined; // 이미지 삭제
-        } catch (deleteError) {
-          const message =
-            deleteError instanceof Error ? deleteError.message : '이미지 삭제에 실패했습니다.';
-          triggerToast('error', message);
-          throw deleteError;
-        }
-      }
-      // 새 이미지가 업로드된 경우 (이미 업로드되어 uploadedImageKey에 저장됨)
-      else if (uploadedImageKey) {
+      // 새 이미지가 업로드된 경우 (이미 S3에 업로드되었고 키를 받아옴)
+      if (uploadedImageKey && uploadedImageFile) {
         formData.image = uploadedImageKey;
+        logger.info('[ProductEditModal] handleSubmit: 새 이미지 키 사용', {
+          imageKey: uploadedImageKey,
+        });
       } else if (
         preview &&
         preview === initialImage &&
@@ -298,13 +289,23 @@ const ProductEditModal = ({
         !initialImage?.includes('no-image') &&
         !initialImage?.includes('upload.svg')
       ) {
-        // 기존 이미지 유지 (initialImageKey 사용)
+        // 기존 이미지 유지
         formData.image = currentImageKey;
+        logger.info('[ProductEditModal] handleSubmit: 기존 이미지 키 유지', {
+          imageKey: currentImageKey,
+        });
+      } else {
+        // 이미지가 없는 경우 (이미 X 버튼으로 삭제됨)
+        logger.info('[ProductEditModal] handleSubmit: 이미지 없음 (이미 삭제됨)');
       }
 
-      await onSubmit(formData);
+      // uploadedImageFile을 options로 전달 (PATCH API에서 사용)
+      await onSubmit(formData, uploadedImageFile ? { imageFile: uploadedImageFile } : undefined);
+
+      // 성공 시 모달 닫기
+      onClose();
     } catch (error) {
-      logger.error('Product edit submission failed', {
+      logger.error('[ProductEditModal] Product edit submission failed', {
         hasError: true,
         errorType: error instanceof Error ? error.constructor.name : 'Unknown',
       });
@@ -398,6 +399,7 @@ const ProductEditModal = ({
                     }
                     setPreview(signedUrl);
                     setUploadedImageKey(imageKey);
+                    setUploadedImageFile(file); // 파일도 저장 (PATCH API에서 사용)
                     setCurrentImageKey(imageKey);
                   })
                   .catch((error) => {
@@ -407,6 +409,7 @@ const ProductEditModal = ({
                     setSelectedFile(null);
                     setPreview(null);
                     setUploadedImageKey(null);
+                    setUploadedImageFile(null);
                   })
                   .finally(() => {
                     setIsUploading(false);
@@ -427,21 +430,52 @@ const ProductEditModal = ({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (previewUrlRef.current) {
-                      URL.revokeObjectURL(previewUrlRef.current);
-                      previewUrlRef.current = null;
-                    }
+                    (async () => {
+                      // 현재 이미지 키 저장 (삭제하기 전에)
+                      const imageKeyToDelete = currentImageKey;
 
-                    // 기존 이미지가 있으면 삭제할 key 사용
-                    if (currentImageKey) {
-                      setImageToDelete(currentImageKey);
-                    }
+                      // 미리보기 및 상태 초기화 (UI 즉시 업데이트)
+                      if (previewUrlRef.current) {
+                        URL.revokeObjectURL(previewUrlRef.current);
+                        previewUrlRef.current = null;
+                      }
+                      setPreview('/icons/upload.svg');
+                      setSelectedFile(null);
+                      setUploadedImageKey(null);
+                      setUploadedImageFile(null);
+                      setCurrentImageKey(null);
 
-                    // 미리보기를 upload.svg로 설정
-                    setPreview('/icons/upload.svg');
-                    setSelectedFile(null);
-                    setUploadedImageKey(null);
-                    setCurrentImageKey(null);
+                      // 기존 이미지가 있으면 즉시 삭제
+                      if (imageKeyToDelete) {
+                        try {
+                          logger.info('[ProductEditModal] 이미지 삭제 버튼 클릭, 즉시 삭제 시작', {
+                            imageKey: imageKeyToDelete,
+                          });
+                          await deleteImage(imageKeyToDelete);
+                          logger.info('[ProductEditModal] 이미지 삭제 성공 (X 버튼 클릭)', {
+                            imageKey: imageKeyToDelete,
+                          });
+                          triggerToast('success', '이미지가 삭제되었습니다.');
+                        } catch (deleteError) {
+                          logger.error('[ProductEditModal] 이미지 삭제 실패 (X 버튼 클릭)', {
+                            hasError: true,
+                            errorType:
+                              deleteError instanceof Error
+                                ? deleteError.constructor.name
+                                : 'Unknown',
+                            errorMessage:
+                              deleteError instanceof Error
+                                ? deleteError.message
+                                : String(deleteError),
+                            imageKey: imageKeyToDelete,
+                          });
+                          triggerToast('error', '이미지 삭제에 실패했습니다.');
+                          // 삭제 실패 시 이전 상태로 복원하지 않음 (사용자가 의도적으로 삭제했으므로)
+                        }
+                      }
+                    })().catch(() => {
+                      // 에러는 이미 위에서 처리됨
+                    });
                   }}
                   className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50"
                   aria-label="이미지 삭제"
@@ -471,8 +505,12 @@ const ProductEditModal = ({
         <form
           className="w-full flex flex-col flex-1 gap-20"
           onSubmit={(e) => {
-            handleSubmit(e).catch(() => {
-              // 에러는 handleSubmit 내부에서 처리됨
+            handleSubmit(e).catch((error) => {
+              // 에러를 상위로 전파하여 부모 컴포넌트가 처리할 수 있도록 함
+              logger.error('ProductEditModal submit error', {
+                hasError: true,
+                errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+              });
             });
           }}
         >

@@ -51,6 +51,7 @@ const OrderSection = () => {
     queryKey: ['cart', page, limit, cartItemIdsParam || 'all'],
     queryFn: () => cartApi.getMyCart(page, limit),
     enabled: true, // 항상 활성화
+    staleTime: 60000, // 1분간 캐시 유지 (mutation 후 invalidateQueries로 신선도 보장)
   });
 
   // 선택된 아이템만 필터링

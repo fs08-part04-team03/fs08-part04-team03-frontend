@@ -1,8 +1,8 @@
 'use client';
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useParams, useRouter } from 'next/navigation';
+import { useMemo, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import { logger } from '@/utils/logger';
@@ -14,13 +14,17 @@ import type {
 } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import OrderConfirmedTem from '../template/OrderConfirmedTem/OrderConfirmedTem';
 
-const OrderConfirmedSection = () => {
+interface OrderConfirmedSectionProps {
+  id?: string;
+}
+
+const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProps) => {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
-  const purchaseId = searchParams.get('id');
+  const purchaseId = purchaseIdProp;
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
 
   // 사용자 역할에 따른 cartRole 결정
   const cartRole: CartRole = useMemo(() => {
@@ -54,20 +58,19 @@ const OrderConfirmedSection = () => {
     retry: false, // 에러 시 재시도하지 않음
   });
 
-  // 클라이언트 사이드에서만 이미지 URL 구성 (SSR 하이드레이션 불일치 방지)
-  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  // 프록시 API를 통해 이미지 로드 (CORS 방지, SSR 하이드레이션 불일치 방지)
+  // 이미지 URL에 타임스탬프 추가하여 브라우저 캐시 무효화 (이미지 업데이트 반영)
+  const imageUrls = useMemo(() => {
+    if (!purchaseData?.purchaseItems) return {};
 
-  useEffect(() => {
-    if (!purchaseData?.purchaseItems || typeof window === 'undefined') return;
-
-    const urls = purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
+    const timestamp = Date.now();
+    return purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
       if (item.products.image) {
         acc[item.products.id] =
-          `${window.location.origin}/api/product/image?key=${encodeURIComponent(item.products.image)}`;
+          `/api/product/image?key=${encodeURIComponent(item.products.image)}&t=${timestamp}`;
       }
       return acc;
     }, {});
-    setImageUrls(urls);
   }, [purchaseData]);
 
   // PurchaseRequestItem을 OrderCompletedItem으로 변환
@@ -148,7 +151,24 @@ const OrderConfirmedSection = () => {
   // 구매 내역 확인으로 이동
   const handleGoOrderHistory = () => {
     if (companyId) {
+      // 구매 요청 목록 쿼리 invalidate 및 refetch
+      queryClient.invalidateQueries({ queryKey: ['myPurchases'] }).catch((catchError) => {
+        logger.error('Failed to invalidate myPurchases queries', {
+          hasError: true,
+          errorType: catchError instanceof Error ? catchError.constructor.name : 'Unknown',
+        });
+      });
+      queryClient
+        .refetchQueries({ queryKey: ['myPurchases'], type: 'active' })
+        .catch((catchError) => {
+          logger.error('Failed to refetch myPurchases queries', {
+            hasError: true,
+            errorType: catchError instanceof Error ? catchError.constructor.name : 'Unknown',
+          });
+        });
+      // 페이지 이동 후 리프레시
       router.push(`/${companyId}/my/purchase-requests`);
+      router.refresh();
     }
   };
 

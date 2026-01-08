@@ -23,6 +23,8 @@ import ProductListRowSkeleton from '@/components/molecules/ProductListRowSkeleto
 import PaginationBlock from '@/components/molecules/PaginationBlock/PaginationBlock';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import ProductModal from '@/components/molecules/ProductModal/ProductModal';
+import { BREADCRUMB_ITEMS } from '@/constants';
+import SearchBar from '@/components/molecules/SearchBar/SearchBar';
 
 /* =====================
  * Props
@@ -50,6 +52,8 @@ interface ProductListTemProps {
   companyId: string;
   wishlistData?: GetWishlistResponse;
   isLoading?: boolean;
+  searchQuery?: string;
+  onSearch?: (query: string) => void;
 }
 
 /* =====================
@@ -88,6 +92,8 @@ const ProductListTem = ({
   companyId,
   wishlistData,
   isLoading = false,
+  searchQuery,
+  onSearch,
 }: ProductListTemProps) => {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -206,8 +212,15 @@ const ProductListTem = ({
 
   /* =====================
    * Dynamic Breadcrumb
+   * 카테고리 선택 시에도 맨 앞에 "상품" breadcrumb을 추가하여 필터링 없는 상품 페이지로 이동 가능
    ====================== */
   const breadcrumbForRender = useMemo<BreadcrumbItem[]>(() => {
+    // "상품" breadcrumb 항목 생성 (필터링 없는 상품 페이지로 이동)
+    const productsBreadcrumb: BreadcrumbItem = {
+      label: BREADCRUMB_ITEMS.PRODUCTS.label,
+      href: BREADCRUMB_ITEMS.PRODUCTS.href(companyId),
+    };
+
     if (selectedCategoryId == null) return breadcrumbItems;
 
     const matchedSection = categorySections.find((section) =>
@@ -220,8 +233,13 @@ const ProductListTem = ({
 
     if (!matchedOption) return breadcrumbItems;
 
-    return [{ label: matchedSection.title }, { label: matchedOption.label }];
-  }, [selectedCategoryId, categorySections, breadcrumbItems]);
+    // "상품" > "대분류" > "소분류" 형식으로 breadcrumb 구성
+    return [
+      productsBreadcrumb, // 맨 앞에 "상품" 추가
+      { label: matchedSection.title },
+      { label: matchedOption.label },
+    ];
+  }, [selectedCategoryId, categorySections, breadcrumbItems, companyId]);
 
   return (
     <div className="w-full flex justify-center">
@@ -265,6 +283,7 @@ const ProductListTem = ({
               <div className="pt-14 pb-10">
                 <Breadcrumb items={breadcrumbForRender} />
               </div>
+
               <div className="flex items-center justify-between pb-20">
                 <DropDown
                   items={sortOptions}
@@ -281,6 +300,18 @@ const ProductListTem = ({
           </div>
 
           <Divider className="mb-20 tablet:mb-30" />
+
+          <div className="pb-20">
+            <div className="w-full tablet:w-[320px] desktop:w-[366px] mr-auto">
+              <SearchBar
+                placeholder="상품명으로 검색하세요"
+                defaultValue={searchQuery}
+                onSearch={onSearch}
+                instant
+                className="w-full"
+              />
+            </div>
+          </div>
 
           {isLoading && <ProductListRowSkeleton rows={itemsPerPage} />}
 

@@ -122,6 +122,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
                 unitPrice={item.unitPrice}
                 quantity={item.quantity}
                 imageSrc={item.imageSrc}
+                productId={item.id} // ✅ 상품 상세 페이지 이동을 위한 productId 전달
               />
             ))}
           </div>

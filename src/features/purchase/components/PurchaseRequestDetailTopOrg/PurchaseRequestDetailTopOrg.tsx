@@ -11,6 +11,7 @@ import PriceText from '@/components/atoms/PriceText/PriceText';
 
 interface PurchaseRequestDetailTopOrgProps {
   purchaseRequest: PurchaseRequestItem;
+  companyId?: string;
 }
 
 // 가격 행 컴포넌트
@@ -35,30 +36,40 @@ const PriceRow = ({ label, value, bold = false }: PriceRowProps) => (
 // 구매 물품 목록 섹션
 interface PurchaseItemsListProps {
   items: PurchaseRequestItem['purchaseItems'];
+  companyId?: string;
 }
 
-const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
+const PurchaseItemsList = ({ items, companyId }: PurchaseItemsListProps) => {
   const hasScroll = items.length > 2;
 
   return (
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
-      {items.map((item, index) => (
-        <React.Fragment key={item.id || `item-${index}`}>
-          <div className="my-16 mx-10">
-            <OrderItemDetailCard
-              name={item.products.name}
-              unitPrice={item.priceSnapshot}
-              quantity={item.quantity}
-              imageSrc={item.products.image}
-            />
-          </div>
-          {index < items.length - 1 && (
-            <div className="mx-10">
-              <Divider />
+      {items.map((item, index) => {
+        // 프록시 API를 통해 이미지 로드 (CORS 방지)
+        const imageSrc = item.products.image
+          ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
+          : undefined;
+
+        return (
+          <React.Fragment key={item.id ?? `item-${index}`}>
+            <div className="my-16 mx-10">
+              <OrderItemDetailCard
+                name={item.products.name}
+                unitPrice={item.priceSnapshot}
+                quantity={item.quantity}
+                imageSrc={imageSrc}
+                productId={item.products.id}
+                companyId={companyId}
+              />
             </div>
-          )}
-        </React.Fragment>
-      ))}
+            {index < items.length - 1 && (
+              <div className="mx-10">
+                <Divider />
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };
@@ -86,14 +97,15 @@ const PriceSummary = ({ orderAmount, shippingFee, totalAmount }: PriceSummaryPro
 // 메인 컴포넌트
 export const PurchaseRequestDetailTopOrg = ({
   purchaseRequest,
+  companyId,
 }: PurchaseRequestDetailTopOrgProps) => {
   const [isOpen, setIsOpen] = useState(true);
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
-  const { totalPrice, shippingFee } = purchaseRequest;
-  const orderAmount = totalPrice;
-  const totalAmount = totalPrice + shippingFee;
+  const { itemsTotalPrice, shippingFee, totalPrice } = purchaseRequest;
+  const orderAmount = itemsTotalPrice ?? totalPrice ?? 0;
+  const totalAmount = orderAmount + shippingFee;
 
   return (
     <div className="flex flex-col gap-30">
@@ -116,7 +128,7 @@ export const PurchaseRequestDetailTopOrg = ({
       </div>
       {isOpen && (
         <div className="flex flex-col w-full px-24 tablet:px-20 desktop:px-60 tablet:py-30 desktop:py-40 tablet:w-696 desktop:w-1200 desktop:shadow-lg tablet:shadow-lg">
-          <PurchaseItemsList items={purchaseRequest.purchaseItems} />
+          <PurchaseItemsList items={purchaseRequest.purchaseItems} companyId={companyId} />
           <PriceSummary
             orderAmount={orderAmount}
             shippingFee={shippingFee}

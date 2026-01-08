@@ -33,9 +33,13 @@ const MyPurchaseRequestDetailTem = ({
   return (
     <div className="flex flex-col items-center gap-30 mt-30">
       <div className="tablet:mt-30 desktop:mt-60 mb-54 desktop:mb-254 tablet:mb-132">
-        <PurchaseRequestDetailTopOrg purchaseRequest={purchaseRequest} />
+        <PurchaseRequestDetailTopOrg purchaseRequest={purchaseRequest} companyId={companyId} />
         <PurchaseRequestDetailOrg purchaseRequest={purchaseRequest} approvedInfo={approvedInfo} />
-        <PurchaseRequestDetailActionsOrg companyId={companyId} actionType="user" />
+        <PurchaseRequestDetailActionsOrg
+          companyId={companyId}
+          actionType="user"
+          purchaseRequest={purchaseRequest}
+        />
       </div>
     </div>
   );

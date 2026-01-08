@@ -25,14 +25,17 @@ const mockPurchaseRequest: PurchaseRequestItem = {
   id: 'req-1',
   createdAt: '2025-07-05T09:30:00.000Z',
   updatedAt: '2025-07-05T09:30:00.000Z',
-  totalPrice: 45000,
+  itemsTotalPrice: 42000,
   shippingFee: 3000,
+  finalTotalPrice: 45000,
+  totalPrice: 45000,
   status: 'PENDING',
   purchaseItems: [
     {
       id: 'item-1',
       quantity: 2,
       priceSnapshot: 15000,
+      itemTotal: 30000,
       products: {
         id: 1,
         name: '코카콜라 제로',
@@ -42,6 +45,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
       id: 'item-2',
       quantity: 1,
       priceSnapshot: 12000,
+      itemTotal: 12000,
       products: {
         id: 2,
         name: '펩시콜라',

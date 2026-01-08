@@ -9,6 +9,10 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
+        // 기본값: 엄격한 정책 (명시적 요청까지 자동 갱신/재시도 안 함)
+        // - 각 기능별로 필요한 경우만 데이터 갱신 활성화
+        // - HTTP 계층에서 토큰 갱신/429 대응 등 기술적 재시도 처리
+        // - useQuery 호출 시 필요에 따라 재정의 권장
         defaultOptions: {
           queries: {
             staleTime: 5 * 60 * 1000, // 5분간 캐시 유지

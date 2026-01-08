@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchWithAuth, getApiUrl, AuthExpiredError } from '@/utils/api';
+import { fetchWithAuth, AuthExpiredError } from '@/utils/api';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { RegisteredProductOrgItem } from '@/features/products/components/RegisteredProductOrg/RegisteredProductOrg';
 import type { BackendProduct } from '@/features/products/utils/product.utils';
@@ -235,6 +235,7 @@ export interface GetAllProductsParams {
   sort?: string | null;
   categoryId?: number | null;
   accessToken?: string | null;
+  q?: string | null;
 }
 
 /**
@@ -250,14 +251,17 @@ export interface GetAllProductsResponse {
 
 /**
  * 전체 상품 목록 조회 (카테고리 필터링 및 정렬 지원)
- * @param params - 조회 파라미터 (sort, categoryId, accessToken)
+ * @param params - 조회 파라미터 (sort, categoryId, accessToken, q)
  * @returns 상품 목록 데이터
  */
 export async function getAllProducts(
   params?: GetAllProductsParams
 ): Promise<GetAllProductsResponse> {
-  const { sort, categoryId, accessToken } = params || {};
+  const { sort, categoryId, accessToken, q } = params || {};
   const qs = new URLSearchParams();
+
+  // 모든 상품을 가져오기 위해 all=true 사용
+  qs.set('all', 'true');
 
   // 백엔드 API 스펙에 맞게 파라미터 설정
   if (sort) {
@@ -274,12 +278,13 @@ export async function getAllProducts(
   }
 
   if (categoryId != null) qs.set('categoryId', String(categoryId));
+  if (q) qs.set('q', q);
 
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
-  // 백엔드 API 스펙에 맞게 엔드포인트 변경: /api/v1/product
-  const res = await fetch(`/api/v1/product?${qs.toString()}`, {
+  // Next.js API route를 통해 모든 상품 조회: /api/product?all=true
+  const res = await fetch(`/api/product?${qs.toString()}`, {
     headers,
     credentials: 'include',
   });
@@ -312,7 +317,7 @@ export async function getAllProducts(
     const isAuthExpired = parsed?.error?.code === 'AUTH_TOKEN_EXPIRED';
 
     if (isAuthExpired) {
-      const retryRes = await fetch(`/api/v1/product?${qs.toString()}`, {
+      const retryRes = await fetch(`/api/product?${qs.toString()}`, {
         headers: { Accept: 'application/json' },
         credentials: 'include',
       });
@@ -358,25 +363,58 @@ export async function getAllProducts(
       }
 
       const retryBodyText = await retryRes.text();
-      let retryParsed: GetAllProductsResponse | null = null;
+      let retryParsed: {
+        success?: boolean;
+        data?: BackendProduct[];
+        pagination?: unknown;
+        message?: string;
+      } | null = null;
 
       try {
-        retryParsed = JSON.parse(retryBodyText) as GetAllProductsResponse;
+        retryParsed = JSON.parse(retryBodyText) as {
+          success?: boolean;
+          data?: BackendProduct[];
+          pagination?: unknown;
+          message?: string;
+        };
       } catch {
         throw new Error('product fetch failed: invalid JSON response');
       }
 
-      if (!retryParsed) {
+      if (!retryParsed || typeof retryParsed !== 'object') {
         throw new Error('product fetch failed: invalid JSON response');
       }
 
-      return retryParsed;
+      // Next.js API route 응답 형식 변환: { success: true, data: [...] } -> { data: [...] }
+      if ('data' in retryParsed && Array.isArray(retryParsed.data)) {
+        return {
+          data: retryParsed.data,
+        } as GetAllProductsResponse;
+      }
+
+      // data 필드가 없거나 배열이 아닌 경우 에러 발생
+      throw new Error('product fetch failed: invalid response format - missing data array');
     }
 
     throw new Error(`product fetch failed: ${res.status} ${bodyText}`);
   }
 
-  return (await res.json()) as GetAllProductsResponse;
+  const result = (await res.json()) as {
+    success?: boolean;
+    data?: BackendProduct[];
+    pagination?: unknown;
+    message?: string;
+  };
+
+  // Next.js API route 응답 형식 변환: { success: true, data: [...] } -> { data: [...] }
+  if (result && typeof result === 'object' && 'data' in result && Array.isArray(result.data)) {
+    return {
+      data: result.data,
+    } as GetAllProductsResponse;
+  }
+
+  // data 필드가 없거나 배열이 아닌 경우 에러 발생
+  throw new Error('product fetch failed: invalid response format - missing data array');
 }
 
 /**
@@ -466,21 +504,37 @@ export async function uploadProductImage(
 
   const { accessToken } = useAuthStore.getState();
 
-  // Next.js API 라우트를 통해 업로드
-  const url = new URL(
-    '/api/product/image',
-    typeof window !== 'undefined' ? window.location.origin : ''
-  );
-  url.searchParams.append('folder', folder);
+  // 브라우저에서는 상대 경로 사용 (Next.js rewrites를 통해)
+  // 서버 사이드에서는 절대 URL 사용
+  const isBrowserEnv = typeof window !== 'undefined';
+  let uploadUrl: string;
 
-  const response = await fetch(url.toString(), {
-    method: 'POST',
-    headers: {
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  if (isBrowserEnv) {
+    // 브라우저에서는 상대 경로 사용 (Next.js 프록시 라우트)
+    uploadUrl = `/api/product/image?folder=${encodeURIComponent(folder)}`;
+  } else {
+    // 서버 사이드에서는 Next.js 서버의 로컬 URL 사용
+    // /api/product/image는 Next.js 프록시 라우트이므로 백엔드 URL이 아닌 로컬 서버 URL 사용
+    const nextJsUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!nextJsUrl) {
+      throw new Error(
+        'NEXT_PUBLIC_APP_URL environment variable is required for server-side image upload'
+      );
+    }
+    uploadUrl = `${nextJsUrl}/api/product/image?folder=${encodeURIComponent(folder)}`;
+  }
+
+  // fetchWithAuth를 사용하여 401 처리 및 토큰 갱신 로직 활용
+  // FormData는 fetchWithAuth에서 자동으로 처리됨 (Content-Type 자동 제거)
+  // accessToken이 null이면 undefined로 변환
+  const response = await fetchWithAuth(
+    uploadUrl,
+    {
+      method: 'POST',
+      body: formData,
     },
-    credentials: 'include',
-    body: formData,
-  });
+    accessToken || undefined
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -537,12 +591,12 @@ export async function getImageUrl(
 ): Promise<{ key: string; url: string; expiresIn: number }> {
   // S3 key를 URL 인코딩
   const encodedKey = encodeURIComponent(key);
-  const url = new URL(`/api/v1/upload/image/${encodedKey}`, getApiUrl());
+  let urlPath = `/api/v1/upload/image/${encodedKey}`;
   if (download) {
-    url.searchParams.append('download', 'true');
+    urlPath += '?download=true';
   }
 
-  const response = await fetchWithAuth(url.toString().replace(getApiUrl(), ''), {
+  const response = await fetchWithAuth(urlPath, {
     method: 'GET',
   });
 
@@ -567,11 +621,60 @@ export async function getImageUrl(
 }
 
 /**
+ * 유효한 S3 이미지 키인지 검증
+ * @param key - 검증할 이미지 키
+ * @returns 유효하면 true, 유효하지 않으면 false
+ */
+function isValidImageKey(key: string): boolean {
+  if (!key || typeof key !== 'string' || key.trim().length === 0) {
+    return false;
+  }
+
+  // URL 형식은 유효하지 않음
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    return false;
+  }
+
+  // 테스트용 키나 잘못된 형식은 유효하지 않음
+  // 주의: 실제 S3 키에 이러한 패턴이 포함될 수 있으므로, 개발 환경에서만 엄격하게 검증
+  // 프로덕션에서는 백엔드 검증에 의존하는 것이 더 안전합니다
+  if (process.env.NODE_ENV === 'development') {
+    if (key.startsWith('http_') || key.startsWith('test_') || key.includes('_test_')) {
+      return false;
+    }
+  }
+
+  // 유효한 S3 키는 보통 특정 prefix로 시작 (예: products/, uploads/ 등)
+  // 또는 파일 확장자를 가진 파일명 형식
+  const hasValidExtension = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(key);
+  const hasValidPrefix = key.includes('/') || hasValidExtension;
+
+  return hasValidPrefix;
+}
+
+/**
  * 이미지 삭제
- * @param key - S3 객체 키 (URL 인코딩 필요)
+ * S3에서 이미지를 삭제합니다.
+ *
+ * 권한: 파일 소유자 또는 같은 회사의 관리자(MANAGER/ADMIN)만 삭제 가능
+ *
+ * @param key - S3 객체 키 (URL 인코딩 필요, 예: products/123-abc.jpg)
+ * @throws {Error} 403 - 이미지 삭제 권한이 없습니다
+ * @throws {Error} 401 - 인증 실패
+ * @throws {Error} 500 - 이미지 삭제 실패
+ * @remarks 400, 404 상태는 이미 삭제된 것으로 간주하고 성공 처리됨 (idempotent 삭제 패턴)
  */
 export async function deleteImage(key: string): Promise<void> {
-  // S3 key를 URL 인코딩
+  // 유효하지 않은 키는 삭제하지 않음
+  if (!isValidImageKey(key)) {
+    // 개발 환경에서 경고 로그 출력
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('[deleteImage] Invalid image key skipped', { key });
+    }
+    return;
+  }
+
+  // S3 key를 URL 인코딩 (예: products/123-abc.jpg → products%2F123-abc.jpg)
   const encodedKey = encodeURIComponent(key);
 
   const response = await fetchWithAuth(`/api/v1/upload/image/${encodedKey}`, {
@@ -579,19 +682,43 @@ export async function deleteImage(key: string): Promise<void> {
   });
 
   if (!response.ok) {
+    // 403 Forbidden: 권한 없음 (관리자만 삭제 가능)
     if (response.status === 403) {
       throw new Error('이미지 삭제 권한이 없습니다.');
     }
-    if (response.status === 404) {
-      throw new Error('이미지를 찾을 수 없습니다.');
+    // 401 Unauthorized: 인증 실패
+    if (response.status === 401) {
+      throw new Error('인증이 필요합니다. 다시 로그인해주세요.');
     }
+    // 400 Bad Request: 잘못된 요청 (키 없음)
+    if (response.status === 400) {
+      // 개발 환경에서는 실제 오류를 감지하기 위해 예외 발생
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('[deleteImage] Backend rejected image key (400)', {
+          key,
+          message: '이미 삭제되었거나 유효하지 않은 키일 수 있습니다.',
+        });
+        throw new Error('유효하지 않은 이미지 키입니다. (400 Bad Request)');
+      }
+      // 프로덕션에서는 조용히 무시 (멱등성 보장)
+      return;
+    }
+    // 404 Not Found: 이미 삭제된 경우이므로 성공으로 처리
+    if (response.status === 404) {
+      return; // 이미 삭제된 경우 성공으로 간주
+    }
+    // 500 Internal Server Error: 이미지 삭제 실패
+    if (response.status === 500) {
+      throw new Error('이미지 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
+    // 기타 에러
     throw new Error('이미지 삭제에 실패했습니다.');
   }
 
   const result = (await response.json()) as ApiResponse<unknown>;
 
   if (!result.success) {
-    throw new Error('이미지 삭제에 실패했습니다.');
+    throw new Error(result.message || '이미지 삭제에 실패했습니다.');
   }
 }
 
@@ -599,6 +726,7 @@ export async function deleteImage(key: string): Promise<void> {
  * 내가 등록한 상품 수정
  * @param productId - 상품 ID
  * @param data - 수정할 상품 데이터
+ * @param options - 추가 옵션 (이미지 파일, 이미지 삭제 여부)
  * @returns 수정된 상품 데이터
  */
 export interface UpdateMyProductData {
@@ -606,26 +734,73 @@ export interface UpdateMyProductData {
   price: number;
   link: string;
   categoryId: number;
-  image?: string;
+}
+
+export interface UpdateMyProductOptions {
+  imageFile?: File; // 새 이미지 파일 (multipart/form-data로 전송)
+  removeImage?: boolean; // 이미지 삭제 여부 (removeImage=true 쿼리 파라미터)
 }
 
 export async function updateMyProduct(
   productId: string | number,
-  data: UpdateMyProductData
+  data: UpdateMyProductData,
+  options?: UpdateMyProductOptions
 ): Promise<BackendProduct> {
-  const response = await fetchWithAuth(`/api/v1/product/${productId}`, {
+  // multipart/form-data로 전송
+  const formData = new FormData();
+  formData.append('name', data.name);
+  formData.append('price', String(data.price));
+  formData.append('link', data.link);
+  formData.append('categoryId', String(data.categoryId));
+
+  // 새 이미지 파일이 있으면 추가
+  if (options?.imageFile) {
+    formData.append('image', options.imageFile);
+  }
+
+  // URL에 removeImage 쿼리 파라미터 추가
+  let url = `/api/v1/product/${productId}`;
+  if (options?.removeImage) {
+    url += '?removeImage=true';
+  }
+
+  const response = await fetchWithAuth(url, {
     method: 'PATCH',
-    body: JSON.stringify(data),
+    body: formData,
   });
 
   if (!response.ok) {
-    throw new Error('상품 수정에 실패했습니다.');
+    // 에러 응답을 자세히 확인
+    const errorText = await response.text();
+    let errorMessage = '상품 수정에 실패했습니다.';
+    try {
+      const errorJson = JSON.parse(errorText) as {
+        message?: string;
+        error?: { message?: string };
+      };
+      errorMessage = errorJson.error?.message || errorJson.message || errorMessage;
+    } catch {
+      // JSON 파싱 실패 시 기본 메시지 사용
+    }
+
+    // 개발 환경에서 상세 정보 로깅
+    if (process.env.NODE_ENV === 'development') {
+      logger.error('Product update failed', {
+        status: response.status,
+        statusText: response.statusText,
+        errorText,
+        hasImageFile: !!options?.imageFile,
+        removeImage: options?.removeImage,
+      });
+    }
+
+    throw new Error(errorMessage);
   }
 
   const result = (await response.json()) as ApiResponse<BackendProduct>;
 
   if (!result.success || !result.data) {
-    throw new Error('상품 수정 데이터 형식이 올바르지 않습니다.');
+    throw new Error(result.message || '상품 수정 데이터 형식이 올바르지 않습니다.');
   }
 
   return result.data;

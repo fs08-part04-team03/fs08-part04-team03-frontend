@@ -324,6 +324,7 @@ const CartSummaryBlockOrg = ({
                   quantity={item.quantity}
                   shippingCost={0}
                   imageSrc={item.imageSrc}
+                  productId={item.productId} // ✅ 상품 상세 페이지 이동을 위한 productId 전달
                   checked={isChecked}
                   onCheckboxChange={(checked) => handleToggleItem(item.cartItemId, checked)}
                   onQuantityChange={(option) => handleQuantityChange(item.cartItemId, option)}

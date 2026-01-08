@@ -6,6 +6,7 @@ import Button from '@/components/atoms/Button/Button';
 import type { ProfileEditInput } from '@/features/profile/schemas/profileSchema';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import Image from 'next/image';
+import { sanitizeImageUrl } from '@/utils/urlValidator';
 
 /**
  * 프로필 수정 템플릿 Props
@@ -24,8 +25,9 @@ interface ProfileEditTemplateProps {
   isAdmin: boolean;
   preview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageDelete?: () => void;
   /** 이미지 업로드 진행 중 여부 */
-  isUploading: boolean;
+  isUploading?: boolean;
 }
 
 /**
@@ -41,8 +43,9 @@ interface ProfileEditFormProps {
   isAdmin: boolean;
   preview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageDelete?: () => void;
   /** 이미지 업로드 진행 중 여부 */
-  isUploading: boolean;
+  isUploading?: boolean;
 }
 
 const ProfileEditForm = ({
@@ -54,92 +57,152 @@ const ProfileEditForm = ({
   isAdmin,
   preview,
   onImageChange,
-  isUploading,
-}: ProfileEditFormProps) => (
-  <form
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    onSubmit={handleSubmit(onSubmit)}
-    className={className}
-    noValidate
-  >
-    <h1 className="text-24 font-bold text-black-400 tracking--0.6 text-center mb-20">
-      내 프로필 변경
-    </h1>
+  onImageDelete,
+  isUploading = false,
+}: ProfileEditFormProps) => {
+  // 기본 업로드 아이콘 경로인지 정확히 확인 (외부 URL에 'upload.svg'가 포함된 경우 오동작 방지)
+  const isDefaultUploadIcon = preview === '/icons/upload.svg' || preview?.endsWith('/upload.svg');
+  const hasImage = preview && !isDefaultUploadIcon;
+  const isExternalUrl = hasImage
+    ? preview.startsWith('http://') || preview.startsWith('https://')
+    : false;
 
-    {/* 프로필 이미지 업로드 */}
-    <div className="mb-24">
-      <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
-      <div className="flex justify-center">
-        <label
-          htmlFor="profile-image-upload"
-          className={isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
-        >
+  // ✅ 안전한 URL로 sanitize
+  const safePreview = preview ? sanitizeImageUrl(preview) : null;
+
+  return (
+    <form
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      onSubmit={handleSubmit(onSubmit)}
+      className={className}
+      noValidate
+    >
+      <h1 className="text-24 font-bold text-black-400 tracking--0.6 text-center mb-20">
+        내 프로필 변경
+      </h1>
+
+      {/* 프로필 이미지 업로드 */}
+      <div className="mb-24">
+        <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
+        <div className="flex justify-center">
           <div className="relative w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
-            {preview ? (
-              <Image
-                src={preview}
-                alt="프로필 미리보기"
-                width={140}
-                height={140}
-                className="object-cover"
-              />
-            ) : (
-              <Image
-                src="/icons/upload.svg"
-                alt="이미지 업로드"
-                width={140}
-                height={140}
-                className="object-contain"
-              />
-            )}
-            {isUploading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-8">
-                <div className="w-24 h-24 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              </div>
+            <label
+              htmlFor="profile-image-upload"
+              className={
+                isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer w-full h-full'
+              }
+            >
+              {/* ✅ safePreview 사용 + 에러 핸들링 추가 */}
+              {hasImage && isExternalUrl && safePreview && (
+                <img
+                  src={safePreview}
+                  alt="프로필 미리보기"
+                  className="w-full h-full object-contain"
+                  style={{ maxWidth: '100%', maxHeight: '100%' }}
+                  onError={(e) => {
+                    // 이미지 로드 실패 시 기본 이미지로 대체
+                    e.currentTarget.src = '/icons/upload.svg';
+                  }}
+                  // ✅ 추가 보안: referrerPolicy 설정
+                  referrerPolicy="no-referrer"
+                />
+              )}
+              {/* ✅ safePreview 사용 */}
+              {hasImage && !isExternalUrl && safePreview && (
+                <Image
+                  src={safePreview}
+                  alt="프로필 미리보기"
+                  width={140}
+                  height={140}
+                  className="object-contain pointer-events-none"
+                />
+              )}
+              {!hasImage && (
+                <Image
+                  src="/icons/upload.svg"
+                  alt="이미지 업로드"
+                  width={140}
+                  height={140}
+                  className="object-contain pointer-events-none"
+                  unoptimized
+                />
+              )}
+              {isUploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-8">
+                  <div className="w-24 h-24 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </label>
+            <input
+              id="profile-image-upload"
+              type="file"
+              accept="image/*"
+              onChange={onImageChange}
+              disabled={isUploading}
+              className="hidden"
+            />
+            {hasImage && onImageDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onImageDelete();
+                }}
+                className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50"
+                aria-label="이미지 삭제"
+              >
+                <Image src="/icons/close-circle.svg" alt="삭제" width={24} height={24} />
+              </button>
             )}
           </div>
-          <input
-            id="profile-image-upload"
-            type="file"
-            accept="image/*"
-            onChange={onImageChange}
-            disabled={isUploading}
-            className="hidden"
-          />
-        </label>
+        </div>
+        {isUploading && (
+          <p className="mt-8 text-center text-12 text-gray-600">이미지 업로드 중...</p>
+        )}
       </div>
-      {isUploading && <p className="mt-8 text-center text-12 text-gray-600">이미지 업로드 중...</p>}
-    </div>
 
-    <div className="flex flex-col gap-20">
-      {/* 관리자만 기업명 변경 가능 */}
-      {isAdmin && (
-        <RHFFloatingLabelInput control={control} name="companyName" label="기업명" type="text" />
-      )}
-      <RHFFloatingLabelInput control={control} name="role" label="권한" type="text" disabled />
-      <RHFFloatingLabelInput control={control} name="name" label="이름" type="text" disabled />
-      <RHFFloatingLabelInput control={control} name="email" label="이메일" type="email" disabled />
-      <RHFFloatingLabelInput
-        control={control}
-        name="password"
-        label="비밀번호를 입력해주세요"
-        type="password"
-        showPasswordToggle
-      />
-      <RHFFloatingLabelInput
-        control={control}
-        name="passwordConfirm"
-        label="비밀번호를 한번 더 입력해주세요"
-        type="password"
-        showPasswordToggle
-      />
-    </div>
+      <div className="flex flex-col gap-20">
+        {/* 관리자만 기업명 변경 가능 */}
+        {isAdmin && (
+          <RHFFloatingLabelInput control={control} name="companyName" label="기업명" type="text" />
+        )}
+        <RHFFloatingLabelInput control={control} name="role" label="권한" type="text" disabled />
+        <RHFFloatingLabelInput control={control} name="name" label="이름" type="text" disabled />
+        <RHFFloatingLabelInput
+          control={control}
+          name="email"
+          label="이메일"
+          type="email"
+          disabled
+        />
+        <RHFFloatingLabelInput
+          control={control}
+          name="password"
+          label="비밀번호를 입력해주세요"
+          type="password"
+          showPasswordToggle
+        />
+        <RHFFloatingLabelInput
+          control={control}
+          name="passwordConfirm"
+          label="비밀번호를 한번 더 입력해주세요"
+          type="password"
+          showPasswordToggle
+        />
+      </div>
 
-    <Button type="submit" size="lg" className="mt-30" fullWidth inactive={!isValid || isUploading}>
-      {isUploading ? '이미지 업로드 중...' : '변경하기'}
-    </Button>
-  </form>
-);
+      <Button
+        type="submit"
+        size="lg"
+        className="mt-30"
+        fullWidth
+        inactive={!isValid || isUploading}
+      >
+        변경하기
+      </Button>
+    </form>
+  );
+};
 
 const ProfileEditTemplate = ({
   control,
@@ -153,7 +216,8 @@ const ProfileEditTemplate = ({
   isAdmin,
   preview,
   onImageChange,
-  isUploading,
+  onImageDelete,
+  isUploading = false,
 }: ProfileEditTemplateProps) => (
   <>
     {/* Mobile Layout */}
@@ -172,6 +236,7 @@ const ProfileEditTemplate = ({
         isAdmin={isAdmin}
         preview={preview}
         onImageChange={onImageChange}
+        onImageDelete={onImageDelete}
         isUploading={isUploading}
       />
     </div>
@@ -193,6 +258,7 @@ const ProfileEditTemplate = ({
           isAdmin={isAdmin}
           preview={preview}
           onImageChange={onImageChange}
+          onImageDelete={onImageDelete}
           isUploading={isUploading}
         />
       </div>

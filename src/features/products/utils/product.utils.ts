@@ -25,10 +25,9 @@ export const mapBackendProductToTemplate = (p: BackendProduct): TemplateProduct 
   name: p.name,
   price: p.price,
   categoryId: p.categoryId ?? null,
-  // buildImageUrl은 async이므로 직접 URL 구성
+  // 프록시 API를 통해 이미지 로드 (CORS 방지, SSR 하이드레이션 불일치 방지)
   // Supports both old format (filename) and new S3 key format (products/xxx.png)
-  imageUrl: p.image
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/product/image?key=${encodeURIComponent(p.image)}`
-    : undefined,
+  // 타임스탬프는 컴포넌트 레벨에서 추가 (캐시 무효화)
+  imageUrl: p.image ? `/api/product/image?key=${encodeURIComponent(p.image)}` : undefined,
   purchaseCount: p.salesCount ?? 0,
 });
