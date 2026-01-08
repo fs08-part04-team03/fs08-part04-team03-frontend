@@ -87,6 +87,18 @@ export async function GET(req: Request) {
 
   const target = new URL(`/api/v1/upload/image/${encodedKey}`, apiBase);
 
+  // 개발 환경에서 디버깅 로그
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Image Proxy] Request details:', {
+      originalKey: imageKey,
+      normalizedKey,
+      encodedKey,
+      targetUrl: target.toString(),
+      hasAuth: !!authorizationHeader,
+      hasCookies: !!finalCookieString,
+    });
+  }
+
   const timeout = getApiTimeout();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -105,6 +117,19 @@ export async function GET(req: Request) {
     clearTimeout(timeoutId);
 
     if (!res.ok) {
+      // 개발 환경에서 백엔드 응답 상세 로그
+      if (process.env.NODE_ENV === 'development') {
+        const errorText = await res.text().catch(() => 'Failed to read error response');
+        console.error('[Image Proxy] Backend error:', {
+          status: res.status,
+          statusText: res.statusText,
+          errorText,
+          normalizedKey,
+          originalKey: imageKey,
+          targetUrl: target.toString(),
+        });
+      }
+
       // 404 에러는 이미지를 찾을 수 없음을 명확히 표시
       if (res.status === 404) {
         // 개발 환경에서만 상세 정보 포함
