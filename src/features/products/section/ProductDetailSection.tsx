@@ -274,7 +274,7 @@ const ProductDetailSection = () => {
       liked: isLiked,
       onToggleLike: handleToggleLike,
     };
-  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu]);
+  }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu, imageRefreshKey]);
 
   // 수정 모달 핸들러
   const handleEditSubmit = useCallback(
@@ -330,7 +330,7 @@ const ProductDetailSection = () => {
         triggerToast('error', message);
       }
     },
-    [productId, queryClient, triggerToast, router]
+    [productId, queryClient, triggerToast, router, product?.image]
   );
 
   // 삭제 모달 핸들러

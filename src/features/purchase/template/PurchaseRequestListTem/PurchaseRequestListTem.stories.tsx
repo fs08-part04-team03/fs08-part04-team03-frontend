@@ -40,30 +40,37 @@ const createPurchaseItem = (
   shippingFee: number,
   createdAt: string,
   requesterName: string = '홍길동'
-): PurchaseRequestItem => ({
-  id,
-  createdAt,
-  updatedAt: createdAt,
-  totalPrice,
-  shippingFee,
-  status,
-  purchaseItems: Array.from({ length: itemCount }, (_, i) => ({
-    id: `item-${i + 1}`,
-    quantity: i + 1,
-    priceSnapshot: totalPrice / itemCount,
-    itemTotal: (i + 1) * (totalPrice / itemCount),
-    products: {
-      id: i + 1,
-      name: `상품 ${i + 1}`,
-      image: '/images/zero-cola.svg',
+): PurchaseRequestItem => {
+  const itemsTotalPrice = totalPrice;
+  const finalTotalPrice = itemsTotalPrice + shippingFee;
+
+  return {
+    id,
+    createdAt,
+    updatedAt: createdAt,
+    itemsTotalPrice,
+    shippingFee,
+    finalTotalPrice,
+    totalPrice, // 하위 호환성
+    status,
+    purchaseItems: Array.from({ length: itemCount }, (_, i) => ({
+      id: `item-${i + 1}`,
+      quantity: i + 1,
+      priceSnapshot: totalPrice / itemCount,
+      itemTotal: (i + 1) * (totalPrice / itemCount),
+      products: {
+        id: i + 1,
+        name: `상품 ${i + 1}`,
+        image: '/images/zero-cola.svg',
+      },
+    })),
+    requester: {
+      id: 'requester-1',
+      name: requesterName,
+      email: 'hong@example.com',
     },
-  })),
-  requester: {
-    id: 'requester-1',
-    name: requesterName,
-    email: 'hong@example.com',
-  },
-});
+  };
+};
 
 const sortOptions: Option[] = [
   { key: 'LATEST', label: '최신순' },

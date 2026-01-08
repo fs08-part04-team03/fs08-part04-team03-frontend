@@ -25,14 +25,17 @@ const mockPurchaseRequest: PurchaseRequestItem = {
   id: '1',
   createdAt: '2025-06-03T00:00:00.000Z',
   updatedAt: '2025-06-03T00:00:00.000Z',
-  totalPrice: 7900, // 1900 * 1 + 3000 * 2 = 7900
+  itemsTotalPrice: 7900, // 1900 * 1 + 3000 * 2 = 7900
   shippingFee: 0,
+  finalTotalPrice: 7900,
+  totalPrice: 7900, // 하위 호환성
   status: 'APPROVED',
   purchaseItems: [
     {
       id: 'item-1',
       quantity: 1,
       priceSnapshot: 1900,
+      itemTotal: 1900,
       products: {
         id: 1,
         name: '코카콜라 제로',
@@ -43,6 +46,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
       id: 'item-2',
       quantity: 2,
       priceSnapshot: 3000,
+      itemTotal: 6000,
       products: {
         id: 2,
         name: '펩시 콜라',
@@ -75,13 +79,16 @@ export const MultipleItems: Story = {
   args: {
     purchaseRequest: {
       ...mockPurchaseRequest,
-      totalPrice: 33400, // (1×1,900) + (2×3,000) + (3×5,000) + (1×2,500) + (2×4,000) = 33,400원
+      itemsTotalPrice: 30400, // (1×1,900) + (2×3,000) + (3×5,000) + (1×2,500) + (2×4,000) = 30,400원
       shippingFee: 3000,
+      finalTotalPrice: 33400,
+      totalPrice: 33400, // 하위 호환성
       purchaseItems: [
         {
           id: 'item-1',
           quantity: 1,
           priceSnapshot: 1900,
+          itemTotal: 1900,
           products: {
             id: 1,
             name: '코카콜라 제로',
@@ -92,6 +99,7 @@ export const MultipleItems: Story = {
           id: 'item-2',
           quantity: 2,
           priceSnapshot: 3000,
+          itemTotal: 6000,
           products: {
             id: 2,
             name: '펩시 콜라',
@@ -102,6 +110,7 @@ export const MultipleItems: Story = {
           id: 'item-3',
           quantity: 3,
           priceSnapshot: 5000,
+          itemTotal: 15000,
           products: {
             id: 3,
             name: '스프라이트',
@@ -112,6 +121,7 @@ export const MultipleItems: Story = {
           id: 'item-4',
           quantity: 1,
           priceSnapshot: 2500,
+          itemTotal: 2500,
           products: {
             id: 4,
             name: '환타',
@@ -122,6 +132,7 @@ export const MultipleItems: Story = {
           id: 'item-5',
           quantity: 2,
           priceSnapshot: 4000,
+          itemTotal: 8000,
           products: {
             id: 5,
             name: '밀키스',
@@ -145,11 +156,15 @@ export const SingleItem: Story = {
   args: {
     purchaseRequest: {
       ...mockPurchaseRequest,
+      itemsTotalPrice: 9500,
+      finalTotalPrice: 9500,
+      totalPrice: 9500,
       purchaseItems: [
         {
           id: 'item-1',
           quantity: 5,
           priceSnapshot: 1900,
+          itemTotal: 9500,
           products: {
             id: 1,
             name: '코카콜라 제로',

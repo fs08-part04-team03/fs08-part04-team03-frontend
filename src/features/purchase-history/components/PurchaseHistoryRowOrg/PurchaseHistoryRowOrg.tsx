@@ -94,7 +94,7 @@ export const PurchaseHistoryRowOrg = ({
             <span className="text-12 text-gray-500">총수량 {totalQuantity}개</span>
           </div>
           <PriceText
-            value={item.itemsTotalPrice ?? item.itemsTotalPrice ?? item.totalPrice ?? 0 ?? 0}
+            value={item.itemsTotalPrice ?? item.totalPrice ?? 0}
             className="text-16 font-bold"
           />
         </div>

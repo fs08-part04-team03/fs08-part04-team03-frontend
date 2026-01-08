@@ -17,7 +17,7 @@ export function formatItemDescription(purchaseItems: PurchaseRequestItem['purcha
   }
   const firstItem = purchaseItems[0];
   if (!firstItem || !firstItem.products) {
-    logger.warn('formatItemDescription: firstItem 또는 products가 없습니다.', { firstItem });
+    logger.warn('formatItemDescription: firstItem 또는 products가 없습니다.');
     return '상품 정보 없음';
   }
 

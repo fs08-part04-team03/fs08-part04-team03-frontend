@@ -65,8 +65,10 @@ const createPurchaseItem = (
   id,
   createdAt,
   updatedAt: createdAt,
-  totalPrice,
+  itemsTotalPrice: totalPrice,
   shippingFee,
+  finalTotalPrice: totalPrice + shippingFee,
+  totalPrice,
   status,
   purchaseItems: Array.from({ length: itemCount }, (_, index) => ({
     id: `item-${index}`,

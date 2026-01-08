@@ -77,9 +77,7 @@ const MyRegisteredSection = () => {
       return response;
     },
     enabled: !!companyId,
-    staleTime: 0, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
-    refetchOnMount: true, // ✅ 마운트 시 항상 refetch (이미지 업데이트 반영)
-    refetchOnWindowFocus: true, // ✅ 윈도우 포커스 시 refetch
+    staleTime: 60000, // 1분간 캐시 유지
   });
 
   /* =====================

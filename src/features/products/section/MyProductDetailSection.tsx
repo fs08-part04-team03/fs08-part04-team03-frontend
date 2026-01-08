@@ -32,8 +32,7 @@ const MyProductDetailSection = () => {
   const queryClient = useQueryClient();
   const { triggerToast } = useToast();
   // 이미지 리프레시를 위한 타임스탬프 (상품 수정 후 이미지 강제 재로드)
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-  const [imageRefreshKey] = useState<number>(0);
+  const [imageRefreshKey, setImageRefreshKey] = useState<number>(Date.now());
 
   const {
     data: product,
@@ -172,7 +171,12 @@ const MyProductDetailSection = () => {
       liked: isLiked,
       onToggleLike: handleToggleLike,
     };
-  }, [product, companyId, isLiked, handleToggleLike]);
+  }, [product, companyId, isLiked, handleToggleLike, imageRefreshKey]);
+
+  // 상품 수정 성공 시 이미지 리프레시
+  const handleProductUpdated = useCallback(() => {
+    setImageRefreshKey(Date.now());
+  }, []);
 
   if (isLoading) {
     return (
@@ -201,6 +205,7 @@ const MyProductDetailSection = () => {
       productId={productId}
       companyId={companyId}
       canUseMenu={canUseMenu}
+      onProductUpdated={handleProductUpdated}
     />
   );
 };
