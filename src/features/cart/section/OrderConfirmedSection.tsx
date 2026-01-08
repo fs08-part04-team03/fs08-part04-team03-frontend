@@ -56,12 +56,15 @@ const OrderConfirmedSection = () => {
   });
 
   // 프록시 API를 통해 이미지 로드 (CORS 방지, SSR 하이드레이션 불일치 방지)
+  // 이미지 URL에 타임스탬프 추가하여 브라우저 캐시 무효화 (이미지 업데이트 반영)
   const imageUrls = useMemo(() => {
     if (!purchaseData?.purchaseItems) return {};
 
+    const timestamp = Date.now();
     return purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
       if (item.products.image) {
-        acc[item.products.id] = `/api/product/image?key=${encodeURIComponent(item.products.image)}`;
+        acc[item.products.id] =
+          `/api/product/image?key=${encodeURIComponent(item.products.image)}&t=${timestamp}`;
       }
       return acc;
     }, {});
@@ -146,18 +149,20 @@ const OrderConfirmedSection = () => {
   const handleGoOrderHistory = () => {
     if (companyId) {
       // 구매 요청 목록 쿼리 invalidate 및 refetch
-      queryClient.invalidateQueries({ queryKey: ['myPurchases'] }).catch((error) => {
+      queryClient.invalidateQueries({ queryKey: ['myPurchases'] }).catch((catchError) => {
         logger.error('Failed to invalidate myPurchases queries', {
           hasError: true,
-          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          errorType: catchError instanceof Error ? catchError.constructor.name : 'Unknown',
         });
       });
-      queryClient.refetchQueries({ queryKey: ['myPurchases'], type: 'active' }).catch((error) => {
-        logger.error('Failed to refetch myPurchases queries', {
-          hasError: true,
-          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      queryClient
+        .refetchQueries({ queryKey: ['myPurchases'], type: 'active' })
+        .catch((catchError) => {
+          logger.error('Failed to refetch myPurchases queries', {
+            hasError: true,
+            errorType: catchError instanceof Error ? catchError.constructor.name : 'Unknown',
+          });
         });
-      });
       // 페이지 이동 후 리프레시
       router.push(`/${companyId}/my/purchase-requests`);
       router.refresh();

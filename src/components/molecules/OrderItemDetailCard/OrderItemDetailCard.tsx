@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 
@@ -11,6 +12,9 @@ export interface OrderItemDetailCardProps {
   quantity: number;
   imageSrc?: string;
   className?: string;
+  productId?: number | string; // 상품 상세 페이지로 이동하기 위한 ID
+  companyId?: string; // 회사 ID
+  onProductClick?: (productId: number | string) => void; // 상품 클릭 핸들러 (옵션)
 }
 
 // 모바일 버전
@@ -20,7 +24,32 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   quantity,
   imageSrc,
   className,
+  productId,
+  companyId,
+  onProductClick,
 }) => {
+  const router = useRouter();
+
+  const handleProductNameClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onProductClick && productId) {
+      onProductClick(productId);
+    } else if (companyId && productId) {
+      router.push(`/${companyId}/products/${productId}`);
+    }
+  };
+
+  const handleProductNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onProductClick && productId) {
+        onProductClick(productId);
+      } else if (companyId && productId) {
+        router.push(`/${companyId}/products/${productId}`);
+      }
+    }
+  };
   const displayTotalPrice = unitPrice * quantity;
   const [imageError, setImageError] = useState(false);
 
@@ -33,10 +62,13 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
   const shouldShowImage = isValidImageUrl && !imageError;
 
-  // 외부 URL인지 확인
+  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
   const isExternalUrl = isValidImageUrl
     ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
     : false;
+
+  // 프록시 API URL인지 확인
+  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('tablet:hidden', className)}>
@@ -62,6 +94,7 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
                     onError={() => setImageError(true)}
+                    unoptimized={isProxyApiUrl}
                   />
                 )}
               </div>
@@ -80,7 +113,21 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
           </div>
 
           <div className="flex flex-col gap-4 flex-1">
-            <p className="text-black-100 text-14 leading-20">{name}</p>
+            {productId ? (
+              <button
+                type="button"
+                onClick={handleProductNameClick}
+                onKeyDown={handleProductNameKeyDown}
+                className={clsx(
+                  'text-left text-black-100 text-14 leading-20',
+                  'cursor-pointer hover:underline hover:text-primary-500'
+                )}
+              >
+                {name}
+              </button>
+            ) : (
+              <p className="text-black-100 text-14 leading-20">{name}</p>
+            )}
             <PriceText value={unitPrice} className="text-black-100 text-14 leading-20" />
             <div className="pt-14 flex items-center justify-between">
               <span className="text-black-100 text-14 leading-20">수량 {quantity}개</span>
@@ -100,7 +147,32 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   quantity,
   imageSrc,
   className,
+  productId,
+  companyId,
+  onProductClick,
 }) => {
+  const router = useRouter();
+
+  const handleProductNameClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onProductClick && productId) {
+      onProductClick(productId);
+    } else if (companyId && productId) {
+      router.push(`/${companyId}/products/${productId}`);
+    }
+  };
+
+  const handleProductNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onProductClick && productId) {
+        onProductClick(productId);
+      } else if (companyId && productId) {
+        router.push(`/${companyId}/products/${productId}`);
+      }
+    }
+  };
   const displayTotalPrice = unitPrice * quantity;
   const [imageError, setImageError] = useState(false);
 
@@ -113,10 +185,13 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
   const shouldShowImage = isValidImageUrl && !imageError;
 
-  // 외부 URL인지 확인
+  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
   const isExternalUrl = isValidImageUrl
     ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
     : false;
+
+  // 프록시 API URL인지 확인
+  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
@@ -142,6 +217,7 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
                     onError={() => setImageError(true)}
+                    unoptimized={isProxyApiUrl}
                   />
                 )}
               </div>
@@ -160,7 +236,21 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
           </div>
 
           <div className="flex flex-col gap-4">
-            <p className="text-black-100 text-16 leading-24">{name}</p>
+            {productId ? (
+              <button
+                type="button"
+                onClick={handleProductNameClick}
+                onKeyDown={handleProductNameKeyDown}
+                className={clsx(
+                  'text-left text-black-100 text-16 leading-24',
+                  'cursor-pointer hover:underline hover:text-primary-500'
+                )}
+              >
+                {name}
+              </button>
+            ) : (
+              <p className="text-black-100 text-16 leading-24">{name}</p>
+            )}
             <PriceText value={unitPrice} className="text-black-100 text-16 leading-24" />
             <div className="pt-30">
               <span className="text-black-100 text-16 leading-24">수량 {quantity}개</span>
@@ -186,7 +276,32 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   quantity,
   imageSrc,
   className,
+  productId,
+  companyId,
+  onProductClick,
 }) => {
+  const router = useRouter();
+
+  const handleProductNameClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onProductClick && productId) {
+      onProductClick(productId);
+    } else if (companyId && productId) {
+      router.push(`/${companyId}/products/${productId}`);
+    }
+  };
+
+  const handleProductNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onProductClick && productId) {
+        onProductClick(productId);
+      } else if (companyId && productId) {
+        router.push(`/${companyId}/products/${productId}`);
+      }
+    }
+  };
   const displayTotalPrice = unitPrice * quantity;
   const [imageError, setImageError] = useState(false);
 
@@ -199,10 +314,13 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
   const shouldShowImage = isValidImageUrl && !imageError;
 
-  // 외부 URL인지 확인
+  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
   const isExternalUrl = isValidImageUrl
     ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
     : false;
+
+  // 프록시 API URL인지 확인
+  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('hidden desktop:flex', className)}>
@@ -228,6 +346,7 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
                     className="object-contain"
                     style={{ objectPosition: 'center' }}
                     onError={() => setImageError(true)}
+                    unoptimized={isProxyApiUrl}
                   />
                 )}
               </div>
@@ -246,7 +365,21 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
           </div>
 
           <div className="flex flex-col gap-4">
-            <p className="text-black-100 text-16 leading-24">{name}</p>
+            {productId ? (
+              <button
+                type="button"
+                onClick={handleProductNameClick}
+                onKeyDown={handleProductNameKeyDown}
+                className={clsx(
+                  'text-left text-black-100 text-16 leading-24',
+                  'cursor-pointer hover:underline hover:text-primary-500'
+                )}
+              >
+                {name}
+              </button>
+            ) : (
+              <p className="text-black-100 text-16 leading-24">{name}</p>
+            )}
             <PriceText value={unitPrice} className="text-black-100 text-16 leading-24" />
             <div className="pt-30">
               <span className="text-black-100 text-16 leading-24">수량 {quantity}개</span>
@@ -272,6 +405,9 @@ const OrderItemDetailCard: React.FC<OrderItemDetailCardProps> = ({
   quantity,
   imageSrc,
   className,
+  productId,
+  companyId,
+  onProductClick,
 }) => (
   <>
     <OrderItemDetailCardMobile
@@ -280,6 +416,9 @@ const OrderItemDetailCard: React.FC<OrderItemDetailCardProps> = ({
       quantity={quantity}
       imageSrc={imageSrc}
       className={className}
+      productId={productId}
+      companyId={companyId}
+      onProductClick={onProductClick}
     />
     <OrderItemDetailCardTablet
       name={name}
@@ -287,6 +426,9 @@ const OrderItemDetailCard: React.FC<OrderItemDetailCardProps> = ({
       quantity={quantity}
       imageSrc={imageSrc}
       className={className}
+      productId={productId}
+      companyId={companyId}
+      onProductClick={onProductClick}
     />
     <OrderItemDetailCardDesktop
       name={name}
@@ -294,6 +436,9 @@ const OrderItemDetailCard: React.FC<OrderItemDetailCardProps> = ({
       quantity={quantity}
       imageSrc={imageSrc}
       className={className}
+      productId={productId}
+      companyId={companyId}
+      onProductClick={onProductClick}
     />
   </>
 );

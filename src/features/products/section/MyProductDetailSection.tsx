@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import MyProductDetailTem from '@/features/products/template/MyProductDetailTem/MyProductDetailTem';
 import { getMyProductById } from '@/features/products/api/products.api';
 import {
@@ -31,6 +31,9 @@ const MyProductDetailSection = () => {
 
   const queryClient = useQueryClient();
   const { triggerToast } = useToast();
+  // 이미지 리프레시를 위한 타임스탬프 (상품 수정 후 이미지 강제 재로드)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+  const [imageRefreshKey] = useState<number>(0);
 
   const {
     data: product,
@@ -40,7 +43,9 @@ const MyProductDetailSection = () => {
     queryKey: ['myProduct', productId],
     queryFn: () => getMyProductById(productId),
     enabled: !!productId,
+    staleTime: 0, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
     refetchOnMount: true, // ✅ 페이지 마운트 시 항상 최신 데이터 가져오기
+    refetchOnWindowFocus: true, // ✅ 윈도우 포커스 시 refetch
   });
 
   // 위시리스트 목록 조회
@@ -129,8 +134,9 @@ const MyProductDetailSection = () => {
     ];
 
     // 상대 경로 사용 (SSR 하이드레이션 불일치 방지)
+    // imageRefreshKey를 사용하여 이미지 업데이트 시 캐시 무효화
     const imageUrl = product.image
-      ? `/api/product/image?key=${encodeURIComponent(product.image)}`
+      ? `/api/product/image?key=${encodeURIComponent(product.image)}&t=${imageRefreshKey}`
       : '/icons/no-image.svg';
 
     return {
