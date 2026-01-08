@@ -42,19 +42,30 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
 
   return (
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
-      {items.map((item, index) => (
-        <React.Fragment key={item.id || `item-${index}`}>
-          <div className="my-16">
-            <OrderItemDetailCard
-              name={item.products.name}
-              unitPrice={item.priceSnapshot}
-              quantity={item.quantity}
-              imageSrc={item.products.image}
-            />
-          </div>
-          {index < items.length - 1 && <Divider />}
-        </React.Fragment>
-      ))}
+      {items.map((item, index) => {
+        // S3 이미지 키를 프록시 API로 변환
+        // 백엔드에서 받은 S3 키(예: "products/xxx.png" 또는 "xxx.png")를
+        // 프록시 API 엔드포인트(/api/product/image?key=...)로 변환하여
+        // 프록시가 백엔드의 /api/v1/upload/image/{key}를 호출하고
+        // 백엔드가 S3에서 이미지를 가져와서 반환함
+        const imageSrc = item.products.image
+          ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
+          : '';
+
+        return (
+          <React.Fragment key={item.id || `item-${index}`}>
+            <div className="my-16">
+              <OrderItemDetailCard
+                name={item.products.name}
+                unitPrice={item.priceSnapshot}
+                quantity={item.quantity}
+                imageSrc={imageSrc}
+              />
+            </div>
+            {index < items.length - 1 && <Divider />}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };
@@ -87,9 +98,10 @@ export const PurchaseHistoryDetailTopOrg = ({
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
-  const { totalPrice, shippingFee } = purchaseRequest;
-  const orderAmount = totalPrice;
-  const totalAmount = totalPrice + shippingFee;
+  // itemsTotalPrice를 우선 사용하고, 없으면 totalPrice 사용 (하위 호환성)
+  const orderAmount = purchaseRequest.itemsTotalPrice ?? purchaseRequest.totalPrice ?? 0;
+  const shippingFee = purchaseRequest.shippingFee ?? 0;
+  const totalAmount = orderAmount + shippingFee;
 
   return (
     <div className="flex flex-col gap-30">

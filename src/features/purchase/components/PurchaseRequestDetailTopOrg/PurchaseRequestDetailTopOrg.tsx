@@ -11,6 +11,7 @@ import PriceText from '@/components/atoms/PriceText/PriceText';
 
 interface PurchaseRequestDetailTopOrgProps {
   purchaseRequest: PurchaseRequestItem;
+  companyId?: string;
 }
 
 // 가격 행 컴포넌트
@@ -35,9 +36,10 @@ const PriceRow = ({ label, value, bold = false }: PriceRowProps) => (
 // 구매 물품 목록 섹션
 interface PurchaseItemsListProps {
   items: PurchaseRequestItem['purchaseItems'];
+  companyId?: string;
 }
 
-const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
+const PurchaseItemsList = ({ items, companyId }: PurchaseItemsListProps) => {
   const hasScroll = items.length > 2;
 
   return (
@@ -56,6 +58,8 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
                 unitPrice={item.priceSnapshot}
                 quantity={item.quantity}
                 imageSrc={imageSrc}
+                productId={item.products.id}
+                companyId={companyId}
               />
             </div>
             {index < items.length - 1 && (
@@ -93,6 +97,7 @@ const PriceSummary = ({ orderAmount, shippingFee, totalAmount }: PriceSummaryPro
 // 메인 컴포넌트
 export const PurchaseRequestDetailTopOrg = ({
   purchaseRequest,
+  companyId,
 }: PurchaseRequestDetailTopOrgProps) => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -123,7 +128,7 @@ export const PurchaseRequestDetailTopOrg = ({
       </div>
       {isOpen && (
         <div className="flex flex-col w-full px-24 tablet:px-20 desktop:px-60 tablet:py-30 desktop:py-40 tablet:w-696 desktop:w-1200 desktop:shadow-lg tablet:shadow-lg">
-          <PurchaseItemsList items={purchaseRequest.purchaseItems} />
+          <PurchaseItemsList items={purchaseRequest.purchaseItems} companyId={companyId} />
           <PriceSummary
             orderAmount={orderAmount}
             shippingFee={shippingFee}

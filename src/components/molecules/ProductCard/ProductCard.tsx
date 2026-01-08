@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, KeyboardEvent } from 'react';
+import React, { useState, KeyboardEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import ProductTile from '@/components/molecules/ProductTile/ProductTile';
@@ -43,6 +43,8 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   const [internalLiked, setInternalLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
   const [imgError, setImgError] = useState(false);
+  // 페이지 마운트 시 타임스탬프 생성 (이미지 캐시 무효화)
+  const [imageTimestamp, setImageTimestamp] = useState(() => Date.now());
 
   const isWishlist = variant === 'wishlist';
   const liked = externalLiked !== undefined ? externalLiked : internalLiked;
@@ -108,6 +110,20 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   // 프록시 API URL인지 확인
   const isProxyApiUrl = isValidImageUrl ? imageUrl.startsWith('/api/product/image') : false;
 
+  // imageUrl이 변경될 때마다 타임스탬프 업데이트 (이미지 업데이트 반영)
+  useEffect(() => {
+    if (isValidImageUrl && isProxyApiUrl) {
+      // imageUrl이 변경되면 새로운 타임스탬프 생성하여 캐시 무효화
+      setImageTimestamp(Date.now());
+    }
+  }, [imageUrl, isValidImageUrl, isProxyApiUrl]);
+
+  // 프록시 API URL인 경우 타임스탬프 추가하여 캐시 무효화
+  const imageUrlWithTimestamp =
+    isValidImageUrl && isProxyApiUrl && imageUrl
+      ? `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${imageTimestamp}`
+      : imageUrl;
+
   // 반응형 이미지 크기 설정 (CLS 방지)
   // Wishlist: Mobile 115px, Tablet 200px, Desktop 345px
   // Product/Order: Mobile 150px, Tablet 150px, Desktop 350px
@@ -134,7 +150,8 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       // 프록시 API URL은 unoptimized로 처리 (이미 최적화된 이미지를 반환하므로)
       imageContent = (
         <Image
-          src={imageUrl}
+          key={imageUrlWithTimestamp} // 이미지 URL 변경 시 강제 리렌더링 (캐시 무효화)
+          src={imageUrlWithTimestamp!}
           alt={name}
           fill
           sizes={imageSizes}
