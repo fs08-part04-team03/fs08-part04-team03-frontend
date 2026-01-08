@@ -33,6 +33,7 @@ interface MyProductDetailTemProps {
   productId: string;
   companyId: string;
   canUseMenu: boolean;
+  onProductUpdated?: () => void; // 상품 수정 성공 시 호출되는 콜백
 }
 
 /* =====================
@@ -94,6 +95,7 @@ const MyProductDetailTem = ({
   productId,
   companyId,
   canUseMenu,
+  onProductUpdated,
 }: MyProductDetailTemProps) => {
   // type을 전달하지 않으면 ProductDetailHeader에서 역할에 따라 자동 결정
   // canUseMenu는 이미 MyProductDetailSection에서 계산되어 전달됨
@@ -160,6 +162,8 @@ const MyProductDetailTem = ({
         type: 'active',
       });
       setEditModalOpen(false);
+      // 이미지 리프레시를 위한 콜백 호출
+      onProductUpdated?.();
       // 페이지를 강제로 새로고침하여 최신 데이터 반영
       router.refresh();
       triggerToast('success', '상품이 수정되었습니다.');

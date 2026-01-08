@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getApiUrl, getApiTimeout } from '@/utils/api';
+import { logger } from '@/utils/logger';
 
 /**
  * 이미지 URL 조회 프록시
@@ -87,17 +88,15 @@ export async function GET(req: Request) {
 
   const target = new URL(`/api/v1/upload/image/${encodedKey}`, apiBase);
 
-  // 개발 환경에서 디버깅 로그
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Image Proxy] Request details:', {
-      originalKey: imageKey,
-      normalizedKey,
-      encodedKey,
-      targetUrl: target.toString(),
-      hasAuth: !!authorizationHeader,
-      hasCookies: !!finalCookieString,
-    });
-  }
+  // 개발 환경에서 디버깅 로그 (logger는 개발 환경에서만 동작)
+  logger.info('[Image Proxy] Request details:', {
+    originalKey: imageKey,
+    normalizedKey,
+    encodedKey,
+    targetUrl: target.toString(),
+    hasAuth: !!authorizationHeader,
+    hasCookies: !!finalCookieString,
+  });
 
   const timeout = getApiTimeout();
   const controller = new AbortController();
@@ -126,16 +125,15 @@ export async function GET(req: Request) {
       }
 
       // 개발 환경에서 백엔드 응답 상세 로그
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[Image Proxy] Backend error:', {
-          status: res.status,
-          statusText: res.statusText,
-          errorText,
-          normalizedKey,
-          originalKey: imageKey,
-          targetUrl: target.toString(),
-        });
-      }
+      // logger.error는 개발 환경에서만 실제로 로그를 출력합니다
+      logger.error('[Image Proxy] Backend error:', {
+        status: res.status,
+        statusText: res.statusText,
+        errorText,
+        normalizedKey,
+        originalKey: imageKey,
+        targetUrl: target.toString(),
+      });
 
       // 404 에러는 이미지를 찾을 수 없음을 명확히 표시
       if (res.status === 404) {

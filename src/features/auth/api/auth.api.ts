@@ -167,6 +167,66 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
   // 응답을 받은 후 타임아웃 타이머 정리
   clearTimeout(timeoutId);
 
+  // 로그인 응답 헤더 확인 (refreshToken 쿠키 설정 확인)
+  const setCookieHeader = response.headers.get('set-cookie');
+
+  // Set-Cookie 헤더 분석
+  let cookieAnalysis = null;
+  let refreshTokenCookieInfo = null;
+  if (setCookieHeader) {
+    const cookieParts = setCookieHeader.split(';').map((p) => p.trim());
+    const cookieName = cookieParts[0]?.split('=')[0] || '';
+
+    // refreshToken 쿠키인지 확인
+    const isRefreshTokenCookie = cookieName.toLowerCase().includes('refresh');
+
+    cookieAnalysis = {
+      cookieName,
+      isRefreshTokenCookie,
+      hasHttpOnly: setCookieHeader.toLowerCase().includes('httponly'),
+      hasSecure: setCookieHeader.toLowerCase().includes('secure'),
+      hasSameSite: setCookieHeader.toLowerCase().includes('samesite'),
+      sameSiteValue: setCookieHeader.match(/samesite=([^;]+)/i)?.[1] || null,
+      hasPath: setCookieHeader.toLowerCase().includes('path='),
+      pathValue: setCookieHeader.match(/path=([^;]+)/i)?.[1] || null,
+      hasDomain: setCookieHeader.toLowerCase().includes('domain='),
+      domainValue: setCookieHeader.match(/domain=([^;]+)/i)?.[1] || null,
+      hasMaxAge: setCookieHeader.toLowerCase().includes('max-age='),
+      maxAgeValue: setCookieHeader.match(/max-age=(\d+)/i)?.[1] || null,
+      hasExpires: setCookieHeader.toLowerCase().includes('expires='),
+      expiresValue: setCookieHeader.match(/expires=([^;]+)/i)?.[1] || null,
+    };
+
+    // refreshToken 쿠키인 경우 상세 정보 저장
+    if (isRefreshTokenCookie) {
+      refreshTokenCookieInfo = cookieAnalysis;
+    }
+  }
+
+  // 여러 Set-Cookie 헤더가 있을 수 있으므로 모든 헤더 확인
+  const allSetCookieHeaders: string[] = [];
+  response.headers.forEach((value, key) => {
+    if (key.toLowerCase() === 'set-cookie') {
+      allSetCookieHeaders.push(value);
+    }
+  });
+
+  logger.info('[Login] 로그인 응답 헤더 확인', {
+    status: response.status,
+    hasSetCookieHeader: !!setCookieHeader,
+    setCookieHeaderCount: allSetCookieHeaders.length,
+    setCookieHeader: setCookieHeader ? setCookieHeader.substring(0, 500) : null, // 처음 500자만 (보안)
+    cookieAnalysis,
+    refreshTokenCookieInfo,
+    allSetCookieHeaders: allSetCookieHeaders.map((h, i) => ({
+      index: i,
+      name: h.split('=')[0],
+      preview: h.substring(0, 150), // 처음 150자만
+    })),
+    // 중요: refreshToken 쿠키가 설정되었는지 확인
+    hasRefreshTokenCookie: refreshTokenCookieInfo !== null,
+  });
+
   // 429 Too Many Requests 에러는 상태 코드를 먼저 확인 (응답 본문 파싱 전)
   if (response.status === 429) {
     const retryAfter = response.headers.get('Retry-After');

@@ -75,7 +75,9 @@ const PurchaseRequestDetailSection = () => {
   // 예산 검증: 예산 데이터가 없으면 승인 불가 (보안상 안전)
   const budget: number = budgetData?.budget ?? 0;
   const monthlySpending: number = budgetData?.monthlySpending ?? 0;
-  const totalOrderAmount = data ? data.totalPrice + data.shippingFee : 0;
+  const totalOrderAmount = data
+    ? (data.itemsTotalPrice ?? data.totalPrice ?? 0) + data.shippingFee
+    : 0;
   const remainingBudget = budget - monthlySpending;
 
   // 예산 데이터 로딩 실패 시 승인 불가

@@ -10,7 +10,7 @@ export const PURCHASE_API_PATHS = {
   ADMIN_GET_ALL_PURCHASES: '/api/v1/purchase/admin/getAllPurchases',
   ADMIN_PURCHASE_NOW: '/api/v1/purchase/admin/purchaseNow',
   ADMIN_MANAGE_PURCHASE_REQUESTS: '/api/v1/purchase/admin/managePurchaseRequests',
-  ADMIN_GET_PURCHASE_REQUEST_DETAIL: '/api/v1/purchase/admin/purchaseRequest',
+  ADMIN_GET_PURCHASE_REQUEST_DETAIL: '/api/v1/purchase/admin/getPurchaseRequestDetail',
   ADMIN_APPROVE_PURCHASE_REQUEST: '/api/v1/purchase/admin/approvePurchaseRequest',
   ADMIN_REJECT_PURCHASE_REQUEST: '/api/v1/purchase/admin/rejectPurchaseRequest',
   ADMIN_EXPENSE_STATISTICS: '/api/v1/purchase/admin/expenseStatistics',
