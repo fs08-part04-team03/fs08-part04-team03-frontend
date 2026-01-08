@@ -60,7 +60,9 @@ const ProfileEditForm = ({
   onImageDelete,
   isUploading = false,
 }: ProfileEditFormProps) => {
-  const hasImage = preview && !preview.includes('upload.svg');
+  // 기본 업로드 아이콘 경로인지 정확히 확인 (외부 URL에 'upload.svg'가 포함된 경우 오동작 방지)
+  const isDefaultUploadIcon = preview === '/icons/upload.svg' || preview?.endsWith('/upload.svg');
+  const hasImage = preview && !isDefaultUploadIcon;
   const isExternalUrl = hasImage
     ? preview.startsWith('http://') || preview.startsWith('https://')
     : false;

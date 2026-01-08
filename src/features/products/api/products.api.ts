@@ -515,7 +515,12 @@ export async function uploadProductImage(
   } else {
     // 서버 사이드에서는 Next.js 서버의 로컬 URL 사용
     // /api/product/image는 Next.js 프록시 라우트이므로 백엔드 URL이 아닌 로컬 서버 URL 사용
-    const nextJsUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const nextJsUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!nextJsUrl) {
+      throw new Error(
+        'NEXT_PUBLIC_APP_URL environment variable is required for server-side image upload'
+      );
+    }
     uploadUrl = `${nextJsUrl}/api/product/image?folder=${encodeURIComponent(folder)}`;
   }
 
@@ -631,9 +636,12 @@ function isValidImageKey(key: string): boolean {
   }
 
   // 테스트용 키나 잘못된 형식은 유효하지 않음
-  // 예: http_test_a.png 같은 테스트 키는 유효하지 않음
-  if (key.startsWith('http_') || key.startsWith('test_') || key.includes('_test_')) {
-    return false;
+  // 주의: 실제 S3 키에 이러한 패턴이 포함될 수 있으므로, 개발 환경에서만 엄격하게 검증
+  // 프로덕션에서는 백엔드 검증에 의존하는 것이 더 안전합니다
+  if (process.env.NODE_ENV === 'development') {
+    if (key.startsWith('http_') || key.startsWith('test_') || key.includes('_test_')) {
+      return false;
+    }
   }
 
   // 유효한 S3 키는 보통 특정 prefix로 시작 (예: products/, uploads/ 등)
@@ -682,6 +690,13 @@ export async function deleteImage(key: string): Promise<void> {
     // 400 Bad Request: 잘못된 요청 (키 없음)
     if (response.status === 400) {
       // 이미 검증했지만 백엔드에서도 거부할 수 있음
+      // 개발 환경에서만 로깅하여 실제 문제를 감지
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('[deleteImage] Backend rejected image key (400)', {
+          key,
+          message: '이미 삭제되었거나 유효하지 않은 키일 수 있습니다.',
+        });
+      }
       // 조용히 무시 (이미 삭제되었거나 유효하지 않은 키)
       return;
     }
