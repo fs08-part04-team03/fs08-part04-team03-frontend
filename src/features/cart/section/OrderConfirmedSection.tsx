@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
@@ -14,12 +14,15 @@ import type {
 } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import OrderConfirmedTem from '../template/OrderConfirmedTem/OrderConfirmedTem';
 
-const OrderConfirmedSection = () => {
+interface OrderConfirmedSectionProps {
+  id?: string;
+}
+
+const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProps) => {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
-  const purchaseId = searchParams.get('id');
+  const purchaseId = purchaseIdProp;
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
 

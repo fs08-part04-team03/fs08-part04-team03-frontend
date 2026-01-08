@@ -23,7 +23,7 @@ const PurchaseRequestCompletedPage = async ({
     redirect(`/${companyId}/my/purchase-requests`);
   }
 
-  return <OrderConfirmedSection />;
+  return <OrderConfirmedSection id={id} />;
 };
 
 export default PurchaseRequestCompletedPage;

@@ -97,10 +97,8 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
       });
       return result;
     },
-    staleTime: 0, // 캐시 없이 항상 최신 데이터 가져오기
+    staleTime: 60000, // 1분간 캐시 유지 (데이터 변경 빈도에 따라 조정 가능)
     enabled: !!companyId, // companyId가 있을 때만 쿼리 실행
-    refetchOnMount: 'always', // ✅ 마운트 시 항상 refetch (어떤 경로에서 와도)
-    refetchOnWindowFocus: true, // ✅ 윈도우 포커스 시 refetch
   });
 
   // 컴포넌트가 마운트되거나 경로가 변경될 때마다 강제로 refetch
