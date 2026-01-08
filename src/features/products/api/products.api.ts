@@ -692,15 +692,15 @@ export async function deleteImage(key: string): Promise<void> {
     }
     // 400 Bad Request: 잘못된 요청 (키 없음)
     if (response.status === 400) {
-      // 이미 검증했지만 백엔드에서도 거부할 수 있음
-      // 개발 환경에서만 로깅하여 실제 문제를 감지
+      // 개발 환경에서는 실제 오류를 감지하기 위해 예외 발생
       if (process.env.NODE_ENV === 'development') {
         logger.warn('[deleteImage] Backend rejected image key (400)', {
           key,
           message: '이미 삭제되었거나 유효하지 않은 키일 수 있습니다.',
         });
+        throw new Error('유효하지 않은 이미지 키입니다. (400 Bad Request)');
       }
-      // 조용히 무시 (이미 삭제되었거나 유효하지 않은 키)
+      // 프로덕션에서는 조용히 무시 (멱등성 보장)
       return;
     }
     // 404 Not Found: 이미 삭제된 경우이므로 성공으로 처리
