@@ -93,7 +93,10 @@ export const PurchaseHistoryRowOrg = ({
             <span className="text-14 font-bold text-gray-950">{itemDescription}</span>
             <span className="text-12 text-gray-500">총수량 {totalQuantity}개</span>
           </div>
-          <PriceText value={item.totalPrice} className="text-16 font-bold" />
+          <PriceText
+            value={item.itemsTotalPrice ?? item.itemsTotalPrice ?? item.totalPrice ?? 0 ?? 0}
+            className="text-16 font-bold"
+          />
         </div>
         {/* Mobile Content */}
         <div className="flex flex-col">
@@ -138,7 +141,10 @@ export const PurchaseHistoryRowOrg = ({
             <span className="text-16 font-bold text-gray-950">{itemDescription}</span>
             <span className="text-12 text-gray-500">총수량 {totalQuantity}개</span>
           </div>
-          <PriceText value={item.totalPrice} className="text-18 font-bold" />
+          <PriceText
+            value={item.itemsTotalPrice ?? item.totalPrice ?? 0}
+            className="text-18 font-bold"
+          />
         </div>
         {/* Tablet Content */}
         <div className="flex flex-col">
@@ -190,7 +196,10 @@ export const PurchaseHistoryRowOrg = ({
           <span className="text-16 text-gray-950">{itemDescription}</span>
           <span className="text-14 text-gray-500">총 수량 {totalQuantity}개</span>
         </div>
-        <PriceText value={item.totalPrice} className="text-16 font-normal" />
+        <PriceText
+          value={item.itemsTotalPrice ?? item.totalPrice ?? 0}
+          className="text-16 font-normal"
+        />
         <DateText
           date={item.approver ? item.updatedAt : '-'}
           className="flex items-center text-16"
