@@ -49,7 +49,7 @@ const PurchaseRequestItemRowMobile = ({
   const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
-  const totalPrice = item.itemsTotalPrice ?? item.totalPrice ?? 0 + item.shippingFee;
+  const totalPrice = (item.itemsTotalPrice ?? item.totalPrice ?? 0) + item.shippingFee;
 
   const handleRowClick = (e?: React.MouseEvent) => {
     if (e) {
@@ -235,7 +235,7 @@ const PurchaseRequestItemRowDesktop = ({
   const router = useRouter();
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
-  const totalPrice = item.itemsTotalPrice ?? item.totalPrice ?? 0 + item.shippingFee;
+  const totalPrice = (item.itemsTotalPrice ?? item.totalPrice ?? 0) + item.shippingFee;
 
   const handleRowClick = (e?: React.MouseEvent) => {
     if (e) {

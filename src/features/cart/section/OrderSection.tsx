@@ -51,9 +51,7 @@ const OrderSection = () => {
     queryKey: ['cart', page, limit, cartItemIdsParam || 'all'],
     queryFn: () => cartApi.getMyCart(page, limit),
     enabled: true, // 항상 활성화
-    staleTime: 0, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
-    refetchOnMount: true, // ✅ 페이지 마운트 시 항상 최신 데이터 가져오기
-    refetchOnWindowFocus: true, // ✅ 윈도우 포커스 시 refetch
+    staleTime: 60000, // 1분간 캐시 유지 (mutation 후 invalidateQueries로 신선도 보장)
   });
 
   // 선택된 아이템만 필터링
