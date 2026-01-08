@@ -51,6 +51,7 @@ const createPurchaseItem = (
     id: `item-${i + 1}`,
     quantity: i + 1,
     priceSnapshot: totalPrice / itemCount,
+    itemTotal: (i + 1) * (totalPrice / itemCount),
     products: {
       id: i + 1,
       name: `상품 ${i + 1}`,

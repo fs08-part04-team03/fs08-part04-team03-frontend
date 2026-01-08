@@ -44,13 +44,16 @@ const createPurchaseItem = (
   id,
   createdAt,
   updatedAt,
-  totalPrice,
+  itemsTotalPrice: totalPrice,
   shippingFee: 0,
+  finalTotalPrice: totalPrice,
+  totalPrice,
   status,
   purchaseItems: Array.from({ length: itemCount }, (_, index) => ({
     id: `item-${id}-${index}`,
     quantity: index === 0 ? 2 : 1,
     priceSnapshot: totalPrice / itemCount,
+    itemTotal: (index === 0 ? 2 : 1) * (totalPrice / itemCount),
     products: {
       id: index + 1,
       name: index === 0 ? '코카콜라 제로' : `상품 ${index + 1}`,
