@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchWithAuth, AuthExpiredError, getApiUrl } from '@/utils/api';
+import { fetchWithAuth, AuthExpiredError } from '@/utils/api';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { RegisteredProductOrgItem } from '@/features/products/components/RegisteredProductOrg/RegisteredProductOrg';
 import type { BackendProduct } from '@/features/products/utils/product.utils';
@@ -510,12 +510,13 @@ export async function uploadProductImage(
   let uploadUrl: string;
 
   if (isBrowserEnv) {
-    // 브라우저에서는 상대 경로 사용
+    // 브라우저에서는 상대 경로 사용 (Next.js 프록시 라우트)
     uploadUrl = `/api/product/image?folder=${encodeURIComponent(folder)}`;
   } else {
-    // 서버 사이드에서는 절대 URL 사용
-    const baseUrl = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
-    uploadUrl = `${baseUrl}/api/product/image?folder=${encodeURIComponent(folder)}`;
+    // 서버 사이드에서는 Next.js 서버의 로컬 URL 사용
+    // /api/product/image는 Next.js 프록시 라우트이므로 백엔드 URL이 아닌 로컬 서버 URL 사용
+    const nextJsUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    uploadUrl = `${nextJsUrl}/api/product/image?folder=${encodeURIComponent(folder)}`;
   }
 
   // fetchWithAuth를 사용하여 401 처리 및 토큰 갱신 로직 활용

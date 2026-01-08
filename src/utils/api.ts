@@ -461,8 +461,17 @@ export async function fetchWithAuth(
     }
     // 상대 경로로 정규화 (앞에 /가 없으면 추가)
     path = path.startsWith('/') ? path : `/${path}`;
+  } else if (url.startsWith('http://') || url.startsWith('https://')) {
+    // 서버 사이드에서 절대 URL인 경우 pathname 추출
+    try {
+      const urlObj = new URL(url);
+      path = urlObj.pathname + urlObj.search;
+    } catch {
+      // URL 파싱 실패 시 원본 사용
+      path = url;
+    }
   } else {
-    // 서버 사이드에서는 절대 URL 사용
+    // 서버 사이드에서 상대 경로인 경우 backendOrigin과 결합
     path = joinUrl(backendOrigin, url);
   }
 

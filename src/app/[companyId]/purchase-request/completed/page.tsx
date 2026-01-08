@@ -20,7 +20,7 @@ const PurchaseRequestCompletedPage = async ({
 
   // purchase ID가 없으면 구매 요청 목록으로 리다이렉트
   if (!id) {
-    redirect(`/${companyId}/purchase-requests`);
+    redirect(`/${companyId}/my/purchase-requests`);
   }
 
   return <OrderConfirmedSection />;

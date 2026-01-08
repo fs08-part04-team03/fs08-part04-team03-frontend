@@ -40,9 +40,7 @@ const ShoppingCartSection = () => {
   } = useQuery({
     queryKey: ['cart', currentPage, pageSize],
     queryFn: () => cartApi.getMyCart(currentPage, pageSize),
-    staleTime: 0, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
-    refetchOnMount: true, // ✅ 페이지 마운트 시 항상 최신 데이터 가져오기
-    refetchOnWindowFocus: true, // ✅ 윈도우 포커스 시 refetch
+    staleTime: 30 * 1000, // 30초간 캐시 유지 (이미지 업데이트 반영 + 성능 균형)
   });
 
   // 월 예산 조회 (manager만)

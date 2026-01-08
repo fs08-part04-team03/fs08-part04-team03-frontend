@@ -142,11 +142,25 @@ const PurchaseRequestDetailActionsOrg = ({
 
     try {
       // 모든 구매 요청 아이템을 장바구니에 추가
-      const addPromises = purchaseRequest.purchaseItems.map((item) =>
-        cartApi.addToCart(item.products.id, item.quantity)
+      const results = await Promise.allSettled(
+        purchaseRequest.purchaseItems.map((item) =>
+          cartApi.addToCart(item.products.id, item.quantity)
+        )
       );
 
-      await Promise.all(addPromises);
+      const failures = results.filter((r) => r.status === 'rejected');
+      if (failures.length > 0) {
+        const successCount = results.length - failures.length;
+        if (successCount > 0) {
+          setToastVariant('error');
+          setToastMessage(`${successCount}개 상품만 담겼습니다. 일부 상품 추가에 실패했습니다.`);
+          setShowToast(true);
+          // 장바구니 캐시 무효화 (일부 성공했으므로)
+          await queryClient.invalidateQueries({ queryKey: ['cart'] });
+          return;
+        }
+        throw new Error('장바구니 담기에 실패했습니다.');
+      }
 
       // 장바구니 캐시 무효화
       await queryClient.invalidateQueries({ queryKey: ['cart'] });

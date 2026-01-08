@@ -46,9 +46,8 @@ const PurchaseRequestDetailTem = ({
     remainingBudget,
     budgetAfterPurchase:
       remainingBudget -
-      (purchaseRequest.itemsTotalPrice ??
-        purchaseRequest.totalPrice ??
-        0 + purchaseRequest.shippingFee),
+      ((purchaseRequest.itemsTotalPrice ?? purchaseRequest.totalPrice ?? 0) +
+        purchaseRequest.shippingFee),
   };
 
   // 모달 데이터 변환
