@@ -173,12 +173,65 @@ function joinUrl(base: string, path: string): string {
  * refreshToken을 사용하여 토큰 갱신 시도
  * refreshToken이 httpOnly 쿠키에 있다면 백엔드가 자동으로 확인합니다
  */
+/**
+ * CSRF 토큰 가져오기
+ */
+async function getCsrfToken(): Promise<string | null> {
+  const isBrowserEnv = isBrowser();
+  const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
+
+  let csrfUrl: string;
+  if (isBrowserEnv) {
+    csrfUrl = AUTH_API_PATHS.CSRF.startsWith('/') ? AUTH_API_PATHS.CSRF : `/${AUTH_API_PATHS.CSRF}`;
+  } else {
+    csrfUrl = joinUrl(backendOrigin, AUTH_API_PATHS.CSRF);
+  }
+
+  try {
+    const response = await fetch(csrfUrl, {
+      method: 'GET',
+      credentials: 'include', // 쿠키 포함 (XSRF-TOKEN, SESSION_ID)
+    });
+
+    if (!response.ok) {
+      logger.warn('[CSRF] CSRF 토큰 가져오기 실패', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      return null;
+    }
+
+    const result = (await response.json()) as { csrfToken?: string };
+    if (result.csrfToken) {
+      logger.info('[CSRF] CSRF 토큰 가져오기 성공');
+      return result.csrfToken;
+    }
+
+    logger.warn('[CSRF] CSRF 토큰이 응답에 없음');
+    return null;
+  } catch (error) {
+    logger.error('[CSRF] CSRF 토큰 가져오기 중 예외 발생', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
+
 export async function tryRefreshToken(): Promise<string | null> {
   const timeout = getApiTimeout();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
+    // 1. 먼저 CSRF 토큰 가져오기
+    const csrfToken = await getCsrfToken();
+    if (!csrfToken) {
+      logger.warn('[Token Refresh] CSRF 토큰을 가져올 수 없어 토큰 갱신 실패');
+      return null;
+    }
+
     // refreshToken이 httpOnly 쿠키에 있다면 body 없이 쿠키만 전송
     // 백엔드가 쿠키의 refreshToken을 자동으로 확인하고 새 accessToken 발급
     // 브라우저에서는 상대 경로를 사용하여 Next.js rewrites를 거치도록 함 (CORS 회피)
@@ -197,14 +250,54 @@ export async function tryRefreshToken(): Promise<string | null> {
       refreshUrl = joinUrl(backendOrigin, AUTH_API_PATHS.REFRESH);
     }
 
+    // 브라우저에서 쿠키 확인 (개발 환경에서만)
+    let cookieInfo = null;
+    if (isBrowserEnv && typeof document !== 'undefined') {
+      const allCookies = document.cookie;
+      // HttpOnly 쿠키는 document.cookie로 읽을 수 없으므로,
+      // refreshToken, XSRF-TOKEN, SESSION_ID는 항상 false일 수 있음
+      // 하지만 다른 쿠키가 있는지 확인하여 쿠키 자체가 작동하는지 확인
+      const cookieNames = allCookies
+        .split(';')
+        .map((c) => c.split('=')[0]?.trim() ?? '')
+        .filter(Boolean);
+      cookieInfo = {
+        hasCookies: allCookies.length > 0,
+        cookieCount: cookieNames.length,
+        // 쿠키 이름만 로깅 (값은 로깅하지 않음)
+        // HttpOnly 쿠키(refreshToken, XSRF-TOKEN, SESSION_ID)는 document.cookie로 읽을 수 없으므로 안전
+        cookieNames: cookieNames.filter(
+          (name) => !name.toLowerCase().includes('token') && !name.toLowerCase().includes('session')
+        ), // 토큰/세션 관련 쿠키 이름은 필터링
+        // HttpOnly 쿠키는 document.cookie로 읽을 수 없으므로 항상 false일 수 있음
+        // 실제 확인은 브라우저 개발자 도구 → Application → Cookies에서 해야 함
+        note: 'HttpOnly 쿠키(refreshToken, XSRF-TOKEN, SESSION_ID)는 document.cookie로 읽을 수 없습니다. 브라우저 개발자 도구에서 확인하세요.',
+      };
+    }
+
+    logger.info('[Token Refresh] 토큰 갱신 요청 시작', {
+      refreshUrl,
+      isBrowserEnv,
+      hasCredentials: true, // credentials: 'include' 사용
+      hasCsrfToken: !!csrfToken,
+      cookieInfo,
+    });
+
     const response = await fetch(refreshUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken, // CSRF 토큰 헤더 추가
       },
-      body: JSON.stringify({}), // 빈 body 또는 refreshToken (백엔드 구현에 따라)
+      body: JSON.stringify({}), // 빈 body - refreshToken은 httpOnly 쿠키에서 읽음
       credentials: 'include', // httpOnly 쿠키 포함
       signal: controller.signal,
+    });
+
+    logger.info('[Token Refresh] 토큰 갱신 응답 받음', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
     });
 
     if (response.ok) {
@@ -218,22 +311,77 @@ export async function tryRefreshToken(): Promise<string | null> {
         const { setAuth, user } = useAuthStore.getState();
         if (user) {
           setAuth({ user, accessToken: result.data.accessToken });
+          logger.info('[Token Refresh] 토큰 갱신 성공');
           return result.data.accessToken;
         }
+        logger.warn('[Token Refresh] 토큰 갱신 성공했지만 user가 없음');
+      } else {
+        logger.warn('[Token Refresh] 응답 형식이 올바르지 않음', {
+          success: result.success,
+          hasAccessToken: !!result.data?.accessToken,
+        });
       }
     } else {
       clearTimeout(timeoutId);
-      // 401 에러는 refresh token이 만료되었거나 없을 때 정상적인 동작
-      // 조용히 처리 (에러를 던지지 않음, 로그도 남기지 않음)
+      // 에러 응답 본문 읽기
+      let errorText = '';
+      let errorJson: unknown = null;
+      try {
+        errorText = await response.text();
+        // JSON 형식인지 확인
+        if (errorText.trim().startsWith('{')) {
+          try {
+            errorJson = JSON.parse(errorText) as unknown;
+          } catch {
+            // JSON 파싱 실패는 무시
+          }
+        }
+      } catch {
+        errorText = 'Failed to read error response';
+      }
+
+      // 401 에러는 refresh token이 만료되었거나 없을 때
       if (response.status === 401) {
+        logger.warn('[Token Refresh] 401 에러 - refresh token 만료 또는 없음', {
+          errorText: errorText.substring(0, 300), // 처음 300자만
+          errorJson,
+          cookieInfo, // 쿠키 정보도 함께 로깅
+          refreshUrl,
+          hasCsrfToken: !!csrfToken,
+        });
         return null;
       }
-      // 401이 아닌 다른 에러는 로깅하지 않고 조용히 처리
+      // 403 에러는 CSRF 토큰 불일치 또는 누락
+      if (response.status === 403) {
+        logger.warn('[Token Refresh] 403 에러 - CSRF 토큰 불일치 또는 누락', {
+          errorText: errorText.substring(0, 300), // 처음 300자만
+          errorJson,
+          hasCsrfToken: !!csrfToken,
+          cookieInfo,
+        });
+        return null;
+      }
+      // 401, 403이 아닌 다른 에러는 로깅
+      logger.error('[Token Refresh] 토큰 갱신 실패', {
+        status: response.status,
+        statusText: response.statusText,
+        errorText: errorText.substring(0, 300), // 처음 300자만
+        errorJson,
+        hasCsrfToken: !!csrfToken,
+      });
     }
-  } catch {
+  } catch (error) {
     clearTimeout(timeoutId);
-    // refreshToken 갱신 실패는 무시 (로그아웃 처리로 진행)
-    // 네트워크 에러 등은 조용히 처리
+    // 네트워크 에러나 타임아웃 등
+    if (error instanceof Error && error.name === 'AbortError') {
+      logger.warn('[Token Refresh] 타임아웃 발생');
+    } else {
+      logger.error('[Token Refresh] 토큰 갱신 중 예외 발생', {
+        hasError: true,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   return null;
@@ -244,11 +392,13 @@ export async function tryRefreshToken(): Promise<string | null> {
  * refreshToken으로 토큰 갱신을 먼저 시도하고, 실패 시 로그아웃 처리
  */
 export async function handle401Error(): Promise<void> {
+  logger.info('[401 Error Handler] 토큰 갱신 시도 시작');
   // refreshToken으로 토큰 갱신 시도
   const newToken = await tryRefreshToken();
 
   // 토큰 갱신 실패 시 로그아웃 처리
   if (!newToken) {
+    logger.warn('[401 Error Handler] 토큰 갱신 실패 - 로그아웃 처리');
     const { clearAuth } = useAuthStore.getState();
     clearAuth();
     // 리다이렉트를 약간 지연시켜 React Query가 에러를 처리할 수 있도록 함
@@ -257,6 +407,8 @@ export async function handle401Error(): Promise<void> {
         window.location.href = '/login';
       }, 100);
     }
+  } else {
+    logger.info('[401 Error Handler] 토큰 갱신 성공');
   }
 }
 

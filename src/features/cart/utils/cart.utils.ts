@@ -16,6 +16,7 @@ export const adaptCartItemToOrderItem = (item: CartItem): OrderItem => ({
   price: item.product.price, // ✅ unitPrice → price
   quantity: item.quantity,
   // 상대 경로 사용 (SSR 하이드레이션 불일치 방지)
+  // 타임스탬프는 컴포넌트 레벨에서 추가 (캐시 무효화)
   imageSrc: item.product.image
     ? `/api/product/image?key=${encodeURIComponent(item.product.image)}`
     : '',

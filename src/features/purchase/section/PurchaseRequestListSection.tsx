@@ -8,6 +8,7 @@ import {
   approvePurchaseRequest,
   rejectPurchaseRequest,
   getBudget,
+  getPurchaseRequestDetail,
 } from '@/features/purchase/api/purchase.api';
 import PurchaseRequestListTem from '@/features/purchase/template/PurchaseRequestListTem/PurchaseRequestListTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
@@ -87,6 +88,20 @@ const PurchaseRequestListSection = () => {
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+
+  // 모달용 상세 데이터 조회 (모달이 열릴 때만 호출)
+  const { data: modalDetailData, isLoading: isModalDetailLoading } = useQuery({
+    queryKey: ['purchaseRequestDetailForModal', selectedRequestId],
+    queryFn: async () => {
+      if (!selectedRequestId) {
+        throw new Error('Request ID is required');
+      }
+      return getPurchaseRequestDetail(selectedRequestId);
+    },
+    enabled: !!selectedRequestId && (approveModalOpen || rejectModalOpen),
+    staleTime: 0, // 모달용이므로 캐시 없이 항상 최신 데이터
+    retry: false,
+  });
 
   const {
     data,
@@ -278,6 +293,8 @@ const PurchaseRequestListSection = () => {
         onApproveClick={handleApproveClick}
         onRowClick={handleRowClick}
         selectedRequestId={selectedRequestId}
+        selectedRequestDetail={modalDetailData || undefined}
+        isModalDetailLoading={isModalDetailLoading}
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}
         onApproveModalClose={handleApproveModalClose}

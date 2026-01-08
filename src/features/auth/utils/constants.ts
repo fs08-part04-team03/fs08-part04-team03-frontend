@@ -24,6 +24,7 @@ export const AUTH_API_PATHS = {
   REFRESH: '/api/v1/auth/refresh',
   LOGOUT: '/api/v1/auth/logout',
   INVITATION_VERIFY_URL: '/api/v1/auth/invitation/verifyUrl',
+  CSRF: '/api/v1/auth/csrf',
 } as const;
 
 // HTTP 헤더

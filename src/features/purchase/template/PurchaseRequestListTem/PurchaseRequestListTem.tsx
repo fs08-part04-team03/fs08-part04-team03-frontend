@@ -37,6 +37,8 @@ export interface PurchaseRequestListTemProps {
   onRowClick?: (purchaseRequestId: string) => void;
   onNavigateToProducts?: () => void;
   selectedRequestId?: string | null;
+  selectedRequestDetail?: PurchaseRequestItem; // 모달용 상세 데이터
+  isModalDetailLoading?: boolean; // 모달 상세 데이터 로딩 중
   approveModalOpen?: boolean;
   rejectModalOpen?: boolean;
   onApproveModalClose?: () => void;
@@ -77,7 +79,7 @@ const PurchaseRequestTableRowDesktop = ({
   onRowClick,
 }: PurchaseRequestTableRowProps) => {
   const isUrgent = item.urgent === true;
-  const totalPrice = item.totalPrice + item.shippingFee;
+  const totalPrice = (item.itemsTotalPrice ?? item.totalPrice ?? 0) + item.shippingFee;
 
   const handleRowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -184,6 +186,8 @@ const PurchaseRequestListTem = ({
   onRowClick,
   onNavigateToProducts,
   selectedRequestId,
+  selectedRequestDetail,
+  isModalDetailLoading = false,
   approveModalOpen = false,
   rejectModalOpen = false,
   onApproveModalClose,
@@ -201,9 +205,10 @@ const PurchaseRequestListTem = ({
 }: PurchaseRequestListTemProps) => {
   const finalTotalPages = totalPages ?? 1;
 
-  const selectedRequest = selectedRequestId
-    ? purchaseList.find((item) => item.id === selectedRequestId)
-    : null;
+  // 모달용 상세 데이터가 있으면 우선 사용, 없으면 목록에서 찾기
+  const selectedRequest =
+    selectedRequestDetail ||
+    (selectedRequestId ? purchaseList.find((item) => item.id === selectedRequestId) : null);
 
   const modalData = useMemo(() => {
     if (!selectedRequest) return null;
@@ -402,7 +407,7 @@ const PurchaseRequestListTem = ({
       )}
 
       {/* 승인 모달 */}
-      {modalData && (
+      {modalData && !isModalDetailLoading && (
         <ApprovalRequestModal
           open={approveModalOpen}
           onClose={onApproveModalClose || (() => {})}
@@ -416,7 +421,7 @@ const PurchaseRequestListTem = ({
       )}
 
       {/* 반려 모달 */}
-      {modalData && (
+      {modalData && !isModalDetailLoading && (
         <ApprovalRequestModal
           open={rejectModalOpen}
           onClose={onRejectModalClose || (() => {})}

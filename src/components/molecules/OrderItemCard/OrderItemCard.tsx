@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
@@ -36,6 +36,8 @@ const ProductImage: React.FC<ProductImageProps> = ({
   isExternalUrl,
   shouldShowImage,
 }) => {
+  // 프록시 API URL인지 확인 (타임스탬프는 OrderItemCard에서 추가됨)
+
   const containerClassName = clsx(
     'relative overflow-hidden rounded-8 bg-gray-50',
     'w-85 h-85',
@@ -56,6 +58,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
         />
       ) : (
         <Image
+          key={imageSrc} // 이미지 URL 변경 시 강제 리렌더링 (캐시 무효화)
           src={imageSrc!}
           alt={name}
           fill
@@ -175,6 +178,9 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
     }
   }
   const [imageError, setImageError] = useState(false);
+  // 페이지 마운트 시 타임스탬프 생성 (이미지 캐시 무효화)
+  // 각 컴포넌트가 마운트될 때마다 새로운 타임스탬프를 생성하여 캐시 무효화
+  const [imageTimestamp, setImageTimestamp] = useState(() => Date.now());
   const displayTotalPrice = unitPrice * quantity;
 
   // 상품 상세 페이지로 이동
@@ -214,6 +220,27 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
       ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
       : false;
 
+  // 프록시 API URL인지 확인
+  const isProxyApiUrl =
+    isValidImageUrl && imageSrc ? imageSrc.startsWith('/api/product/image') : false;
+
+  // imageSrc가 변경될 때마다 타임스탬프 업데이트 (이미지 업데이트 반영)
+  useEffect(() => {
+    if (isValidImageUrl && isProxyApiUrl) {
+      // imageSrc가 변경되면 새로운 타임스탬프 생성
+      setImageTimestamp(Date.now());
+    }
+  }, [imageSrc, isValidImageUrl, isProxyApiUrl]);
+
+  // 프록시 API URL인 경우 타임스탬프 추가하여 캐시 무효화
+  const imageSrcWithTimestamp = useMemo(() => {
+    if (!isValidImageUrl || !imageSrc) return imageSrc;
+    if (isProxyApiUrl) {
+      return `${imageSrc}${imageSrc.includes('?') ? '&' : '?'}t=${imageTimestamp}`;
+    }
+    return imageSrc;
+  }, [imageSrc, isValidImageUrl, isProxyApiUrl, imageTimestamp]);
+
   // 이미지 크기 설정 (CLS 방지)
   const imageSizes = '(max-width: 767px) 85px, 140px';
 
@@ -232,7 +259,7 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
         {/* 이미지 & 상품 정보 */}
         <div className="flex items-center gap-12">
           <ProductImage
-            imageSrc={imageSrc}
+            imageSrc={imageSrcWithTimestamp}
             name={name}
             productId={productId}
             onProductClick={handleProductClick}
@@ -295,7 +322,7 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
         />
 
         <ProductImage
-          imageSrc={imageSrc}
+          imageSrc={imageSrcWithTimestamp}
           name={name}
           productId={productId}
           onProductClick={handleProductClick}
