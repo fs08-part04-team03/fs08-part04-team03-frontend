@@ -94,35 +94,42 @@ const OrderSection = () => {
       }
       return requestPurchase(requestBody);
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       // 구매 요청 완료 후 completed 페이지로 이동 (purchase ID 전달)
       if (companyId && data?.id) {
         setIsPurchaseSuccess(true); // POST 성공 플래그 설정
 
-        // 선택된 아이템들을 장바구니에서 삭제
-        if (cartItemIds.length > 0) {
-          try {
-            await cartApi.deleteMultiple(cartItemIds);
-            logger.info('Cart items deleted after purchase request', {
-              deletedCount: cartItemIds.length,
-            });
-          } catch (deleteError) {
-            // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
-            logger.error('Failed to delete cart items after purchase request', {
-              hasError: true,
-              errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
-              cartItemIds,
-            });
-            // 사용자에게는 알리지 않음 (구매 요청은 성공했으므로)
-          }
-        }
-
-        // 카트 캐시 무효화
-        await queryClient.invalidateQueries({ queryKey: ['cart'] });
-
-        // completed 페이지로 이동
+        // completed 페이지로 먼저 이동 (카트 삭제는 페이지 이동 후 처리)
         router.push(`/${companyId}/order/completed?id=${data.id}`);
         triggerToast('success', '구매 요청이 완료되었습니다.');
+
+        // 페이지 이동 후 카트 아이템 삭제 (비동기로 처리하여 페이지 이동을 블로킹하지 않음)
+        if (cartItemIds.length > 0) {
+          // setTimeout을 사용하여 페이지 이동 후 삭제 처리
+          setTimeout(() => {
+            (async () => {
+              try {
+                await cartApi.deleteMultiple(cartItemIds);
+                logger.info('Cart items deleted after purchase request', {
+                  deletedCount: cartItemIds.length,
+                });
+                // 카트 캐시 무효화
+                await queryClient.invalidateQueries({ queryKey: ['cart'] });
+              } catch (deleteError) {
+                // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
+                logger.error('Failed to delete cart items after purchase request', {
+                  hasError: true,
+                  errorType:
+                    deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+                  cartItemIds,
+                });
+                // 사용자에게는 알리지 않음 (구매 요청은 성공했으므로)
+              }
+            })().catch(() => {
+              // 에러는 이미 catch 블록에서 처리됨
+            });
+          }, 100); // 100ms 지연으로 페이지 이동 후 실행
+        }
       } else {
         // purchase ID가 없으면 에러 처리
         logger.error('Purchase request completed but missing purchase ID', {
