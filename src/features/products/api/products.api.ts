@@ -497,7 +497,8 @@ interface ImageUploadResponse {
  */
 export async function uploadProductImage(
   file: File,
-  folder: 'products' | 'users' | 'companies' | 'misc' = 'products'
+  folder: 'products' | 'users' | 'companies' | 'misc' = 'products',
+  skipAuth = false // 회원가입 시 인증 없이 업로드할 수 있도록 옵션 추가
 ): Promise<string> {
   const formData = new FormData();
   formData.append('image', file);
@@ -524,17 +525,26 @@ export async function uploadProductImage(
     uploadUrl = `${nextJsUrl}/api/product/image?folder=${encodeURIComponent(folder)}`;
   }
 
-  // fetchWithAuth를 사용하여 401 처리 및 토큰 갱신 로직 활용
-  // FormData는 fetchWithAuth에서 자동으로 처리됨 (Content-Type 자동 제거)
-  // accessToken이 null이면 undefined로 변환
-  const response = await fetchWithAuth(
-    uploadUrl,
-    {
+  // skipAuth가 true이거나 accessToken이 없으면 일반 fetch 사용 (회원가입 시)
+  let response: Response;
+  if (skipAuth || !accessToken) {
+    response = await fetch(uploadUrl, {
       method: 'POST',
       body: formData,
-    },
-    accessToken || undefined
-  );
+      credentials: 'include', // 쿠키 전송 (CSRF 토큰 등)
+    });
+  } else {
+    // fetchWithAuth를 사용하여 401 처리 및 토큰 갱신 로직 활용
+    // FormData는 fetchWithAuth에서 자동으로 처리됨 (Content-Type 자동 제거)
+    response = await fetchWithAuth(
+      uploadUrl,
+      {
+        method: 'POST',
+        body: formData,
+      },
+      accessToken
+    );
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -564,10 +574,11 @@ export async function uploadProductImage(
 /**
  * 프로필 이미지 업로드
  * @param file - 업로드할 이미지 파일
+ * @param skipAuth - 인증 없이 업로드할지 여부 (회원가입 시 사용)
  * @returns 업로드된 이미지의 S3 key
  */
-export async function uploadProfileImage(file: File): Promise<string> {
-  return uploadProductImage(file, 'users');
+export async function uploadProfileImage(file: File, skipAuth = false): Promise<string> {
+  return uploadProductImage(file, 'users', skipAuth);
 }
 
 /**

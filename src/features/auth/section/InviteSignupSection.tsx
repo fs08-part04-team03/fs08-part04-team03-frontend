@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,7 +11,7 @@ import { setAuthCookies } from '@/utils/cookies';
 import InviteSignupTem from '@/features/auth/template/InviteSignupTem/InviteSignupTem';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
-import { uploadProfileImage, getImageUrl } from '@/features/products/api/products.api';
+import { updateUserProfile } from '@/features/profile/api/profile.api';
 
 interface InviteSignupSectionProps {
   name: string;
@@ -25,8 +25,18 @@ interface InviteSignupSectionProps {
  */
 const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) => {
   const [preview, setPreview] = useState<string | null>(null);
-  const [_uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const previewUrlRef = useRef<string | null>(null);
+
+  const handleImageDelete = () => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    setPreview(null);
+    setSelectedFile(null);
+  };
   const router = useRouter();
   const { setAuth } = useAuthStore();
 
@@ -53,27 +63,16 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       return;
     }
 
-    setIsUploading(true);
+    // 파일 저장
+    setSelectedFile(file);
 
-    // 1. 이미지 업로드
-    uploadProfileImage(file)
-      .then(async (imageKey) => {
-        // 2. 업로드 후 GET API로 signed URL 가져오기
-        const { url: signedUrl } = await getImageUrl(imageKey);
-
-        // 3. signed URL을 미리보기에 사용
-        setPreview(signedUrl);
-        setUploadedImageKey(imageKey);
-      })
-      .catch((error) => {
-        const message = error instanceof Error ? error.message : '이미지 업로드에 실패했습니다.';
-        triggerToast('error', message);
-        setPreview(null);
-        setUploadedImageKey(null);
-      })
-      .finally(() => {
-        setIsUploading(false);
-      });
+    // 로컬 미리보기 (URL.createObjectURL)
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+    }
+    const previewUrl = URL.createObjectURL(file);
+    previewUrlRef.current = previewUrl;
+    setPreview(previewUrl);
   };
 
   const form = useForm<InviteSignupInput>({
@@ -90,12 +89,11 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
     try {
       logger.info('[InviteSignup] 초대 회원가입 시도 시작');
 
+      // 이미지 없이 회원가입 먼저 진행
       const { user, accessToken } = await inviteSignup({
         email: values.email,
         password: values.password,
         inviteToken: token,
-        // TODO: API가 profileImage를 지원하는 경우 다음 줄의 주석을 해제하세요
-        // profileImage: uploadedImageKey || undefined,
       });
 
       logger.info('[InviteSignup] 초대 회원가입 API 성공:', { hasAccessToken: !!accessToken });
@@ -111,6 +109,49 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       }
 
       setAuth({ user, accessToken });
+
+      // 이미지 파일이 있으면 회원가입 후 프로필 이미지 업데이트
+      if (selectedFile) {
+        setIsUploading(true);
+        try {
+          // 인증 정보가 완전히 반영되도록 짧은 지연 추가
+          await new Promise<void>((resolve) => {
+            setTimeout(() => {
+              resolve();
+            }, 500);
+          });
+
+          logger.info('[InviteSignup] 프로필 이미지 업데이트 시작');
+          await updateUserProfile(
+            {
+              imageFile: selectedFile,
+            },
+            accessToken
+          );
+          logger.info('[InviteSignup] 프로필 이미지 업데이트 완료');
+        } catch (updateError) {
+          logger.error('[InviteSignup] 프로필 이미지 업데이트 실패:', updateError);
+          // 프로필 이미지 업데이트 실패해도 회원가입은 성공했으므로 경고만 표시
+          const errorMessage =
+            updateError instanceof Error
+              ? updateError.message
+              : '프로필 이미지 업데이트에 실패했습니다.';
+          // 403 에러인 경우 특별한 메시지 표시
+          if (updateError instanceof Error && errorMessage.includes('403')) {
+            triggerToast(
+              'custom',
+              '회원가입은 완료되었습니다. 프로필 이미지는 나중에 프로필 설정에서 업데이트할 수 있습니다.'
+            );
+          } else {
+            triggerToast(
+              'custom',
+              '회원가입은 완료되었지만 프로필 이미지 업데이트에 실패했습니다. 나중에 프로필 설정에서 업데이트할 수 있습니다.'
+            );
+          }
+        } finally {
+          setIsUploading(false);
+        }
+      }
 
       const redirectPath = `/${user.companyId}/products`;
       router.push(redirectPath);
@@ -133,6 +174,7 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       setShowToast={closeToast}
       preview={preview}
       onImageChange={handleImageChange}
+      onImageDelete={handleImageDelete}
       isUploading={isUploading}
       name={name}
     />
