@@ -22,6 +22,8 @@ interface SignupTemProps {
   setShowToast: (show: boolean) => void;
   preview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  // eslint-disable-next-line react/no-unused-prop-types
+  onImageDelete?: () => void;
   isUploading?: boolean;
   title?: string;
   subtitle?: string;
@@ -32,6 +34,7 @@ type SignupTemViewProps = Omit<SignupTemProps, 'showToast' | 'toastMessage' | 's
 
 interface SignupTemContentProps extends SignupTemViewProps {
   className?: string;
+  imageInputId: string;
 }
 
 const SignupTemContent = ({
@@ -41,8 +44,10 @@ const SignupTemContent = ({
   handleSubmit,
   preview,
   onImageChange,
+  onImageDelete,
   isUploading = false,
   className,
+  imageInputId,
   title = '기업 담당자 회원가입',
   subtitle = '* 그룹 내 유저는 기업 담당자의 초대 메일을 통해 가입이 가능합니다.',
   submitButtonText = '회원가입',
@@ -65,35 +70,53 @@ const SignupTemContent = ({
     <div className="mb-24">
       <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
       <div className="flex justify-center">
-        <label htmlFor="profile-image-upload" className="cursor-pointer">
-          <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
-            {preview ? (
-              <Image
-                src={preview}
-                alt="프로필 미리보기"
-                width={140}
-                height={140}
-                className="object-cover"
-              />
-            ) : (
-              <Image
-                src="/icons/upload.svg"
-                alt="이미지 업로드"
-                width={140}
-                height={140}
-                className="object-contain"
-              />
-            )}
-          </div>
-          <input
-            id="profile-image-upload"
-            type="file"
-            accept="image/*"
-            onChange={onImageChange}
-            className="hidden"
-          />
-        </label>
+        <div className="relative">
+          <label htmlFor={imageInputId} className="cursor-pointer">
+            <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
+              {preview && preview.startsWith('blob:') ? (
+                <Image
+                  src={preview}
+                  alt="프로필 미리보기"
+                  width={140}
+                  height={140}
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <Image
+                  src="/icons/upload.svg"
+                  alt="이미지 업로드"
+                  width={140}
+                  height={140}
+                  className="object-contain"
+                />
+              )}
+            </div>
+            <input
+              id={imageInputId}
+              type="file"
+              accept="image/*"
+              onChange={onImageChange}
+              disabled={isUploading}
+              className="hidden"
+            />
+          </label>
+          {preview && preview.startsWith('blob:') && onImageDelete && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onImageDelete();
+              }}
+              className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50 shadow-sm"
+              aria-label="이미지 삭제"
+            >
+              <Image src="/icons/close-circle.svg" alt="삭제" width={24} height={24} />
+            </button>
+          )}
+        </div>
       </div>
+      {isUploading && <p className="mt-8 text-center text-12 text-gray-600">이미지 업로드 중...</p>}
     </div>
 
     {signupFields.map((field) => (
@@ -154,6 +177,7 @@ export const SignupTemMobile = ({
       title={title}
       subtitle={subtitle}
       submitButtonText={submitButtonText}
+      imageInputId="signup-profile-image-upload-mobile"
       className="flex w-327 flex-col tablet:hidden desktop:hidden"
     />
     <p className="mt-24 text-center text-14 text-gray-600">
@@ -194,6 +218,7 @@ export const SignupTemDesktop = ({
           title={title}
           subtitle={subtitle}
           submitButtonText={submitButtonText}
+          imageInputId="signup-profile-image-upload-desktop"
           className="flex flex-col w-full tablet:w-480 desktop:w-480"
         />
         <p className="flex justify-center mt-24 text-14 text-gray-600">

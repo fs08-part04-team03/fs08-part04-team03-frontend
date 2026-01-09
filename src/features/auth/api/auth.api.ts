@@ -9,13 +9,10 @@ import { logger } from '@/utils/logger';
 /**
  * 회원가입 API 요청 타입
  * confirmPassword를 passwordConfirm으로 변환
- *
- * Note: imageKey는 타입에 정의되어 있으나, 현재 백엔드 API가 프로필 이미지 업로드를 지원하지 않습니다.
- * 백엔드에서 지원하는 경우, signup() 함수의 request body에 imageKey를 추가해야 합니다.
  */
 type SignupRequest = Omit<SignupInput, 'confirmPassword'> & {
   passwordConfirm: string;
-  imageKey?: string; // TODO: 백엔드 API 지원 시 request body에 포함 필요
+  profileImage?: string; // 프로필 이미지 키 (S3 업로드 후 받은 키)
 };
 
 /**
@@ -327,19 +324,38 @@ export async function signup(
 
   let response: Response;
   try {
-    response = await fetch(`${apiUrl}${AUTH_API_PATHS.ADMIN_REGISTER}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
-      },
-      body: JSON.stringify({
+    // JSON으로 전송 (이미지는 S3에 업로드된 후 키를 받아서 전달)
+    const requestBody = JSON.stringify({
+      name: signupData.name,
+      email: signupData.email,
+      password: signupData.password,
+      passwordConfirm: signupData.passwordConfirm,
+      companyName: signupData.companyName,
+      businessNumber: signupData.businessNumber,
+      ...(signupData.profileImage && { profileImage: signupData.profileImage }), // 이미지 키 전달
+    });
+    const headers: HeadersInit = {
+      'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
+    };
+
+    // 디버깅: 요청 내용 확인 (개발 환경에서만)
+    if (process.env.NODE_ENV === 'development') {
+      logger.info('[Signup] 요청 내용 확인', {
         name: signupData.name,
         email: signupData.email,
-        password: signupData.password,
-        passwordConfirm: signupData.passwordConfirm,
+        password: signupData.password ? '***' : undefined,
+        passwordConfirm: signupData.passwordConfirm ? '***' : undefined,
         companyName: signupData.companyName,
         businessNumber: signupData.businessNumber,
-      }),
+        hasProfileImage: !!signupData.profileImage,
+        profileImage: signupData.profileImage,
+      });
+    }
+
+    response = await fetch(`${apiUrl}${AUTH_API_PATHS.ADMIN_REGISTER}`, {
+      method: 'POST',
+      headers,
+      body: requestBody,
       signal: controller.signal,
       credentials: 'include', // CSRF 토큰을 위한 쿠키 포함
     });
@@ -374,7 +390,7 @@ export async function signup(
   // 응답 본문을 먼저 읽어서 확인
   const responseText = await response.text();
 
-  // 응답이 JSON인지 확인
+  // 응답이 JSON인지 확인 (FormData 전송 시에도 JSON 응답을 받음)
   const contentType = response.headers.get('content-type');
   if (!contentType || !contentType.includes(HTTP_HEADERS.CONTENT_TYPE_JSON)) {
     logger.error('Signup API response format error', {
@@ -523,6 +539,7 @@ export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoRespon
  */
 type InviteSignupRequest = Omit<InviteSignupInput, 'confirmPassword'> & {
   inviteToken: string; // 초대 토큰
+  profileImage?: string; // 프로필 이미지 키 (S3 업로드 후 받은 키)
 };
 
 /**
@@ -559,16 +576,32 @@ export async function inviteSignup(
 
   let response: Response;
   try {
+    // JSON으로 전송 (이미지는 S3에 업로드된 후 키를 받아서 전달)
+    const requestBody = JSON.stringify({
+      email: signupData.email,
+      password: signupData.password,
+      inviteUrl: signupData.inviteToken, // 백엔드 API는 inviteUrl 필드명 사용
+      ...(signupData.profileImage && { profileImage: signupData.profileImage }), // 이미지 키 전달
+    });
+    const headers: HeadersInit = {
+      'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
+    };
+
+    // 디버깅: 요청 내용 확인 (개발 환경에서만)
+    if (process.env.NODE_ENV === 'development') {
+      logger.info('[InviteSignup] 요청 내용 확인', {
+        email: signupData.email,
+        password: signupData.password ? '***' : undefined,
+        inviteToken: signupData.inviteToken,
+        hasProfileImage: !!signupData.profileImage,
+        profileImage: signupData.profileImage,
+      });
+    }
+
     response = await fetch(`${apiUrl}${AUTH_API_PATHS.REGISTER}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
-      },
-      body: JSON.stringify({
-        email: signupData.email,
-        password: signupData.password,
-        inviteToken: signupData.inviteToken,
-      }),
+      headers,
+      body: requestBody,
       signal: controller.signal,
       credentials: 'include', // CSRF 토큰을 위한 쿠키 포함
     });
