@@ -37,11 +37,8 @@ const ProfileEditSection = () => {
   const { triggerToast } = useToast();
   const queryClient = useQueryClient();
 
-  // 이미지 미리보기 및 파일 관리 (상품 수정 모달과 동일한 방식)
+  // 이미지 미리보기 및 파일 관리
   const [preview, setPreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
-  const [initialImageKey, setInitialImageKey] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
 
   const form = useForm<ProfileEditInput>({
@@ -71,32 +68,18 @@ const ProfileEditSection = () => {
     if (myProfile?.profileImage) {
       const { profileImage } = myProfile;
 
-      // 개발 환경에서 로깅
-      if (process.env.NODE_ENV === 'development') {
-        logger.info('[ProfileEditSection] profileImage 처리', {
-          profileImage,
-          isUrl: profileImage.startsWith('http://') || profileImage.startsWith('https://'),
-        });
-      }
-
       // 이미 URL 형식이면 그대로 사용
       if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
         setPreview(profileImage);
-        setInitialImageKey(null); // URL 형식이면 키가 없음
       } else {
         // S3 키 형식이면 프록시 API URL로 변환
         // users/ 접두사가 없으면 추가 (프록시 API가 자동으로 products/를 추가하는 것을 방지)
         const imageKey = profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
         const imageUrl = `/api/product/image?key=${encodeURIComponent(imageKey)}`;
         setPreview(imageUrl);
-        setInitialImageKey(imageKey); // 정규화된 키 저장
       }
     } else {
-      if (process.env.NODE_ENV === 'development') {
-        logger.info('[ProfileEditSection] profileImage 없음', { hasMyProfile: !!myProfile });
-      }
       setPreview('/icons/upload.svg');
-      setInitialImageKey(null);
     }
   }, [myProfile?.profileImage, myProfile]);
 
@@ -131,7 +114,10 @@ const ProfileEditSection = () => {
     return undefined;
   }, [showToast]);
 
-  // 이미지 파일 선택 핸들러 (상품 수정 모달과 동일한 방식)
+  // 선택된 이미지 파일 상태
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // 이미지 파일 선택 핸들러
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -161,7 +147,6 @@ const ProfileEditSection = () => {
     const previewUrl = URL.createObjectURL(file);
     previewUrlRef.current = previewUrl;
     setPreview(previewUrl);
-    setImageToDelete(null); // 새 파일 선택 시 삭제 플래그 초기화
   };
 
   // 컴포넌트 언마운트 시 URL 정리
@@ -186,27 +171,16 @@ const ProfileEditSection = () => {
       // 사용자 역할에 따라 다른 API 엔드포인트 사용
       const isAdmin = user.role === 'admin';
 
-      // 이미지 처리 옵션 준비 (상품 수정 모달과 동일한 방식)
-      let imageFile: File | undefined;
-      let removeImage = false;
-
-      // 이미지 삭제가 요청된 경우
-      if (imageToDelete) {
-        removeImage = true;
-      }
-      // 새 이미지 파일이 선택된 경우
-      else if (selectedFile) {
-        imageFile = selectedFile;
-      }
-      // 기존 이미지 유지 (이미지 삭제 요청이 없고, 새 이미지 파일도 없고, 기존 이미지가 있는 경우)
-      // 이 경우는 아무것도 하지 않음 (multipart/form-data에서 image 필드를 보내지 않으면 유지됨)
+      // 이미지 처리 옵션 준비
+      // 이미지가 업로드된 경우 (uploadedImageKey 사용)
+      // 이미지 삭제가 요청된 경우는 처리하지 않음 (새 API 스펙에 removeImage 필드 없음)
 
       if (isAdmin) {
         // ADMIN: 회사명 + 비밀번호 + 프로필 이미지 변경 가능
         // 엔드포인트: PATCH /api/v1/user/admin/profile
         const hasCompanyNameChange = values.companyName && values.companyName.trim() !== '';
         const hasPasswordChange = values.password && values.password.trim() !== '';
-        const hasImageChange = !!imageFile || removeImage;
+        const hasImageChange = !!selectedFile;
 
         if (!hasCompanyNameChange && !hasPasswordChange && !hasImageChange) {
           throw new Error('변경할 내용을 입력해주세요.');
@@ -216,8 +190,7 @@ const ProfileEditSection = () => {
           {
             companyName: hasCompanyNameChange ? values.companyName : undefined,
             password: hasPasswordChange ? values.password : undefined,
-            imageFile,
-            removeImage,
+            imageFile: hasImageChange ? selectedFile : undefined,
           },
           accessToken
         );
@@ -225,20 +198,35 @@ const ProfileEditSection = () => {
         // USER, MANAGER: 비밀번호 + 프로필 이미지 변경 가능
         // 엔드포인트: PATCH /api/v1/user/me/profile
         const hasPasswordChange = values.password && values.password.trim() !== '';
-        const hasImageChange = !!imageFile || removeImage;
+        const hasImageChange = !!selectedFile;
 
         if (!hasPasswordChange && !hasImageChange) {
-          throw new Error('변경할 내용을 입력해주세요.');
+          throw new Error('변경할 내용을 입력해주세요. (비밀번호 또는 이미지)');
         }
 
-        await updateUserProfile(
+        const updatedProfile = await updateUserProfile(
           {
-            password: hasPasswordChange ? values.password : undefined,
-            imageFile,
-            removeImage,
+            newPassword: hasPasswordChange ? values.password : undefined,
+            newPasswordConfirm: hasPasswordChange ? values.passwordConfirm : undefined,
+            imageFile: hasImageChange ? selectedFile : undefined,
           },
           accessToken
         );
+
+        // 프로필 업데이트 성공 시 프로필 이미지가 변경되었을 수 있으므로
+        // updatedProfile의 profileImage를 사용하여 미리보기 업데이트
+        if (updatedProfile?.profileImage) {
+          const { profileImage } = updatedProfile;
+          if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
+            setPreview(profileImage);
+          } else {
+            const imageKey = profileImage.startsWith('users/')
+              ? profileImage
+              : `users/${profileImage}`;
+            const imageUrl = `/api/product/image?key=${encodeURIComponent(imageKey)}`;
+            setPreview(imageUrl);
+          }
+        }
       }
 
       // 프로필 업데이트 후 myProfile 쿼리 invalidate하여 최신 데이터 반영
@@ -256,7 +244,6 @@ const ProfileEditSection = () => {
 
       // 이미지 상태 초기화
       setSelectedFile(null);
-      setImageToDelete(null);
       if (previewUrlRef.current) {
         URL.revokeObjectURL(previewUrlRef.current);
         previewUrlRef.current = null;
@@ -292,10 +279,6 @@ const ProfileEditSection = () => {
         if (previewUrlRef.current) {
           URL.revokeObjectURL(previewUrlRef.current);
           previewUrlRef.current = null;
-        }
-        // 기존 이미지가 있으면 삭제할 key 사용
-        if (initialImageKey) {
-          setImageToDelete(initialImageKey);
         }
         setPreview('/icons/upload.svg');
         setSelectedFile(null);

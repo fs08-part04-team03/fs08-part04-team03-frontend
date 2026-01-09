@@ -170,33 +170,21 @@ function joinUrl(base: string, path: string): string {
 }
 
 /**
- * refreshToken을 사용하여 토큰 갱신 시도
- * refreshToken이 httpOnly 쿠키에 있다면 백엔드가 자동으로 확인합니다
+ * CSRF 토큰 가져오기 (브라우저 환경용)
  */
-/**
- * CSRF 토큰 가져오기
- */
-async function getCsrfToken(): Promise<string | null> {
-  const isBrowserEnv = isBrowser();
-  const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
-
-  let csrfUrl: string;
-  if (isBrowserEnv) {
-    csrfUrl = AUTH_API_PATHS.CSRF.startsWith('/') ? AUTH_API_PATHS.CSRF : `/${AUTH_API_PATHS.CSRF}`;
-  } else {
-    csrfUrl = joinUrl(backendOrigin, AUTH_API_PATHS.CSRF);
-  }
-
+async function getCsrfTokenForBrowser(backendOrigin: string): Promise<string | null> {
   try {
+    const csrfUrl = `${backendOrigin}${AUTH_API_PATHS.CSRF}`;
     const response = await fetch(csrfUrl, {
       method: 'GET',
-      credentials: 'include', // 쿠키 포함 (XSRF-TOKEN, SESSION_ID)
+      credentials: 'include', // 필수: 쿠키 자동 전송
     });
 
     if (!response.ok) {
       logger.warn('[CSRF] CSRF 토큰 가져오기 실패', {
         status: response.status,
         statusText: response.statusText,
+        url: csrfUrl,
       });
       return null;
     }
@@ -219,32 +207,36 @@ async function getCsrfToken(): Promise<string | null> {
   }
 }
 
+/**
+ * refreshToken을 사용하여 토큰 갱신 시도
+ * refreshToken이 httpOnly 쿠키에 있다면 백엔드가 자동으로 확인합니다
+ *
+ * 브라우저 환경에서는 백엔드 절대 URL을 직접 사용하여 credentials: 'include'로 쿠키 자동 전송
+ */
 export async function tryRefreshToken(): Promise<string | null> {
   const timeout = getApiTimeout();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    // 1. 먼저 CSRF 토큰 가져오기
-    const csrfToken = await getCsrfToken();
-    if (!csrfToken) {
-      logger.warn('[Token Refresh] CSRF 토큰을 가져올 수 없어 토큰 갱신 실패');
-      return null;
-    }
-
-    // refreshToken이 httpOnly 쿠키에 있다면 body 없이 쿠키만 전송
-    // 백엔드가 쿠키의 refreshToken을 자동으로 확인하고 새 accessToken 발급
-    // 브라우저에서는 상대 경로를 사용하여 Next.js rewrites를 거치도록 함 (CORS 회피)
-    // 서버 사이드에서는 절대 URL 사용
     const isBrowserEnv = isBrowser();
     const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
 
+    // 브라우저에서는 백엔드 절대 URL 직접 사용 (credentials: 'include'로 쿠키 자동 전송)
+    // 서버 사이드에서는 절대 URL 사용
     let refreshUrl: string;
+    let csrfToken: string | null = null;
+
     if (isBrowserEnv) {
-      // 브라우저에서는 항상 상대 경로 사용
-      refreshUrl = AUTH_API_PATHS.REFRESH.startsWith('/')
-        ? AUTH_API_PATHS.REFRESH
-        : `/${AUTH_API_PATHS.REFRESH}`;
+      // 1단계: CSRF 토큰 가져오기
+      csrfToken = await getCsrfTokenForBrowser(backendOrigin);
+      if (!csrfToken) {
+        logger.warn('[Token Refresh] CSRF 토큰을 가져올 수 없어 토큰 갱신 실패');
+        return null;
+      }
+
+      // 2단계: 백엔드 절대 URL 사용 (경로에 /v1 포함)
+      refreshUrl = `${backendOrigin}${AUTH_API_PATHS.REFRESH}`;
     } else {
       // 서버 사이드에서는 절대 URL 사용
       refreshUrl = joinUrl(backendOrigin, AUTH_API_PATHS.REFRESH);
@@ -278,19 +270,24 @@ export async function tryRefreshToken(): Promise<string | null> {
     logger.info('[Token Refresh] 토큰 갱신 요청 시작', {
       refreshUrl,
       isBrowserEnv,
-      hasCredentials: true, // credentials: 'include' 사용
+      backendOrigin,
+      hasCredentials: true, // credentials: 'include' 사용 (필수!)
       hasCsrfToken: !!csrfToken,
       cookieInfo,
+      note: isBrowserEnv
+        ? '브라우저에서는 백엔드 절대 URL 직접 사용 (credentials: "include"로 쿠키 자동 전송)'
+        : '서버 사이드에서는 백엔드 URL 직접 사용',
     });
 
     const response = await fetch(refreshUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-Token': csrfToken, // CSRF 토큰 헤더 추가
+        // 브라우저 환경에서는 CSRF 토큰 헤더 필수
+        ...(isBrowserEnv && csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
       },
       body: JSON.stringify({}), // 빈 body - refreshToken은 httpOnly 쿠키에서 읽음
-      credentials: 'include', // httpOnly 쿠키 포함
+      credentials: 'include', // 필수: 쿠키 자동 전송 (refreshToken 쿠키 포함)
       signal: controller.signal,
     });
 
@@ -304,23 +301,105 @@ export async function tryRefreshToken(): Promise<string | null> {
       clearTimeout(timeoutId);
       const result = (await response.json()) as {
         success: boolean;
-        data?: { accessToken: string };
+        data?: {
+          accessToken: string;
+          user?: {
+            id: string;
+            companyId: string;
+            email: string;
+            name: string;
+            role: string;
+            profileImage?: string;
+          };
+        };
       };
       if (result.success && result.data?.accessToken) {
         // 새 accessToken을 store에 저장
-        const { setAuth, user } = useAuthStore.getState();
-        if (user) {
-          setAuth({ user, accessToken: result.data.accessToken });
-          logger.info('[Token Refresh] 토큰 갱신 성공');
+        const { setAuth, user: existingUser } = useAuthStore.getState();
+
+        // 백엔드에서 user 정보도 함께 반환하는 경우
+        if (result.data.user) {
+          // 백엔드 role을 클라이언트 role로 변환
+          const normalizeRole = (role: string): 'user' | 'manager' | 'admin' => {
+            const upperRole = role.toUpperCase();
+            if (upperRole === 'MANAGER') return 'manager';
+            if (upperRole === 'ADMIN') return 'admin';
+            return 'user';
+          };
+
+          const newUser = {
+            id: result.data.user.id,
+            email: result.data.user.email,
+            name: result.data.user.name,
+            role: normalizeRole(result.data.user.role),
+            companyId: result.data.user.companyId,
+            image: result.data.user.profileImage, // profileImage를 image로 매핑
+          };
+          setAuth({ user: newUser, accessToken: result.data.accessToken });
+
+          // 쿠키에도 새 accessToken 저장 (서버 사이드 컴포넌트에서 사용하기 위해)
+          if (isBrowserEnv) {
+            try {
+              const { setAuthCookies } = await import('@/utils/cookies');
+              await setAuthCookies(newUser.role, newUser.companyId, result.data.accessToken);
+              logger.info('[Token Refresh] 토큰 갱신 성공 (user 정보 포함, 쿠키 업데이트 완료)');
+            } catch (cookieError) {
+              logger.warn('[Token Refresh] 쿠키 업데이트 실패 (store에는 저장됨)', {
+                hasError: true,
+                errorType: cookieError instanceof Error ? cookieError.constructor.name : 'Unknown',
+              });
+            }
+          } else {
+            logger.info(
+              '[Token Refresh] 토큰 갱신 성공 (user 정보 포함, 서버 사이드에서는 쿠키 업데이트 불필요)'
+            );
+          }
           return result.data.accessToken;
         }
-        logger.warn('[Token Refresh] 토큰 갱신 성공했지만 user가 없음');
-      } else {
-        logger.warn('[Token Refresh] 응답 형식이 올바르지 않음', {
-          success: result.success,
-          hasAccessToken: !!result.data?.accessToken,
-        });
+
+        // 백엔드에서 user 정보를 반환하지 않는 경우, 기존 user 정보 사용
+        if (existingUser) {
+          setAuth({ user: existingUser, accessToken: result.data.accessToken });
+
+          // 쿠키에도 새 accessToken 저장 (서버 사이드 컴포넌트에서 사용하기 위해)
+          if (isBrowserEnv) {
+            try {
+              const { setAuthCookies } = await import('@/utils/cookies');
+              await setAuthCookies(
+                existingUser.role,
+                existingUser.companyId,
+                result.data.accessToken
+              );
+              logger.info(
+                '[Token Refresh] 토큰 갱신 성공 (기존 user 정보 사용, 쿠키 업데이트 완료)'
+              );
+            } catch (cookieError) {
+              logger.warn('[Token Refresh] 쿠키 업데이트 실패 (store에는 저장됨)', {
+                hasError: true,
+                errorType: cookieError instanceof Error ? cookieError.constructor.name : 'Unknown',
+              });
+            }
+          } else {
+            logger.info(
+              '[Token Refresh] 토큰 갱신 성공 (기존 user 정보 사용, 서버 사이드에서는 쿠키 업데이트 불필요)'
+            );
+          }
+          return result.data.accessToken;
+        }
+
+        // user 정보가 없는 경우 (rehydration 후 첫 갱신)
+        logger.warn(
+          '[Token Refresh] 토큰 갱신 성공했지만 user 정보가 없음 (백엔드 응답에 user 포함 여부 확인 필요)'
+        );
+        // accessToken만 저장 (user는 나중에 다른 API 호출로 가져올 수 있음)
+        // user 정보가 없으면 쿠키 업데이트 불가 (role, companyId 필요)
+        setAuth({ user: null, accessToken: result.data.accessToken });
+        return result.data.accessToken;
       }
+      logger.warn('[Token Refresh] 응답 형식이 올바르지 않음', {
+        success: result.success,
+        hasAccessToken: !!result.data?.accessToken,
+      });
     } else {
       clearTimeout(timeoutId);
       // 에러 응답 본문 읽기
@@ -347,16 +426,14 @@ export async function tryRefreshToken(): Promise<string | null> {
           errorJson,
           cookieInfo, // 쿠키 정보도 함께 로깅
           refreshUrl,
-          hasCsrfToken: !!csrfToken,
         });
         return null;
       }
-      // 403 에러는 CSRF 토큰 불일치 또는 누락
+      // 403 에러는 CSRF 토큰 불일치 또는 누락 (Next.js API Route에서 처리)
       if (response.status === 403) {
         logger.warn('[Token Refresh] 403 에러 - CSRF 토큰 불일치 또는 누락', {
           errorText: errorText.substring(0, 300), // 처음 300자만
           errorJson,
-          hasCsrfToken: !!csrfToken,
           cookieInfo,
         });
         return null;
@@ -367,7 +444,6 @@ export async function tryRefreshToken(): Promise<string | null> {
         statusText: response.statusText,
         errorText: errorText.substring(0, 300), // 처음 300자만
         errorJson,
-        hasCsrfToken: !!csrfToken,
       });
     }
   } catch (error) {
