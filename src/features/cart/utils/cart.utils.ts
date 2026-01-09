@@ -14,8 +14,11 @@ export const adaptCartItemToOrderItem = (item: CartItem): OrderItem => {
   let imageKey: string | undefined;
   if (item.product.image) {
     const image = item.product.image.trim();
-    // 이미 URL 형식이면 그대로 사용
-    if (image.startsWith('http://') || image.startsWith('https://')) {
+    // trim 후 빈 문자열이면 undefined로 설정 (잘못된 프록시 URL 생성 방지)
+    if (!image) {
+      imageKey = undefined;
+    } else if (image.startsWith('http://') || image.startsWith('https://')) {
+      // 이미 URL 형식이면 그대로 사용
       imageKey = image;
     } else {
       // S3 키 형식이면 products/ 접두사 확인
