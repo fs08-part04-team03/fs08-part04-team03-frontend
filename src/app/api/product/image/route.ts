@@ -107,7 +107,7 @@ export async function GET(req: Request) {
       method: 'GET',
       headers: {
         ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
-        ...(finalCookieString ? { cookie: finalCookieString } : {}),
+        ...(finalCookieString ? { Cookie: finalCookieString } : {}),
       },
       credentials: 'include',
       signal: controller.signal,
@@ -147,6 +147,14 @@ export async function GET(req: Request) {
 
       // 401 에러는 인증 문제
       if (res.status === 401) {
+        logger.error('[Image Proxy] 401 Unauthorized - 인증 실패', {
+          normalizedKey,
+          originalKey: imageKey,
+          targetUrl: target.toString(),
+          hasAuth: !!authorizationHeader,
+          hasCookies: !!finalCookieString,
+          note: 'accessToken이 쿠키에 없거나 만료되었을 수 있습니다. refresh token으로 갱신이 필요합니다.',
+        });
         return NextResponse.json(
           { success: false, message: '이미지 조회 권한이 없습니다.' },
           { status: 401 }
@@ -318,7 +326,7 @@ export async function POST(req: Request) {
     // 브라우저가 자동으로 boundary를 포함한 multipart/form-data를 설정함
     const headers: HeadersInit = {
       ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
-      ...(finalCookieString ? { cookie: finalCookieString } : {}),
+      ...(finalCookieString ? { Cookie: finalCookieString } : {}),
       // FormData는 Content-Type을 자동으로 설정하므로 명시적으로 설정하지 않음
     };
 

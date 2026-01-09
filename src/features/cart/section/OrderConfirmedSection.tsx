@@ -66,8 +66,16 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
     const timestamp = Date.now();
     return purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
       if (item.products.image) {
-        acc[item.products.id] =
-          `/api/product/image?key=${encodeURIComponent(item.products.image)}&t=${timestamp}`;
+        const image = item.products.image.trim();
+        // 이미 URL 형식이면 그대로 사용
+        if (image.startsWith('http://') || image.startsWith('https://')) {
+          acc[item.products.id] = image;
+        } else {
+          // S3 키 형식이면 products/ 접두사 확인
+          const normalizedKey = image.startsWith('products/') ? image : `products/${image}`;
+          acc[item.products.id] =
+            `/api/product/image?key=${encodeURIComponent(normalizedKey)}&t=${timestamp}`;
+        }
       }
       return acc;
     }, {});

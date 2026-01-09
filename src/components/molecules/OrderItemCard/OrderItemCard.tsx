@@ -23,6 +23,7 @@ interface ProductImageProps {
   onImageError: () => void;
   imageSizes: string;
   isExternalUrl: boolean;
+  isProxyApiUrl: boolean;
   shouldShowImage: boolean;
 }
 
@@ -34,10 +35,9 @@ const ProductImage: React.FC<ProductImageProps> = ({
   onImageError,
   imageSizes,
   isExternalUrl,
+  isProxyApiUrl,
   shouldShowImage,
 }) => {
-  // 프록시 API URL인지 확인 (타임스탬프는 OrderItemCard에서 추가됨)
-
   const containerClassName = clsx(
     'relative overflow-hidden rounded-8 bg-gray-50',
     'w-85 h-85',
@@ -66,6 +66,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
           className="object-contain"
           style={{ objectPosition: 'center' }}
           onError={onImageError}
+          unoptimized={isProxyApiUrl} // 프록시 API URL은 unoptimized로 처리
         />
       )}
     </div>
@@ -266,6 +267,7 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
             onImageError={() => setImageError(true)}
             imageSizes={imageSizes}
             isExternalUrl={isExternalUrl}
+            isProxyApiUrl={isProxyApiUrl}
             shouldShowImage={shouldShowImage}
           />
 
@@ -329,6 +331,7 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
           onImageError={() => setImageError(true)}
           imageSizes={imageSizes}
           isExternalUrl={isExternalUrl}
+          isProxyApiUrl={isProxyApiUrl}
           shouldShowImage={shouldShowImage}
         />
 
