@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
@@ -21,8 +21,10 @@ interface OrderConfirmedSectionProps {
 const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProps) => {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
-  const purchaseId = purchaseIdProp;
+  // URL 쿼리 파라미터에서 id를 가져오거나 props로 전달된 id 사용
+  const purchaseId = purchaseIdProp || searchParams.get('id') || undefined;
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
 

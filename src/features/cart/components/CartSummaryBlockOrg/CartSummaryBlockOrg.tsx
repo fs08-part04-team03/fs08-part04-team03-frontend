@@ -163,14 +163,38 @@ const CartSummaryBlockOrg = ({
         requestMessage: '긴급 구매 요청',
       });
 
-      // 장바구니 무효화
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
-
-      // Order Completed 페이지로 이동
+      // Order Completed 페이지로 먼저 이동 (카트 삭제는 페이지 이동 후 처리)
       try {
         if (companyId && result?.id) {
           router.push(`/${companyId}/order/completed?id=${result.id}`);
+          triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
+
+          // 페이지 이동 후 카트 아이템 삭제 (비동기로 처리하여 페이지 이동을 블로킹하지 않음)
+          if (checkedIds.length > 0) {
+            // setTimeout을 사용하여 페이지 이동 후 삭제 처리
+            setTimeout(() => {
+              (async () => {
+                try {
+                  await cartApi.deleteMultiple(checkedIds);
+                  logger.info('Cart items deleted after urgent purchase request', {
+                    deletedCount: checkedIds.length,
+                  });
+                  // 장바구니 무효화
+                  await queryClient.invalidateQueries({ queryKey: ['cart'] });
+                } catch (deleteError) {
+                  // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
+                  logger.error('Failed to delete cart items after urgent purchase request', {
+                    hasError: true,
+                    errorType:
+                      deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+                    cartItemIds: checkedIds,
+                  });
+                }
+              })().catch(() => {
+                // 에러는 이미 catch 블록에서 처리됨
+              });
+            }, 100); // 100ms 지연으로 페이지 이동 후 실행
+          }
         } else if (companyId) {
           // purchase ID가 없으면 장바구니로 이동
           router.push(`/${companyId}/cart`);
@@ -207,31 +231,38 @@ const CartSummaryBlockOrg = ({
         shippingFee: 0,
       });
 
-      // 선택된 아이템들을 장바구니에서 삭제
-      if (checkedIds.length > 0) {
-        try {
-          await cartApi.deleteMultiple(checkedIds);
-          logger.info('Cart items deleted after purchase request', {
-            deletedCount: checkedIds.length,
-          });
-        } catch (deleteError) {
-          // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
-          logger.error('Failed to delete cart items after purchase request', {
-            hasError: true,
-            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
-            cartItemIds: checkedIds,
-          });
-        }
-      }
-
-      // 장바구니 무효화
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('success', '구매 요청이 완료되었습니다.');
-
-      // Order Completed 페이지로 이동
+      // Order Completed 페이지로 먼저 이동 (카트 삭제는 페이지 이동 후 처리)
       try {
         if (companyId && result?.id) {
           router.push(`/${companyId}/order/completed?id=${result.id}`);
+          triggerToast('success', '구매 요청이 완료되었습니다.');
+
+          // 페이지 이동 후 카트 아이템 삭제 (비동기로 처리하여 페이지 이동을 블로킹하지 않음)
+          if (checkedIds.length > 0) {
+            // setTimeout을 사용하여 페이지 이동 후 삭제 처리
+            setTimeout(() => {
+              (async () => {
+                try {
+                  await cartApi.deleteMultiple(checkedIds);
+                  logger.info('Cart items deleted after purchase request', {
+                    deletedCount: checkedIds.length,
+                  });
+                  // 장바구니 무효화
+                  await queryClient.invalidateQueries({ queryKey: ['cart'] });
+                } catch (deleteError) {
+                  // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
+                  logger.error('Failed to delete cart items after purchase request', {
+                    hasError: true,
+                    errorType:
+                      deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+                    cartItemIds: checkedIds,
+                  });
+                }
+              })().catch(() => {
+                // 에러는 이미 catch 블록에서 처리됨
+              });
+            }, 100); // 100ms 지연으로 페이지 이동 후 실행
+          }
         } else if (companyId) {
           // purchase ID가 없으면 장바구니로 이동
           router.push(`/${companyId}/cart`);
