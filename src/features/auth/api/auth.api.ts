@@ -348,7 +348,6 @@ export async function signup(
         companyName: signupData.companyName,
         businessNumber: signupData.businessNumber,
         hasProfileImage: !!signupData.profileImage,
-        profileImage: signupData.profileImage,
       });
     }
 
@@ -594,7 +593,6 @@ export async function inviteSignup(
         password: signupData.password ? '***' : undefined,
         inviteToken: signupData.inviteToken,
         hasProfileImage: !!signupData.profileImage,
-        profileImage: signupData.profileImage,
       });
     }
 

@@ -388,11 +388,41 @@ export async function tryRefreshToken(): Promise<string | null> {
         }
 
         // user 정보가 없는 경우 (rehydration 후 첫 갱신)
+        // 기존 user 정보가 있으면 유지 (주기적 토큰 갱신이 계속되도록)
+        // 주의: user: null로 설정하면 useTokenRefresh의 주기적 갱신이 중단됨
+        // existingUser를 다시 가져와서 타입 에러 방지
+        const { user: currentUser } = useAuthStore.getState();
+        if (currentUser) {
+          logger.warn(
+            '[Token Refresh] 토큰 갱신 성공했지만 백엔드 응답에 user 정보가 없음. 기존 user 정보 유지.'
+          );
+          setAuth({ user: currentUser, accessToken: result.data.accessToken });
+          // 쿠키에도 새 accessToken 저장
+          if (isBrowserEnv) {
+            try {
+              const { setAuthCookies } = await import('@/utils/cookies');
+              await setAuthCookies(
+                currentUser.role,
+                currentUser.companyId,
+                result.data.accessToken
+              );
+            } catch (cookieError) {
+              logger.warn('[Token Refresh] 쿠키 업데이트 실패 (store에는 저장됨)', {
+                hasError: true,
+                errorType: cookieError instanceof Error ? cookieError.constructor.name : 'Unknown',
+              });
+            }
+          }
+          return result.data.accessToken;
+        }
+
+        // 기존 user 정보도 없는 경우 (로그인하지 않은 상태)
         logger.warn(
           '[Token Refresh] 토큰 갱신 성공했지만 user 정보가 없음 (백엔드 응답에 user 포함 여부 확인 필요)'
         );
         // accessToken만 저장 (user는 나중에 다른 API 호출로 가져올 수 있음)
         // user 정보가 없으면 쿠키 업데이트 불가 (role, companyId 필요)
+        // 주의: 이 경우 useTokenRefresh의 주기적 갱신이 중단될 수 있음
         setAuth({ user: null, accessToken: result.data.accessToken });
         return result.data.accessToken;
       }
