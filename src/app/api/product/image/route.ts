@@ -324,16 +324,25 @@ export async function POST(req: Request) {
   try {
     // FormData를 전달할 때는 Content-Type 헤더를 설정하지 않음
     // 브라우저가 자동으로 boundary를 포함한 multipart/form-data를 설정함
+    // 회원가입 시 인증 없이 업로드할 수 있도록, Authorization 헤더가 없어도 요청 전달
     const headers: HeadersInit = {
       ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
       ...(finalCookieString ? { Cookie: finalCookieString } : {}),
       // FormData는 Content-Type을 자동으로 설정하므로 명시적으로 설정하지 않음
     };
 
+    logger.info('[Image Upload Proxy] 요청 전송', {
+      targetUrl: target.toString(),
+      folder,
+      hasAuth: !!authorizationHeader,
+      hasCookies: !!finalCookieString,
+      note: '회원가입 시 인증 없이 업로드 가능 (백엔드가 허용하는 경우)',
+    });
+
     const res = await fetch(target.toString(), {
       method: 'POST',
       headers,
-      credentials: 'include',
+      credentials: 'include', // 쿠키 전송 (CSRF 토큰 등)
       body: formData,
       signal: controller.signal,
     });
@@ -349,6 +358,16 @@ export async function POST(req: Request) {
     }
 
     if (!res.ok) {
+      // 401 에러인 경우 상세 로깅
+      if (res.status === 401) {
+        logger.error('[Image Upload Proxy] 401 Unauthorized', {
+          folder,
+          hasAuth: !!authorizationHeader,
+          hasCookies: !!finalCookieString,
+          targetUrl: target.toString(),
+          note: '회원가입 시 인증 없이 업로드하려면 백엔드가 인증 없이도 허용해야 합니다.',
+        });
+      }
       return NextResponse.json(parsed, { status: res.status });
     }
 
