@@ -16,6 +16,7 @@ import { COMMON_SORT_OPTIONS, DEFAULT_SORT_KEY } from '@/constants/sort';
 import { useToast } from '@/hooks/useToast';
 import { usePaginationParams } from '@/hooks/usePaginationParams';
 import { logger } from '@/utils/logger';
+import { STALE_TIME } from '@/constants/staleTime';
 
 const MyPurchaseRequestListSection = () => {
   // useToast 훅 사용
@@ -92,7 +93,7 @@ const MyPurchaseRequestListSection = () => {
     },
     retry: false, // 401 에러 시 재시도 방지
     refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
   });
 
   const handleCancelClick = useCallback(

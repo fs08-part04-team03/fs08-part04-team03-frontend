@@ -5,16 +5,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import ProductDetailTem from '@/features/products/template/ProductDetailTem/ProductDetailTem';
 import {
-  getProductById,
-  updateMyProduct,
-  deleteProduct,
-} from '@/features/products/api/products.api';
+  useProduct,
+  useUpdateProduct,
+  useDeleteProduct,
+} from '@/features/products/queries/product.queries';
 import {
   getWishlist,
   addToWishlist,
   removeFromWishlist,
 } from '@/features/wishlist/api/wishlist.api';
-import { cartApi } from '@/features/cart/api/cart.api';
+import { useAddToCart } from '@/features/cart/queries/cart.queries';
+import { cartKeys } from '@/features/cart/queries/cart.keys';
+import { STALE_TIME } from '@/constants/staleTime';
 import {
   CATEGORY_SECTIONS,
   BREADCRUMB_ITEMS,
@@ -60,24 +62,13 @@ const ProductDetailSection = () => {
     return ROLE_LEVEL[userRole] >= ROLE_LEVEL.manager;
   }, [user?.role]);
 
-  const {
-    data: product,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['product', productId],
-    queryFn: () => getProductById(productId),
-    enabled: !!productId,
-    staleTime: 0, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
-    refetchOnMount: true, // ✅ 페이지 마운트 시 항상 최신 데이터 가져오기
-    refetchOnWindowFocus: true, // ✅ 윈도우 포커스 시 refetch
-  });
+  const { data: product, isLoading, error } = useProduct(productId, { enabled: !!productId });
 
   // 위시리스트 목록 조회
   const { data: wishlistData } = useQuery({
     queryKey: ['wishlist'],
     queryFn: () => getWishlist(),
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
   });
 
   // 현재 상품이 위시리스트에 있는지 확인
@@ -142,17 +133,7 @@ const ProductDetailSection = () => {
   }, [isLiked, addWishlistMutation, removeWishlistMutation]);
 
   // 장바구니 추가 mutation
-  const addToCartMutation = useMutation({
-    mutationFn: (qty: number) => cartApi.addToCart(Number(productId), qty),
-    onSuccess: async () => {
-      // 캐시 무효화하여 자동으로 최신 데이터를 다시 가져옴 (GNB 업데이트 포함)
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      setIsCartAddSuccessModalOpen(true);
-    },
-    onError: () => {
-      setIsCartAddFailedModalOpen(true);
-    },
-  });
+  const addToCartMutation = useAddToCart();
 
   // 장바구니 담기 핸들러
   const handleAddToCart = useCallback(
@@ -161,7 +142,17 @@ const ProductDetailSection = () => {
         triggerToast('error', '상품 정보를 불러올 수 없습니다.');
         return;
       }
-      addToCartMutation.mutate(qty);
+      addToCartMutation.mutate(
+        { productId: Number(productId), quantity: qty },
+        {
+          onSuccess: () => {
+            setIsCartAddSuccessModalOpen(true);
+          },
+          onError: () => {
+            setIsCartAddFailedModalOpen(true);
+          },
+        }
+      );
     },
     [productId, addToCartMutation, triggerToast]
   );
@@ -178,8 +169,8 @@ const ProductDetailSection = () => {
     setIsCartAddSuccessModalOpen(false);
     // 장바구니 캐시를 무효화하고 refetch하여 최신 데이터를 가져오도록 함
     (async () => {
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      await queryClient.refetchQueries({ queryKey: ['cart'] });
+      await queryClient.invalidateQueries({ queryKey: cartKeys.all });
+      await queryClient.refetchQueries({ queryKey: cartKeys.all });
       router.push(PATHNAME.CART(companyId));
     })().catch((refetchError) => {
       // 에러 발생 시 로그만 남기고 계속 진행
@@ -276,92 +267,67 @@ const ProductDetailSection = () => {
     };
   }, [product, companyId, isLiked, handleToggleLike, handleAddToCart, canUseMenu, imageRefreshKey]);
 
+  const updateProductMutation = useUpdateProduct();
+
   // 수정 모달 핸들러
   const handleEditSubmit = useCallback(
-    async (
-      data: ProductEditFormData,
-      options?: { imageFile?: File; removeImage?: boolean }
-    ): Promise<void> => {
-      try {
-        // 새 이미지 파일이 있으면 options에 imageFile 전달
-        // X 버튼으로 이미지가 삭제된 경우 removeImage=true 전달
-        const hasNewImageFile = !!options?.imageFile;
-        const initialImageKey = product?.image || null;
-        const hasNoImage = !data.image && !initialImageKey;
-        let updateOptions;
-        if (hasNewImageFile) {
-          updateOptions = { imageFile: options.imageFile }; // 새 이미지 파일 전달 (이미 S3에 업로드됨)
-        } else if (hasNoImage) {
-          updateOptions = { removeImage: true }; // 이미지가 삭제된 경우
-        } else {
-          updateOptions = undefined; // 기존 이미지 유지
-        }
-
-        logger.info('[ProductDetailSection] handleEditSubmit: 상품 수정 시작', {
-          hasImageFile: hasNewImageFile,
-          removeImage: hasNoImage,
-          imageKey: data.image,
-        });
-
-        await updateMyProduct(productId, data, updateOptions);
-
-        // 상품 상세와 목록 모두 invalidate하여 최신 데이터 보장
-        await queryClient.invalidateQueries({ queryKey: ['product', productId] });
-        await queryClient.invalidateQueries({ queryKey: ['products'] });
-        // myProduct 쿼리도 invalidate (내 상품 디테일 페이지와 동기화)
-        await queryClient.invalidateQueries({ queryKey: ['myProduct', productId] });
-        // 쿼리를 완전히 리셋하고 다시 가져오기
-        await queryClient.resetQueries({ queryKey: ['product', productId] });
-        // 즉시 refetch하여 수정된 데이터가 바로 반영되도록 함
-        await queryClient.refetchQueries({
-          queryKey: ['product', productId],
-          type: 'active',
-        });
-
-        // 이미지 리프레시를 위한 타임스탬프 증가 (캐시 무효화)
-        setImageRefreshKey((prev) => prev + 1);
-
-        setEditModalOpen(false);
-        // 페이지를 강제로 새로고침하여 최신 데이터 반영
-        router.refresh();
-        triggerToast('success', '상품이 수정되었습니다.');
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : '상품 수정에 실패했습니다.';
-        triggerToast('error', message);
+    (data: ProductEditFormData, options?: { imageFile?: File; removeImage?: boolean }): void => {
+      // 새 이미지 파일이 있으면 options에 imageFile 전달
+      // X 버튼으로 이미지가 삭제된 경우 removeImage=true 전달
+      const hasNewImageFile = !!options?.imageFile;
+      const initialImageKey = product?.image || null;
+      const hasNoImage = !data.image && !initialImageKey;
+      let updateOptions;
+      if (hasNewImageFile) {
+        updateOptions = { imageFile: options.imageFile }; // 새 이미지 파일 전달 (이미 S3에 업로드됨)
+      } else if (hasNoImage) {
+        updateOptions = { removeImage: true }; // 이미지가 삭제된 경우
+      } else {
+        updateOptions = undefined; // 기존 이미지 유지
       }
+
+      logger.info('[ProductDetailSection] handleEditSubmit: 상품 수정 시작', {
+        hasImageFile: hasNewImageFile,
+        removeImage: hasNoImage,
+        imageKey: data.image,
+      });
+
+      updateProductMutation.mutate(
+        {
+          productId,
+          data,
+          options: updateOptions,
+        },
+        {
+          onSuccess: () => {
+            // 이미지 리프레시를 위한 타임스탬프 증가 (캐시 무효화)
+            setImageRefreshKey((prev) => prev + 1);
+            setEditModalOpen(false);
+            // 페이지를 강제로 새로고침하여 최신 데이터 반영
+            router.refresh();
+          },
+        }
+      );
     },
-    [productId, queryClient, triggerToast, router, product?.image]
+    [productId, updateProductMutation, router, product?.image]
   );
 
+  const deleteProductMutation = useDeleteProduct();
+
   // 삭제 모달 핸들러
-  const handleDeleteConfirm = useCallback(async (): Promise<void> => {
-    try {
-      // 실제 삭제 API 호출 (서버에서 삭제 완료 대기)
-      await deleteProduct(productId);
-      triggerToast('success', '상품이 삭제되었습니다.');
-
-      // 서버와 재동기화: 모든 관련 쿼리 무효화 및 reset
-      // resetQueries를 먼저 호출하여 모든 캐시를 제거
-      queryClient.resetQueries({ queryKey: ['products'] }).catch(() => {});
-      queryClient.resetQueries({ queryKey: ['product', productId] }).catch(() => {});
-
-      // invalidateQueries로 모든 쿼리를 무효화
-      queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
-      queryClient.invalidateQueries({ queryKey: ['product', productId] }).catch(() => {});
-
-      setDeleteModalOpen(false);
-
-      // 리다이렉트 (ProductListSection의 refetchOnMount: true로 자동 리페치됨)
-      // resetQueries로 캐시가 제거되었으므로 새로운 데이터를 서버에서 가져옴
-      router.push(PATHNAME.PRODUCTS(companyId));
-    } catch (err: unknown) {
-      // 에러 발생 시 모든 쿼리 무효화
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.invalidateQueries({ queryKey: ['product', productId] });
-      const message = err instanceof Error ? err.message : '상품 삭제에 실패했습니다.';
-      triggerToast('error', message);
-    }
-  }, [productId, companyId, router, queryClient, triggerToast]);
+  const handleDeleteConfirm = useCallback((): void => {
+    deleteProductMutation.mutate(
+      { productId, companyId },
+      {
+        onSuccess: () => {
+          setDeleteModalOpen(false);
+          // 리다이렉트 (ProductListSection의 refetchOnMount: true로 자동 리페치됨)
+          // resetQueries로 캐시가 제거되었으므로 새로운 데이터를 서버에서 가져옴
+          router.push(PATHNAME.PRODUCTS(companyId));
+        },
+      }
+    );
+  }, [productId, companyId, router, deleteProductMutation]);
 
   // 카테고리 옵션 초기화 (수정 모달용)
   const initialCategoryOption = useMemo((): Option | null => {

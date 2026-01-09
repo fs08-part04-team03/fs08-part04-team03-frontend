@@ -15,6 +15,7 @@ import { COMMON_SORT_OPTIONS, DEFAULT_SORT_KEY } from '@/constants/sort';
 import { QUERY_STALE_TIME_BUDGET, ERROR_MESSAGES } from '@/constants';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
+import { STALE_TIME } from '@/constants/staleTime';
 
 /**
  * PurchaseHistorySection
@@ -87,7 +88,7 @@ const PurchaseHistorySection = () => {
 
       return response;
     },
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
   });
 
   // 예산 조회 (React Query)

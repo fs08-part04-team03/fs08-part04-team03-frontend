@@ -19,6 +19,7 @@ import {
   ERROR_MESSAGES,
   VALIDATION_MESSAGES,
 } from '@/constants';
+import { STALE_TIME } from '@/constants/staleTime';
 import { useToast } from '@/hooks/useToast';
 import { usePaginationParams } from '@/hooks/usePaginationParams';
 import { logger } from '@/utils/logger';
@@ -99,7 +100,7 @@ const PurchaseRequestListSection = () => {
       return getPurchaseRequestDetail(selectedRequestId);
     },
     enabled: !!selectedRequestId && (approveModalOpen || rejectModalOpen),
-    staleTime: 0, // 모달용이므로 캐시 없이 항상 최신 데이터
+    staleTime: STALE_TIME.NONE, // 모달용이므로 캐시 없이 항상 최신 데이터
     retry: false,
   });
 
@@ -119,7 +120,7 @@ const PurchaseRequestListSection = () => {
       }),
     retry: false, // 401 에러 시 재시도 방지
     refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
   });
 
   // 예산 조회
