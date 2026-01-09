@@ -22,6 +22,7 @@ interface InviteSignupTemProps {
   setShowToast: (show: boolean) => void;
   preview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageDelete?: () => void;
   isUploading?: boolean;
   name: string;
 }
@@ -33,6 +34,7 @@ type InviteSignupTemViewProps = Omit<
 
 interface InviteSignupTemContentProps extends InviteSignupTemViewProps {
   className?: string;
+  imageInputId: string;
 }
 
 const InviteSignupTemContent = ({
@@ -42,9 +44,11 @@ const InviteSignupTemContent = ({
   handleSubmit,
   preview,
   onImageChange,
+  onImageDelete,
   isUploading,
   name,
   className,
+  imageInputId,
 }: InviteSignupTemContentProps) => (
   <form
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -61,28 +65,19 @@ const InviteSignupTemContent = ({
     <div className="mb-24">
       <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
       <div className="flex justify-center">
-        <label htmlFor="invite-profile-image-upload" className="cursor-pointer">
-          <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors relative">
-            {(() => {
-              if (isUploading) {
-                return (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80">
-                    <div className="text-12 text-gray-600">업로드 중...</div>
-                  </div>
-                );
-              }
-              if (preview) {
-                return (
-                  <Image
-                    src={preview}
-                    alt="프로필 미리보기"
-                    width={140}
-                    height={140}
-                    className="object-cover"
-                  />
-                );
-              }
-              return (
+        <div className="relative">
+          <label htmlFor={imageInputId} className="cursor-pointer">
+            <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors relative">
+              {preview && preview.startsWith('blob:') ? (
+                <Image
+                  src={preview}
+                  alt="프로필 미리보기"
+                  width={140}
+                  height={140}
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
                 <Image
                   src="/icons/upload.svg"
                   alt="이미지 업로드"
@@ -90,18 +85,33 @@ const InviteSignupTemContent = ({
                   height={140}
                   className="object-contain"
                 />
-              );
-            })()}
-          </div>
-          <input
-            id="invite-profile-image-upload"
-            type="file"
-            accept="image/*"
-            onChange={onImageChange}
-            className="hidden"
-          />
-        </label>
+              )}
+            </div>
+            <input
+              id={imageInputId}
+              type="file"
+              accept="image/*"
+              onChange={onImageChange}
+              disabled={isUploading}
+              className="hidden"
+            />
+          </label>
+          {preview && preview.startsWith('blob:') && onImageDelete && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onImageDelete();
+              }}
+              className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50 shadow-sm"
+              aria-label="이미지 삭제"
+            >
+              <Image src="/icons/close-circle.svg" alt="삭제" width={24} height={24} />
+            </button>
+          )}
+        </div>
       </div>
+      {isUploading && <p className="mt-8 text-center text-12 text-gray-600">이미지 업로드 중...</p>}
     </div>
 
     {inviteSignupFields.map((field) => (
@@ -131,6 +141,7 @@ export const InviteSignupTemMobile = ({
   handleSubmit,
   preview,
   onImageChange,
+  onImageDelete,
   isUploading,
   name,
 }: InviteSignupTemViewProps) => (
@@ -145,8 +156,10 @@ export const InviteSignupTemMobile = ({
       handleSubmit={handleSubmit}
       preview={preview}
       onImageChange={onImageChange}
+      onImageDelete={onImageDelete}
       isUploading={isUploading}
       name={name}
+      imageInputId="invite-profile-image-upload-mobile"
       className="flex w-327 flex-col tablet:hidden desktop:hidden"
     />
     <p className="mt-24 text-center text-14 text-gray-600">
@@ -165,6 +178,7 @@ export const InviteSignupTemDesktop = ({
   handleSubmit,
   preview,
   onImageChange,
+  onImageDelete,
   isUploading,
   name,
 }: InviteSignupTemViewProps) => (
@@ -181,8 +195,10 @@ export const InviteSignupTemDesktop = ({
           handleSubmit={handleSubmit}
           preview={preview}
           onImageChange={onImageChange}
+          onImageDelete={onImageDelete}
           isUploading={isUploading}
           name={name}
+          imageInputId="invite-profile-image-upload-desktop"
           className="flex flex-col w-full tablet:w-480 desktop:w-480"
         />
         <p className="flex justify-center mt-24 text-14 text-gray-600 ">
@@ -209,6 +225,7 @@ const InviteSignupTem = ({
   setShowToast,
   preview,
   onImageChange,
+  onImageDelete,
   isUploading,
   name,
 }: InviteSignupTemProps) => (
@@ -220,6 +237,7 @@ const InviteSignupTem = ({
       handleSubmit={handleSubmit}
       preview={preview}
       onImageChange={onImageChange}
+      onImageDelete={onImageDelete}
       isUploading={isUploading}
       name={name}
     />
@@ -230,6 +248,7 @@ const InviteSignupTem = ({
       handleSubmit={handleSubmit}
       preview={preview}
       onImageChange={onImageChange}
+      onImageDelete={onImageDelete}
       isUploading={isUploading}
       name={name}
     />

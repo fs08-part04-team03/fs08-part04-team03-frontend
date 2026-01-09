@@ -9,8 +9,12 @@ import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
-import UserProfile from '@/components/molecules/UserProfile/UserProfile';
-import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
+import StatusTag from '@/components/atoms/StatusTag/StatusTag';
+import {
+  formatDate,
+  formatItemDescription,
+  getStatusTagVariant,
+} from '@/features/purchase/utils/purchase.utils';
 import { logger } from '@/utils/logger';
 
 /**
@@ -113,7 +117,7 @@ const PurchaseRequestItemRowMobile = ({
       onClick={(e) => handleRowClick(e)}
       onKeyDown={handleRowKeyDown}
     >
-      {/* 첫 번째 줄: 2개 컬럼 (왼쪽: 날짜/제목/금액, 오른쪽: 요청인) */}
+      {/* 첫 번째 줄: 2개 컬럼 (왼쪽: 날짜/제목/금액, 오른쪽: 상태) */}
       <div className={clsx('flex items-start', 'w-full', 'gap-12')}>
         {/* 왼쪽 컬럼: 날짜, 제목, 금액 */}
         <div className={clsx('flex flex-col', 'flex-1', 'min-w-0', 'gap-4')}>
@@ -169,15 +173,9 @@ const PurchaseRequestItemRowMobile = ({
           </div>
         </div>
 
-        {/* 오른쪽 컬럼: 요청인 */}
-        <div className={clsx('shrink-0')}>
-          <UserProfile
-            name={item.requester?.name || '-'}
-            company={{ name: item.requester?.company || '' }}
-            avatarSrc={item.requester?.avatarSrc}
-            profileHref={companyId ? `/${companyId}/my/profile` : undefined}
-            variant="nameOnly"
-          />
+        {/* 오른쪽 컬럼: 상태 태그 */}
+        <div className={clsx('shrink-0', 'flex', 'items-start')}>
+          <StatusTag variant={getStatusTagVariant(item.status)} />
         </div>
       </div>
 
@@ -371,27 +369,6 @@ const PurchaseRequestItemRowDesktop = ({
           value={totalPrice}
           showUnit
           className={clsx('text-gray-700', 'text-14', 'font-normal')}
-        />
-      </div>
-
-      {/* 요청인 */}
-      <div
-        className={clsx(
-          'shrink-0',
-          'text-left',
-          'tablet:w-100',
-          'desktop:w-180',
-          'py-20',
-          'tablet:px-0',
-          'desktop:px-40'
-        )}
-      >
-        <UserProfile
-          name={item.requester?.name || '-'}
-          company={{ name: item.requester?.company || '' }}
-          avatarSrc={item.requester?.avatarSrc}
-          profileHref={companyId ? `/${companyId}/my/profile` : undefined}
-          variant="secondary"
         />
       </div>
 

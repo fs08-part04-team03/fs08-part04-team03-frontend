@@ -25,11 +25,16 @@ interface UseImageUploadReturn {
  * {preview && <img src={preview} alt="Preview" />}
  * ```
  */
-export const useImageUpload = (): UseImageUploadReturn => {
+interface UseImageUploadOptions {
+  skipAuth?: boolean; // 회원가입 시 인증 없이 업로드할지 여부
+}
+
+export const useImageUpload = (options?: UseImageUploadOptions): UseImageUploadReturn => {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadedImageKey, setUploadedImageKey] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { triggerToast } = useToast();
+  const skipAuth = options?.skipAuth ?? false;
 
   const handleImageChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +64,7 @@ export const useImageUpload = (): UseImageUploadReturn => {
       setIsUploading(true);
 
       // 1. 이미지 업로드
-      uploadProfileImage(file)
+      uploadProfileImage(file, skipAuth)
         .then(async (imageKey) => {
           // 2. 업로드 후 GET API로 signed URL 가져오기
           const { url: signedUrl } = await getImageUrl(imageKey);
@@ -79,7 +84,7 @@ export const useImageUpload = (): UseImageUploadReturn => {
           setIsUploading(false);
         });
     },
-    [triggerToast]
+    [triggerToast, skipAuth]
   );
 
   const resetImage = useCallback(() => {

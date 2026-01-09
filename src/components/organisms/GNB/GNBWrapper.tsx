@@ -113,20 +113,9 @@ export const GNBWrapper: React.FC = () => {
   // profileImage가 URL 형식이면 그대로 사용, S3 키 형식이면 프록시 API URL로 변환
   const avatarSrc = (() => {
     if (!myProfile?.profileImage) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.info('[GNBWrapper] profileImage 없음', { hasMyProfile: !!myProfile });
-      }
       return undefined;
     }
     const { profileImage } = myProfile;
-
-    // 개발 환경에서 로깅
-    if (process.env.NODE_ENV === 'development') {
-      logger.info('[GNBWrapper] profileImage 처리', {
-        profileImage,
-        isUrl: profileImage.startsWith('http://') || profileImage.startsWith('https://'),
-      });
-    }
 
     // 이미 URL 형식이면 그대로 사용
     if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
