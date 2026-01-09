@@ -67,6 +67,8 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
     return purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
       if (item.products.image) {
         const image = item.products.image.trim();
+        // trim 후 빈 문자열이면 건너뛰기 (잘못된 프록시 URL 생성 방지)
+        if (!image) return acc;
         // 이미 URL 형식이면 그대로 사용
         if (image.startsWith('http://') || image.startsWith('https://')) {
           acc[item.products.id] = image;
