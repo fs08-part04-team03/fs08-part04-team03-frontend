@@ -18,6 +18,7 @@ import {
   LOADING_MESSAGES,
   ERROR_MESSAGES,
 } from '@/constants';
+import { STALE_TIME } from '@/constants/staleTime';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
 
@@ -50,7 +51,7 @@ const PurchaseRequestDetailSection = () => {
       return getPurchaseRequestDetail(requestId);
     },
     enabled: !!requestId,
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
     retry: false, // 404 에러는 재시도하지 않음
   });
 

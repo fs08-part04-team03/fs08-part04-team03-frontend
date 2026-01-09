@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 import { useTokenRefresh } from '@/hooks/useTokenRefresh';
+import { STALE_TIME } from '@/constants/staleTime';
 
 export const Providers = ({ children }: { children: React.ReactNode }) => {
   const [queryClient] = useState(
@@ -15,7 +16,7 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
         // - useQuery 호출 시 필요에 따라 재정의 권장
         defaultOptions: {
           queries: {
-            staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+            staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
             gcTime: 10 * 60 * 1000, // 10분간 가비지 컬렉션 방지 (캐시 메모리 유지)
             refetchOnWindowFocus: false,
             refetchOnMount: false, // 마운트 시 자동 refetch 방지

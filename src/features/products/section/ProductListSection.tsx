@@ -10,9 +10,10 @@ import {
   mapBackendProductToTemplate,
   type TemplateProduct,
 } from '@/features/products/utils/product.utils';
-import { useAuthStore } from '@/lib/store/authStore';
-import { getAllProducts } from '@/features/products/api/products.api';
+import { useProducts } from '@/features/products/queries/product.queries';
+import { productKeys } from '@/features/products/queries/product.keys';
 import { getWishlist } from '@/features/wishlist/api/wishlist.api';
+import { STALE_TIME } from '@/constants/staleTime';
 import { getChildById } from '@/constants/categories/categories.utils';
 
 const SORT_OPTIONS: Option[] = [
@@ -26,7 +27,6 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { accessToken } = useAuthStore();
   const queryClient = useQueryClient();
 
   // URL 쿼리 파라미터에서 categoryId, q 읽기
@@ -85,20 +85,11 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     [companyId, router, searchParams]
   );
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['products', selectedCategoryId, selectedSort.key, searchQuery],
-    queryFn: async () => {
-      // 초기 진입 시 categoryId가 null이면 필터링 없이 전체 상품 조회
-      const result = await getAllProducts({
-        sort: selectedSort.key,
-        categoryId: selectedCategoryId, // null이면 쿼리 파라미터에 포함되지 않음
-        accessToken,
-        q: searchQuery,
-      });
-      return result;
-    },
-    staleTime: 60000, // 1분간 캐시 유지 (데이터 변경 빈도에 따라 조정 가능)
-    enabled: !!companyId, // companyId가 있을 때만 쿼리 실행
+  const { data, isLoading, error } = useProducts({
+    categoryId: selectedCategoryId,
+    sort: selectedSort.key,
+    searchQuery,
+    enabled: !!companyId,
   });
 
   // 상품 페이지 진입 시 모든 products 쿼리를 무효화하여 최신 데이터 보장
@@ -111,14 +102,14 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     // 상품 페이지 진입 시 모든 products 쿼리를 무효화하여 최신 데이터 보장
     // invalidateQueries는 활성 쿼리를 자동으로 refetch하므로 수동 refetch 불필요
     // eslint-disable-next-line no-void
-    void queryClient.invalidateQueries({ queryKey: ['products'] });
+    void queryClient.invalidateQueries({ queryKey: productKeys.all });
   }, [companyId, pathname, queryClient]);
 
   // 위시리스트 목록 조회
   const { data: wishlistData } = useQuery({
     queryKey: ['wishlist'],
     queryFn: () => getWishlist(),
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
   });
 
   const products: TemplateProduct[] = useMemo(() => {

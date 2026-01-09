@@ -15,6 +15,7 @@ import { logger } from '@/utils/logger';
 import ProfileEditTemplate from '@/features/profile/template/ProfileEditTemplate';
 import { useToast } from '@/hooks/useToast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { STALE_TIME } from '@/constants/staleTime';
 
 const getRoleDisplayName = (role?: string) => {
   switch (role) {
@@ -59,7 +60,7 @@ const ProfileEditSection = () => {
     queryKey: ['myProfile'],
     queryFn: () => getMyProfile(),
     enabled: !!user && !!accessToken,
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
     refetchOnWindowFocus: false,
   });
 
