@@ -75,14 +75,6 @@ export async function getMyProfile(): Promise<GetMyProfileResponse> {
 
     const result = (await response.json()) as ApiSuccessResponse<GetMyProfileResponse>;
 
-    // 개발 환경에서 로깅
-    if (process.env.NODE_ENV === 'development') {
-      logger.info('[getMyProfile] 프로필 조회 성공', {
-        hasProfileImage: !!result.data?.profileImage,
-        profileImage: result.data?.profileImage,
-      });
-    }
-
     return result.data;
   } catch (error) {
     if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -99,20 +91,18 @@ export async function getMyProfile(): Promise<GetMyProfileResponse> {
 export interface UpdateAdminProfileInput {
   companyName?: string;
   password?: string;
-  image?: string;
-  imageFile?: File; // ✅ FormData로 전송할 이미지 파일
-  removeImage?: boolean; // ✅ 이미지 삭제 여부
+  imageFile?: File; // 프로필 이미지 파일 (선택, 최대 5MB, jpg/jpeg/png/gif/webp)
 }
 
 /**
  * 일반 사용자/매니저 프로필 업데이트 입력 데이터
- * - 비밀번호만 변경 가능
+ * - 비밀번호와 프로필 이미지 변경 가능
+ * - 최소 하나 이상의 필드 필요
  */
 export interface UpdateUserProfileInput {
-  password?: string;
-  image?: string;
-  imageFile?: File; // ✅ FormData로 전송할 이미지 파일
-  removeImage?: boolean; // ✅ 이미지 삭제 여부
+  newPassword?: string; // 새 비밀번호
+  newPasswordConfirm?: string; // 새 비밀번호 확인 (newPassword와 함께 필수)
+  imageFile?: File; // 프로필 이미지 파일 (선택, 최대 5MB, jpg/jpeg/png/gif/webp)
 }
 
 export async function updateProfile(
@@ -258,50 +248,38 @@ export async function updateAdminProfile(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    // FormData가 필요한 경우: imageFile이 있거나 removeImage가 true인 경우
-    const needsFormData = !!data.imageFile || data.removeImage === true;
-    let requestBody: BodyInit;
+    // 최소 하나 이상의 필드 필요
+    const hasCompanyName = !!data.companyName && data.companyName.trim() !== '';
+    const hasPassword = !!data.password && data.password.trim() !== '';
+    const hasImage = !!data.imageFile;
+
+    if (!hasCompanyName && !hasPassword && !hasImage) {
+      throw new Error('변경할 내용을 입력해주세요.');
+    }
+
+    // FormData로 전송 (multipart/form-data)
+    const formData = new FormData();
+
+    if (hasCompanyName) {
+      formData.append('companyName', data.companyName!);
+    }
+    if (hasPassword) {
+      formData.append('password', data.password!);
+    }
+    if (hasImage && data.imageFile) {
+      // 이미지 파일을 전송 (API 스펙에 따르면 image 필드는 파일을 받음)
+      formData.append('image', data.imageFile);
+    }
+
     const headers: HeadersInit = {
       Authorization: `Bearer ${accessToken}`,
-    };
-
-    if (needsFormData) {
-      // FormData로 전송 (이미지 파일 포함 또는 이미지 삭제)
-      const formData = new FormData();
-      if (data.companyName && data.companyName.trim() !== '') {
-        formData.append('companyName', data.companyName);
-      }
-      if (data.password && data.password.trim() !== '') {
-        formData.append('password', data.password);
-      }
-      if (data.imageFile) {
-        formData.append('image', data.imageFile);
-      }
-      if (data.removeImage) {
-        formData.append('removeImage', 'true');
-      }
-      requestBody = formData;
       // FormData는 Content-Type을 자동으로 설정하므로 명시하지 않음
-    } else {
-      // JSON으로 전송 (이미지 파일 없음)
-      const jsonBody: { companyName?: string; password?: string; image?: string } = {};
-      if (data.companyName && data.companyName.trim() !== '') {
-        jsonBody.companyName = data.companyName;
-      }
-      if (data.password && data.password.trim() !== '') {
-        jsonBody.password = data.password;
-      }
-      if (data.image) {
-        jsonBody.image = data.image;
-      }
-      requestBody = JSON.stringify(jsonBody);
-      headers['Content-Type'] = 'application/json';
-    }
+    };
 
     const response = await fetch(`${apiUrl}/api/v1/user/admin/profile`, {
       method: 'PATCH',
       headers,
-      body: requestBody,
+      body: formData,
       signal: controller.signal,
       credentials: 'include',
     });
@@ -324,7 +302,6 @@ export async function updateAdminProfile(
         hasErrorData: !!errorData,
         responseText,
         hasImageFile: !!data.imageFile,
-        removeImage: data.removeImage,
         hasPassword: !!data.password,
         hasCompanyName: !!data.companyName,
       });
@@ -345,16 +322,19 @@ export async function updateAdminProfile(
  * 일반 사용자/매니저 프로필 업데이트
  * - 엔드포인트: PATCH /api/v1/user/me/profile
  * - 권한: USER, MANAGER가 사용 가능
- * - 비밀번호만 변경 가능
+ * - 비밀번호 변경 또는 프로필 이미지 업로드 (또는 둘 다 가능)
+ * - 최소 하나 이상의 필드 필요
+ * - multipart/form-data 형식으로 전송
  *
- * @param data - 변경할 비밀번호 데이터
+ * @param data - 변경할 프로필 데이터 (newPassword, newPasswordConfirm, imageFile 중 최소 하나 이상)
  * @param accessToken - JWT 액세스 토큰
+ * @returns 업데이트된 프로필 정보
  * @throws {Error} 인증 실패 또는 서버 오류 시
  */
 export async function updateUserProfile(
   data: UpdateUserProfileInput,
   accessToken: string
-): Promise<void> {
+): Promise<GetMyProfileResponse> {
   const apiUrl = getApiUrl();
   const timeout = getApiTimeout();
 
@@ -362,44 +342,41 @@ export async function updateUserProfile(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    // FormData가 필요한 경우: imageFile이 있거나 removeImage가 true인 경우
-    const needsFormData = !!data.imageFile || data.removeImage === true;
-    let requestBody: BodyInit;
+    // 최소 하나 이상의 필드 필요
+    const hasPassword = !!data.newPassword && data.newPassword.trim() !== '';
+    const hasImage = !!data.imageFile;
+
+    if (!hasPassword && !hasImage) {
+      throw new Error('변경할 내용을 입력해주세요. (비밀번호 또는 이미지)');
+    }
+
+    // newPassword가 있으면 newPasswordConfirm도 필수
+    if (hasPassword && !data.newPasswordConfirm) {
+      throw new Error('비밀번호 확인을 입력해주세요.');
+    }
+
+    // FormData로 전송 (multipart/form-data)
+    const formData = new FormData();
+
+    if (hasPassword) {
+      formData.append('newPassword', data.newPassword!);
+      formData.append('newPasswordConfirm', data.newPasswordConfirm!);
+    }
+
+    // 이미지 파일을 전송 (API 스펙에 따르면 image 필드는 파일을 받음)
+    if (hasImage && data.imageFile) {
+      formData.append('image', data.imageFile);
+    }
+
     const headers: HeadersInit = {
       Authorization: `Bearer ${accessToken}`,
-    };
-
-    if (needsFormData) {
-      // FormData로 전송 (이미지 파일 포함 또는 이미지 삭제)
-      const formData = new FormData();
-      if (data.password && data.password.trim() !== '') {
-        formData.append('password', data.password);
-      }
-      if (data.imageFile) {
-        formData.append('image', data.imageFile);
-      }
-      if (data.removeImage) {
-        formData.append('removeImage', 'true');
-      }
-      requestBody = formData;
       // FormData는 Content-Type을 자동으로 설정하므로 명시하지 않음
-    } else {
-      // JSON으로 전송 (이미지 파일 없음)
-      const jsonBody: { password?: string; image?: string } = {};
-      if (data.password && data.password.trim() !== '') {
-        jsonBody.password = data.password;
-      }
-      if (data.image) {
-        jsonBody.image = data.image;
-      }
-      requestBody = JSON.stringify(jsonBody);
-      headers['Content-Type'] = 'application/json';
-    }
+    };
 
     const response = await fetch(`${apiUrl}/api/v1/user/me/profile`, {
       method: 'PATCH',
       headers,
-      body: requestBody,
+      body: formData,
       signal: controller.signal,
       credentials: 'include',
     });
@@ -422,13 +399,16 @@ export async function updateUserProfile(
         hasErrorData: !!errorData,
         responseText,
         hasImageFile: !!data.imageFile,
-        removeImage: data.removeImage,
-        hasPassword: !!data.password,
+        hasPassword,
       });
 
       const errorMessage = errorData?.message || `프로필 변경에 실패했습니다. (${response.status})`;
       throw new Error(errorMessage);
     }
+
+    const result = (await response.json()) as ApiSuccessResponse<GetMyProfileResponse>;
+
+    return result.data;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {
