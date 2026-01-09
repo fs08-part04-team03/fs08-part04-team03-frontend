@@ -9,7 +9,7 @@ import { useAuthStore } from '@/lib/store/authStore';
 import SignupTem from '@/features/auth/template/SignupTem/SignupTem';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { updateUserProfile } from '@/features/profile/api/profile.api';
 
 interface SignupSectionProps {
@@ -88,6 +88,17 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
     setPreview(null);
     setSelectedFile(null);
   };
+
+  // 컴포넌트 언마운트 시 Object URL 정리
+  useEffect(
+    () => () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+    },
+    []
+  );
 
   const onSubmit = async (values: SignupInput): Promise<void> => {
     try {

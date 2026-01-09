@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -84,6 +84,17 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       confirmPassword: '',
     },
   });
+
+  // 컴포넌트 언마운트 시 Object URL 정리
+  useEffect(
+    () => () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+    },
+    []
+  );
 
   const onSubmit = async (values: InviteSignupInput): Promise<void> => {
     try {

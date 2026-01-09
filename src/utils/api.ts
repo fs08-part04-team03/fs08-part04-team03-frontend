@@ -171,37 +171,102 @@ function joinUrl(base: string, path: string): string {
 
 /**
  * CSRF 토큰 가져오기 (브라우저 환경용)
+ * 네트워크 일시 장애를 고려하여 재시도 로직 포함
  */
-async function getCsrfTokenForBrowser(backendOrigin: string): Promise<string | null> {
+async function getCsrfTokenForBrowser(
+  backendOrigin: string,
+  maxRetries: number = 3,
+  initialDelay: number = 100,
+  attempt: number = 0
+): Promise<string | null> {
+  const csrfUrl = `${backendOrigin}${AUTH_API_PATHS.CSRF}`;
+
   try {
-    const csrfUrl = `${backendOrigin}${AUTH_API_PATHS.CSRF}`;
     const response = await fetch(csrfUrl, {
       method: 'GET',
       credentials: 'include', // 필수: 쿠키 자동 전송
     });
 
     if (!response.ok) {
+      // 5xx 서버 에러인 경우에만 재시도 (4xx는 재시도 불필요)
+      const isRetryable = response.status >= 500 || response.status === 0;
+      if (isRetryable && attempt < maxRetries - 1) {
+        const delay = initialDelay * 2 ** attempt; // 지수 백오프
+        logger.warn('[CSRF] CSRF 토큰 가져오기 실패, 재시도 예정', {
+          attempt: attempt + 1,
+          maxRetries,
+          status: response.status,
+          statusText: response.statusText,
+          nextRetryDelay: delay,
+          url: csrfUrl,
+        });
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, delay);
+        });
+        return getCsrfTokenForBrowser(backendOrigin, maxRetries, initialDelay, attempt + 1);
+      }
+
       logger.warn('[CSRF] CSRF 토큰 가져오기 실패', {
+        attempt: attempt + 1,
+        maxRetries,
         status: response.status,
         statusText: response.statusText,
         url: csrfUrl,
+        isRetryable,
       });
       return null;
     }
 
     const result = (await response.json()) as { csrfToken?: string };
     if (result.csrfToken) {
-      logger.info('[CSRF] CSRF 토큰 가져오기 성공');
+      if (attempt > 0) {
+        logger.info('[CSRF] CSRF 토큰 가져오기 성공 (재시도 후)', {
+          attempt: attempt + 1,
+        });
+      } else {
+        logger.info('[CSRF] CSRF 토큰 가져오기 성공');
+      }
       return result.csrfToken;
     }
 
-    logger.warn('[CSRF] CSRF 토큰이 응답에 없음');
+    logger.warn('[CSRF] CSRF 토큰이 응답에 없음', {
+      attempt: attempt + 1,
+      maxRetries,
+    });
     return null;
   } catch (error) {
+    // 네트워크 에러인 경우에만 재시도
+    const isNetworkError = error instanceof TypeError && error.message === 'Failed to fetch';
+    const isRetryable = isNetworkError && attempt < maxRetries - 1;
+
+    if (isRetryable) {
+      const delay = initialDelay * 2 ** attempt; // 지수 백오프
+      logger.warn('[CSRF] CSRF 토큰 가져오기 중 네트워크 에러, 재시도 예정', {
+        attempt: attempt + 1,
+        maxRetries,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+        nextRetryDelay: delay,
+        url: csrfUrl,
+      });
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, delay);
+      });
+      return getCsrfTokenForBrowser(backendOrigin, maxRetries, initialDelay, attempt + 1);
+    }
+
     logger.error('[CSRF] CSRF 토큰 가져오기 중 예외 발생', {
+      attempt: attempt + 1,
+      maxRetries,
       hasError: true,
       errorType: error instanceof Error ? error.constructor.name : 'Unknown',
       errorMessage: error instanceof Error ? error.message : String(error),
+      url: csrfUrl,
+      isRetryable,
     });
     return null;
   }
@@ -388,11 +453,41 @@ export async function tryRefreshToken(): Promise<string | null> {
         }
 
         // user 정보가 없는 경우 (rehydration 후 첫 갱신)
+        // 기존 user 정보가 있으면 유지 (주기적 토큰 갱신이 계속되도록)
+        // 주의: user: null로 설정하면 useTokenRefresh의 주기적 갱신이 중단됨
+        // existingUser를 다시 가져와서 타입 에러 방지
+        const { user: currentUser } = useAuthStore.getState();
+        if (currentUser) {
+          logger.warn(
+            '[Token Refresh] 토큰 갱신 성공했지만 백엔드 응답에 user 정보가 없음. 기존 user 정보 유지.'
+          );
+          setAuth({ user: currentUser, accessToken: result.data.accessToken });
+          // 쿠키에도 새 accessToken 저장
+          if (isBrowserEnv) {
+            try {
+              const { setAuthCookies } = await import('@/utils/cookies');
+              await setAuthCookies(
+                currentUser.role,
+                currentUser.companyId,
+                result.data.accessToken
+              );
+            } catch (cookieError) {
+              logger.warn('[Token Refresh] 쿠키 업데이트 실패 (store에는 저장됨)', {
+                hasError: true,
+                errorType: cookieError instanceof Error ? cookieError.constructor.name : 'Unknown',
+              });
+            }
+          }
+          return result.data.accessToken;
+        }
+
+        // 기존 user 정보도 없는 경우 (로그인하지 않은 상태)
         logger.warn(
           '[Token Refresh] 토큰 갱신 성공했지만 user 정보가 없음 (백엔드 응답에 user 포함 여부 확인 필요)'
         );
         // accessToken만 저장 (user는 나중에 다른 API 호출로 가져올 수 있음)
         // user 정보가 없으면 쿠키 업데이트 불가 (role, companyId 필요)
+        // 주의: 이 경우 useTokenRefresh의 주기적 갱신이 중단될 수 있음
         setAuth({ user: null, accessToken: result.data.accessToken });
         return result.data.accessToken;
       }
