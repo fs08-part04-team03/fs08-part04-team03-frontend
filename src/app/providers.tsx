@@ -31,7 +31,10 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
       })
   );
 
-  // Access token 자동 갱신 (4분마다, 5분 만료 기준)
+  // Access token 자동 갱신
+  // - Refresh interval: 4분 (accessToken 5분 만료 전에 갱신)
+  // - Refresh token 만료: 백엔드 .env의 JWT_REFRESH_EXPIRY 설정값 (기본값: 1h)
+  // - Refresh token 만료 시 자동 로그아웃 처리
   useTokenRefresh();
 
   return (
