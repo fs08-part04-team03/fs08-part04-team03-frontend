@@ -1,9 +1,8 @@
 'use client';
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import { logger } from '@/utils/logger';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -12,21 +11,30 @@ import type {
   OrderCompletedItem,
   CartRole,
 } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
+import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
+import { useOrderConfirmedHandlers } from '../handlers/useOrderConfirmedHandlers';
+import { CART_ROUTES } from '../constants/routes';
 import OrderConfirmedTem from '../template/OrderConfirmedTem/OrderConfirmedTem';
 
 interface OrderConfirmedSectionProps {
   id?: string;
 }
 
+/**
+ * OrderConfirmedSection
+ * - 데이터/상태 결정 레이어
+ * - query로 데이터 가져오기
+ * - loading / error / empty 분기
+ * - Template에 필요한 props를 만들고 내려주기
+ */
 const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProps) => {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
+  const { user } = useAuthStore();
+
   // URL 쿼리 파라미터에서 id를 가져오거나 props로 전달된 id 사용
   const purchaseId = purchaseIdProp || searchParams.get('id') || undefined;
-  const { user } = useAuthStore();
-  const queryClient = useQueryClient();
 
   // 사용자 역할에 따른 cartRole 결정
   const cartRole: CartRole = useMemo(() => {
@@ -57,11 +65,10 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
       }
     },
     enabled: !!purchaseId,
-    retry: false, // 에러 시 재시도하지 않음
+    retry: false,
   });
 
-  // 프록시 API를 통해 이미지 로드 (CORS 방지, SSR 하이드레이션 불일치 방지)
-  // 이미지 URL에 타임스탬프 추가하여 브라우저 캐시 무효화 (이미지 업데이트 반영)
+  // 프록시 API를 통해 이미지 로드
   const imageUrls = useMemo(() => {
     if (!purchaseData?.purchaseItems) return {};
 
@@ -69,13 +76,10 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
     return purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
       if (item.products.image) {
         const image = item.products.image.trim();
-        // trim 후 빈 문자열이면 건너뛰기 (잘못된 프록시 URL 생성 방지)
         if (!image) return acc;
-        // 이미 URL 형식이면 그대로 사용
         if (image.startsWith('http://') || image.startsWith('https://')) {
           acc[item.products.id] = image;
         } else {
-          // S3 키 형식이면 products/ 접두사 확인
           const normalizedKey = image.startsWith('products/') ? image : `products/${image}`;
           acc[item.products.id] =
             `/api/product/image?key=${encodeURIComponent(normalizedKey)}&t=${timestamp}`;
@@ -100,11 +104,14 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
 
   const requestMessage = purchaseData?.requestMessage || '';
 
+  // 핸들러 훅
+  const { handleGoCart, handleGoOrderHistory } = useOrderConfirmedHandlers({ companyId });
+
   // purchase ID가 없거나 에러가 발생하거나 데이터가 없으면 장바구니로 리다이렉트
   useEffect(() => {
     if (!purchaseId) {
       if (companyId) {
-        router.push(`/${companyId}/cart`);
+        window.location.href = CART_ROUTES.CART(companyId);
       }
       return;
     }
@@ -114,21 +121,20 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
         errorType: error instanceof Error ? error.constructor.name : 'Unknown',
       });
       if (companyId) {
-        router.push(`/${companyId}/cart`);
+        window.location.href = CART_ROUTES.CART(companyId);
       }
       return;
     }
-    // 데이터가 로드되었지만 purchaseItems가 없거나 비어있으면 리다이렉트
     if (
       !isLoading &&
       purchaseData &&
       (!purchaseData.purchaseItems || purchaseData.purchaseItems.length === 0)
     ) {
       if (companyId) {
-        router.push(`/${companyId}/cart`);
+        window.location.href = CART_ROUTES.CART(companyId);
       }
     }
-  }, [purchaseId, error, isLoading, purchaseData, companyId, router]);
+  }, [purchaseId, error, isLoading, purchaseData, companyId]);
 
   // 로딩 상태
   if (isLoading) {
@@ -152,37 +158,6 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
   if (!isLoading && items.length === 0) {
     return null;
   }
-
-  // 장바구니로 이동
-  const handleGoCart = () => {
-    if (companyId) {
-      router.push(`/${companyId}/cart`);
-    }
-  };
-
-  // 구매 내역 확인으로 이동
-  const handleGoOrderHistory = () => {
-    if (companyId) {
-      // 구매 요청 목록 쿼리 invalidate 및 refetch
-      queryClient.invalidateQueries({ queryKey: ['myPurchases'] }).catch((catchError) => {
-        logger.error('Failed to invalidate myPurchases queries', {
-          hasError: true,
-          errorType: catchError instanceof Error ? catchError.constructor.name : 'Unknown',
-        });
-      });
-      queryClient
-        .refetchQueries({ queryKey: ['myPurchases'], type: 'active' })
-        .catch((catchError) => {
-          logger.error('Failed to refetch myPurchases queries', {
-            hasError: true,
-            errorType: catchError instanceof Error ? catchError.constructor.name : 'Unknown',
-          });
-        });
-      // 페이지 이동 후 리프레시
-      router.push(`/${companyId}/my/purchase-requests`);
-      router.refresh();
-    }
-  };
 
   return (
     <OrderConfirmedTem
