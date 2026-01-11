@@ -13,7 +13,9 @@ const meta = {
       appDirectory: true,
       navigation: {
         pathname: '/company-1/purchase-history',
-        params: {},
+        params: {
+          companyId: 'company-1',
+        },
       },
     },
     docs: {
