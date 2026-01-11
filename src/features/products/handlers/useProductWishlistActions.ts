@@ -8,7 +8,6 @@ import {
   useAddWishlist,
   useRemoveWishlist,
 } from '@/features/wishlist/queries/wishlist.queries';
-import type { GetWishlistResponse } from '@/features/wishlist/api/wishlist.api';
 
 /**
  * 상품 위시리스트 관련 액션 훅

@@ -134,7 +134,7 @@ const CartSummaryBlockOrg = ({
     try {
       setIsPurchasing(true);
       await purchaseNow({
-        productId: String(item.productId),
+        productId: item.productId,
         quantity: item.quantity,
       });
       onSubmit?.([item.cartItemId]);

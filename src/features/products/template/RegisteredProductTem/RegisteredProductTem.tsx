@@ -13,7 +13,6 @@ import { PRODUCT_LABELS } from '@/features/products/constants/labels';
  * Props
  ====================== */
 interface RegisteredProductTemProps {
-  date: string;
   products: RegisteredProductOrgItem[];
   totalCount: number;
   isLoading?: boolean;
@@ -28,7 +27,6 @@ interface RegisteredProductTemProps {
 }
 
 const RegisteredProductTem = ({
-  date,
   products,
   totalCount,
   isLoading = false,
@@ -75,7 +73,6 @@ const RegisteredProductTem = ({
       ====================== */}
     <div className={clsx('px-24', 'desktop:px-0')}>
       <RegisteredProductOrg
-        date={date}
         products={products}
         totalCount={totalCount}
         onRegisterClick={onRegisterClick}

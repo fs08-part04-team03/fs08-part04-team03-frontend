@@ -21,7 +21,6 @@ import {
   getStatusTagVariant,
   calculateTotalPrice,
 } from '@/features/purchase/utils/purchase.utils';
-import { logger } from '@/utils/logger';
 import {
   PURCHASE_DEFAULTS,
   PURCHASE_TABLE_STYLES,
@@ -77,7 +76,6 @@ interface PurchaseRequestTableRowProps {
   item: PurchaseRequestItem;
   onCancelClick?: (purchaseRequestId: string) => void;
   onRowClick?: (purchaseRequestId: string) => void;
-  companyId?: string;
 }
 
 const TableHeaderCell = ({
@@ -230,7 +228,6 @@ const PurchaseRequestTableRowDesktop = ({
   item,
   onCancelClick,
   onRowClick,
-  companyId,
 }: PurchaseRequestTableRowProps) => {
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
@@ -391,7 +388,6 @@ const MyPurchaseRequestListTem = ({
             item={item}
             onCancelClick={onCancelClick}
             onRowClick={onRowClick}
-            companyId={companyId}
           />
         ))}
       </div>

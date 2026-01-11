@@ -4,11 +4,8 @@
 
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateProduct, useDeleteProduct } from '@/features/products/queries/product.queries';
-import { productKeys } from '@/features/products/queries/product.keys';
 import { PATHNAME } from '@/constants';
-import { PRODUCT_MESSAGES } from '@/features/products/constants/messages';
 import { logger } from '@/utils/logger';
 import type { ProductEditFormData } from '@/components/molecules/ProductEditModal/ProductEditModal';
 import type { UpdateMyProductOptions } from '@/features/products/api/products.api';
@@ -23,7 +20,6 @@ export function useProductEditActions(
   onDeleteSuccess?: () => void
 ) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [imageRefreshKey, setImageRefreshKey] = useState(0);
 
   const updateProductMutation = useUpdateProduct();

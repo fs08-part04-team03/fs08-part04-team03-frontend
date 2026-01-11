@@ -12,7 +12,7 @@ import type { PurchaseRequestItem, RequestPurchaseResponseData } from './purchas
  * 즉시 구매 (관리자) - 단일 상품
  */
 export interface PurchaseNowRequest {
-  productId: string;
+  productId: number;
   quantity: number;
 }
 
@@ -227,10 +227,6 @@ export interface RejectPurchaseRequestRequest {
   reason: string;
 }
 
-export interface RejectPurchaseRequestResponse {
-  data: PurchaseRequestItem;
-}
-
 /**
  * 지정한 구매 요청을 주어진 사유로 거부하고 거부된 요청 항목을 반환합니다.
  *
@@ -241,8 +237,8 @@ export interface RejectPurchaseRequestResponse {
 export async function rejectPurchaseRequest(
   purchaseRequestId: string,
   request: RejectPurchaseRequestRequest
-): Promise<RejectPurchaseRequestResponse> {
-  const result = await fetchWithAuth<RejectPurchaseRequestResponse>(
+): Promise<PurchaseRequestItem> {
+  const result = await fetchWithAuth<PurchaseRequestItem>(
     `${PURCHASE_API_PATHS.ADMIN_REJECT_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',

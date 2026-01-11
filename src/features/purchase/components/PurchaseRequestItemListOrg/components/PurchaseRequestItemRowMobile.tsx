@@ -71,7 +71,6 @@ export const PurchaseRequestItemRowMobile = ({
           {/* 아이템 설명 - 클릭 가능 */}
           <ProductLink
             item={item}
-            companyId={companyId}
             className={PURCHASE_ITEM_LIST_STYLES.CELL.TEXT}
             onProductClick={onProductClick}
           >

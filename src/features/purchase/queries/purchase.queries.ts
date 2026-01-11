@@ -12,21 +12,22 @@ import {
   getBudget,
   requestPurchase,
   urgentRequestPurchase,
-  type ManagePurchaseRequestsParams,
-  type ManagePurchaseRequestsResponse,
-  type PurchaseRequestItem,
-  type GetMyPurchasesParams,
-  type GetMyPurchasesResponse,
-  type GetBudgetResponse,
-  type RejectPurchaseRequestRequest,
-  type RequestPurchaseRequest,
-  type UrgentRequestPurchaseRequest,
-  type RequestPurchaseResponseData,
 } from '@/features/purchase/api/purchase.api';
 import { STALE_TIME } from '@/constants/staleTime';
 import { QUERY_STALE_TIME_BUDGET } from '@/constants/timing';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
+
+import type {
+  ManagePurchaseRequestsResponse,
+  PurchaseRequestItem,
+  GetMyPurchasesResponse,
+  GetBudgetResponse,
+  RequestPurchaseResponseData,
+  RequestPurchaseRequest,
+  UrgentRequestPurchaseRequest,
+} from '@/features/purchase/api/purchase.api';
+
 import { purchaseKeys } from './purchase.keys';
 
 export { purchaseKeys };
@@ -246,11 +247,7 @@ export function useRejectPurchaseRequest() {
   const queryClient = useQueryClient();
   const { triggerToast } = useToast();
 
-  return useMutation<
-    { data: PurchaseRequestItem },
-    Error,
-    { purchaseRequestId: string; reason: string }
-  >({
+  return useMutation<PurchaseRequestItem, Error, { purchaseRequestId: string; reason: string }>({
     mutationFn: async ({ purchaseRequestId, reason }) =>
       rejectPurchaseRequest(purchaseRequestId, { reason }),
     onSuccess: async (_, variables) => {

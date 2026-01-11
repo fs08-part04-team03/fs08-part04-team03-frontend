@@ -23,7 +23,7 @@ import { useProductModals } from '@/features/products/handlers/useProductModals'
 import { useProductWishlistActions } from '@/features/products/handlers/useProductWishlistActions';
 import { useProductCartActions } from '@/features/products/handlers/useProductCartActions';
 import { useProductEditActions } from '@/features/products/handlers/useProductEditActions';
-import { PRODUCT_MESSAGES, PRODUCT_LABELS } from '@/features/products/constants';
+import { PRODUCT_LABELS } from '@/features/products/constants';
 
 const ProductDetailSection = () => {
   const params = useParams();
@@ -161,8 +161,7 @@ const ProductDetailSection = () => {
     cartActions.handleAddToCart,
     canUseMenu,
     editActions.imageRefreshKey,
-    modals.handleOpenEditModal,
-    modals.handleOpenDeleteModal,
+    modals,
   ]);
 
   // 카테고리 옵션 초기화 (수정 모달용)
@@ -225,7 +224,10 @@ const ProductDetailSection = () => {
       cartAddSuccessModalOpen={modals.cartAddSuccessModalOpen}
       onCloseCartAddFailedModal={modals.handleCloseCartAddFailedModal}
       onCloseCartAddSuccessModal={modals.handleCloseCartAddSuccessModal}
-      onGoToCart={navigation.goToCart}
+      onGoToCart={() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        navigation.goToCart();
+      }}
       onGoToProducts={navigation.goToProducts}
       onChangeCategory={navigation.goToProductsByCategory}
     />
