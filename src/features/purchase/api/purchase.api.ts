@@ -31,7 +31,6 @@ export type {
   ManagePurchaseRequestsResponse,
   PurchaseRequest,
   RejectPurchaseRequestRequest,
-  RejectPurchaseRequestResponse,
   PurchaseDashboardResponse,
 } from './purchase.admin.api';
 

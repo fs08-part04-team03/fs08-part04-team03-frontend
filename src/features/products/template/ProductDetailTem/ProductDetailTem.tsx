@@ -161,14 +161,14 @@ const ProductDetailTem = ({
         open={cartAddFailedModalOpen}
         type="cart-add-failed"
         description={PRODUCT_MESSAGES.MODAL.CART_ADD_FAILED_DESCRIPTION}
-        onClose={onCloseCartAddFailedModal}
-        onConfirm={onCloseCartAddFailedModal}
+        onClose={onCloseCartAddFailedModal || (() => {})}
+        onConfirm={onCloseCartAddFailedModal || (() => {})}
       />
       <CustomModal
         open={cartAddSuccessModalOpen}
         type="cart-add-success"
         description={PRODUCT_MESSAGES.MODAL.CART_ADD_SUCCESS_DESCRIPTION}
-        onClose={onCloseCartAddSuccessModal}
+        onClose={onCloseCartAddSuccessModal || (() => {})}
         onGoToCart={onGoToCart}
         onGoToProducts={onGoToProducts}
       />

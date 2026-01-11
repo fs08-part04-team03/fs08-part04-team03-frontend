@@ -8,7 +8,7 @@ import {
  * 반응형에 따라 페이지당 아이템 수를 계산하는 훅
  */
 export const useItemsPerPage = () => {
-  const [count, setCount] = useState(PRODUCT_LIST_ITEMS_PER_PAGE.TABLET);
+  const [count, setCount] = useState<number>(PRODUCT_LIST_ITEMS_PER_PAGE.TABLET);
 
   useEffect(() => {
     const update = () => {

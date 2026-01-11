@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import PriceText from '@/components/atoms/PriceText/PriceText';
@@ -68,7 +67,6 @@ export const PurchaseRequestItemRowDesktop = ({
       {/* 상품 정보 - 클릭 가능 */}
       <ProductLink
         item={item}
-        companyId={companyId}
         className={clsx(
           PURCHASE_ITEM_LIST_STYLES.CELL.PRODUCT.BASE,
           PURCHASE_ITEM_LIST_STYLES.CELL.PRODUCT.TABLET,

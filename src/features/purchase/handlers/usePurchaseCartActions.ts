@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { cartApi } from '@/features/cart/api/cart.api';
 import { cartKeys } from '@/features/cart/queries/cart.keys';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import { PURCHASE_MESSAGES, PURCHASE_TIMERS } from '@/features/purchase/constants';
+import { PURCHASE_MESSAGES } from '@/features/purchase/constants';
 import { logger } from '@/utils/logger';
 
 interface UsePurchaseCartActionsParams {

@@ -11,6 +11,7 @@ import {
 } from '@/features/products/api/products.api';
 import { useAuthStore } from '@/lib/store/authStore';
 import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logger';
 
 import type { BackendProduct } from '@/features/products/utils/product.utils';
 import type {
@@ -139,15 +140,7 @@ export function useUpdateProduct() {
       // 상품 상세와 목록 모두 invalidate하여 최신 데이터 보장
       await queryClient.invalidateQueries({ queryKey: productKeys.detail(productId) });
       await queryClient.invalidateQueries({ queryKey: productKeys.all });
-      // myProduct 쿼리도 invalidate (내 상품 디테일 페이지와 동기화)
       await queryClient.invalidateQueries({ queryKey: productKeys.myDetail(productId) });
-      // 쿼리를 완전히 리셋하고 다시 가져오기
-      await queryClient.resetQueries({ queryKey: productKeys.detail(productId) });
-      // 즉시 refetch하여 수정된 데이터가 바로 반영되도록 함
-      await queryClient.refetchQueries({
-        queryKey: productKeys.detail(productId),
-        type: 'active',
-      });
 
       triggerToast('success', '상품이 수정되었습니다.');
     },
@@ -174,14 +167,30 @@ export function useDeleteProduct() {
 
       // 서버와 재동기화: 모든 관련 쿼리 무효화 및 reset
       // resetQueries를 먼저 호출하여 모든 캐시를 제거
-      await queryClient.resetQueries({ queryKey: productKeys.all }).catch(() => {});
-      await queryClient.resetQueries({ queryKey: productKeys.detail(productId) }).catch(() => {});
+      await queryClient.resetQueries({ queryKey: productKeys.all }).catch((err) => {
+        logger.error('[useDeleteProduct] Failed to reset product queries:', err);
+      });
+      await queryClient
+        .resetQueries({ queryKey: productKeys.detail(productId) })
+        .catch((err: unknown) => {
+          logger.error('[useDeleteProduct] Failed to reset product detail query:', {
+            error: err,
+            productId,
+          });
+        });
 
       // invalidateQueries로 모든 쿼리를 무효화
-      await queryClient.invalidateQueries({ queryKey: productKeys.all }).catch(() => {});
+      await queryClient.invalidateQueries({ queryKey: productKeys.all }).catch((err) => {
+        logger.error('[useDeleteProduct] Failed to invalidate product queries:', err);
+      });
       await queryClient
         .invalidateQueries({ queryKey: productKeys.detail(productId) })
-        .catch(() => {});
+        .catch((err: unknown) => {
+          logger.error('[useDeleteProduct] Failed to invalidate product detail query:', {
+            error: err,
+            productId,
+          });
+        });
     },
     onError: async (err: unknown, variables) => {
       const { productId } = variables;

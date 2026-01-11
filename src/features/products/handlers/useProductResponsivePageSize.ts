@@ -2,7 +2,7 @@
  * Products 도메인 반응형 페이지 크기 핸들러
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { PRODUCT_DEFAULTS } from '@/features/products/constants/defaults';
 
 /**

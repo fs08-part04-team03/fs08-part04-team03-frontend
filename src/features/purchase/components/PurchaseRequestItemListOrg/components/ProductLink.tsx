@@ -7,7 +7,6 @@ import { PURCHASE_ITEM_LIST_STYLES } from '@/features/purchase/constants';
 
 interface ProductLinkProps {
   item: PurchaseRequestItem;
-  companyId?: string;
   children: React.ReactNode;
   className?: string;
   onProductClick?: (productId: number) => void;
@@ -17,13 +16,7 @@ interface ProductLinkProps {
  * 상품 링크 컴포넌트
  * 순수 UI 컴포넌트 - callback prop으로 네비게이션 처리
  */
-export const ProductLink = ({
-  item,
-  companyId,
-  children,
-  className,
-  onProductClick,
-}: ProductLinkProps) => {
+export const ProductLink = ({ item, children, className, onProductClick }: ProductLinkProps) => {
   const productId = item.purchaseItems[0]?.products.id;
 
   const handleClick = (e: React.MouseEvent) => {

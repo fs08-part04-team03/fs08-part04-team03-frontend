@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { PATHNAME } from '@/constants';
 import { cartKeys } from '@/features/cart/queries/cart.keys';
@@ -15,7 +15,6 @@ import { logger } from '@/utils/logger';
 export function useProductNavigation(companyId: string) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
   const queryClient = useQueryClient();
 
   /**

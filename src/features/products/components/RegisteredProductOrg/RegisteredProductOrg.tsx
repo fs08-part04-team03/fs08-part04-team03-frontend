@@ -8,6 +8,7 @@ import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import LinkText from '@/components/atoms/LinkText/LinkText';
 import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
 import { PRODUCT_LABELS, PRODUCT_MESSAGES } from '@/features/products/constants';
+import { formatDate } from '@/utils/formatDate';
 
 export interface RegisteredProductOrgItem {
   id: number;
@@ -16,10 +17,10 @@ export interface RegisteredProductOrgItem {
   price: number;
   imageSrc: string;
   link: string;
+  createdAt?: string;
 }
 
 interface RegisteredProductOrgProps {
-  date: string;
   products: RegisteredProductOrgItem[];
   totalCount: number;
   onRegisterClick?: () => void;
@@ -28,7 +29,6 @@ interface RegisteredProductOrgProps {
 }
 
 const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
-  date,
   products,
   totalCount,
   onRegisterClick,
@@ -159,7 +159,7 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
                             'text-16 font-extrabold tracking--0.4 text-gray-950'
                           )}
                         >
-                          {date}
+                          {product.createdAt ? formatDate(product.createdAt) : '-'}
                         </p>
 
                         <div className={clsx('flex gap-20')}>
@@ -354,7 +354,7 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
                         </div>
 
                         <span className={clsx('w-120 text-16 tracking--0.4 text-gray-950')}>
-                          {date}
+                          {product.createdAt ? formatDate(product.createdAt) : '-'}
                         </span>
 
                         <span className={clsx('w-180 text-16 tracking--0.4 text-gray-950')}>

@@ -2,15 +2,15 @@
  * Products 도메인 페이지네이션 핸들러
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { PRODUCT_DEFAULTS } from '@/features/products/constants/defaults';
 
 /**
  * 상품 페이지네이션 관련 핸들러 훅
  */
 export function useProductPaginationHandlers(
-  initialPage: number = PRODUCT_DEFAULTS.INITIAL_PAGE,
-  onPageChange?: () => void
+  onPageChange?: () => void,
+  initialPage: number = PRODUCT_DEFAULTS.INITIAL_PAGE
 ) {
   const [currentPage, setCurrentPage] = useState(initialPage);
 

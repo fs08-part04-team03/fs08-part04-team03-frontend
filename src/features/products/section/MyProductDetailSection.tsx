@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import MyProductDetailTem from '@/features/products/template/MyProductDetailTem/MyProductDetailTem';
 import { useMyProduct } from '@/features/products/queries/product.queries';
 import {
@@ -54,6 +54,25 @@ const MyProductDetailSection = () => {
     const userRole = user.role;
     return ROLE_LEVEL[userRole] >= ROLE_LEVEL.manager;
   }, [user?.role]);
+
+  // 카테고리 옵션 초기화 (수정 모달용) - hooks 규칙을 위해 early return 전에 선언
+  const initialCategoryOption = useMemo(() => {
+    if (!product?.categoryId) return null;
+    const childCategory = getChildById(product.categoryId);
+    if (!childCategory) return null;
+    const parentCategory = getParentById(childCategory.parentId);
+    if (!parentCategory) return null;
+    return { key: String(parentCategory.id), label: parentCategory.name };
+  }, [product?.categoryId]);
+
+  const initialSubCategoryOption = useMemo(() => {
+    if (!product?.categoryId) return null;
+    const childCategory = getChildById(product.categoryId);
+    if (!childCategory) return null;
+    return { key: childCategory.key, label: childCategory.name };
+  }, [product?.categoryId]);
+
+  const initialLink = useMemo(() => product?.link || '', [product?.link]);
 
   const detailPageProps: DetailPageLayoutProps = useMemo(() => {
     if (!product) {
@@ -155,31 +174,10 @@ const MyProductDetailSection = () => {
     return null;
   }
 
-  // 카테고리 옵션 초기화 (수정 모달용)
-  const initialCategoryOption = useMemo(() => {
-    if (!product?.categoryId) return null;
-    const childCategory = getChildById(product.categoryId);
-    if (!childCategory) return null;
-    const parentCategory = getParentById(childCategory.parentId);
-    if (!parentCategory) return null;
-    return { key: String(parentCategory.id), label: parentCategory.name };
-  }, [product?.categoryId]);
-
-  const initialSubCategoryOption = useMemo(() => {
-    if (!product?.categoryId) return null;
-    const childCategory = getChildById(product.categoryId);
-    if (!childCategory) return null;
-    return { key: childCategory.key, label: childCategory.name };
-  }, [product?.categoryId]);
-
-  const initialLink = useMemo(() => product?.link || '', [product?.link]);
-
   return (
     <MyProductDetailTem
       categorySections={CATEGORY_SECTIONS}
       detailPageProps={detailPageProps}
-      productId={productId}
-      companyId={companyId}
       canUseMenu={canUseMenu}
       productCategoryId={product.categoryId}
       editModalOpen={modals.editModalOpen}

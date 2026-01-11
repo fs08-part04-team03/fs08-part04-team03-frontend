@@ -1,13 +1,12 @@
 'use client';
 
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import RegisteredProductTem from '@/features/products/template/RegisteredProductTem/RegisteredProductTem';
 import ProductModal from '@/components/molecules/ProductModal/ProductModal';
 import { useMyRegisteredProducts } from '@/features/products/queries/product.queries';
 import { ERROR_MESSAGES } from '@/constants';
 import { REGISTERED_PRODUCT_SORT_OPTIONS, DEFAULT_REGISTERED_PRODUCT_SORT } from '@/constants/sort';
-import { formatDate } from '@/utils/formatDate';
 import { logger } from '@/utils/logger';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 import { useProductResponsivePageSize } from '@/features/products/handlers/useProductResponsivePageSize';
@@ -25,7 +24,7 @@ const MyRegisteredSection = () => {
 
   // 핸들러 훅 사용
   const navigation = useProductNavigation(companyId || '');
-  const pagination = useProductPaginationHandlers(PRODUCT_DEFAULTS.INITIAL_PAGE);
+  const pagination = useProductPaginationHandlers(undefined, PRODUCT_DEFAULTS.INITIAL_PAGE);
   const pageSize = useProductResponsivePageSize(pagination.resetPage);
   const modalHandlers = useProductModalHandlers(pagination.currentPage, pageSize, selectedSort.key);
 
@@ -62,9 +61,6 @@ const MyRegisteredSection = () => {
   // API에서 이미 정렬 및 페이지네이션된 데이터를 받음
   const pagedProducts = data ? data.products : [];
 
-  // 날짜 포맷팅 (현재 날짜 사용)
-  const formattedDate = useMemo(() => formatDate(new Date()), []);
-
   // 정렬 변경 핸들러 (페이지 리셋 포함)
   const handleSortChange = useCallback(
     (option: Option) => {
@@ -91,7 +87,6 @@ const MyRegisteredSection = () => {
   return (
     <>
       <RegisteredProductTem
-        date={formattedDate}
         products={pagedProducts}
         totalCount={totalCount}
         isLoading={isLoading}

@@ -12,9 +12,9 @@ import ProductEditModal, {
   type ProductEditFormData,
 } from '@/components/molecules/ProductEditModal/ProductEditModal';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
+import { getChildById } from '@/constants/categories/categories.utils';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 import type { UpdateMyProductOptions } from '@/features/products/api/products.api';
-import { getChildById } from '@/constants/categories/categories.utils';
 
 /* =====================
  * Props
@@ -22,8 +22,6 @@ import { getChildById } from '@/constants/categories/categories.utils';
 interface MyProductDetailTemProps {
   categorySections: CategoryPanelSection[];
   detailPageProps: DetailPageLayoutProps;
-  productId: string;
-  companyId: string;
   canUseMenu: boolean;
   productCategoryId?: number | null;
   editModalOpen?: boolean;
@@ -51,8 +49,6 @@ interface MyProductDetailTemProps {
 const MyProductDetailTem = ({
   categorySections,
   detailPageProps,
-  productId,
-  companyId,
   canUseMenu,
   productCategoryId = null,
   editModalOpen = false,
