@@ -7,18 +7,18 @@ import { PurchaseHistoryTableHeader } from '../PurchaseHistoryTableHeader/Purcha
 
 interface PurchaseHistoryListOrgProps {
   items: PurchaseRequestItem[];
-  companyId: string;
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  onItemClick?: (orderId: string) => void;
 }
 
 export const PurchaseHistoryListOrg = ({
   items,
-  companyId,
   currentPage = 1,
   totalPages = 1,
   onPageChange,
+  onItemClick,
 }: PurchaseHistoryListOrgProps) => {
   const handlePrev = (newPage: number) => {
     onPageChange?.(newPage);
@@ -37,7 +37,7 @@ export const PurchaseHistoryListOrg = ({
       <div className="w-full">
         {items.map((item, index) => (
           <div key={item.id} className="pb-26 tablet:pb-44 desktop:pb-0">
-            <PurchaseHistoryRowOrg item={item} companyId={companyId} isFirst={index === 0} />
+            <PurchaseHistoryRowOrg item={item} isFirst={index === 0} onItemClick={onItemClick} />
           </div>
         ))}
       </div>
