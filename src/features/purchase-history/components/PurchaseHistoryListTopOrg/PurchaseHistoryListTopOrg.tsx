@@ -4,6 +4,7 @@ import PriceText from '@/components/atoms/PriceText/PriceText';
 import ProgressBar from '@/components/atoms/ProgressBar/ProgressBar';
 import DropDown, { type Option } from '@/components/atoms/DropDown/DropDown';
 import { COMMON_SORT_OPTIONS } from '@/constants/sort';
+import { PURCHASE_HISTORY_LABELS } from '../../constants/labels';
 
 interface PurchaseHistoryListTopOrgProps {
   thisMonthBudget: number;
@@ -39,11 +40,11 @@ export const PurchaseHistoryListTopOrg = ({
     <div className="flex flex-col gap-16 tablet:gap-20 desktop:gap-24">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-bold text-18">구매 내역 확인</h1>
+        <h1 className="font-bold text-18">{PURCHASE_HISTORY_LABELS.PAGE_TITLE}</h1>
         {selectedSort && onSortChange && (
           <DropDown
             items={COMMON_SORT_OPTIONS}
-            placeholder="정렬"
+            placeholder={PURCHASE_HISTORY_LABELS.SORT_PLACEHOLDER}
             variant="small"
             selected={selectedSort}
             onSelect={onSortChange}

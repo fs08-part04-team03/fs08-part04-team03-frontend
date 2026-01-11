@@ -1,26 +1,29 @@
 'use client';
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useRef, useState, useEffect } from 'react';
-import { requestPurchase, urgentRequestPurchase } from '@/features/purchase/api/purchase.api';
-import { cartApi } from '@/features/cart/api/cart.api';
-import { useToast } from '@/hooks/useToast';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useMemo, useState, useEffect } from 'react';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
-import { logger } from '@/utils/logger';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import type { OrderCompletedItem } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import OrderTem from '../template/OrderTem/OrderTem';
 import { adaptCartItemToOrderItem } from '../utils/cart.utils';
+import { useOrderHandlers } from '../handlers/useOrderHandlers';
+import { CART_PAGE_DEFAULTS } from '../constants/defaults';
+import { CART_ROUTES } from '../constants/routes';
+import { useCart } from '../queries/cart.queries';
+import type { OrderItem } from '../components/CartSummaryBlockOrg/CartSummaryBlockOrg';
 
+/**
+ * OrderSection
+ * - 데이터/상태 결정 레이어
+ * - query로 데이터 가져오기
+ * - loading / error / empty 분기
+ * - Template에 필요한 props를 만들고 내려주기
+ */
 const OrderSection = () => {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
-  const queryClient = useQueryClient();
-  const { triggerToast } = useToast();
-  const requestMessageRef = useRef<string>('');
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isPurchaseSuccess, setIsPurchaseSuccess] = useState(false);
@@ -37,25 +40,24 @@ const OrderSection = () => {
   }, [cartItemIdsParam]);
 
   // 선택된 항목이 있으면 모든 항목을 가져오기 위해 큰 limit 사용
-  // 선택된 항목이 없으면 기본 페이지네이션 사용
   const shouldFetchAll = cartItemIds.length > 0;
-  const page = 1;
-  const limit = shouldFetchAll ? 100 : 10; // 선택된 항목이 있으면 충분히 큰 limit 사용 (백엔드 제한에 맞춤)
+  const page = CART_PAGE_DEFAULTS.PAGE;
+  const limit = shouldFetchAll ? CART_PAGE_DEFAULTS.LARGE_LIMIT : CART_PAGE_DEFAULTS.PAGE_SIZE;
 
   // 장바구니 조회
   const {
     data: cartData,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ['cart', page, limit, cartItemIdsParam || 'all'],
-    queryFn: () => cartApi.getMyCart(page, limit),
-    enabled: true, // 항상 활성화
-    staleTime: 60000, // 1분간 캐시 유지 (mutation 후 invalidateQueries로 신선도 보장)
+  } = useCart({
+    page,
+    pageSize: limit,
+    cartItemIdsParam,
+    enabled: true,
   });
 
   // 선택된 아이템만 필터링
-  const selectedItems = useMemo(() => {
+  const selectedItems: OrderItem[] = useMemo(() => {
     if (!cartData?.data) return [];
     const items = cartData.data.map(adaptCartItemToOrderItem);
     return items.filter((item) => cartItemIds.includes(String(item.cartItemId)));
@@ -74,103 +76,26 @@ const OrderSection = () => {
     [selectedItems]
   );
 
-  // 구매 요청 mutation
-  const requestPurchaseMutation = useMutation({
-    mutationFn: ({ requestMessage, isUrgent }: { requestMessage: string; isUrgent: boolean }) => {
-      requestMessageRef.current = requestMessage;
-      const items = selectedItems.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-      }));
-
-      const requestBody = {
-        items,
-        shippingFee: 0,
-        requestMessage: requestMessage || undefined,
-      };
-
-      if (isUrgent) {
-        return urgentRequestPurchase(requestBody);
-      }
-      return requestPurchase(requestBody);
+  // 핸들러 훅
+  const { handlePurchaseRequest, handleGoCart, handleGoOrderHistory } = useOrderHandlers({
+    companyId,
+    selectedItems,
+    cartItemIds,
+    onSuccess: () => {
+      setIsPurchaseSuccess(true);
     },
-    onSuccess: async (data) => {
-      // 구매 요청 완료 후 completed 페이지로 이동 (purchase ID 전달)
-      if (companyId && data?.id) {
-        setIsPurchaseSuccess(true); // POST 성공 플래그 설정
-
-        // 선택된 아이템들을 장바구니에서 삭제
-        if (cartItemIds.length > 0) {
-          try {
-            await cartApi.deleteMultiple(cartItemIds);
-            logger.info('Cart items deleted after purchase request', {
-              deletedCount: cartItemIds.length,
-            });
-          } catch (deleteError) {
-            // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
-            logger.error('Failed to delete cart items after purchase request', {
-              hasError: true,
-              errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
-              cartItemIds,
-            });
-            // 사용자에게는 알리지 않음 (구매 요청은 성공했으므로)
-          }
-        }
-
-        // 카트 캐시 무효화
-        await queryClient.invalidateQueries({ queryKey: ['cart'] });
-
-        // completed 페이지로 이동
-        router.push(`/${companyId}/order/completed?id=${data.id}`);
-        triggerToast('success', '구매 요청이 완료되었습니다.');
-      } else {
-        // purchase ID가 없으면 에러 처리
-        logger.error('Purchase request completed but missing purchase ID', {
-          hasData: !!data,
-          hasId: !!data?.id,
-        });
-        setErrorMessage('구매 요청 응답에 문제가 있습니다.');
-        setIsErrorModalOpen(true);
-      }
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : '구매 요청에 실패했습니다.';
+    onError: (message) => {
       setErrorMessage(message);
       setIsErrorModalOpen(true);
     },
   });
 
-  // 선택된 아이템이 없으면 장바구니로 리다이렉트 (렌더링 중 router.push 방지)
-  // 장바구니 데이터가 로드된 후에만 리다이렉트
-  // 단, 구매 요청 성공 후에는 리다이렉트하지 않음 (Order Completed 페이지로 이동 중)
+  // 선택된 아이템이 없으면 장바구니로 리다이렉트
   useEffect(() => {
     if (!isLoading && cartData && selectedItems.length === 0 && companyId && !isPurchaseSuccess) {
-      router.push(`/${companyId}/cart`);
+      window.location.href = CART_ROUTES.CART(companyId);
     }
-  }, [isLoading, cartData, selectedItems.length, companyId, router, isPurchaseSuccess]);
-
-  // 구매 요청 핸들러
-  const handlePurchaseRequest = (requestMessage: string, isUrgent = false) => {
-    if (selectedItems.length === 0) {
-      triggerToast('error', '선택된 상품이 없습니다.');
-      return;
-    }
-    requestPurchaseMutation.mutate({ requestMessage, isUrgent });
-  };
-
-  // 장바구니로 이동
-  const handleGoCart = () => {
-    if (companyId) {
-      router.push(`/${companyId}/cart`);
-    }
-  };
-
-  // 구매 내역 확인으로 이동
-  const handleGoOrderHistory = () => {
-    if (companyId) {
-      router.push(`/${companyId}/my/purchase-requests`);
-    }
-  };
+  }, [isLoading, cartData, selectedItems.length, companyId, isPurchaseSuccess]);
 
   // 에러 모달 닫기
   const handleCloseErrorModal = () => {
@@ -180,9 +105,7 @@ const OrderSection = () => {
   // 에러 모달 확인 버튼 클릭 - 장바구니로 이동
   const handleErrorModalConfirm = () => {
     setIsErrorModalOpen(false);
-    if (companyId) {
-      router.push(`/${companyId}/cart`);
-    }
+    window.location.href = CART_ROUTES.CART(companyId);
   };
 
   // 로딩 상태
@@ -204,7 +127,6 @@ const OrderSection = () => {
   }
 
   // 선택된 아이템이 없으면 렌더링하지 않음 (리다이렉트 중)
-  // 장바구니 데이터가 로드된 후에만 체크
   if (!isLoading && cartData && selectedItems.length === 0) {
     return null;
   }

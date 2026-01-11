@@ -78,6 +78,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         width={iconSizeClass[size]}
         height={iconSizeClass[size]}
         className="shrink-0"
+        unoptimized
       />
     );
   };

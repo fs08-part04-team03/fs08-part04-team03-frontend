@@ -190,7 +190,7 @@ export async function GET(req: Request) {
         status: 200,
         headers: {
           'Content-Type': contentType,
-          'Cache-Control': 'public, max-age=3600', // 1시간 캐시
+          'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800', // 24시간 캐시, 1주일 stale 허용
           'Access-Control-Allow-Origin': '*', // CORS 헤더 추가
         },
       });
@@ -228,7 +228,7 @@ export async function GET(req: Request) {
           status: 200,
           headers: {
             'Content-Type': imageContentType,
-            'Cache-Control': 'public, max-age=3600', // 1시간 캐시
+            'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800', // 24시간 캐시, 1주일 stale 허용
             'Access-Control-Allow-Origin': '*', // CORS 헤더 추가
           },
         });

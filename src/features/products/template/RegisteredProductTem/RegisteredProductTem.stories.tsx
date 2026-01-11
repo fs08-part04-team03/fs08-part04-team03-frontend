@@ -13,6 +13,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
     price: 2_000,
     imageSrc: '/images/sample1.png',
     link: 'https://www.coca-cola.com/products/coke-zero',
+    createdAt: '2024-12-19T00:00:00Z',
   },
   {
     id: 2,
@@ -21,6 +22,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
     price: 1_800,
     imageSrc: '/images/sample2.png',
     link: 'https://www.coca-cola.com/products/sprite',
+    createdAt: '2024-12-19T00:00:00Z',
   },
   {
     id: 3,
@@ -29,6 +31,7 @@ const mockProducts: RegisteredProductOrgItem[] = [
     price: 3_500,
     imageSrc: '/images/sample3.png',
     link: 'https://www.starbucks.com/products/americano',
+    createdAt: '2024-12-19T00:00:00Z',
   },
 ];
 
@@ -42,6 +45,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     price: 1_500,
     imageSrc: '/images/sample4.png',
     link: 'https://www.example.com/products/cup-noodle',
+    createdAt: '2024-12-18T00:00:00Z',
   },
   {
     id: 5,
@@ -50,6 +54,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     price: 2_200,
     imageSrc: '/images/sample5.png',
     link: 'https://www.example.com/products/instant-rice',
+    createdAt: '2024-12-18T00:00:00Z',
   },
   {
     id: 6,
@@ -58,6 +63,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     price: 1_700,
     imageSrc: '/images/sample6.png',
     link: 'https://www.example.com/products/potato-chips',
+    createdAt: '2024-12-17T00:00:00Z',
   },
   {
     id: 7,
@@ -66,6 +72,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     price: 1_200,
     imageSrc: '/images/sample7.png',
     link: 'https://www.example.com/products/choco-bar',
+    createdAt: '2024-12-17T00:00:00Z',
   },
   {
     id: 8,
@@ -74,6 +81,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     price: 2_500,
     imageSrc: '/images/sample8.png',
     link: 'https://www.example.com/products/milk',
+    createdAt: '2024-12-16T00:00:00Z',
   },
   {
     id: 9,
@@ -82,6 +90,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     price: 1_900,
     imageSrc: '/images/sample9.png',
     link: 'https://www.example.com/products/yogurt',
+    createdAt: '2024-12-16T00:00:00Z',
   },
   {
     id: 10,
@@ -90,6 +99,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     price: 3_000,
     imageSrc: '/images/sample10.png',
     link: 'https://www.example.com/products/bread',
+    createdAt: '2024-12-15T00:00:00Z',
   },
   {
     id: 11,
@@ -98,6 +108,7 @@ const manyMockProducts: RegisteredProductOrgItem[] = [
     price: 3_200,
     imageSrc: '/images/sample11.png',
     link: 'https://www.example.com/products/croissant',
+    createdAt: '2024-12-15T00:00:00Z',
   },
 ];
 
@@ -153,8 +164,6 @@ type Story = StoryObj<typeof RegisteredProductTem>;
  ====================== */
 export const Default: Story = {
   args: {
-    date: '2024.12.19',
-    companyId: 'test-company-id',
     products: mockProducts,
   },
 };
@@ -164,8 +173,6 @@ export const Default: Story = {
  ====================== */
 export const ManyProducts: Story = {
   args: {
-    date: '2024.12.19',
-    companyId: 'test-company-id',
     products: manyMockProducts,
   },
 };
@@ -175,8 +182,6 @@ export const ManyProducts: Story = {
  ====================== */
 export const SinglePage: Story = {
   args: {
-    date: '2024.12.01',
-    companyId: 'test-company-id',
     products: mockProducts.slice(0, 1),
   },
 };
@@ -186,8 +191,6 @@ export const SinglePage: Story = {
  ====================== */
 export const Empty: Story = {
   args: {
-    date: '2024.12.01',
-    companyId: 'test-company-id',
     products: [],
   },
 };

@@ -1,11 +1,10 @@
 'use client';
 
-import StepBreadcrumb, {
-  StepBreadcrumbStep,
-} from '@/components/molecules/StepBreadcrumb/StepBreadcrumb';
+import StepBreadcrumb from '@/components/molecules/StepBreadcrumb/StepBreadcrumb';
 import OrderCompletedSummaryOrg, {
   OrderCompletedItem,
 } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
+import { CART_ORDER_STEPS } from '@/features/cart/constants/steps';
 
 interface OrderTemProps {
   items: OrderCompletedItem[];
@@ -16,11 +15,12 @@ interface OrderTemProps {
   onPurchaseRequest?: (requestMessage: string, isUrgent?: boolean) => void;
 }
 
-const steps: StepBreadcrumbStep[] = [
-  { label: 'Shopping Cart' },
-  { label: 'Order' },
-  { label: 'Order Confirmed' },
-];
+/**
+ * OrderTem
+ * - 순수 UI 조립 레이어
+ * - header / list / row / footer 컴포지션만 담당
+ * - props 기반 렌더링만 수행
+ */
 
 const OrderTem = ({
   items,
@@ -42,7 +42,7 @@ const OrderTem = ({
     >
       {/* ✅ StepBreadcrumb – 여백은 Template에서만 관리 */}
       <div className="flex justify-center mb-40 tablet:mb-70 desktop:mb-70">
-        <StepBreadcrumb steps={steps} currentStep={2} />
+        <StepBreadcrumb steps={CART_ORDER_STEPS} currentStep={2} />
       </div>
 
       {/* ✅ User 구매 요청 전용 */}
