@@ -126,8 +126,6 @@ type Story = StoryObj<typeof MyProductDetailTem>;
 export const User: Story = {
   args: {
     canUseMenu: false,
-    productId: '1',
-    companyId: 'test-company-id',
     categorySections: mockCategorySections,
     detailPageProps: mockDetailPageProps,
   },
@@ -139,8 +137,6 @@ export const User: Story = {
 export const Manager: Story = {
   args: {
     canUseMenu: true,
-    productId: '1',
-    companyId: 'test-company-id',
     categorySections: mockCategorySections,
     detailPageProps: mockDetailPageProps,
   },
@@ -152,8 +148,6 @@ export const Manager: Story = {
 export const Admin: Story = {
   args: {
     canUseMenu: true,
-    productId: '1',
-    companyId: 'test-company-id',
     categorySections: mockCategorySections,
     detailPageProps: mockDetailPageProps,
   },

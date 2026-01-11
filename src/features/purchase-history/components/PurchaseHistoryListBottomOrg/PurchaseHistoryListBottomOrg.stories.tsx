@@ -12,9 +12,7 @@ const meta = {
       appDirectory: true,
       navigation: {
         pathname: '/company-1/purchase-history',
-        params: {
-          companyId: 'company-1',
-        },
+        params: {},
       },
     },
     docs: {
@@ -117,7 +115,6 @@ export const Default: Story = {
         '박디자인'
       ),
     ],
-    companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
     onPageChange: () => {
@@ -137,7 +134,6 @@ export const Default: Story = {
 export const EmptyList: Story = {
   args: {
     items: [],
-    companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
     onPageChange: () => {
@@ -190,7 +186,6 @@ export const UrgentRequest: Story = {
         '박디자인'
       ),
     ],
-    companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
     onPageChange: () => {
@@ -222,7 +217,6 @@ export const LongList: Story = {
         i % 3 === 0 ? undefined : Object.values(approvers)[i % 3]
       )
     ),
-    companyId: 'company-1',
     currentPage: 1,
     totalPages: 3,
     onPageChange: () => {

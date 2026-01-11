@@ -1,42 +1,21 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useParams } from 'next/navigation';
 import WishlistTem, {
   type WishlistItem,
 } from '@/features/wishlist/template/WishlistTem/WishlistTem';
-import { getWishlist, removeFromWishlist } from '@/features/wishlist/api/wishlist.api';
-import { useToast } from '@/hooks/useToast';
 import { LOADING_MESSAGES, ERROR_MESSAGES, PATHNAME } from '@/constants';
+import { useWishlist, useRemoveWishlist } from '@/features/wishlist/queries/wishlist.queries';
 
 const WishlistSection = () => {
   const router = useRouter();
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : '';
-  const queryClient = useQueryClient();
-  const { triggerToast } = useToast();
 
-  const {
-    data: wishlistProducts,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['wishlist'],
-    queryFn: () => getWishlist(),
-  });
+  const { data: wishlistProducts, isLoading, error } = useWishlist();
 
   // 위시리스트 제거 mutation
-  const removeWishlistMutation = useMutation({
-    mutationFn: (productId: number) => removeFromWishlist(productId),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-      triggerToast('success', '위시리스트에서 제거되었습니다.');
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : '위시리스트 제거에 실패했습니다.';
-      triggerToast('error', message);
-    },
-  });
+  const removeWishlistMutation = useRemoveWishlist();
 
   // 백엔드 데이터를 WishlistItem으로 변환
   const wishlistItems: WishlistItem[] =

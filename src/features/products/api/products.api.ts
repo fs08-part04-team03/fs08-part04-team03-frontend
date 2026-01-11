@@ -82,6 +82,7 @@ const mapBackendProductToRegisteredItem = (product: BackendProduct): RegisteredP
     price: product.price,
     imageSrc,
     link: product.link || '',
+    createdAt: product.createdAt,
   };
 };
 

@@ -128,7 +128,6 @@ export const Default: Story = {
         '박디자인'
       ),
     ],
-    companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
     onPageChange: () => {
@@ -170,7 +169,6 @@ export const WithPagination: Story = {
         i % 3 === 0 ? undefined : Object.values(approvers)[(i % 3) - 1]
       )
     ),
-    companyId: 'company-1',
     currentPage: 1,
     totalPages: 3,
     onPageChange: () => {
@@ -200,7 +198,6 @@ export const EmptyList: Story = {
       // eslint-disable-next-line no-console
     },
     items: [],
-    companyId: 'company-1',
     currentPage: 1,
     totalPages: 1,
     onPageChange: () => {

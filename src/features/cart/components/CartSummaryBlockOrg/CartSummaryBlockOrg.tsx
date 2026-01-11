@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
@@ -19,6 +19,8 @@ import {
   type RequestPurchaseResponseData,
 } from '@/features/purchase/api/purchase.api';
 import { cartApi } from '@/features/cart/api/cart.api';
+import { cartKeys } from '@/features/cart/queries/cart.keys';
+import { CART_DELETE_DELAY } from '@/features/cart/constants/timing';
 
 export type CartRole = 'user' | 'manager' | 'admin';
 
@@ -63,12 +65,23 @@ const CartSummaryBlockOrg = ({
   const [showBudgetToast, setShowBudgetToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const deleteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isAdminRole = cartRole === 'manager' || cartRole === 'admin';
 
   useEffect(() => {
     setCheckedIds((prev) => prev.filter((id) => items.some((i) => i.cartItemId === id)));
   }, [items]);
+
+  // 컴포넌트 언마운트 시 pending timeout 정리
+  useEffect(
+    () => () => {
+      if (deleteTimeoutRef.current) {
+        clearTimeout(deleteTimeoutRef.current);
+      }
+    },
+    []
+  );
 
   const allChecked = items.length > 0 && checkedIds.length === items.length;
 
@@ -134,7 +147,7 @@ const CartSummaryBlockOrg = ({
     try {
       setIsPurchasing(true);
       await purchaseNow({
-        productId: String(item.productId),
+        productId: item.productId,
         quantity: item.quantity,
       });
       onSubmit?.([item.cartItemId]);
@@ -148,12 +161,58 @@ const CartSummaryBlockOrg = ({
     }
   };
 
+  /**
+   * 구매 요청 후 장바구니 아이템 삭제 (페이지 이동 후 실행)
+   * @param cartItemIds - 삭제할 장바구니 아이템 ID 배열
+   */
+  const deleteCartItemsAfterPurchase = (cartItemIds: string[]) => {
+    if (cartItemIds.length === 0) return;
+
+    // 이전 timeout이 있으면 정리
+    if (deleteTimeoutRef.current) {
+      clearTimeout(deleteTimeoutRef.current);
+    }
+
+    // cartItemIds를 함수 시작 시점에 복사하여 stale closure 문제 방지
+    const idsToDelete = [...cartItemIds];
+
+    deleteTimeoutRef.current = setTimeout(() => {
+      (async () => {
+        try {
+          await cartApi.deleteMultiple(idsToDelete);
+          logger.info('Cart items deleted after purchase request', {
+            deletedCount: idsToDelete.length,
+          });
+          await queryClient.invalidateQueries({ queryKey: cartKeys.all });
+        } catch (deleteError) {
+          // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
+          logger.error('Failed to delete cart items after purchase request', {
+            hasError: true,
+            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+            cartItemIds: idsToDelete,
+          });
+        } finally {
+          deleteTimeoutRef.current = null;
+        }
+      })().catch((err) => {
+        // 에러는 이미 catch 블록에서 처리됨
+        logger.error('Unexpected error in deleteCartItemsAfterPurchase', {
+          hasError: true,
+          errorType: err instanceof Error ? err.constructor.name : 'Unknown',
+        });
+        deleteTimeoutRef.current = null;
+      });
+    }, CART_DELETE_DELAY);
+  };
+
   /** 매니저 긴급 구매 요청 (예산 초과 시) */
   const handleManagerUrgentPurchase = async () => {
     if (checkedIds.length === 0 || loading || isPurchasing) return;
 
     try {
       setIsPurchasing(true);
+      // checkedIds를 함수 시작 시점에 복사하여 stale closure 문제 방지
+      const cartItemIdsToDelete = [...checkedIds];
       const result = await urgentRequestPurchase({
         items: selectedItems.map((item) => ({
           productId: item.productId,
@@ -163,14 +222,12 @@ const CartSummaryBlockOrg = ({
         requestMessage: '긴급 구매 요청',
       });
 
-      // 장바구니 무효화
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
-
-      // Order Completed 페이지로 이동
+      // Order Completed 페이지로 먼저 이동 (카트 삭제는 페이지 이동 후 처리)
       try {
         if (companyId && result?.id) {
           router.push(`/${companyId}/order/completed?id=${result.id}`);
+          triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
+          deleteCartItemsAfterPurchase(cartItemIdsToDelete);
         } else if (companyId) {
           // purchase ID가 없으면 장바구니로 이동
           router.push(`/${companyId}/cart`);
@@ -199,6 +256,8 @@ const CartSummaryBlockOrg = ({
 
     try {
       setIsPurchasing(true);
+      // checkedIds를 함수 시작 시점에 복사하여 stale closure 문제 방지
+      const cartItemIdsToDelete = [...checkedIds];
       const result: RequestPurchaseResponseData = await purchaseNowMultiple({
         items: selectedItems.map((item) => ({
           productId: item.productId,
@@ -207,31 +266,12 @@ const CartSummaryBlockOrg = ({
         shippingFee: 0,
       });
 
-      // 선택된 아이템들을 장바구니에서 삭제
-      if (checkedIds.length > 0) {
-        try {
-          await cartApi.deleteMultiple(checkedIds);
-          logger.info('Cart items deleted after purchase request', {
-            deletedCount: checkedIds.length,
-          });
-        } catch (deleteError) {
-          // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
-          logger.error('Failed to delete cart items after purchase request', {
-            hasError: true,
-            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
-            cartItemIds: checkedIds,
-          });
-        }
-      }
-
-      // 장바구니 무효화
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('success', '구매 요청이 완료되었습니다.');
-
-      // Order Completed 페이지로 이동
+      // Order Completed 페이지로 먼저 이동 (카트 삭제는 페이지 이동 후 처리)
       try {
         if (companyId && result?.id) {
           router.push(`/${companyId}/order/completed?id=${result.id}`);
+          triggerToast('success', '구매 요청이 완료되었습니다.');
+          deleteCartItemsAfterPurchase(cartItemIdsToDelete);
         } else if (companyId) {
           // purchase ID가 없으면 장바구니로 이동
           router.push(`/${companyId}/cart`);

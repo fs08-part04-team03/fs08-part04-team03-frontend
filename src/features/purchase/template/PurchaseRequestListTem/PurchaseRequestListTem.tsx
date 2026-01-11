@@ -14,18 +14,30 @@ import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
 import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
 import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
+import {
+  PURCHASE_DEFAULTS,
+  PURCHASE_TABLE_STYLES,
+  PURCHASE_BUTTON_STYLES,
+  PURCHASE_SPACING,
+  PURCHASE_HEIGHTS,
+  PURCHASE_PADDING,
+  PURCHASE_TEXT_SIZES,
+  PURCHASE_MARGINS,
+  PURCHASE_LABELS,
+  PURCHASE_EMPTY_MESSAGES,
+} from '@/features/purchase/constants';
 
 const TABLE_CELL_BASE_STYLES = {
-  header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 pl-20',
-  cell: 'shrink-0 text-left py-20 pl-20',
+  header: PURCHASE_TABLE_STYLES.CELL_BASE.HEADER,
+  cell: PURCHASE_TABLE_STYLES.CELL_BASE.CELL,
 } as const;
 
 const COLUMN_WIDTHS = {
-  date: 'tablet:w-100 desktop:w-140',
-  product: 'tablet:w-200 desktop:flex-1',
-  price: 'tablet:w-100 desktop:w-140',
-  requester: 'tablet:w-100 desktop:w-140',
-  actions: 'tablet:w-140 desktop:w-180 desktop:max-w-180',
+  date: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.DATE,
+  product: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.PRODUCT,
+  price: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.PRICE,
+  requester: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.REQUESTER,
+  actions: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.ACTIONS,
 } as const;
 
 export interface PurchaseRequestListTemProps {
@@ -36,6 +48,7 @@ export interface PurchaseRequestListTemProps {
   onApproveClick?: (purchaseRequestId: string) => void;
   onRowClick?: (purchaseRequestId: string) => void;
   onNavigateToProducts?: () => void;
+  onProductClick?: (productId: number) => void;
   selectedRequestId?: string | null;
   selectedRequestDetail?: PurchaseRequestItem; // 모달용 상세 데이터
   isModalDetailLoading?: boolean; // 모달 상세 데이터 로딩 중
@@ -51,7 +64,7 @@ export interface PurchaseRequestListTemProps {
   onPageChange?: (page: number) => void;
   sortOptions?: Option[];
   selectedSortOption?: Option;
-  onSortChange?: (sort: string | undefined) => void;
+  onSortChange?: (option: Option) => void;
   isLoading?: boolean;
 }
 
@@ -112,7 +125,7 @@ const PurchaseRequestTableRowDesktop = ({
         'flex items-center w-full justify-between',
         'cursor-pointer hover:bg-gray-50',
         'tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200',
-        'h-100',
+        PURCHASE_HEIGHTS.TABLE_ROW,
         isUrgent && 'bg-red-100'
       )}
       onClick={handleRowClick}
@@ -151,24 +164,31 @@ const PurchaseRequestTableRowDesktop = ({
         />
       </div>
 
-      <div className={clsx(TABLE_CELL_BASE_STYLES.cell, COLUMN_WIDTHS.actions, 'flex gap-8')}>
+      <div
+        className={clsx(
+          TABLE_CELL_BASE_STYLES.cell,
+          COLUMN_WIDTHS.actions,
+          PURCHASE_SPACING.GAP_SMALL,
+          'flex'
+        )}
+      >
         {onRejectClick && onApproveClick && (
           <>
             <Button
               variant="secondary"
               size="sm"
               onClick={handleRejectClick}
-              className="w-60 py-8 px-0 text-10!"
+              className={PURCHASE_BUTTON_STYLES.ACTION_BUTTON}
             >
-              반려
+              {PURCHASE_LABELS.BUTTONS.REJECT}
             </Button>
             <Button
               variant="primary"
               size="sm"
               onClick={handleApproveClick}
-              className="w-60 py-8 px-0 text-10!"
+              className={PURCHASE_BUTTON_STYLES.ACTION_BUTTON}
             >
-              승인
+              {PURCHASE_LABELS.BUTTONS.APPROVE}
             </Button>
           </>
         )}
@@ -185,6 +205,7 @@ const PurchaseRequestListTem = ({
   onApproveClick,
   onRowClick,
   onNavigateToProducts,
+  onProductClick,
   selectedRequestId,
   selectedRequestDetail,
   isModalDetailLoading = false,
@@ -194,7 +215,7 @@ const PurchaseRequestListTem = ({
   onRejectModalClose,
   onApproveSubmit,
   onRejectSubmit,
-  budget = 2000000,
+  budget = PURCHASE_DEFAULTS.BUDGET,
   currentPage = 1,
   totalPages,
   onPageChange,
@@ -254,17 +275,16 @@ const PurchaseRequestListTem = ({
 
   const renderTableContent = () => {
     if (isLoading) {
-      return <ListSkeletonUI rows={6} />;
+      return <ListSkeletonUI rows={PURCHASE_DEFAULTS.SKELETON_ROWS} />;
     }
 
     if (isEmpty) {
       return (
-        <div className="w-full mt-200 flex justify-center">
+        <div className={clsx('w-full', PURCHASE_MARGINS.EMPTY_STATE_TOP, 'flex justify-center')}>
           <StatusNotice
-            title="요청 내역이 없어요"
-            description="상품 리스트를 둘러보고
-상품을 담아보세요"
-            buttonText="상품 리스트로 이동"
+            title={PURCHASE_EMPTY_MESSAGES.ADMIN_NO_REQUESTS.TITLE}
+            description={PURCHASE_EMPTY_MESSAGES.ADMIN_NO_REQUESTS.DESCRIPTION}
+            buttonText={PURCHASE_LABELS.BUTTONS.NAVIGATE_TO_PRODUCTS}
             onButtonClick={onNavigateToProducts}
           />
         </div>
@@ -292,14 +312,16 @@ const PurchaseRequestListTem = ({
       {/* 모바일 뷰 */}
       <div className="tablet:hidden">
         {(() => {
-          if (isLoading) return <ListSkeletonUI rows={6} />;
+          if (isLoading) return <ListSkeletonUI rows={PURCHASE_DEFAULTS.SKELETON_ROWS} />;
           if (isEmpty) {
             return (
-              <div className="w-full mt-200 flex justify-center">
+              <div
+                className={clsx('w-full', PURCHASE_MARGINS.EMPTY_STATE_TOP, 'flex justify-center')}
+              >
                 <StatusNotice
-                  title="구매 요청한 내역이 없어요"
-                  description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-                  buttonText="상품 리스트로 이동"
+                  title={PURCHASE_EMPTY_MESSAGES.USER_NO_REQUESTS.TITLE}
+                  description={PURCHASE_EMPTY_MESSAGES.USER_NO_REQUESTS.DESCRIPTION}
+                  buttonText={PURCHASE_LABELS.BUTTONS.NAVIGATE_TO_PRODUCTS}
                   onButtonClick={onNavigateToProducts}
                 />
               </div>
@@ -312,6 +334,7 @@ const PurchaseRequestListTem = ({
               onApprove={onApproveClick}
               onRowClick={onRowClick}
               companyId={companyId}
+              onProductClick={onProductClick}
             />
           );
         })()}
@@ -323,18 +346,24 @@ const PurchaseRequestListTem = ({
           {/* 헤더 - 항상 표시 (빈 리스트일 때는 제목과 드롭다운만) */}
           <div className="hidden tablet:block desktop:hidden">
             <div className="w-full">
-              <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
-                <p>구매 요청 내역</p>
-                <div className="flex items-center gap-12">
+              <div
+                className={clsx(
+                  'flex items-center justify-between w-full text-left text-gray-700',
+                  PURCHASE_TEXT_SIZES.MEDIUM,
+                  'font-bold',
+                  PURCHASE_PADDING.CELL_Y
+                )}
+              >
+                <p>{PURCHASE_LABELS.TITLE}</p>
+                <div className={clsx('flex items-center', PURCHASE_SPACING.GAP_MEDIUM)}>
                   {sortOptions && (
                     <div className="relative z-dropdown">
                       <DropDown
                         items={sortOptions}
-                        placeholder="최신순"
+                        placeholder={PURCHASE_LABELS.SORT_PLACEHOLDER}
                         selected={selectedSortOption}
                         onSelect={(option) => {
-                          // 백엔드 API 스펙에 맞게 createdAt, updatedAt, totalPrice 값 그대로 전달
-                          onSortChange?.(option.key);
+                          onSortChange?.(option);
                         }}
                       />
                     </div>
@@ -344,12 +373,28 @@ const PurchaseRequestListTem = ({
               {shouldShowTableHeader && (
                 <>
                   <Divider variant="thin" className="w-full" />
-                  <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200">
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
+                  <div
+                    className={clsx(
+                      'flex items-center w-full justify-between',
+                      PURCHASE_HEIGHTS.TABLE_HEADER,
+                      'tablet:border-b tablet:border-gray-200'
+                    )}
+                  >
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.DATE}
+                    </TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.PRODUCT}
+                    </TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.PRICE}
+                    </TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.REQUESTER}
+                    </TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.ACTIONS}
+                    </TableHeaderCell>
                   </div>
                 </>
               )}
@@ -357,18 +402,24 @@ const PurchaseRequestListTem = ({
           </div>
           <div className="hidden desktop:block">
             <div className="w-full">
-              <div className="flex items-center justify-between w-full text-left text-gray-700 text-18 font-bold py-20">
-                <p>구매 요청 내역</p>
-                <div className="flex items-center gap-12">
+              <div
+                className={clsx(
+                  'flex items-center justify-between w-full text-left text-gray-700',
+                  PURCHASE_TEXT_SIZES.MEDIUM,
+                  'font-bold',
+                  PURCHASE_PADDING.CELL_Y
+                )}
+              >
+                <p>{PURCHASE_LABELS.TITLE}</p>
+                <div className={clsx('flex items-center', PURCHASE_SPACING.GAP_MEDIUM)}>
                   {sortOptions && (
                     <div className="relative z-dropdown">
                       <DropDown
                         items={sortOptions}
-                        placeholder="최신순"
+                        placeholder={PURCHASE_LABELS.SORT_PLACEHOLDER}
                         selected={selectedSortOption}
                         onSelect={(option) => {
-                          // 백엔드 API 스펙에 맞게 createdAt, updatedAt, totalPrice 값 그대로 전달
-                          onSortChange?.(option.key);
+                          onSortChange?.(option);
                         }}
                       />
                     </div>
@@ -378,12 +429,28 @@ const PurchaseRequestListTem = ({
               {shouldShowTableHeader && (
                 <>
                   <Divider variant="thin" className="w-full" />
-                  <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200">
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>요청인</TableHeaderCell>
-                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
+                  <div
+                    className={clsx(
+                      'flex items-center w-full justify-between',
+                      PURCHASE_HEIGHTS.TABLE_HEADER,
+                      'tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200'
+                    )}
+                  >
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.DATE}
+                    </TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.PRODUCT}
+                    </TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.PRICE}
+                    </TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.requester}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.REQUESTER}
+                    </TableHeaderCell>
+                    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>
+                      {PURCHASE_LABELS.TABLE_HEADERS.ACTIONS}
+                    </TableHeaderCell>
                   </div>
                 </>
               )}

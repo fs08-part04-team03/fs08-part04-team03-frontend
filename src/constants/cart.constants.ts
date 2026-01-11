@@ -70,7 +70,5 @@ export const CART_PAGINATION = {
   DEFAULT_LIMIT: 10,
 } as const;
 
-/* =====================
- * TYPES (Optional Helper)
- ====================== */
+/* TYPES (Optional Helper) */
 export type CartApiEndpoint = (typeof CART_API)[keyof typeof CART_API];
