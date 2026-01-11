@@ -119,15 +119,10 @@ Product List 내부는 다음 순서로 구성됩니다.
       control: 'object',
       description: '해당 날짜에 등록된 상품 목록',
     },
-    companyId: {
-      control: 'text',
-      description: '회사 ID',
-    },
   },
   args: {
     date: '2024.07.04',
     products: mockProducts,
-    companyId: 'test-company-id',
     totalCount: mockProducts.length,
   },
 };

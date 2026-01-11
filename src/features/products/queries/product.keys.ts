@@ -9,11 +9,12 @@ export const productKeys = {
    * @param categoryId - 카테고리 ID (optional)
    * @param sort - 정렬 옵션 (optional)
    * @param searchQuery - 검색어 (optional)
+   * @param isAuthenticated - 인증 상태 (캐시 충돌 방지)
    */
   all: ['products'] as const,
   lists: () => [...productKeys.all, 'list'] as const,
-  list: (categoryId: number | null, sort: string, searchQuery: string) =>
-    [...productKeys.lists(), categoryId, sort, searchQuery] as const,
+  list: (categoryId: number | null, sort: string, searchQuery: string, isAuthenticated: boolean) =>
+    [...productKeys.lists(), categoryId, sort, searchQuery, isAuthenticated] as const,
 
   /**
    * 상품 상세 조회

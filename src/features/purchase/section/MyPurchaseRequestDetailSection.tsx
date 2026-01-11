@@ -18,6 +18,9 @@ const MyPurchaseRequestDetailSection = () => {
   const requestId = params?.requestId as string | undefined;
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
+  // 핸들러 훅 사용 - Hook은 항상 최상위에서 호출
+  const { goToMyPurchaseRequests } = usePurchaseNavigation(companyId);
+
   const {
     data,
     isLoading,
@@ -47,9 +50,6 @@ const MyPurchaseRequestDetailSection = () => {
   if (!data || !companyId) {
     return null;
   }
-
-  // 핸들러 훅 사용
-  const { goToMyPurchaseRequests } = usePurchaseNavigation(companyId);
 
   return (
     <MyPurchaseRequestDetailTem

@@ -22,7 +22,6 @@ interface RegisteredProductOrgProps {
   date: string;
   products: RegisteredProductOrgItem[];
   totalCount: number;
-  companyId: string;
   onRegisterClick?: () => void;
   onProductClick?: (productId: number) => void;
   isLoading?: boolean;
@@ -32,7 +31,6 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
   date,
   products,
   totalCount,
-  companyId,
   onRegisterClick,
   onProductClick,
   isLoading = false,

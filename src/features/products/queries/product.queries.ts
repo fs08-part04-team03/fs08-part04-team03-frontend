@@ -36,7 +36,12 @@ export function useProducts(params?: {
   const { categoryId, sort, searchQuery, enabled = true } = params || {};
 
   return useQuery<GetAllProductsResponse>({
-    queryKey: productKeys.list(categoryId ?? null, sort ?? 'latest', searchQuery ?? ''),
+    queryKey: productKeys.list(
+      categoryId ?? null,
+      sort ?? 'latest',
+      searchQuery ?? '',
+      !!accessToken
+    ),
     queryFn: async () => {
       const result = await getAllProducts({
         sort: sort ?? undefined,

@@ -15,7 +15,6 @@ import { useProductPaginationHandlers } from '@/features/products/handlers/usePr
 import { useProductModalHandlers } from '@/features/products/handlers/useProductModalHandlers';
 import { useProductNavigation } from '@/features/products/handlers/useProductNavigation';
 import { PRODUCT_DEFAULTS } from '@/features/products/constants/defaults';
-import { PRODUCT_LABELS } from '@/features/products/constants/labels';
 
 const MyRegisteredSection = () => {
   const params = useParams();
@@ -95,7 +94,6 @@ const MyRegisteredSection = () => {
         date={formattedDate}
         products={pagedProducts}
         totalCount={totalCount}
-        companyId={companyId || ''}
         isLoading={isLoading}
         sortOptions={REGISTERED_PRODUCT_SORT_OPTIONS}
         selectedSort={selectedSort}
