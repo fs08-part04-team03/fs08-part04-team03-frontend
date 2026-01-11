@@ -154,7 +154,6 @@ type Story = StoryObj<typeof RegisteredProductTem>;
 export const Default: Story = {
   args: {
     date: '2024.12.19',
-    companyId: 'test-company-id',
     products: mockProducts,
   },
 };
@@ -165,7 +164,6 @@ export const Default: Story = {
 export const ManyProducts: Story = {
   args: {
     date: '2024.12.19',
-    companyId: 'test-company-id',
     products: manyMockProducts,
   },
 };
@@ -176,7 +174,6 @@ export const ManyProducts: Story = {
 export const SinglePage: Story = {
   args: {
     date: '2024.12.01',
-    companyId: 'test-company-id',
     products: mockProducts.slice(0, 1),
   },
 };
@@ -187,7 +184,6 @@ export const SinglePage: Story = {
 export const Empty: Story = {
   args: {
     date: '2024.12.01',
-    companyId: 'test-company-id',
     products: [],
   },
 };

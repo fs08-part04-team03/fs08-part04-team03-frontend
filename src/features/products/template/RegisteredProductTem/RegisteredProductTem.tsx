@@ -16,7 +16,6 @@ interface RegisteredProductTemProps {
   date: string;
   products: RegisteredProductOrgItem[];
   totalCount: number;
-  companyId: string;
   isLoading?: boolean;
   sortOptions: Option[];
   selectedSort: Option;
@@ -32,7 +31,6 @@ const RegisteredProductTem = ({
   date,
   products,
   totalCount,
-  companyId,
   isLoading = false,
   sortOptions,
   selectedSort,
@@ -80,7 +78,6 @@ const RegisteredProductTem = ({
         date={date}
         products={products}
         totalCount={totalCount}
-        companyId={companyId}
         onRegisterClick={onRegisterClick}
         onProductClick={onProductClick}
         isLoading={isLoading}

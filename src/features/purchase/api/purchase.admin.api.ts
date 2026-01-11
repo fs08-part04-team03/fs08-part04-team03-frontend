@@ -4,11 +4,7 @@
 
 import { PURCHASE_API_PATHS } from '@/features/purchase/constants/api';
 import { fetchWithAuth } from './purchase.utils';
-import type {
-  PurchaseRequestItem,
-  RequestPurchaseResponseData,
-  PurchaseDashboardResponse,
-} from './purchase.types';
+import type { PurchaseRequestItem, RequestPurchaseResponseData } from './purchase.types';
 
 // ==================== 관리자 API ====================
 
