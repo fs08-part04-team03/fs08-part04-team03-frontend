@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getMyPurchases, cancelPurchaseRequest } from '@/features/purchase/api/purchase.api';
+import { useParams } from 'next/navigation';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
+import type { Option } from '@/components/atoms/DropDown/DropDown';
 import MyPurchaseRequestListTem from '@/features/purchase/template/MyPurchaseRequestListTem/MyPurchaseRequestListTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import {
@@ -15,10 +15,23 @@ import {
 import { COMMON_SORT_OPTIONS, DEFAULT_SORT_KEY } from '@/constants/sort';
 import { useToast } from '@/hooks/useToast';
 import { usePaginationParams } from '@/hooks/usePaginationParams';
-import { logger } from '@/utils/logger';
-import { STALE_TIME } from '@/constants/staleTime';
+import {
+  useMyPurchases,
+  useCancelPurchaseRequest,
+} from '@/features/purchase/queries/purchase.queries';
+import { PURCHASE_DEFAULTS } from '@/features/purchase/constants/defaults';
+import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseNavigation';
 
+/**
+ * MyPurchaseRequestListSection
+ * 내 구매 요청 목록 데이터/상태 결정 레이어
+ * - 내 구매 요청 목록 API 호출
+ * - loading / error / empty 분기
+ * - Template에 필요한 props를 만들고 내려주기
+ */
 const MyPurchaseRequestListSection = () => {
+  const params = useParams();
+  const companyId = params?.companyId ? String(params.companyId) : undefined;
   // useToast 훅 사용
   const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
 
@@ -35,6 +48,9 @@ const MyPurchaseRequestListSection = () => {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelTargetItem, setCancelTargetItem] = useState<PurchaseRequestItem | null>(null);
 
+  // 핸들러 훅 사용
+  const navigation = usePurchaseNavigation(companyId);
+
   const selectedSortOption =
     sort && sort !== DEFAULT_SORT_KEY
       ? COMMON_SORT_OPTIONS.find((opt) => opt.key === sort)
@@ -50,51 +66,14 @@ const MyPurchaseRequestListSection = () => {
     isLoading,
     error: queryError,
     refetch,
-  } = useQuery({
-    queryKey: ['myPurchases', page, size, status, sort],
-    queryFn: async () => {
-      try {
-        // 정렬 옵션을 API 스펙에 맞게 변환
-        let sortBy: 'createdAt' | 'updatedAt' | 'totalPrice' | undefined = 'createdAt';
-        let order: 'asc' | 'desc' = 'desc';
-
-        if (sort === 'LATEST' || !sort || sort === DEFAULT_SORT_KEY) {
-          sortBy = 'createdAt';
-          order = 'desc';
-        } else if (sort === 'PRICE_LOW') {
-          sortBy = 'totalPrice';
-          order = 'asc';
-        } else if (sort === 'PRICE_HIGH') {
-          sortBy = 'totalPrice';
-          order = 'desc';
-        }
-
-        const response = await getMyPurchases({
-          page,
-          limit: size,
-          sortBy,
-          order,
-          status,
-        });
-
-        // 백엔드에서 이미 정렬/필터링된 데이터를 받으므로 클라이언트 측 추가 처리는 최소화
-        // 페이지네이션은 백엔드에서 처리하므로 그대로 사용
-        return response;
-      } catch (error) {
-        logger.error('[MyPurchaseRequestList] API 호출 실패:', {
-          error: error instanceof Error ? error.message : String(error),
-          page,
-          size,
-          status,
-          sort,
-        });
-        throw error;
-      }
-    },
-    retry: false, // 401 에러 시 재시도 방지
-    refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
-    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
+  } = useMyPurchases({
+    page,
+    size,
+    status,
+    sort,
   });
+
+  const cancelMutation = useCancelPurchaseRequest();
 
   const handleCancelClick = useCallback(
     (purchaseRequestId: string) => {
@@ -113,22 +92,28 @@ const MyPurchaseRequestListSection = () => {
     setCancelTargetItem(null);
   }, []);
 
-  const handleCancelConfirm = useCallback(async () => {
+  const handleCancelConfirm = useCallback(() => {
     if (!cancelTargetItem) return;
 
-    try {
-      await cancelPurchaseRequest(cancelTargetItem.id);
-      await refetch();
-      setCancelModalOpen(false);
-      setCancelTargetItem(null);
-      triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_CANCELLED);
-    } catch (cancelError) {
-      logger.error('구매 요청 취소 실패:', cancelError);
-      triggerToast('error', PURCHASE_ERROR_MESSAGES.CANCEL_FAILED);
-      setCancelModalOpen(false);
-      setCancelTargetItem(null);
-    }
-  }, [cancelTargetItem, refetch, triggerToast]);
+    cancelMutation.mutate(
+      { purchaseRequestId: cancelTargetItem.id },
+      {
+        onSuccess: () => {
+          refetch().catch(() => {
+            // 에러는 무시 (이미 mutation에서 처리됨)
+          });
+          setCancelModalOpen(false);
+          setCancelTargetItem(null);
+          triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_CANCELLED);
+        },
+        onError: () => {
+          triggerToast('error', PURCHASE_ERROR_MESSAGES.CANCEL_FAILED);
+          setCancelModalOpen(false);
+          setCancelTargetItem(null);
+        },
+      }
+    );
+  }, [cancelTargetItem, cancelMutation, refetch, triggerToast]);
 
   if (queryError) {
     return (
@@ -138,8 +123,38 @@ const MyPurchaseRequestListSection = () => {
     );
   }
 
+  const handleSortChangeWithOption = useCallback(
+    (option: Option) => {
+      const sortKey = option.key === 'LATEST' ? undefined : option.key;
+      handleSortChange(sortKey);
+    },
+    [handleSortChange]
+  );
+
+  const handleStatusChangeWithOption = useCallback(
+    (option: Option) => {
+      const statusKey = option.key === 'ALL' ? undefined : option.key;
+      handleStatusChange(statusKey);
+    },
+    [handleStatusChange]
+  );
+
+  const handleRowClick = useCallback(
+    (purchaseRequestId: string) => {
+      navigation.goToMyPurchaseRequestDetail(purchaseRequestId);
+    },
+    [navigation]
+  );
+
+  const handleProductClick = useCallback(
+    (productId: number) => {
+      navigation.goToProductDetail(String(productId));
+    },
+    [navigation]
+  );
+
   // 페이지당 6개만 표시
-  const displayList = data?.purchaseList.slice(0, 6) || [];
+  const displayList = data?.purchaseList.slice(0, PURCHASE_DEFAULTS.DISPLAY_ITEM_COUNT) || [];
 
   return (
     <div className="w-full">
@@ -155,11 +170,15 @@ const MyPurchaseRequestListSection = () => {
         onPageChange={handlePageChange}
         sortOptions={COMMON_SORT_OPTIONS}
         selectedSortOption={selectedSortOption}
-        onSortChange={handleSortChange}
+        onSortChange={handleSortChangeWithOption}
         statusOptions={PURCHASE_REQUEST_STATUS_OPTIONS}
         selectedStatusOption={selectedStatusOption}
-        onStatusChange={handleStatusChange}
+        onStatusChange={handleStatusChangeWithOption}
         isLoading={isLoading}
+        onNavigateToProducts={navigation.goToProducts}
+        onRowClick={handleRowClick}
+        onProductClick={handleProductClick}
+        companyId={companyId}
       />
       {/* Toast */}
       {showToast && (

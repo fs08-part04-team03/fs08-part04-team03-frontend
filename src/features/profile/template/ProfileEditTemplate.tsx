@@ -151,7 +151,13 @@ const ProfileEditForm = ({
                 className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50"
                 aria-label="이미지 삭제"
               >
-                <Image src="/icons/close-circle.svg" alt="삭제" width={24} height={24} />
+                <Image
+                  src="/icons/close-circle.svg"
+                  alt="삭제"
+                  width={24}
+                  height={24}
+                  unoptimized
+                />
               </button>
             )}
           </div>

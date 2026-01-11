@@ -46,7 +46,7 @@ export const AuthUserActionsMobile: React.FC<AuthUserActionsMobileProps> = ({ cl
           href="/login"
         >
           <IconButton aria-label="로그인" size="md" variant="default">
-            <Image alt="Login" height={24} src="/icons/lock.svg" width={24} />
+            <Image alt="Login" height={24} src="/icons/lock.svg" width={24} unoptimized />
           </IconButton>
           로그인
         </Link>
@@ -57,7 +57,7 @@ export const AuthUserActionsMobile: React.FC<AuthUserActionsMobileProps> = ({ cl
           href="/signup"
         >
           <IconButton aria-label="기업가입" size="md" variant="default">
-            <Image alt="Signup" height={24} src="/icons/user-manager.svg" width={24} />
+            <Image alt="Signup" height={24} src="/icons/user-manager.svg" width={24} unoptimized />
           </IconButton>
           기업가입
         </Link>
@@ -80,7 +80,7 @@ export const AuthUserActionsTablet: React.FC<AuthUserActionsTabletProps> = ({ cl
           href="/login"
         >
           <IconButton aria-label="로그인" size="md" variant="default">
-            <Image alt="Login" height={24} src="/icons/lock.svg" width={24} />
+            <Image alt="Login" height={24} src="/icons/lock.svg" width={24} unoptimized />
           </IconButton>
           로그인
         </Link>
@@ -91,7 +91,7 @@ export const AuthUserActionsTablet: React.FC<AuthUserActionsTabletProps> = ({ cl
           href="/signup"
         >
           <IconButton aria-label="기업 담당자 회원가입" size="md" variant="default">
-            <Image alt="Signup" height={24} src="/icons/user-manager.svg" width={24} />
+            <Image alt="Signup" height={24} src="/icons/user-manager.svg" width={24} unoptimized />
           </IconButton>
           기업 담당자 회원가입
         </Link>
@@ -114,7 +114,7 @@ export const AuthUserActionsDesktop: React.FC<AuthUserActionsDesktopProps> = ({ 
           href="/login"
         >
           <IconButton aria-label="로그인" size="md" variant="default">
-            <Image alt="Login" height={24} src="/icons/lock.svg" width={24} />
+            <Image alt="Login" height={24} src="/icons/lock.svg" width={24} unoptimized />
           </IconButton>
           로그인
         </Link>
@@ -125,7 +125,7 @@ export const AuthUserActionsDesktop: React.FC<AuthUserActionsDesktopProps> = ({ 
           href="/signup"
         >
           <IconButton aria-label="기업 담당자 회원가입" size="md" variant="default">
-            <Image alt="Signup" height={24} src="/icons/user-manager.svg" width={24} />
+            <Image alt="Signup" height={24} src="/icons/user-manager.svg" width={24} unoptimized />
           </IconButton>
           기업 담당자 회원가입
         </Link>

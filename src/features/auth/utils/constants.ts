@@ -32,3 +32,32 @@ export const HTTP_HEADERS = {
   CONTENT_TYPE_JSON: 'application/json',
   AUTHORIZATION_PREFIX: 'Bearer ',
 } as const;
+
+// 이미지 파일 관련 상수
+export const IMAGE_CONSTRAINTS = {
+  MAX_SIZE: 5 * 1024 * 1024, // 5MB
+  ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'] as const,
+  MAX_SIZE_MB: 5,
+} as const;
+
+export const IMAGE_ERROR_MESSAGES = {
+  SIZE_EXCEEDED: `이미지 크기는 ${IMAGE_CONSTRAINTS.MAX_SIZE_MB}MB 이하여야 합니다.`,
+  INVALID_TYPE: '지원되는 형식: JPEG, JPG, PNG, GIF, WEBP',
+} as const;
+
+// 프로필 이미지 업데이트 관련 상수
+export const PROFILE_IMAGE_UPDATE = {
+  DELAY_MS: 500, // 인증 정보 반영 대기 시간
+} as const;
+
+export const PROFILE_IMAGE_ERROR_MESSAGES = {
+  UPDATE_FAILED_403:
+    '회원가입은 완료되었습니다. 프로필 이미지는 나중에 프로필 설정에서 업데이트할 수 있습니다.',
+  UPDATE_FAILED:
+    '회원가입은 완료되었지만 프로필 이미지 업데이트에 실패했습니다. 나중에 프로필 설정에서 업데이트할 수 있습니다.',
+} as const;
+
+// 리다이렉트 경로 패턴
+export const AUTH_REDIRECT_PATHS = {
+  PRODUCTS: (companyId: string) => `/${companyId}/products`,
+} as const;

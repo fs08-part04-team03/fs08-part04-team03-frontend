@@ -3,8 +3,6 @@
 
 'use client';
 
-import { useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import StatusTag from '@/components/atoms/StatusTag/StatusTag';
@@ -21,20 +19,31 @@ import {
   formatDate,
   formatItemDescription,
   getStatusTagVariant,
+  calculateTotalPrice,
 } from '@/features/purchase/utils/purchase.utils';
 import { logger } from '@/utils/logger';
+import {
+  PURCHASE_DEFAULTS,
+  PURCHASE_TABLE_STYLES,
+  PURCHASE_SPACING,
+  PURCHASE_HEIGHTS,
+  PURCHASE_PADDING,
+  PURCHASE_TEXT_SIZES,
+  PURCHASE_LABELS,
+  PURCHASE_EMPTY_MESSAGES,
+} from '@/features/purchase/constants';
 
 const TABLE_CELL_BASE_STYLES = {
-  header: 'text-left text-gray-700 text-14 font-bold shrink-0 py-20 pl-20',
-  cell: 'shrink-0 text-left py-20 pl-20',
+  header: PURCHASE_TABLE_STYLES.CELL_BASE.HEADER,
+  cell: PURCHASE_TABLE_STYLES.CELL_BASE.CELL,
 } as const;
 
 const COLUMN_WIDTHS = {
-  date: 'tablet:w-100 desktop:w-140',
-  product: 'tablet:w-200 desktop:flex-1',
-  price: 'tablet:w-100 desktop:w-140',
-  status: 'tablet:w-100 desktop:w-140',
-  actions: 'tablet:w-140 desktop:w-180 desktop:max-w-180',
+  date: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.DATE,
+  product: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.PRODUCT,
+  price: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.PRICE,
+  status: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.STATUS,
+  actions: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.ACTIONS,
 } as const;
 
 /**
@@ -53,16 +62,22 @@ export interface MyPurchaseRequestListTemProps {
   onPageChange?: (page: number) => void;
   sortOptions?: Option[];
   selectedSortOption?: Option;
-  onSortChange?: (sort: string | undefined) => void;
+  onSortChange?: (option: Option) => void;
   statusOptions?: Option[];
   selectedStatusOption?: Option;
-  onStatusChange?: (status: string | undefined) => void;
+  onStatusChange?: (option: Option) => void;
   isLoading?: boolean;
+  onNavigateToProducts?: () => void;
+  onRowClick?: (purchaseRequestId: string) => void;
+  onProductClick?: (productId: number) => void;
+  companyId?: string;
 }
 
 interface PurchaseRequestTableRowProps {
   item: PurchaseRequestItem;
   onCancelClick?: (purchaseRequestId: string) => void;
+  onRowClick?: (purchaseRequestId: string) => void;
+  companyId?: string;
 }
 
 const TableHeaderCell = ({
@@ -74,47 +89,78 @@ const TableHeaderCell = ({
 }) => <div className={clsx(TABLE_CELL_BASE_STYLES.header, widthClass)}>{children}</div>;
 
 /**
- * 테이블 헤더 (태블릿)
+ * 테이블 컬럼 헤더 (공통)
  */
-const PurchaseRequestTableHeaderTablet = ({
+const TableColumnHeaders = () => (
+  <div
+    className={clsx(
+      'flex items-center w-full justify-between',
+      PURCHASE_HEIGHTS.TABLE_HEADER,
+      'tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200'
+    )}
+  >
+    <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>
+      {PURCHASE_LABELS.TABLE_HEADERS.DATE}
+    </TableHeaderCell>
+    <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>
+      {PURCHASE_LABELS.TABLE_HEADERS.PRODUCT}
+    </TableHeaderCell>
+    <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>
+      {PURCHASE_LABELS.TABLE_HEADERS.PRICE}
+    </TableHeaderCell>
+    <TableHeaderCell widthClass={COLUMN_WIDTHS.status}>
+      {PURCHASE_LABELS.TABLE_HEADERS.STATUS}
+    </TableHeaderCell>
+    <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>
+      {PURCHASE_LABELS.TABLE_HEADERS.ACTIONS}
+    </TableHeaderCell>
+  </div>
+);
+
+interface FilterHeaderProps {
+  sortOptions?: Option[];
+  selectedSortOption?: Option;
+  onSortChange?: (option: Option) => void;
+  statusOptions?: Option[];
+  selectedStatusOption?: Option;
+  onStatusChange?: (option: Option) => void;
+  isTablet?: boolean;
+}
+
+/**
+ * 테이블 헤더 (태블릿/데스크탑 공통)
+ */
+const PurchaseRequestTableHeader = ({
   sortOptions,
   selectedSortOption,
   onSortChange,
   statusOptions,
   selectedStatusOption,
   onStatusChange,
-}: {
-  sortOptions?: Option[];
-  selectedSortOption?: Option;
-  onSortChange?: (sort: string | undefined) => void;
-  statusOptions?: Option[];
-  selectedStatusOption?: Option;
-  onStatusChange?: (status: string | undefined) => void;
-}) => {
+  isTablet = false,
+}: FilterHeaderProps) => {
   const handleSortSelect = (option: Option) => {
-    const sort = option.key === 'LATEST' ? undefined : option.key;
-    onSortChange?.(sort);
+    onSortChange?.(option);
   };
 
   const handleStatusSelect = (option: Option) => {
-    const status = option.key === 'ALL' ? undefined : option.key;
-    onStatusChange?.(status);
+    onStatusChange?.(option);
   };
 
   return (
-    <div className={clsx('w-full', 'tablet:px-24')}>
+    <div className={clsx('w-full', isTablet && 'tablet:px-24')}>
       <div
         className={clsx(
           'flex items-center justify-between w-full',
           'text-left',
           'text-gray-700',
-          'text-18',
+          PURCHASE_TEXT_SIZES.MEDIUM,
           'font-bold',
-          'py-20'
+          PURCHASE_PADDING.CELL_Y
         )}
       >
-        <p>구매 요청 내역</p>
-        <div className={clsx('flex items-center gap-12')}>
+        <p>{PURCHASE_LABELS.TITLE}</p>
+        <div className={clsx('flex items-center', PURCHASE_SPACING.GAP_MEDIUM)}>
           {statusOptions && (
             <div className="relative z-dropdown">
               <DropDown
@@ -129,7 +175,7 @@ const PurchaseRequestTableHeaderTablet = ({
             <div className="relative z-dropdown">
               <DropDown
                 items={sortOptions}
-                placeholder="최신순"
+                placeholder={PURCHASE_LABELS.SORT_PLACEHOLDER}
                 selected={selectedSortOption}
                 onSelect={handleSortSelect}
               />
@@ -142,72 +188,40 @@ const PurchaseRequestTableHeaderTablet = ({
 };
 
 /**
- * 테이블 헤더 (데스크탑)
+ * 테이블 헤더 섹션 (필터 + 컬럼 헤더)
  */
-const PurchaseRequestTableHeaderDesktop = ({
+interface TableHeaderSectionProps extends FilterHeaderProps {
+  shouldShowTableHeader: boolean;
+}
+
+const TableHeaderSection = ({
   sortOptions,
   selectedSortOption,
   onSortChange,
   statusOptions,
   selectedStatusOption,
   onStatusChange,
-}: {
-  sortOptions?: Option[];
-  selectedSortOption?: Option;
-  onSortChange?: (sort: string | undefined) => void;
-  statusOptions?: Option[];
-  selectedStatusOption?: Option;
-  onStatusChange?: (status: string | undefined) => void;
-}) => {
-  const handleSortSelect = (option: Option) => {
-    const sort = option.key === 'LATEST' ? undefined : option.key;
-    onSortChange?.(sort);
-  };
-
-  const handleStatusSelect = (option: Option) => {
-    const status = option.key === 'ALL' ? undefined : option.key;
-    onStatusChange?.(status);
-  };
-
-  return (
-    <div className={clsx('w-full')}>
-      <div
-        className={clsx(
-          'flex items-center justify-between w-full',
-          'text-left',
-          'text-gray-700',
-          'text-18',
-          'font-bold',
-          'py-20'
-        )}
-      >
-        <p>구매 요청 내역</p>
-        <div className={clsx('flex items-center gap-12')}>
-          {statusOptions && (
-            <div className="relative z-dropdown">
-              <DropDown
-                items={statusOptions}
-                placeholder="전체"
-                selected={selectedStatusOption}
-                onSelect={handleStatusSelect}
-              />
-            </div>
-          )}
-          {sortOptions && (
-            <div className="relative z-dropdown">
-              <DropDown
-                items={sortOptions}
-                placeholder="최신순"
-                selected={selectedSortOption}
-                onSelect={handleSortSelect}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
+  isTablet = false,
+  shouldShowTableHeader,
+}: TableHeaderSectionProps) => (
+  <>
+    <PurchaseRequestTableHeader
+      sortOptions={sortOptions}
+      selectedSortOption={selectedSortOption}
+      onSortChange={onSortChange}
+      statusOptions={statusOptions}
+      selectedStatusOption={selectedStatusOption}
+      onStatusChange={onStatusChange}
+      isTablet={isTablet}
+    />
+    {shouldShowTableHeader && (
+      <>
+        <Divider variant="thin" className="w-full" />
+        <TableColumnHeaders />
+      </>
+    )}
+  </>
+);
 
 /**
  * 테이블 행 컴포넌트 (태블릿/데스크탑)
@@ -215,63 +229,24 @@ const PurchaseRequestTableHeaderDesktop = ({
 const PurchaseRequestTableRowDesktop = ({
   item,
   onCancelClick,
+  onRowClick,
   companyId,
-}: PurchaseRequestTableRowProps & { companyId?: string }) => {
-  const router = useRouter();
+}: PurchaseRequestTableRowProps) => {
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
-  // totalPrice가 0이거나 없을 경우 purchaseItems에서 계산
-  const calculatedTotalPrice =
-    item.purchaseItems?.reduce(
-      (sum, purchaseItem) => sum + (purchaseItem.priceSnapshot || 0) * (purchaseItem.quantity || 0),
-      0
-    ) || 0;
-  const totalPrice =
-    (item.totalPrice && item.totalPrice > 0 ? item.totalPrice : calculatedTotalPrice) +
-    (item.shippingFee ?? 0);
+  const totalPrice = calculateTotalPrice(item);
 
   const handleRowClick = (e: React.MouseEvent) => {
-    // 버튼을 클릭한 경우는 row 클릭으로 처리하지 않음
     const target = e.target as HTMLElement;
-
-    // 버튼을 클릭한 경우만 제외
-    if (target.closest('button')) {
-      return;
-    }
-
-    // 나머지 모든 영역(상품명 포함)을 클릭한 경우 구매 요청 상세로 이동
-    if (!companyId || !item.id) {
-      logger.warn('구매 요청 상세 페이지 이동 실패:', {
-        companyId,
-        itemId: item.id,
-      });
-      return;
-    }
-
-    const targetPath = `/${companyId}/my/purchase-requests/${item.id}`;
-    logger.info('구매 요청 상세 페이지로 이동:', {
-      companyId,
-      itemId: item.id,
-      path: targetPath,
-      target: target.tagName,
-      className: target.className,
-    });
-    router.push(targetPath);
+    if (target.closest('button')) return;
+    onRowClick?.(item.id);
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       e.stopPropagation();
-      if (!companyId || !item.id) {
-        logger.warn('구매 요청 상세 페이지 이동 실패:', {
-          companyId,
-          itemId: item.id,
-        });
-        return;
-      }
-      const targetPath = `/${companyId}/my/purchase-requests/${item.id}`;
-      router.push(targetPath);
+      onRowClick?.(item.id);
     }
   };
 
@@ -285,12 +260,11 @@ const PurchaseRequestTableRowDesktop = ({
     <div
       role="button"
       tabIndex={0}
-      data-row-click="true"
       className={clsx(
         'flex items-center w-full justify-between',
         'cursor-pointer hover:bg-gray-50',
         'tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200',
-        'h-100',
+        PURCHASE_HEIGHTS.TABLE_ROW,
         isUrgent && 'bg-red-100'
       )}
       onClick={handleRowClick}
@@ -330,7 +304,7 @@ const PurchaseRequestTableRowDesktop = ({
       <div className={clsx(TABLE_CELL_BASE_STYLES.cell, COLUMN_WIDTHS.actions)}>
         {isPending && (
           <Button variant="secondary" onClick={handleCancelClick} className="w-126 h-40 text-12">
-            요청 취소
+            {PURCHASE_LABELS.BUTTONS.CANCEL}
           </Button>
         )}
       </div>
@@ -340,6 +314,12 @@ const PurchaseRequestTableRowDesktop = ({
 
 /**
  * 구매 요청 목록 테이블 컴포넌트
+ */
+/**
+ * MyPurchaseRequestListTem
+ * 순수 UI 조립 레이어
+ * - header / list / row / footer 컴포지션만 담당
+ * - props 기반 렌더링만 수행
  */
 const MyPurchaseRequestListTem = ({
   purchaseList,
@@ -359,75 +339,49 @@ const MyPurchaseRequestListTem = ({
   selectedStatusOption,
   onStatusChange,
   isLoading = false,
+  onNavigateToProducts,
+  onRowClick,
+  onProductClick,
+  companyId,
 }: MyPurchaseRequestListTemProps) => {
-  const router = useRouter();
-  const params = useParams();
-  const companyId = params?.companyId ? String(params.companyId) : undefined;
-
-  const handleNavigateToProducts = useCallback(() => {
-    if (!companyId) return;
-    router.push(`/${companyId}/products`);
-  }, [router, companyId]);
-
-  const handleRowClick = useCallback(
-    (purchaseRequestId: string) => {
-      if (companyId) {
-        router.push(`/${companyId}/my/purchase-requests/${purchaseRequestId}`);
-      }
-    },
-    [companyId, router]
-  );
-
   const isEmpty = !purchaseList || purchaseList.length === 0;
   const shouldShowTableHeader = isLoading || !isEmpty;
 
-  const renderMobileContent = () => {
-    if (isLoading) {
-      return <ListSkeletonUI rows={6} />;
-    }
+  const renderEmptyState = (isMobile = false) => (
+    <div
+      className={clsx(
+        'w-full',
+        'flex justify-center',
+        isMobile ? 'items-center min-h-[calc(100vh-80px)]' : 'mt-200'
+      )}
+    >
+      <StatusNotice
+        title={PURCHASE_EMPTY_MESSAGES.USER_NO_REQUESTS.TITLE}
+        description={PURCHASE_EMPTY_MESSAGES.USER_NO_REQUESTS.DESCRIPTION}
+        buttonText={PURCHASE_LABELS.BUTTONS.NAVIGATE_TO_PRODUCTS}
+        onButtonClick={onNavigateToProducts}
+      />
+    </div>
+  );
 
-    if (isEmpty) {
-      return (
-        <div
-          className={clsx('w-full', 'flex justify-center items-center', 'min-h-[calc(100vh-80px)]')}
-        >
-          <StatusNotice
-            title="구매 요청한 내역이 없어요"
-            description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-            buttonText="상품 리스트로 이동"
-            onButtonClick={handleNavigateToProducts}
-          />
-        </div>
-      );
-    }
+  const renderMobileContent = () => {
+    if (isLoading) return <ListSkeletonUI rows={PURCHASE_DEFAULTS.SKELETON_ROWS} />;
+    if (isEmpty) return renderEmptyState(true);
 
     return (
       <PurchaseRequestItemListOrg
         purchaseList={purchaseList}
         onCancel={onCancelClick}
-        onRowClick={handleRowClick}
+        onRowClick={onRowClick}
         companyId={companyId}
+        onProductClick={onProductClick}
       />
     );
   };
 
   const renderTableContent = () => {
-    if (isLoading) {
-      return <ListSkeletonUI rows={6} />;
-    }
-
-    if (isEmpty) {
-      return (
-        <div className={clsx('w-full', 'mt-200', 'flex justify-center')}>
-          <StatusNotice
-            title="구매 요청한 내역이 없어요"
-            description={`상품 리스트를 둘러보고\n관리자에게 요청해보세요`}
-            buttonText="상품 리스트로 이동"
-            onButtonClick={handleNavigateToProducts}
-          />
-        </div>
-      );
-    }
+    if (isLoading) return <ListSkeletonUI rows={PURCHASE_DEFAULTS.SKELETON_ROWS} />;
+    if (isEmpty) return renderEmptyState(false);
 
     return (
       <div className={clsx('w-full')}>
@@ -436,6 +390,7 @@ const MyPurchaseRequestListTem = ({
             key={item.id}
             item={item}
             onCancelClick={onCancelClick}
+            onRowClick={onRowClick}
             companyId={companyId}
           />
         ))}
@@ -461,52 +416,18 @@ const MyPurchaseRequestListTem = ({
       {/* 태블릿/데스크탑 레이아웃 - 테이블 */}
       <div className={clsx('hidden tablet:block', 'overflow-x-auto')}>
         <div className={clsx('w-full')}>
-          {/* 태블릿 헤더 - 항상 표시 */}
-          <div className={clsx('hidden tablet:block desktop:hidden')}>
-            <PurchaseRequestTableHeaderTablet
+          {/* 헤더 - 태블릿/데스크탑 공통 */}
+          <div className={clsx('hidden tablet:block')}>
+            <TableHeaderSection
               sortOptions={sortOptions}
               selectedSortOption={selectedSortOption}
               onSortChange={onSortChange}
               statusOptions={statusOptions}
               selectedStatusOption={selectedStatusOption}
               onStatusChange={onStatusChange}
+              isTablet
+              shouldShowTableHeader={shouldShowTableHeader}
             />
-            {shouldShowTableHeader && (
-              <>
-                <Divider variant="thin" className="w-full" />
-                <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200">
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.status}>상태</TableHeaderCell>
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* 데스크탑 헤더 - 항상 표시 */}
-          <div className={clsx('hidden desktop:block')}>
-            <PurchaseRequestTableHeaderDesktop
-              sortOptions={sortOptions}
-              selectedSortOption={selectedSortOption}
-              onSortChange={onSortChange}
-              statusOptions={statusOptions}
-              selectedStatusOption={selectedStatusOption}
-              onStatusChange={onStatusChange}
-            />
-            {shouldShowTableHeader && (
-              <>
-                <Divider variant="thin" className="w-full" />
-                <div className="flex items-center w-full justify-between h-60 tablet:border-b tablet:border-gray-200 desktop:border-b desktop:border-gray-200">
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.date}>구매 요청일</TableHeaderCell>
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.product}>상품 정보</TableHeaderCell>
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.price}>주문 금액</TableHeaderCell>
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.status}>상태</TableHeaderCell>
-                  <TableHeaderCell widthClass={COLUMN_WIDTHS.actions}>비고</TableHeaderCell>
-                </div>
-              </>
-            )}
           </div>
 
           {renderTableContent()}
@@ -526,28 +447,16 @@ const MyPurchaseRequestListTem = ({
       )}
 
       {/* 취소 확인 모달 */}
-      <CustomModal
-        open={cancelModalOpen}
-        type="cancel"
-        productName={
-          cancelTargetItem && cancelTargetItem.purchaseItems.length > 0
-            ? cancelTargetItem.purchaseItems[0]?.products.name
-            : undefined
-        }
-        cancelCount={
-          cancelTargetItem && cancelTargetItem.purchaseItems.length > 1
-            ? cancelTargetItem.purchaseItems.length - 1
-            : 0
-        }
-        onClose={onCancelModalClose || (() => {})}
-        onConfirm={
-          onCancelConfirm
-            ? ((async () => {
-                await onCancelConfirm();
-              }) as () => void | Promise<void>)
-            : undefined
-        }
-      />
+      {cancelModalOpen && cancelTargetItem && onCancelModalClose && (
+        <CustomModal
+          open={cancelModalOpen}
+          type="cancel"
+          productName={cancelTargetItem.purchaseItems[0]?.products.name}
+          cancelCount={Math.max(0, cancelTargetItem.purchaseItems.length - 1)}
+          onClose={onCancelModalClose}
+          onConfirm={onCancelConfirm}
+        />
+      )}
     </div>
   );
 };

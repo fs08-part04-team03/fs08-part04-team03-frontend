@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useRouter, useParams } from 'next/navigation';
 
 import {
   CategoryPanel,
@@ -12,47 +11,85 @@ import DetailPageLayout, {
   type DetailPageLayoutProps,
 } from '@/components/organisms/DetailPageLayout/DetailPageLayout';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
+import CustomModal from '@/components/molecules/CustomModal/CustomModal';
+import ProductEditModal, {
+  type ProductEditFormData,
+} from '@/components/molecules/ProductEditModal/ProductEditModal';
 import { LOADING_MESSAGES } from '@/constants';
 import { getChildById } from '@/constants/categories/categories.utils';
+import { PRODUCT_MESSAGES } from '@/features/products/constants/messages';
+import type { Option } from '@/components/atoms/DropDown/DropDown';
+import type { UpdateMyProductOptions } from '@/features/products/api/products.api';
 
 /* =====================
  * Props
- ====================== */
+ * ====================== */
 interface ProductDetailTemProps {
   categorySections: CategoryPanelSection[];
   detailPageProps: DetailPageLayoutProps;
   isLoading?: boolean;
   hasProduct?: boolean;
   productCategoryId?: number | null; // 상품의 소분류 ID
+  canUseMenu?: boolean;
+  editModalOpen?: boolean;
+  deleteModalOpen?: boolean;
+  onCloseEditModal?: () => void;
+  onCloseDeleteModal?: () => void;
+  onEditSubmit?: (data: ProductEditFormData, options?: UpdateMyProductOptions) => void;
+  onDeleteConfirm?: () => void;
+  initialCategoryOption?: Option | null;
+  initialSubCategoryOption?: Option | null;
+  initialLink?: string;
+  initialImage?: string | null;
+  initialImageKey?: string | null;
+  productName?: string;
+  productPrice?: string;
+  cartAddFailedModalOpen?: boolean;
+  cartAddSuccessModalOpen?: boolean;
+  onCloseCartAddFailedModal?: () => void;
+  onCloseCartAddSuccessModal?: () => void;
+  onGoToCart?: () => void;
+  onGoToProducts?: () => void;
+  onChangeCategory?: (categoryId: number | null) => void;
 }
 
 /* =====================
  * ProductDetailTem
- ====================== */
+ * ====================== */
 const ProductDetailTem = ({
   categorySections,
   detailPageProps,
   isLoading = false,
   hasProduct = true,
   productCategoryId = null,
+  canUseMenu = false,
+  editModalOpen = false,
+  deleteModalOpen = false,
+  onCloseEditModal,
+  onCloseDeleteModal,
+  onEditSubmit,
+  onDeleteConfirm,
+  initialCategoryOption = null,
+  initialSubCategoryOption = null,
+  initialLink = '',
+  initialImage = null,
+  initialImageKey = null,
+  productName = '',
+  productPrice = '',
+  cartAddFailedModalOpen = false,
+  cartAddSuccessModalOpen = false,
+  onCloseCartAddFailedModal,
+  onCloseCartAddSuccessModal,
+  onGoToCart,
+  onGoToProducts,
+  onChangeCategory,
 }: ProductDetailTemProps) => {
-  const router = useRouter();
-  const params = useParams();
-  const companyId = params?.companyId ? String(params.companyId) : '';
-
   // 상품의 대분류 ID 찾기
   const activeSectionId = useMemo(() => {
     if (!productCategoryId) return null;
     const childCategory = getChildById(productCategoryId);
     return childCategory?.parentId ?? null;
   }, [productCategoryId]);
-
-  const handleCategoryChange = (value: number | null) => {
-    if (value !== null && companyId) {
-      // 다른 소분류 클릭 시 상품 페이지로 이동
-      router.push(`/${companyId}/products?categoryId=${value}`);
-    }
-  };
 
   // 로딩 중일 때는 로딩 메시지만 표시
   if (isLoading) {
@@ -77,12 +114,12 @@ const ProductDetailTem = ({
                   ? Number(productCategoryId)
                   : productCategoryId
               }
-              onChange={handleCategoryChange}
+              onChange={onChangeCategory || (() => {})}
             />
             <div className="flex items-center justify-center w-full h-522 tablet:h-604 desktop:h-938">
               <StatusNotice
-                title="등록된 상품이 없습니다"
-                description="상품을 등록하면\n여기에 표시됩니다."
+                title={PRODUCT_MESSAGES.EMPTY.NO_PRODUCTS.TITLE}
+                description={PRODUCT_MESSAGES.EMPTY.NO_PRODUCTS.DESCRIPTION}
                 hideButton
               />
             </div>
@@ -102,7 +139,7 @@ const ProductDetailTem = ({
             selectedValue={
               typeof productCategoryId === 'string' ? Number(productCategoryId) : productCategoryId
             }
-            onChange={handleCategoryChange}
+            onChange={onChangeCategory || (() => {})}
           />
 
           <div className="shrink-0">
@@ -118,6 +155,46 @@ const ProductDetailTem = ({
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <CustomModal
+        open={cartAddFailedModalOpen}
+        type="cart-add-failed"
+        description={PRODUCT_MESSAGES.MODAL.CART_ADD_FAILED_DESCRIPTION}
+        onClose={onCloseCartAddFailedModal}
+        onConfirm={onCloseCartAddFailedModal}
+      />
+      <CustomModal
+        open={cartAddSuccessModalOpen}
+        type="cart-add-success"
+        description={PRODUCT_MESSAGES.MODAL.CART_ADD_SUCCESS_DESCRIPTION}
+        onClose={onCloseCartAddSuccessModal}
+        onGoToCart={onGoToCart}
+        onGoToProducts={onGoToProducts}
+      />
+      {canUseMenu && onEditSubmit && onDeleteConfirm && (
+        <>
+          <ProductEditModal
+            open={editModalOpen}
+            onClose={onCloseEditModal || (() => {})}
+            onSubmit={onEditSubmit}
+            initialName={productName}
+            initialPrice={productPrice}
+            initialLink={initialLink}
+            initialImage={initialImage}
+            initialImageKey={initialImageKey}
+            initialCategory={initialCategoryOption}
+            initialSubCategory={initialSubCategoryOption}
+          />
+          <CustomModal
+            open={deleteModalOpen}
+            type="delete"
+            productName={productName}
+            onClose={onCloseDeleteModal || (() => {})}
+            onConfirm={onDeleteConfirm}
+          />
+        </>
+      )}
     </div>
   );
 };

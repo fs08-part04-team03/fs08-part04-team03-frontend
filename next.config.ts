@@ -34,7 +34,25 @@ const nextConfig: NextConfig = {
         pathname: '/uploads/**',
       },
     ],
-    localPatterns: [{ pathname: '/api/product/image/**' }],
+    localPatterns: [
+      { pathname: '/api/product/image/**' },
+      { pathname: '/icons/**' },
+      { pathname: '/images/**' },
+      { pathname: '/logo/**' },
+    ],
+    // 이미지 최적화 설정
+    minimumCacheTTL: 86400, // 24시간 캐시
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+
+  // 프로덕션에서 source maps 비활성화 (Best Practices 개선)
+  productionBrowserSourceMaps: false,
+
+  // 성능 최적화: 컴파일러 옵션
+  compiler: {
+    // 프로덕션에서 console.log 제거
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
 
   async rewrites() {
@@ -45,6 +63,18 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/:path*`,
       },
     ];
+  },
+
+  // 압축 최적화 (gzip)
+  compress: true,
+  
+  // 실험적 기능: 성능 최적화
+  experimental: {
+    optimizePackageImports: ['@tanstack/react-query', 'recharts', 'zod'],
+    // 서버 컴포넌트 최적화
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
 };
 

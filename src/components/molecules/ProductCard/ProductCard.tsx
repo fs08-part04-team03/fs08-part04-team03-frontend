@@ -24,6 +24,9 @@ interface BaseProductCardProps {
   /** ✅ 위시리스트 상태 */
   liked?: boolean;
   onToggleLike?: () => void;
+
+  /** 이미지 우선순위 */
+  priority?: boolean;
 }
 
 const ProductCard: React.FC<BaseProductCardProps> = ({
@@ -39,6 +42,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   onUnlike,
   liked: externalLiked,
   onToggleLike,
+  priority = false,
 }) => {
   const [internalLiked, setInternalLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
@@ -143,6 +147,9 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           className="max-w-full max-h-full w-auto h-auto object-contain"
           onError={() => setImgError(true)}
           crossOrigin="anonymous"
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchPriority={priority ? 'high' : 'auto'}
         />
       );
     } else {
@@ -159,6 +166,9 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           className="object-contain"
           style={{ objectPosition: 'center' }}
           unoptimized={isProxyApiUrl}
+          loading={priority ? 'eager' : 'lazy'}
+          priority={priority}
+          fetchPriority={priority ? 'high' : 'auto'}
         />
       );
     }
