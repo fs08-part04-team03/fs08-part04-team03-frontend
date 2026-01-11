@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
@@ -65,12 +65,23 @@ const CartSummaryBlockOrg = ({
   const [showBudgetToast, setShowBudgetToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const deleteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isAdminRole = cartRole === 'manager' || cartRole === 'admin';
 
   useEffect(() => {
     setCheckedIds((prev) => prev.filter((id) => items.some((i) => i.cartItemId === id)));
   }, [items]);
+
+  // 컴포넌트 언마운트 시 pending timeout 정리
+  useEffect(
+    () => () => {
+      if (deleteTimeoutRef.current) {
+        clearTimeout(deleteTimeoutRef.current);
+      }
+    },
+    []
+  );
 
   const allChecked = items.length > 0 && checkedIds.length === items.length;
 
@@ -157,10 +168,15 @@ const CartSummaryBlockOrg = ({
   const deleteCartItemsAfterPurchase = (cartItemIds: string[]) => {
     if (cartItemIds.length === 0) return;
 
-    // checkedIds를 함수 시작 시점에 복사하여 stale closure 문제 방지
+    // 이전 timeout이 있으면 정리
+    if (deleteTimeoutRef.current) {
+      clearTimeout(deleteTimeoutRef.current);
+    }
+
+    // cartItemIds를 함수 시작 시점에 복사하여 stale closure 문제 방지
     const idsToDelete = [...cartItemIds];
 
-    setTimeout(() => {
+    deleteTimeoutRef.current = setTimeout(() => {
       (async () => {
         try {
           await cartApi.deleteMultiple(idsToDelete);
@@ -175,9 +191,16 @@ const CartSummaryBlockOrg = ({
             errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
             cartItemIds: idsToDelete,
           });
+        } finally {
+          deleteTimeoutRef.current = null;
         }
-      })().catch(() => {
+      })().catch((err) => {
         // 에러는 이미 catch 블록에서 처리됨
+        logger.error('Unexpected error in deleteCartItemsAfterPurchase', {
+          hasError: true,
+          errorType: err instanceof Error ? err.constructor.name : 'Unknown',
+        });
+        deleteTimeoutRef.current = null;
       });
     }, CART_DELETE_DELAY);
   };
