@@ -69,7 +69,7 @@ const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProp
         >
           <div className="flex items-center gap-6">
             <div className={clsx('relative w-8 h-14', { 'opacity-50': isPrevEnd })}>
-              <Image src="/icons/arrow-left.svg" alt="이전 페이지" fill />
+              <Image src="/icons/arrow-left.svg" alt="이전 페이지" fill unoptimized />
             </div>
             <span
               className={clsx('text-16', {
@@ -102,7 +102,7 @@ const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProp
               Next
             </span>
             <div className={clsx('relative w-8 h-14', { 'opacity-50': isNextEnd })}>
-              <Image src="/icons/arrow-right.svg" alt="다음 페이지" fill />
+              <Image src="/icons/arrow-right.svg" alt="다음 페이지" fill unoptimized />
             </div>
           </div>
         </Button>

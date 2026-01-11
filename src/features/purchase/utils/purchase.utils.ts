@@ -49,3 +49,34 @@ export function getStatusTagVariant(status: PurchaseRequestItem['status']): Stat
   }
   return 'pending';
 }
+
+/**
+ * 구매 요청 항목의 총 가격 계산
+ * finalTotalPrice를 우선 사용하고, 없으면 itemsTotalPrice + shippingFee 사용
+ * 레거시 totalPrice도 지원
+ */
+export function calculateTotalPrice(item: PurchaseRequestItem): number {
+  // 최종 가격이 있으면 그것을 사용
+  if (item.finalTotalPrice) {
+    return item.finalTotalPrice;
+  }
+
+  // itemsTotalPrice가 있으면 배송비를 더해서 반환
+  if (item.itemsTotalPrice !== undefined) {
+    return item.itemsTotalPrice + (item.shippingFee ?? 0);
+  }
+
+  // 레거시 totalPrice 지원 (deprecated)
+  if (item.totalPrice !== undefined && item.totalPrice > 0) {
+    return item.totalPrice + (item.shippingFee ?? 0);
+  }
+
+  // 그것도 없으면 purchaseItems에서 직접 계산
+  const calculatedPrice =
+    item.purchaseItems?.reduce(
+      (sum, purchaseItem) => sum + (purchaseItem.priceSnapshot || 0) * (purchaseItem.quantity || 0),
+      0
+    ) || 0;
+
+  return calculatedPrice + (item.shippingFee ?? 0);
+}

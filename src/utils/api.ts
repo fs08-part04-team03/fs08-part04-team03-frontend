@@ -45,6 +45,13 @@ export function getApiUrl(): string {
       ? process.env.NEXT_PUBLIC_API_URL // 클라이언트 사이드: 직접 접근
       : process.env[ENV_KEYS.API_URL]; // 서버 사이드: 상수 키 사용
 
+  // 개발 환경의 클라이언트 사이드에서만 상대 경로 사용 (프록시 활용)
+  // 서버 사이드에서는 절대 URL 필요 (서버는 상대 경로 사용 불가)
+  // 이렇게 하면 브라우저에서 쿠키가 퍼스트파티로 처리됨
+  if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+    return ''; // 빈 값 = 상대 경로, next.config.ts의 rewrites가 프록시 처리
+  }
+
   const apiUrl = envApiUrl || DEFAULT_API_URL;
 
   // 개발 환경에서만 API URL 로그 출력 (주석 처리하여 로그 비활성화)
@@ -516,12 +523,33 @@ export async function tryRefreshToken(): Promise<string | null> {
 
       // 401 에러는 refresh token이 만료되었거나 없을 때
       if (response.status === 401) {
-        logger.warn('[Token Refresh] 401 에러 - refresh token 만료 또는 없음', {
-          errorText: errorText.substring(0, 300), // 처음 300자만
-          errorJson,
-          cookieInfo, // 쿠키 정보도 함께 로깅
-          refreshUrl,
-        });
+        // 현재 인증 상태 확인
+        const { accessToken: currentAccessToken, user: currentUser } = useAuthStore.getState();
+        const isLoggedIn = !!(currentAccessToken || currentUser);
+
+        // 로그인 상태에서 발생한 401은 경고로, 비로그인 상태에서 발생한 401은 정보로 로깅
+        if (isLoggedIn) {
+          logger.warn(
+            '[Token Refresh] 401 에러 - refresh token 만료 또는 없음 (로그인 상태에서 발생)',
+            {
+              errorText: errorText.substring(0, 300), // 처음 300자만
+              errorJson,
+              cookieInfo, // 쿠키 정보도 함께 로깅
+              refreshUrl,
+            }
+          );
+        } else {
+          // 로그인하지 않은 상태에서 발생한 401은 정상적인 상황이므로 info 레벨로 로깅
+          logger.info(
+            '[Token Refresh] 401 에러 - refresh token 없음 (로그인하지 않은 상태에서 발생, 정상)',
+            {
+              errorText: errorText.substring(0, 300), // 처음 300자만
+              errorJson,
+              cookieInfo,
+              refreshUrl,
+            }
+          );
+        }
         return null;
       }
       // 403 에러는 CSRF 토큰 불일치 또는 누락 (Next.js API Route에서 처리)
@@ -572,11 +600,12 @@ export async function handle401Error(): Promise<void> {
     logger.warn('[401 Error Handler] 토큰 갱신 실패 - 로그아웃 처리');
     const { clearAuth } = useAuthStore.getState();
     clearAuth();
-    // 리다이렉트를 약간 지연시켜 React Query가 에러를 처리할 수 있도록 함
+    // queueMicrotask를 사용하여 현재 스택이 모두 실행된 후 리다이렉트
+    // React Query가 에러를 처리할 시간을 주면서 성능 경고를 방지
     if (typeof window !== 'undefined') {
-      setTimeout(() => {
+      queueMicrotask(() => {
         window.location.href = '/login';
-      }, 100);
+      });
     }
   } else {
     logger.info('[401 Error Handler] 토큰 갱신 성공');
@@ -702,10 +731,12 @@ export async function fetchWithAuth(
             // 재시도 후에도 401이면 로그아웃 처리
             const { clearAuth } = useAuthStore.getState();
             clearAuth();
+            // queueMicrotask를 사용하여 현재 스택이 모두 실행된 후 리다이렉트
+            // React Query가 에러를 처리할 시간을 주면서 성능 경고를 방지
             if (typeof window !== 'undefined') {
-              setTimeout(() => {
+              queueMicrotask(() => {
                 window.location.href = '/login';
-              }, 100);
+              });
             }
             throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
           }

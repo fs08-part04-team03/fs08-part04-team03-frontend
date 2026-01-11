@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
 import { clearAuthCookies } from '@/utils/cookies';
@@ -20,6 +20,7 @@ import { cartApi } from '@/features/cart/api/cart.api';
 import { getMyProfile } from '@/features/profile/api/profile.api';
 import { logger } from '@/utils/logger';
 import { STALE_TIME } from '@/constants/staleTime';
+import { profileKeys } from '@/features/profile/queries/profile.keys';
 import GNB from './GNB';
 
 /**
@@ -37,30 +38,22 @@ export const GNBWrapper: React.FC = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const [companyName, setCompanyName] = useState<string>('');
 
-  // 회사 정보 조회 (GNB에 표시할 회사명)
-  // Authorization 헤더를 포함하여 API 호출
-  useEffect(() => {
-    const fetchCompanyData = async () => {
-      if (!accessToken) return;
+  // 회사 정보 조회 (React Query로 관리)
+  const { data: companyData } = useQuery({
+    queryKey: profileKeys.company(),
+    queryFn: () => {
+      if (!accessToken) throw new Error('No access token');
+      return getCompany(accessToken);
+    },
+    enabled: !!accessToken,
+    staleTime: STALE_TIME.FIVE_MINUTES,
+    retry: 1,
+    // 에러 발생 시 기본값 사용
+    placeholderData: { id: '', name: 'SNACK' },
+  });
 
-      try {
-        const company = await getCompany(accessToken);
-        setCompanyName(company.name);
-      } catch (error) {
-        logger.error('Failed to fetch company information', {
-          hasError: true,
-          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-        });
-        // 실패 시 기본값 사용 (사용자에게는 에러를 표시하지 않음)
-        setCompanyName('SNACK');
-      }
-    };
-
-    // eslint-disable-next-line no-void
-    void fetchCompanyData();
-  }, [accessToken]);
+  const companyName = companyData?.name || 'SNACK';
 
   // 로그아웃 핸들러 (비동기 작업을 수행하지만 void를 반환)
   const handleLogout = () => {
@@ -103,7 +96,7 @@ export const GNBWrapper: React.FC = () => {
 
   // 사용자 프로필 정보 조회 (profileImage 포함)
   const { data: myProfile } = useQuery({
-    queryKey: ['myProfile'],
+    queryKey: profileKeys.myProfile(),
     queryFn: () => getMyProfile(),
     enabled: !!user && !!accessToken,
     staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지

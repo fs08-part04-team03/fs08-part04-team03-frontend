@@ -2,13 +2,12 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { Divider } from '@/components/atoms/Divider/Divider';
 import { clsx } from '@/utils/clsx';
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import LinkText from '@/components/atoms/LinkText/LinkText';
 import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
-import { PATHNAME } from '@/constants';
+import { PRODUCT_LABELS, PRODUCT_MESSAGES } from '@/features/products/constants';
 
 export interface RegisteredProductOrgItem {
   id: number;
@@ -25,6 +24,7 @@ interface RegisteredProductOrgProps {
   totalCount: number;
   companyId: string;
   onRegisterClick?: () => void;
+  onProductClick?: (productId: number) => void;
   isLoading?: boolean;
 }
 
@@ -34,12 +34,12 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
   totalCount,
   companyId,
   onRegisterClick,
+  onProductClick,
   isLoading = false,
 }) => {
   const isEmpty = products.length === 0;
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
   const [isClient, setIsClient] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
@@ -66,7 +66,9 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
   };
 
   const handleProductClick = (productId: number) => {
-    router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
+    if (onProductClick) {
+      onProductClick(productId);
+    }
   };
 
   return (
@@ -91,19 +93,19 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
         <div
           className={clsx(
             'hidden desktop:flex',
-            'items-center w-full justify-between',
-            'h-60',
+            'desktop:items-center',
+            'desktop:px-40 desktop:gap-16 desktop:h-60',
             'desktop:border-b desktop:border-gray-200'
           )}
         >
           <div className={clsx('flex-1 flex items-center gap-20')}>
             <div className={clsx('w-40 h-40')} />
-            <span className={clsx('text-14 font-bold text-gray-700 pl-20')}>상품명</span>
+            <span className={clsx('text-14 font-bold text-gray-700')}>상품명</span>
           </div>
-          <span className={clsx('w-120 text-14 font-bold text-gray-700 pl-20')}>등록일</span>
-          <span className={clsx('w-180 text-14 font-bold text-gray-700 pl-20')}>카테고리</span>
-          <span className={clsx('w-160 text-14 font-bold text-gray-700 pl-20')}>가격</span>
-          <span className={clsx('w-180 text-14 font-bold text-gray-700 pl-20')}>제품 링크</span>
+          <span className={clsx('w-120 text-14 font-bold text-gray-700')}>등록일</span>
+          <span className={clsx('w-180 text-14 font-bold text-gray-700')}>카테고리</span>
+          <span className={clsx('w-160 text-14 font-bold text-gray-700')}>가격</span>
+          <span className={clsx('w-180 text-14 font-bold text-gray-700')}>제품 링크</span>
         </div>
 
         {/* ✅ Products 영역 (반응형 최대 높이 적용) */}
@@ -117,9 +119,9 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
               return (
                 <div className={clsx('mt-40 flex justify-center')}>
                   <StatusNotice
-                    title="등록된 상품이 없습니다"
-                    description={`아직 등록한 상품이 없어요.\n상품을 등록해 보세요.`}
-                    buttonText="상품 등록하기"
+                    title={PRODUCT_MESSAGES.EMPTY.NO_MY_PRODUCTS.TITLE}
+                    description={PRODUCT_MESSAGES.EMPTY.NO_MY_PRODUCTS.DESCRIPTION}
+                    buttonText={PRODUCT_LABELS.BUTTON.REGISTER}
                     onButtonClick={onRegisterClick}
                   />
                 </div>

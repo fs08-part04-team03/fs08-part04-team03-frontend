@@ -16,6 +16,7 @@ import ProfileEditTemplate from '@/features/profile/template/ProfileEditTemplate
 import { useToast } from '@/hooks/useToast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { STALE_TIME } from '@/constants/staleTime';
+import { profileKeys } from '@/features/profile/queries/profile.keys';
 
 const getRoleDisplayName = (role?: string) => {
   switch (role) {
@@ -57,7 +58,7 @@ const ProfileEditSection = () => {
 
   // 사용자 프로필 정보 조회 (profileImage 포함)
   const { data: myProfile } = useQuery({
-    queryKey: ['myProfile'],
+    queryKey: profileKeys.myProfile(),
     queryFn: () => getMyProfile(),
     enabled: !!user && !!accessToken,
     staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
@@ -231,8 +232,14 @@ const ProfileEditSection = () => {
       }
 
       // 프로필 업데이트 후 myProfile 쿼리 invalidate하여 최신 데이터 반영
-      await queryClient.invalidateQueries({ queryKey: ['myProfile'] });
-      await queryClient.refetchQueries({ queryKey: ['myProfile'], type: 'active' });
+      await queryClient.invalidateQueries({ queryKey: profileKeys.myProfile() });
+      await queryClient.refetchQueries({ queryKey: profileKeys.myProfile(), type: 'active' });
+
+      // 관리자가 회사명을 변경한 경우 회사 정보도 refetch
+      if (isAdmin && values.companyName && values.companyName.trim() !== '') {
+        await queryClient.invalidateQueries({ queryKey: profileKeys.company() });
+        await queryClient.refetchQueries({ queryKey: profileKeys.company(), type: 'active' });
+      }
 
       setToastMessage('프로필이 성공적으로 변경되었습니다.');
       setShowToast(true);

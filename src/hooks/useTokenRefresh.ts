@@ -30,24 +30,55 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
     }
 
     // rehydration 후 accessToken이 없으면 refresh 시도 (한 번만)
-    if (!accessToken && !rehydrationAttemptedRef.current) {
+    // 단, user 정보가 있는 경우에만 시도 (로그인했던 이력이 있는 경우)
+    // user 정보도 없으면 이미 로그인하지 않은 상태이므로 토큰 갱신 시도하지 않음
+    // 하지만 남아있을 수 있는 쿠키는 정리해야 함
+    if (!accessToken && !user && !rehydrationAttemptedRef.current) {
+      // 로그인하지 않은 상태이므로 토큰 갱신 시도하지 않음
+      // 하지만 남아있을 수 있는 refresh token 쿠키를 정리
+      rehydrationAttemptedRef.current = true;
+      const clearCookies = async () => {
+        try {
+          const { clearAuthCookies } = await import('@/utils/cookies');
+          await clearAuthCookies();
+          logger.info(
+            '[Token Refresh] Rehydration 후 accessToken과 user가 모두 없음 - 로그인하지 않은 상태이므로 쿠키 정리 완료'
+          );
+        } catch (error) {
+          // 쿠키 정리 실패는 무시 (이미 로그인하지 않은 상태이므로)
+          logger.info(
+            '[Token Refresh] Rehydration 후 accessToken과 user가 모두 없음 - 로그인하지 않은 상태 (쿠키 정리 시도했으나 실패할 수 있음)'
+          );
+        }
+      };
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      clearCookies();
+      return () => {
+        mountedRef.current = false;
+      };
+    }
+
+    // user 정보는 있지만 accessToken이 없는 경우 (예: localStorage에서 user는 복원되었지만 accessToken은 만료된 경우)
+    if (!accessToken && user && !rehydrationAttemptedRef.current) {
       rehydrationAttemptedRef.current = true;
       const attemptRefresh = async () => {
         if (inFlightRef.current) return;
         inFlightRef.current = true;
 
         try {
-          logger.info('[Token Refresh] Rehydration 후 토큰 갱신 시도');
+          logger.info('[Token Refresh] Rehydration 후 토큰 갱신 시도 (user 정보는 있음)');
           const newToken = await tryRefreshToken();
           if (newToken) {
             logger.info('[Token Refresh] Rehydration 후 토큰 갱신 성공');
           } else {
             // refresh token이 만료되었거나 없음
-            // rehydration 직후이므로 localStorage에 저장된 정보가 없을 수 있음
-            // 이미 로그인하지 않은 상태이므로 추가 처리는 불필요
-            logger.info(
-              '[Token Refresh] Rehydration 후 토큰 갱신 실패 - refresh token 쿠키가 없거나 만료됨 (로그인하지 않은 상태일 수 있음)'
+            // user 정보는 있었지만 refresh token이 만료된 경우
+            logger.warn(
+              '[Token Refresh] Rehydration 후 토큰 갱신 실패 - refresh token 쿠키가 없거나 만료됨 (로그아웃 처리 필요할 수 있음)'
             );
+            // user 정보는 있지만 refresh token이 만료된 경우 로그아웃 처리
+            const { clearAuth } = useAuthStore.getState();
+            clearAuth();
           }
         } catch (error: unknown) {
           logger.warn('[Token Refresh] Rehydration 후 토큰 갱신 중 예외 발생', {
@@ -94,10 +125,12 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
             logger.warn('[Token Refresh] Refresh token 만료 - 로그인 상태에서 로그아웃 처리 필요');
             clearAuth();
             // 로그인 페이지로 리다이렉트
+            // queueMicrotask를 사용하여 현재 스택이 모두 실행된 후 리다이렉트
+            // React Query가 에러를 처리할 시간을 주면서 성능 경고를 방지
             if (typeof window !== 'undefined') {
-              setTimeout(() => {
+              queueMicrotask(() => {
                 window.location.href = '/login';
-              }, 100);
+              });
             }
           }
         }
