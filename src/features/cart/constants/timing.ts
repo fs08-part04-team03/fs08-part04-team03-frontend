@@ -5,5 +5,6 @@
 /**
  * 구매 요청 후 장바구니 아이템 삭제 지연 시간 (밀리초)
  * 페이지 이동이 완료된 후 삭제를 수행하기 위한 지연 시간
+ * 느린 기기에서의 레이스 컨디션을 방지하기 위해 충분한 시간 설정
  */
-export const CART_DELETE_DELAY = 100;
+export const CART_DELETE_DELAY = 500;
