@@ -83,6 +83,8 @@ export const usePurchaseCartActions = ({
         if (successCount > 0) {
           const partialMessage = PURCHASE_MESSAGES.ADD_TO_CART_PARTIAL(successCount);
           onError?.(partialMessage);
+          // 일부라도 성공했으므로 onSuccess도 호출
+          onSuccess?.();
           return;
         }
         throw new Error(PURCHASE_MESSAGES.ADD_TO_CART_FAILED);

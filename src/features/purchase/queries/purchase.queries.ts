@@ -295,10 +295,15 @@ export function useCancelPurchaseRequest() {
  * 구매 요청 생성 mutation 훅
  */
 export function useRequestPurchase() {
+  const queryClient = useQueryClient();
   const { triggerToast } = useToast();
 
   return useMutation<RequestPurchaseResponseData, Error, RequestPurchaseRequest>({
     mutationFn: async (request) => requestPurchase(request),
+    onSuccess: async () => {
+      // 사용자의 구매 요청 목록 캐시 무효화
+      await queryClient.invalidateQueries({ queryKey: purchaseKeys.myPurchases() });
+    },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : '구매 요청에 실패했습니다.';
       triggerToast('error', message);
@@ -311,10 +316,15 @@ export function useRequestPurchase() {
  * 긴급 구매 요청 생성 mutation 훅
  */
 export function useUrgentRequestPurchase() {
+  const queryClient = useQueryClient();
   const { triggerToast } = useToast();
 
   return useMutation<RequestPurchaseResponseData, Error, UrgentRequestPurchaseRequest>({
     mutationFn: async (request) => urgentRequestPurchase(request),
+    onSuccess: async () => {
+      // 사용자의 구매 요청 목록 캐시 무효화
+      await queryClient.invalidateQueries({ queryKey: purchaseKeys.myPurchases() });
+    },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : '긴급 구매 요청에 실패했습니다.';
       triggerToast('error', message);
