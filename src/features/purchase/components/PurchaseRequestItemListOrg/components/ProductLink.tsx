@@ -21,20 +21,20 @@ export const ProductLink = ({ item, children, className, onProductClick }: Produ
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (productId && onProductClick) {
+    if (productId != null && onProductClick) {
       onProductClick(productId);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.key === 'Enter' || e.key === ' ') && productId && onProductClick) {
+    if ((e.key === 'Enter' || e.key === ' ') && productId != null && onProductClick) {
       e.preventDefault();
       e.stopPropagation();
       onProductClick(productId);
     }
   };
 
-  if (!productId || !onProductClick) {
+  if (productId == null || !onProductClick) {
     return <div className={className}>{children}</div>;
   }
 

@@ -19,6 +19,8 @@ import {
   type RequestPurchaseResponseData,
 } from '@/features/purchase/api/purchase.api';
 import { cartApi } from '@/features/cart/api/cart.api';
+import { cartKeys } from '@/features/cart/queries/cart.keys';
+import { CART_DELETE_DELAY } from '@/features/cart/constants/timing';
 
 export type CartRole = 'user' | 'manager' | 'admin';
 
@@ -148,12 +150,46 @@ const CartSummaryBlockOrg = ({
     }
   };
 
+  /**
+   * 구매 요청 후 장바구니 아이템 삭제 (페이지 이동 후 실행)
+   * @param cartItemIds - 삭제할 장바구니 아이템 ID 배열
+   */
+  const deleteCartItemsAfterPurchase = (cartItemIds: string[]) => {
+    if (cartItemIds.length === 0) return;
+
+    // checkedIds를 함수 시작 시점에 복사하여 stale closure 문제 방지
+    const idsToDelete = [...cartItemIds];
+
+    setTimeout(() => {
+      (async () => {
+        try {
+          await cartApi.deleteMultiple(idsToDelete);
+          logger.info('Cart items deleted after purchase request', {
+            deletedCount: idsToDelete.length,
+          });
+          await queryClient.invalidateQueries({ queryKey: cartKeys.all });
+        } catch (deleteError) {
+          // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
+          logger.error('Failed to delete cart items after purchase request', {
+            hasError: true,
+            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+            cartItemIds: idsToDelete,
+          });
+        }
+      })().catch(() => {
+        // 에러는 이미 catch 블록에서 처리됨
+      });
+    }, CART_DELETE_DELAY);
+  };
+
   /** 매니저 긴급 구매 요청 (예산 초과 시) */
   const handleManagerUrgentPurchase = async () => {
     if (checkedIds.length === 0 || loading || isPurchasing) return;
 
     try {
       setIsPurchasing(true);
+      // checkedIds를 함수 시작 시점에 복사하여 stale closure 문제 방지
+      const cartItemIdsToDelete = [...checkedIds];
       const result = await urgentRequestPurchase({
         items: selectedItems.map((item) => ({
           productId: item.productId,
@@ -168,33 +204,7 @@ const CartSummaryBlockOrg = ({
         if (companyId && result?.id) {
           router.push(`/${companyId}/order/completed?id=${result.id}`);
           triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
-
-          // 페이지 이동 후 카트 아이템 삭제 (비동기로 처리하여 페이지 이동을 블로킹하지 않음)
-          if (checkedIds.length > 0) {
-            // setTimeout을 사용하여 페이지 이동 후 삭제 처리
-            setTimeout(() => {
-              (async () => {
-                try {
-                  await cartApi.deleteMultiple(checkedIds);
-                  logger.info('Cart items deleted after urgent purchase request', {
-                    deletedCount: checkedIds.length,
-                  });
-                  // 장바구니 무효화
-                  await queryClient.invalidateQueries({ queryKey: ['cart'] });
-                } catch (deleteError) {
-                  // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
-                  logger.error('Failed to delete cart items after urgent purchase request', {
-                    hasError: true,
-                    errorType:
-                      deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
-                    cartItemIds: checkedIds,
-                  });
-                }
-              })().catch(() => {
-                // 에러는 이미 catch 블록에서 처리됨
-              });
-            }, 100); // 100ms 지연으로 페이지 이동 후 실행
-          }
+          deleteCartItemsAfterPurchase(cartItemIdsToDelete);
         } else if (companyId) {
           // purchase ID가 없으면 장바구니로 이동
           router.push(`/${companyId}/cart`);
@@ -223,6 +233,8 @@ const CartSummaryBlockOrg = ({
 
     try {
       setIsPurchasing(true);
+      // checkedIds를 함수 시작 시점에 복사하여 stale closure 문제 방지
+      const cartItemIdsToDelete = [...checkedIds];
       const result: RequestPurchaseResponseData = await purchaseNowMultiple({
         items: selectedItems.map((item) => ({
           productId: item.productId,
@@ -236,33 +248,7 @@ const CartSummaryBlockOrg = ({
         if (companyId && result?.id) {
           router.push(`/${companyId}/order/completed?id=${result.id}`);
           triggerToast('success', '구매 요청이 완료되었습니다.');
-
-          // 페이지 이동 후 카트 아이템 삭제 (비동기로 처리하여 페이지 이동을 블로킹하지 않음)
-          if (checkedIds.length > 0) {
-            // setTimeout을 사용하여 페이지 이동 후 삭제 처리
-            setTimeout(() => {
-              (async () => {
-                try {
-                  await cartApi.deleteMultiple(checkedIds);
-                  logger.info('Cart items deleted after purchase request', {
-                    deletedCount: checkedIds.length,
-                  });
-                  // 장바구니 무효화
-                  await queryClient.invalidateQueries({ queryKey: ['cart'] });
-                } catch (deleteError) {
-                  // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
-                  logger.error('Failed to delete cart items after purchase request', {
-                    hasError: true,
-                    errorType:
-                      deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
-                    cartItemIds: checkedIds,
-                  });
-                }
-              })().catch(() => {
-                // 에러는 이미 catch 블록에서 처리됨
-              });
-            }, 100); // 100ms 지연으로 페이지 이동 후 실행
-          }
+          deleteCartItemsAfterPurchase(cartItemIdsToDelete);
         } else if (companyId) {
           // purchase ID가 없으면 장바구니로 이동
           router.push(`/${companyId}/cart`);

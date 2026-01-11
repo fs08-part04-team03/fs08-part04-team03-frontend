@@ -24,6 +24,7 @@ import { useProductWishlistActions } from '@/features/products/handlers/useProdu
 import { useProductCartActions } from '@/features/products/handlers/useProductCartActions';
 import { useProductEditActions } from '@/features/products/handlers/useProductEditActions';
 import { PRODUCT_LABELS } from '@/features/products/constants';
+import { logger } from '@/utils/logger';
 
 const ProductDetailSection = () => {
   const params = useParams();
@@ -225,8 +226,12 @@ const ProductDetailSection = () => {
       onCloseCartAddFailedModal={modals.handleCloseCartAddFailedModal}
       onCloseCartAddSuccessModal={modals.handleCloseCartAddSuccessModal}
       onGoToCart={() => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        navigation.goToCart();
+        navigation.goToCart().catch((navError) => {
+          logger.error('Failed to navigate to cart', {
+            hasError: true,
+            errorType: navError instanceof Error ? navError.constructor.name : 'Unknown',
+          });
+        });
       }}
       onGoToProducts={navigation.goToProducts}
       onChangeCategory={navigation.goToProductsByCategory}
