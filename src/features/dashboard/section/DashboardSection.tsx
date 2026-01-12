@@ -154,8 +154,27 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
         const response = await getPurchaseDashboard();
 
         if (response.success) {
+          logger.info('[Dashboard] API 응답 성공', {
+            expenses: response.data.expenses,
+            budget: response.data.budget,
+          });
           const transformedData = transformDashboardData(response.data);
+          logger.info('[Dashboard] 변환된 데이터', {
+            monthlyExpense: transformedData.monthlyExpense,
+            yearlyExpense: transformedData.yearlyExpense,
+            progressValue: transformedData.progressValue,
+          });
           setDashboardData(transformedData);
+        } else {
+          logger.error('[Dashboard] API 응답 실패', {
+            success: response.success,
+            message: response.message,
+          });
+          setToastState({
+            isVisible: true,
+            variant: 'custom',
+            message: response.message || '대시보드 정보를 불러오는데 실패했습니다.',
+          });
         }
       } catch (error) {
         logger.error('[Dashboard] 대시보드 정보를 불러오는데 실패했습니다.', {
@@ -174,7 +193,7 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
     fetchDashboardData().catch((error) => {
       logger.error('[Dashboard] Unexpected error in fetchDashboardData', error);
     });
-  }, []);
+  }, [companyId]); // companyId가 변경되면 데이터를 다시 로드
 
   if (isLoading) {
     return (
@@ -189,7 +208,7 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
       <DashboardTem
         companyId={companyId}
         user={user ?? { name: '사용자' }}
-        userRole={(user?.role?.toLowerCase() as 'user' | 'manager' | 'admin') ?? 'admin'}
+        userRole={(user?.role?.toLowerCase() as 'user' | 'manager' | 'admin') ?? 'user'}
         monthlyExpense={dashboardData.monthlyExpense}
         yearlyExpense={dashboardData.yearlyExpense}
         progressValue={dashboardData.progressValue}
