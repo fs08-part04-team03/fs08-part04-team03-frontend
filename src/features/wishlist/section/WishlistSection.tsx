@@ -40,7 +40,7 @@ const WishlistSection = () => {
 
   // 상품 클릭 핸들러
   const handleProductClick = (productId: number) => {
-    router.push(`${PATHNAME.PRODUCTS(companyId)}/${productId}`);
+    router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
   };
 
   // 상품 보러가기 핸들러
