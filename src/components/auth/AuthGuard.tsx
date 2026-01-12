@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
 import { hasAccess } from '@/utils/auth';
+import { PATHNAME } from '@/constants';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -23,27 +24,21 @@ export const AuthGuard = ({ children, companyId }: AuthGuardProps) => {
   const { user, isHydrated } = useAuthStore();
 
   useEffect(() => {
-    // 하이드레이션이 완료되지 않았으면 리다이렉트하지 않음
     if (!isHydrated) return;
 
-    // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
     if (!user) {
-      const loginUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
+      const loginUrl = `${PATHNAME.LOGIN}?redirect=${encodeURIComponent(pathname)}`;
       router.push(loginUrl);
       return;
     }
 
-    // 회사 ID 불일치 확인
     if (user.companyId !== companyId) {
-      // 사용자의 실제 회사 페이지로 리다이렉트
-      router.push(`/${user.companyId}/products`);
+      router.push(PATHNAME.PRODUCTS(user.companyId));
       return;
     }
 
-    // 권한 확인
     if (!hasAccess(user.role, pathname)) {
-      // 권한이 없으면 홈(상품 목록)으로 리다이렉트
-      router.push(`/${user.companyId}/products`);
+      router.push(PATHNAME.PRODUCTS(user.companyId));
     }
   }, [user, companyId, pathname, router, isHydrated]);
 
