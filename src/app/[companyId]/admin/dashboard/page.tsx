@@ -8,10 +8,13 @@ export const metadata: Metadata = {
 };
 
 // 대시보드 페이지
-const DashboardPage = ({ params }: { params: { companyId: string } }) => (
-  <div>
-    <DashboardSection companyId={params.companyId} />
-  </div>
-);
+const DashboardPage = async ({ params }: { params: Promise<{ companyId: string }> }) => {
+  const { companyId } = await params;
+  return (
+    <div>
+      <DashboardSection companyId={companyId} />
+    </div>
+  );
+};
 
 export default DashboardPage;

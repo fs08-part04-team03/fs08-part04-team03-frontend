@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import DashboardTem from '@/features/dashboard/template/DashboardTem/DashboardTem';
 import {
   getPurchaseDashboard,
   type DashboardApiResponse,
 } from '@/features/dashboard/api/dashboard.api';
+import DashboardTem from '@/features/dashboard/template/DashboardTem/DashboardTem';
 import type {
   NewUser,
   ChangedUser,
@@ -51,55 +51,60 @@ const generateColor = (index: number): string => {
  */
 const transformDashboardData = (data: DashboardApiResponse) => {
   // 월별 지출 현황 (최근 12개월)
+  // 현재 날짜 기준으로 최근 12개월 데이터를 정렬하여 처리
   const monthlyExpenses = Array(12).fill(0);
-  data.monthlyExpenses.forEach((expense) => {
-    // month는 1-12, 배열 인덱스는 0-11
-    const index = expense.month - 1;
-    if (index >= 0 && index < 12) {
-      monthlyExpenses[index] = expense.totalExpenses;
+
+  // 데이터를 연도-월 기준으로 정렬 (최신순)
+  const sortedExpenses = [...data.monthlyExpenses].sort((a, b) => {
+    const dateA = a.year * 12 + a.month;
+    const dateB = b.year * 12 + b.month;
+    return dateB - dateA; // 내림차순 (최신순)
+  });
+
+  // 최근 12개월 데이터만 사용
+  sortedExpenses.slice(0, 12).forEach((expense, index) => {
+    // 최신 데이터부터 역순으로 배열에 저장
+    // 배열의 마지막이 최신 데이터가 되도록
+    const arrayIndex = 11 - index;
+    if (arrayIndex >= 0 && arrayIndex < 12) {
+      monthlyExpenses[arrayIndex] = expense.totalExpenses;
     }
   });
 
   // 신규 회원 리스트 변환 (role을 소문자로)
-  const newUsers: NewUser[] = data.newUsers.map((user) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role.toLowerCase() as 'user' | 'manager' | 'admin',
-    createdAt: user.createdAt,
-  }));
+  const newUsers: NewUser[] = data.newUsers.map(
+    (user: DashboardApiResponse['newUsers'][number]) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role.toLowerCase() as 'user' | 'manager' | 'admin',
+      createdAt: user.createdAt,
+    })
+  );
 
   // 탈퇴/권한 변경 회원 리스트 변환
-  const changedUsers: ChangedUser[] = data.userChanges.map((user) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    changeType: user.changeType,
-    beforeRole: user.beforeRole?.toLowerCase() as 'user' | 'manager' | 'admin' | undefined,
-    afterRole: user.afterRole?.toLowerCase() as 'user' | 'manager' | 'admin' | undefined,
-    changedAt: user.changedAt,
-  }));
+  const changedUsers: ChangedUser[] = data.userChanges.map(
+    (user: DashboardApiResponse['userChanges'][number]) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      changeType: user.changeType,
+      beforeRole: user.beforeRole?.toLowerCase() as 'user' | 'manager' | 'admin' | undefined,
+      afterRole: user.afterRole?.toLowerCase() as 'user' | 'manager' | 'admin' | undefined,
+      changedAt: user.changedAt,
+    })
+  );
 
   // 간식 순위 변환
-  const snackRank: LargeChartItem[] = data.snacksList.map((snack, index) => ({
-    label: snack.name,
-    value: snack.purchaseCount,
-    color: generateColor(index),
-  }));
-
-  // 예산 사용률 계산
-  const usedBudget = data.budget.thisMonthBudget - data.budget.remainingBudget;
-  const progressValue =
-    data.budget.thisMonthBudget > 0
-      ? Math.round((usedBudget / data.budget.thisMonthBudget) * 100)
-      : 0;
+  const snackRank: LargeChartItem[] = data.snacksList.map(
+    (snack: DashboardApiResponse['snacksList'][number], index: number) => ({
+      label: snack.name,
+      value: snack.purchaseCount,
+      color: generateColor(index),
+    })
+  );
 
   return {
-    monthlyExpense: data.expenses.thisMonth,
-    yearlyExpense: data.expenses.thisYear,
-    progressValue,
-    currentBudget: data.budget.thisMonthBudget,
-    lastBudget: usedBudget,
     monthlyExpenses,
     newUsers,
     changedUsers,
@@ -118,11 +123,6 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
 
   // 대시보드 데이터 상태
   const [dashboardData, setDashboardData] = useState({
-    monthlyExpense: 0,
-    yearlyExpense: 0,
-    progressValue: 0,
-    currentBudget: 0,
-    lastBudget: 0,
     monthlyExpenses: Array(12).fill(0) as number[],
     newUsers: [] as NewUser[],
     changedUsers: [] as ChangedUser[],
@@ -149,20 +149,20 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
           variant: 'custom',
           message: '대시보드 정보를 불러오는데 실패했습니다.',
         });
-        setTimeout(() => setToastState((prev) => ({ ...prev, isVisible: false })), 3000);
       } finally {
         setIsLoading(false);
       }
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    fetchDashboardData();
+    fetchDashboardData().catch((error) => {
+      logger.error('[Dashboard] Unexpected error in fetchDashboardData', error);
+    });
   }, []);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-16 text-gray-600">로딩 중...</div>
+        <p>로딩 중...</p>
       </div>
     );
   }
@@ -171,18 +171,14 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
     <>
       <DashboardTem
         companyId={companyId}
-        user={user || { name: '사용자' }}
-        userRole={user?.role.toLowerCase() as 'user' | 'manager' | 'admin' | undefined}
-        monthlyExpense={dashboardData.monthlyExpense}
-        yearlyExpense={dashboardData.yearlyExpense}
-        progressValue={dashboardData.progressValue}
-        currentBudget={dashboardData.currentBudget}
-        lastBudget={dashboardData.lastBudget}
+        user={user ?? { name: '사용자' }}
+        userRole={(user?.role?.toLowerCase() as 'user' | 'manager' | 'admin') ?? 'admin'}
         monthlyExpenses={dashboardData.monthlyExpenses}
         newUsers={dashboardData.newUsers}
         changedUsers={dashboardData.changedUsers}
         snackRank={dashboardData.snackRank}
       />
+
       {toastState.isVisible && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[var(--z-toast)]">
           <Toast
