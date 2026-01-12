@@ -1,4 +1,4 @@
-import { useAuthStore } from '@/lib/store/authStore';
+import { fetchWithAuth } from '@/utils/api';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -8,40 +8,13 @@ interface ApiResponse<T> {
 
 /**
  * 공통 API 요청 헬퍼 함수
+ * utils/api.ts의 fetchWithAuth를 래핑하여 JSON 응답을 파싱합니다.
  */
-async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
-  }
-
-  const { accessToken } = useAuthStore.getState();
-  if (!accessToken) {
-    throw new Error('인증 토큰이 없습니다. 로그인이 필요합니다.');
-  }
-
-  const response = await fetch(`${apiUrl}${url}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-      ...options.headers,
-    },
-    credentials: 'include',
-  });
-
-  // 401 Unauthorized 에러 처리
-  if (response.status === 401) {
-    const { clearAuth } = useAuthStore.getState();
-    clearAuth();
-    // 리다이렉트를 약간 지연시켜 React Query가 에러를 처리할 수 있도록 함
-    if (typeof window !== 'undefined') {
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 100);
-    }
-    throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
-  }
+async function fetchDashboardData<T>(
+  url: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
+  const response = await fetchWithAuth(url, options);
 
   if (!response.ok) {
     const errorData = (await response.json().catch(() => ({}))) as { message?: string };
@@ -101,6 +74,6 @@ export interface DashboardApiResponse {
  * GET /api/v1/purchase/admin/purchaseDashboard
  */
 export const getPurchaseDashboard = async () =>
-  fetchWithAuth<DashboardApiResponse>('/api/v1/purchase/admin/purchaseDashboard', {
+  fetchDashboardData<DashboardApiResponse>('/api/v1/purchase/admin/purchaseDashboard', {
     method: 'GET',
   });
