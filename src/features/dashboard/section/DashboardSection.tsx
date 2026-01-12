@@ -104,7 +104,19 @@ const transformDashboardData = (data: DashboardApiResponse) => {
     })
   );
 
+  // 예산 사용률 계산
+  const usedBudget = data.budget.thisMonthBudget - data.budget.remainingBudget;
+  const progressValue =
+    data.budget.thisMonthBudget > 0
+      ? Math.round((usedBudget / data.budget.thisMonthBudget) * 100)
+      : 0;
+
   return {
+    monthlyExpense: data.expenses.thisMonth,
+    yearlyExpense: data.expenses.thisYear,
+    progressValue,
+    currentBudget: data.budget.thisMonthBudget,
+    lastBudget: usedBudget,
     monthlyExpenses,
     newUsers,
     changedUsers,
@@ -123,6 +135,11 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
 
   // 대시보드 데이터 상태
   const [dashboardData, setDashboardData] = useState({
+    monthlyExpense: 0,
+    yearlyExpense: 0,
+    progressValue: 0,
+    currentBudget: 0,
+    lastBudget: 0,
     monthlyExpenses: Array(12).fill(0) as number[],
     newUsers: [] as NewUser[],
     changedUsers: [] as ChangedUser[],
@@ -173,6 +190,11 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
         companyId={companyId}
         user={user ?? { name: '사용자' }}
         userRole={(user?.role?.toLowerCase() as 'user' | 'manager' | 'admin') ?? 'admin'}
+        monthlyExpense={dashboardData.monthlyExpense}
+        yearlyExpense={dashboardData.yearlyExpense}
+        progressValue={dashboardData.progressValue}
+        currentBudget={dashboardData.currentBudget}
+        lastBudget={dashboardData.lastBudget}
         monthlyExpenses={dashboardData.monthlyExpenses}
         newUsers={dashboardData.newUsers}
         changedUsers={dashboardData.changedUsers}
