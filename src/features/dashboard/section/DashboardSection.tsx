@@ -125,7 +125,7 @@ const transformDashboardData = (data: DashboardApiResponse) => {
 };
 
 const DashboardSection = ({ companyId }: DashboardSectionProps) => {
-  const { user } = useAuthStore();
+  const { user, isHydrated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
   const [toastState, setToastState] = useState({
     isVisible: false,
@@ -197,7 +197,8 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
     });
   }, []); // 컴포넌트 마운트 시 한 번만 실행 (토큰에서 회사 정보 자동 추출)
 
-  if (isLoading) {
+  // 하이드레이션이 완료되지 않은 경우 (Zustand persist 로딩 중)
+  if (!isHydrated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>로딩 중...</p>
@@ -205,12 +206,22 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
     );
   }
 
-  // 사용자 정보가 없는 경우 (인증 실패 또는 로그아웃 상태)
+  // API 데이터 로딩 중
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>대시보드 데이터를 불러오는 중...</p>
+      </div>
+    );
+  }
+
+  // 사용자 정보가 없는 경우 (실제 비인증 상태)
+  // 이 시점에서는 isHydrated === true이므로 스토어가 완전히 로드된 상태
   if (!user) {
     logger.warn('[Dashboard] 사용자 정보 없음 - 인증 필요');
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p>사용자 정보를 불러오는 중...</p>
+        <p>인증이 필요합니다. 로그인 페이지로 이동 중...</p>
       </div>
     );
   }
