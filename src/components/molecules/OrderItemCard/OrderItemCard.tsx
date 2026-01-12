@@ -49,13 +49,15 @@ const ProductImage: React.FC<ProductImageProps> = ({
 
   const imageContent = shouldShowImage ? (
     <div className="absolute inset-0 flex items-center justify-center">
-      {isExternalUrl ? (
+      {/* 외부 URL 또는 프록시 API URL은 일반 img 태그 사용 */}
+      {/* 프록시 API URL은 인증이 필요하므로 쿠키가 자동으로 포함되도록 img 태그 사용 */}
+      {isExternalUrl || isProxyApiUrl ? (
         <img
           src={imageSrc}
           alt={name}
           className="max-w-full max-h-full w-auto h-auto object-contain"
           onError={onImageError}
-          crossOrigin="anonymous"
+          crossOrigin={isExternalUrl ? 'anonymous' : undefined}
         />
       ) : (
         <Image
@@ -67,7 +69,6 @@ const ProductImage: React.FC<ProductImageProps> = ({
           className="object-contain"
           style={{ objectPosition: 'center' }}
           onError={onImageError}
-          unoptimized={isProxyApiUrl} // 프록시 API URL은 unoptimized로 처리
         />
       )}
     </div>
