@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
+import { PATHNAME } from '@/constants';
 
 export interface OrderItemDetailCardProps {
   name: string;
@@ -35,7 +36,7 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
     if (onProductClick && productId) {
       onProductClick(productId);
     } else if (companyId && productId) {
-      router.push(`/${companyId}/products/${productId}`);
+      router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
     }
   };
 
@@ -46,7 +47,7 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
       if (onProductClick && productId) {
         onProductClick(productId);
       } else if (companyId && productId) {
-        router.push(`/${companyId}/products/${productId}`);
+        router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
       }
     }
   };
@@ -158,7 +159,7 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
     if (onProductClick && productId) {
       onProductClick(productId);
     } else if (companyId && productId) {
-      router.push(`/${companyId}/products/${productId}`);
+      router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
     }
   };
 
@@ -169,7 +170,7 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
       if (onProductClick && productId) {
         onProductClick(productId);
       } else if (companyId && productId) {
-        router.push(`/${companyId}/products/${productId}`);
+        router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
       }
     }
   };
@@ -287,7 +288,7 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
     if (onProductClick && productId) {
       onProductClick(productId);
     } else if (companyId && productId) {
-      router.push(`/${companyId}/products/${productId}`);
+      router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
     }
   };
 
@@ -298,7 +299,7 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
       if (onProductClick && productId) {
         onProductClick(productId);
       } else if (companyId && productId) {
-        router.push(`/${companyId}/products/${productId}`);
+        router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
       }
     }
   };

@@ -1,5 +1,6 @@
 import { useRouter } from 'next/navigation';
 import { logger } from '@/utils/logger';
+import { PATHNAME } from '@/constants';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 
 /**
@@ -16,7 +17,7 @@ export const useRowClickHandler = (
     if (onRowClick) {
       onRowClick(item.id);
     } else if (companyId) {
-      router.push(`/${companyId}/my/purchase-requests/${item.id}`);
+      router.push(PATHNAME.MY_PURCHASE_REQUEST_DETAIL(companyId, item.id));
     } else {
       logger.warn('companyId가 없어서 이동할 수 없습니다.');
     }
