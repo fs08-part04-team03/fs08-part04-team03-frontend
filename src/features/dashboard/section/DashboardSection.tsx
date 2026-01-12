@@ -190,10 +190,12 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
       }
     };
 
-    fetchDashboardData().catch((error) => {
-      logger.error('[Dashboard] Unexpected error in fetchDashboardData', error);
+    // 컴포넌트 마운트 시 데이터 로드
+    // 에러는 내부 try-catch에서 이미 처리되므로 빈 catch 핸들러
+    fetchDashboardData().catch(() => {
+      // 에러는 이미 내부 try-catch에서 처리됨
     });
-  }, [companyId]); // companyId가 변경되면 데이터를 다시 로드
+  }, []); // 컴포넌트 마운트 시 한 번만 실행 (토큰에서 회사 정보 자동 추출)
 
   if (isLoading) {
     return (
@@ -203,12 +205,22 @@ const DashboardSection = ({ companyId }: DashboardSectionProps) => {
     );
   }
 
+  // 사용자 정보가 없는 경우 (인증 실패 또는 로그아웃 상태)
+  if (!user) {
+    logger.warn('[Dashboard] 사용자 정보 없음 - 인증 필요');
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>사용자 정보를 불러오는 중...</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <DashboardTem
         companyId={companyId}
-        user={user ?? { name: '사용자' }}
-        userRole={(user?.role?.toLowerCase() as 'user' | 'manager' | 'admin') ?? 'user'}
+        user={{ name: user.name }}
+        userRole={(user.role?.toLowerCase() as 'user' | 'manager' | 'admin') ?? 'user'}
         monthlyExpense={dashboardData.monthlyExpense}
         yearlyExpense={dashboardData.yearlyExpense}
         progressValue={dashboardData.progressValue}
