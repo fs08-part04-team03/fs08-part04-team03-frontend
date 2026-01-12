@@ -2,13 +2,14 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { PATHNAME } from '@/constants';
 import { SignupButton } from '@/components/atoms/Button/Button';
 
 const LandingHero = () => {
   const router = useRouter();
 
   const handleSignup = () => {
-    router.push('/signup');
+    router.push(PATHNAME.SIGNUP);
   };
 
   return (
