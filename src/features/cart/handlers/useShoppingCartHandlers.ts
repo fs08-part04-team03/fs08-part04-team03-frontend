@@ -34,7 +34,7 @@ export function useShoppingCartHandlers({ companyId }: UseShoppingCartHandlersPr
   const handleSubmit = (cartItemIds: string[]) => {
     if (cartItemIds.length === 0) return;
     const itemsParam = cartItemIds.join(',');
-    router.push(`${CART_ROUTES.ORDER(companyId)}?items=${itemsParam}`);
+    router.push(CART_ROUTES.ORDER_WITH_ITEMS(companyId, itemsParam));
   };
 
   /** 계속 쇼핑하기 핸들러 */
