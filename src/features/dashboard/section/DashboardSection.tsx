@@ -1,0 +1,199 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import DashboardTem from '@/features/dashboard/template/DashboardTem/DashboardTem';
+import {
+  getPurchaseDashboard,
+  type DashboardApiResponse,
+} from '@/features/dashboard/api/dashboard.api';
+import type {
+  NewUser,
+  ChangedUser,
+  LargeChartItem,
+} from '@/features/dashboard/components/DashboardCardOrg/DashboardCardOrg';
+import { Toast } from '@/components/molecules/Toast/Toast';
+import { logger } from '@/utils/logger';
+import { useAuthStore } from '@/lib/store/authStore';
+
+interface DashboardSectionProps {
+  companyId: string;
+}
+
+/**
+ * 간식 순위에 따라 색상 생성
+ */
+const generateColor = (index: number): string => {
+  const colors = [
+    '#2563EB', // 파랑
+    '#10B981', // 초록
+    '#F59E0B', // 주황
+    '#EF4444', // 빨강
+    '#8B5CF6', // 보라
+    '#EC4899', // 분홍
+    '#06B6D4', // 청록
+    '#F97316', // 진한 주황
+    '#14B8A6', // 청록2
+    '#6366F1', // 인디고
+    '#84CC16', // 라임
+    '#F43F5E', // 로즈
+    '#A855F7', // 자주
+    '#22D3EE', // 시안
+    '#FB923C', // 오렌지
+    '#4ADE80', // 연두
+    '#E879F9', // 푸시아
+  ];
+
+  return colors[index % colors.length] ?? '#6B7280';
+};
+
+/**
+ * API 응답을 컴포넌트 props로 변환
+ */
+const transformDashboardData = (data: DashboardApiResponse) => {
+  // 월별 지출 현황 (최근 12개월)
+  const monthlyExpenses = Array(12).fill(0);
+  data.monthlyExpenses.forEach((expense) => {
+    // month는 1-12, 배열 인덱스는 0-11
+    const index = expense.month - 1;
+    if (index >= 0 && index < 12) {
+      monthlyExpenses[index] = expense.totalExpenses;
+    }
+  });
+
+  // 신규 회원 리스트 변환 (role을 소문자로)
+  const newUsers: NewUser[] = data.newUsers.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role.toLowerCase() as 'user' | 'manager' | 'admin',
+    createdAt: user.createdAt,
+  }));
+
+  // 탈퇴/권한 변경 회원 리스트 변환
+  const changedUsers: ChangedUser[] = data.userChanges.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    changeType: user.changeType,
+    beforeRole: user.beforeRole?.toLowerCase() as 'user' | 'manager' | 'admin' | undefined,
+    afterRole: user.afterRole?.toLowerCase() as 'user' | 'manager' | 'admin' | undefined,
+    changedAt: user.changedAt,
+  }));
+
+  // 간식 순위 변환
+  const snackRank: LargeChartItem[] = data.snacksList.map((snack, index) => ({
+    label: snack.name,
+    value: snack.purchaseCount,
+    color: generateColor(index),
+  }));
+
+  // 예산 사용률 계산
+  const usedBudget = data.budget.thisMonthBudget - data.budget.remainingBudget;
+  const progressValue =
+    data.budget.thisMonthBudget > 0
+      ? Math.round((usedBudget / data.budget.thisMonthBudget) * 100)
+      : 0;
+
+  return {
+    monthlyExpense: data.expenses.thisMonth,
+    yearlyExpense: data.expenses.thisYear,
+    progressValue,
+    currentBudget: data.budget.thisMonthBudget,
+    lastBudget: usedBudget,
+    monthlyExpenses,
+    newUsers,
+    changedUsers,
+    snackRank,
+  };
+};
+
+const DashboardSection = ({ companyId }: DashboardSectionProps) => {
+  const { user } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [toastState, setToastState] = useState({
+    isVisible: false,
+    variant: 'custom' as const,
+    message: '',
+  });
+
+  // 대시보드 데이터 상태
+  const [dashboardData, setDashboardData] = useState({
+    monthlyExpense: 0,
+    yearlyExpense: 0,
+    progressValue: 0,
+    currentBudget: 0,
+    lastBudget: 0,
+    monthlyExpenses: Array(12).fill(0) as number[],
+    newUsers: [] as NewUser[],
+    changedUsers: [] as ChangedUser[],
+    snackRank: [] as LargeChartItem[],
+  });
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+
+        const response = await getPurchaseDashboard();
+
+        if (response.success) {
+          const transformedData = transformDashboardData(response.data);
+          setDashboardData(transformedData);
+        }
+      } catch (error) {
+        logger.error('[Dashboard] 대시보드 정보를 불러오는데 실패했습니다.', {
+          message: error instanceof Error ? error.message : '알 수 없는 오류',
+        });
+        setToastState({
+          isVisible: true,
+          variant: 'custom',
+          message: '대시보드 정보를 불러오는데 실패했습니다.',
+        });
+        setTimeout(() => setToastState((prev) => ({ ...prev, isVisible: false })), 3000);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    fetchDashboardData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-16 text-gray-600">로딩 중...</div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <DashboardTem
+        companyId={companyId}
+        user={user || { name: '사용자' }}
+        userRole={user?.role.toLowerCase() as 'user' | 'manager' | 'admin' | undefined}
+        monthlyExpense={dashboardData.monthlyExpense}
+        yearlyExpense={dashboardData.yearlyExpense}
+        progressValue={dashboardData.progressValue}
+        currentBudget={dashboardData.currentBudget}
+        lastBudget={dashboardData.lastBudget}
+        monthlyExpenses={dashboardData.monthlyExpenses}
+        newUsers={dashboardData.newUsers}
+        changedUsers={dashboardData.changedUsers}
+        snackRank={dashboardData.snackRank}
+      />
+      {toastState.isVisible && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[var(--z-toast)]">
+          <Toast
+            variant={toastState.variant}
+            message={toastState.message}
+            onClose={() => setToastState((prev) => ({ ...prev, isVisible: false }))}
+          />
+        </div>
+      )}
+    </>
+  );
+};
+
+export default DashboardSection;
