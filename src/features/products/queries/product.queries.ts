@@ -55,7 +55,8 @@ export function useProducts(params?: {
     staleTime: STALE_TIME.ONE_MINUTE, // 1분간 캐시 유지
     enabled,
     refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
-    refetchOnWindowFocus: true, // 윈도우 포커스 시 refetch (다른 페이지에서 돌아올 때 최신 데이터 반영)
+    // 포커스 복귀 시 자동 refetch가 401/refresh 경로를 타며 "예상치 못한 로그아웃"처럼 보일 수 있어 비활성화
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -69,7 +70,7 @@ export function useProduct(productId: string | number, options?: { enabled?: boo
     enabled: options?.enabled ?? !!productId,
     staleTime: STALE_TIME.NONE, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
     refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
-    refetchOnWindowFocus: true, // 윈도우 포커스 시 refetch
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -83,7 +84,7 @@ export function useMyProduct(productId: string | number, options?: { enabled?: b
     enabled: options?.enabled ?? !!productId,
     staleTime: STALE_TIME.NONE, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
     refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
-    refetchOnWindowFocus: true, // 윈도우 포커스 시 refetch
+    refetchOnWindowFocus: false,
   });
 }
 

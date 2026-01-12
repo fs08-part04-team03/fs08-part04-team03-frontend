@@ -139,15 +139,26 @@ export async function tryRefreshToken(): Promise<string | null> {
       note: '브라우저/서버 모두 refreshToken(httpOnly 쿠키) 기반으로 refresh 요청',
     });
 
-    const response = await fetch(refreshUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}), // 빈 body - refreshToken은 httpOnly 쿠키에서 읽음
-      credentials: 'include', // 필수: 쿠키 자동 전송 (refreshToken 쿠키 포함)
-      signal: controller.signal,
-    });
+    let response: Response;
+    try {
+      response = await fetch(refreshUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}), // 빈 body - refreshToken은 httpOnly 쿠키에서 읽음
+        credentials: 'include', // 필수: 쿠키 자동 전송 (refreshToken 쿠키 포함)
+        signal: controller.signal,
+      });
+    } catch (error) {
+      // 네트워크/타임아웃 등 "일시 장애"는 null로 처리하면 자동 로그아웃을 유발하므로 예외로 전파
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('토큰 갱신 요청 시간이 초과되었습니다.');
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     logger.info('[Token Refresh] 토큰 갱신 응답 받음', {
       status: response.status,
@@ -155,8 +166,15 @@ export async function tryRefreshToken(): Promise<string | null> {
       ok: response.ok,
     });
 
+    // 401: refresh token이 없거나 만료(= 로그아웃 처리 대상)
+    if (response.status === 401) return null;
+
+    // 403: 정책/CSRF/CORS 등 설정 문제일 수 있음. 자동 로그아웃(스토리지 삭제)을 유발하면 안 됨.
+    if (response.status === 403) {
+      throw new Error('토큰 갱신이 거부되었습니다. 잠시 후 다시 시도해주세요.');
+    }
+
     if (response.ok) {
-      clearTimeout(timeoutId);
       const result = (await response.json()) as {
         success: boolean;
         data?: {
@@ -234,8 +252,8 @@ export async function tryRefreshToken(): Promise<string | null> {
         success: result.success,
         hasAccessToken: !!result.data?.accessToken,
       });
+      throw new Error('토큰 갱신 응답 형식이 올바르지 않습니다.');
     } else {
-      clearTimeout(timeoutId);
       // 에러 응답 본문 읽기
       let errorText = '';
       let errorJson: unknown = null;
@@ -253,43 +271,6 @@ export async function tryRefreshToken(): Promise<string | null> {
         errorText = 'Failed to read error response';
       }
 
-      // 401 에러는 refresh token이 만료되었거나 없을 때
-      if (response.status === 401) {
-        // 현재 인증 상태 확인
-        const { accessToken: currentAccessToken, user: currentUser } = useAuthStore.getState();
-        const isLoggedIn = !!(currentAccessToken || currentUser);
-
-        // 로그인 상태에서 발생한 401은 경고로, 비로그인 상태에서 발생한 401은 정보로 로깅
-        if (isLoggedIn) {
-          logger.warn(
-            '[Token Refresh] 401 에러 - refresh token 만료 또는 없음 (로그인 상태에서 발생)',
-            {
-              errorText: errorText.substring(0, 300), // 처음 300자만
-              errorJson,
-              refreshUrl,
-            }
-          );
-        } else {
-          // 로그인하지 않은 상태에서 발생한 401은 정상적인 상황이므로 info 레벨로 로깅
-          logger.info(
-            '[Token Refresh] 401 에러 - refresh token 없음 (로그인하지 않은 상태에서 발생, 정상)',
-            {
-              errorText: errorText.substring(0, 300), // 처음 300자만
-              errorJson,
-              refreshUrl,
-            }
-          );
-        }
-        return null;
-      }
-      // 403 에러는 CSRF 토큰 불일치 또는 누락 (Next.js API Route에서 처리)
-      if (response.status === 403) {
-        logger.warn('[Token Refresh] 403 에러 - CSRF 토큰 불일치 또는 누락', {
-          errorText: errorText.substring(0, 300), // 처음 300자만
-          errorJson,
-        });
-        return null;
-      }
       // 401, 403이 아닌 다른 에러는 로깅
       logger.error('[Token Refresh] 토큰 갱신 실패', {
         status: response.status,
@@ -297,47 +278,40 @@ export async function tryRefreshToken(): Promise<string | null> {
         errorText: errorText.substring(0, 300), // 처음 300자만
         errorJson,
       });
+      throw new Error('토큰 갱신에 실패했습니다.');
     }
   } catch (error) {
-    clearTimeout(timeoutId);
-    // 네트워크 에러나 타임아웃 등
-    if (error instanceof Error && error.name === 'AbortError') {
-      logger.warn('[Token Refresh] 타임아웃 발생');
-    } else {
-      logger.error('[Token Refresh] 토큰 갱신 중 예외 발생', {
-        hasError: true,
-        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-        errorMessage: error instanceof Error ? error.message : String(error),
-      });
-    }
+    logger.warn('[Token Refresh] 토큰 갱신 중 예외 발생', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
+    // null 반환은 "진짜 만료(401)"만을 의미해야 하므로, 예외는 상위로 전파
+    throw error;
   }
-
-  return null;
 }
 
 /**
  * 401 에러 처리 및 리다이렉트
  * refreshToken으로 토큰 갱신을 먼저 시도하고, 실패 시 로그아웃 처리
  */
-export async function handle401Error(): Promise<void> {
+export async function handle401Error(): Promise<'refreshed' | 'expired' | 'failed'> {
   logger.info('[401 Error Handler] 토큰 갱신 시도 시작');
-  // refreshToken으로 토큰 갱신 시도
-  const newToken = await tryRefreshToken();
-
-  // 토큰 갱신 실패 시 로그아웃 처리
-  if (!newToken) {
-    logger.warn('[401 Error Handler] 토큰 갱신 실패 - 로그아웃 처리');
-    const { clearAuth } = useAuthStore.getState();
-    clearAuth();
-    // queueMicrotask를 사용하여 현재 스택이 모두 실행된 후 리다이렉트
-    // React Query가 에러를 처리할 시간을 주면서 성능 경고를 방지
-    if (typeof window !== 'undefined') {
-      queueMicrotask(() => {
-        window.location.href = '/login';
-      });
+  try {
+    const newToken = await tryRefreshToken();
+    if (newToken) {
+      logger.info('[401 Error Handler] 토큰 갱신 성공');
+      return 'refreshed';
     }
-  } else {
-    logger.info('[401 Error Handler] 토큰 갱신 성공');
+    // newToken === null => refresh token 만료/없음
+    logger.warn('[401 Error Handler] 토큰 갱신 실패 - refresh token 만료/없음');
+    return 'expired';
+  } catch (error) {
+    logger.warn('[401 Error Handler] 토큰 갱신 실패(일시 장애) - 자동 로그아웃 방지', {
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
+    return 'failed';
   }
 }
 
@@ -407,7 +381,22 @@ export async function fetchWithAuth(
 
     // 401 Unauthorized 에러 처리
     if (response.status === 401) {
-      await handle401Error();
+      const refreshResult = await handle401Error();
+      if (refreshResult === 'expired') {
+        // refresh token 만료/없음인 경우에만 localStorage를 비우고 로그인으로 보냄
+        const { clearAuth } = useAuthStore.getState();
+        clearAuth();
+        if (typeof window !== 'undefined') {
+          queueMicrotask(() => {
+            window.location.href = '/login';
+          });
+        }
+        throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
+      }
+      if (refreshResult === 'failed') {
+        // 네트워크/일시 장애: 로그아웃(스토리지 삭제)하지 않고 에러만 전파
+        throw new Error('인증 갱신에 실패했습니다. 네트워크 상태를 확인해주세요.');
+      }
       // 토큰 갱신 후 원래 요청 재시도
       const newToken = useAuthStore.getState().accessToken;
       if (newToken && newToken !== token) {

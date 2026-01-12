@@ -33,9 +33,16 @@ export const AuthGuard = ({ children, companyId }: AuthGuardProps) => {
       if (refreshAttemptedRef.current) return;
       refreshAttemptedRef.current = true;
       (async () => {
-        const newToken = await tryRefreshToken();
-        if (!newToken) {
-          clearAuth();
+        try {
+          const newToken = await tryRefreshToken();
+          if (!newToken) {
+            // refresh token 만료/없음(401)이어도 여기서 localStorage를 지우면
+            // "포커스 복귀 시 갑자기 로그아웃"처럼 보일 수 있음 → 리다이렉트만 수행
+            const loginUrl = `${PATHNAME.LOGIN}?redirect=${encodeURIComponent(pathname)}`;
+            router.push(loginUrl);
+          }
+        } catch {
+          // 일시 장애(네트워크/타임아웃)로 refresh 실패 시에는 localStorage를 지우지 않음
           const loginUrl = `${PATHNAME.LOGIN}?redirect=${encodeURIComponent(pathname)}`;
           router.push(loginUrl);
         }

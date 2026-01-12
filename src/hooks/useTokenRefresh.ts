@@ -53,20 +53,17 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
           if (newToken) {
             logger.info('[Token Refresh] Rehydration 후 토큰 갱신 성공');
           } else {
-            // refresh token이 만료되었거나 없음
-            // user 정보는 있었지만 refresh token이 만료된 경우
-            logger.warn(
-              '[Token Refresh] Rehydration 후 토큰 갱신 실패 - refresh token 쿠키가 없거나 만료됨 (로그아웃 처리 필요할 수 있음)'
-            );
-            // user 정보는 있지만 refresh token이 만료된 경우 로그아웃 처리
-            const { clearAuth } = useAuthStore.getState();
-            clearAuth();
+            // refresh token 만료/없음(401)
+            // 포커스 복귀/백그라운드 타이밍에 자동 로그아웃처럼 보이는 현상을 막기 위해
+            // 여기서 localStorage를 지우지 않고, 이후 사용자 액션(API 호출/가드)에서 로그인 유도
+            logger.warn('[Token Refresh] Rehydration 후 토큰 갱신 실패 - refresh token 만료/없음');
           }
         } catch (error: unknown) {
           logger.warn('[Token Refresh] Rehydration 후 토큰 갱신 중 예외 발생', {
             hasError: true,
             errorType: error instanceof Error ? error.constructor.name : 'Unknown',
           });
+          // 일시 장애는 자동 로그아웃(스토리지 삭제)하지 않음
         } finally {
           inFlightRef.current = false;
         }
@@ -97,30 +94,16 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
         const newToken = await tryRefreshToken();
         if (!newToken) {
           // refresh token이 만료되었거나 없음 (401 에러)
-          // 현재 로그인 상태라면 로그아웃 처리
-          const {
-            accessToken: currentAccessToken,
-            user: currentUser,
-            clearAuth,
-          } = useAuthStore.getState();
-          if (currentAccessToken || currentUser) {
-            logger.warn('[Token Refresh] Refresh token 만료 - 로그인 상태에서 로그아웃 처리 필요');
-            clearAuth();
-            // 로그인 페이지로 리다이렉트
-            // queueMicrotask를 사용하여 현재 스택이 모두 실행된 후 리다이렉트
-            // React Query가 에러를 처리할 시간을 주면서 성능 경고를 방지
-            if (typeof window !== 'undefined') {
-              queueMicrotask(() => {
-                window.location.href = '/login';
-              });
-            }
-          }
+          // 주기적 갱신 타이밍에 자동 로그아웃처럼 보이는 현상을 막기 위해
+          // 여기서 localStorage를 지우거나 강제 리다이렉트하지 않음
+          logger.warn('[Token Refresh] Refresh token 만료 - 다음 사용자 액션에서 로그인 유도');
         }
       } catch (error: unknown) {
         logger.warn('Token refresh failed', {
           hasError: true,
           errorType: error instanceof Error ? error.constructor.name : 'Unknown',
         });
+        // 일시 장애는 자동 로그아웃(스토리지 삭제)하지 않음
       } finally {
         // 언마운트 이후라도 플래그는 정리 (메모리/상태 누수 방지)
         inFlightRef.current = false;
