@@ -60,9 +60,9 @@ const ProductDetailSection = () => {
   // 수정 모달용 이미지 URL 로드 (signed URL 필요)
   useEffect(() => {
     const loadImageUrl = async () => {
-      if (product?.image) {
+      if (product?.imageUrl) {
         try {
-          const url = await buildImageUrl(product.image);
+          const url = await buildImageUrl(product.imageUrl);
           setEditModalImageUrl(url || null);
         } catch {
           // 이미지 로딩 실패 시 null로 설정
@@ -75,7 +75,7 @@ const ProductDetailSection = () => {
     loadImageUrl().catch(() => {
       // 에러는 이미 loadImageUrl 내부에서 처리됨
     });
-  }, [product?.image]);
+  }, [product?.imageUrl]);
 
   const detailPageProps: DetailPageLayoutProps = useMemo(() => {
     if (!product) {
@@ -108,19 +108,13 @@ const ProductDetailSection = () => {
       })),
     ];
 
-    // 프록시 API를 통해 이미지 로드 (CORS 방지)
-    // imageRefreshKey를 사용하여 이미지 업데이트 시 캐시 무효화
-    const imageUrl = product?.image
-      ? `/api/product/image?key=${encodeURIComponent(product.image)}&t=${editActions.imageRefreshKey}`
-      : '/icons/no-image.svg';
-
     return {
       breadcrumbItems,
       productImage: {
-        src: imageUrl,
+        src: product.imageUrl || '/icons/no-image.svg',
         alt: product.name,
       },
-      productImageKey: product.image || null,
+      productImageKey: product.imageUrl || null,
       productDetailHeader: {
         productName: product.name,
         price: product.price,
@@ -161,7 +155,6 @@ const ProductDetailSection = () => {
     wishlistActions.handleToggleLike,
     cartActions.handleAddToCart,
     canUseMenu,
-    editActions.imageRefreshKey,
     modals,
   ]);
 
@@ -218,7 +211,7 @@ const ProductDetailSection = () => {
       initialSubCategoryOption={initialSubCategoryOption}
       initialLink={initialLink}
       initialImage={editModalImageUrl}
-      initialImageKey={product?.image || null}
+      initialImageKey={product?.imageUrl || null}
       productName={product?.name || ''}
       productPrice={product?.price ? String(product.price) : ''}
       cartAddFailedModalOpen={modals.cartAddFailedModalOpen}

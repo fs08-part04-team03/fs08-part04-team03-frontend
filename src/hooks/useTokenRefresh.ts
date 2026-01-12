@@ -32,27 +32,9 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
     // rehydration 후 accessToken이 없으면 refresh 시도 (한 번만)
     // 단, user 정보가 있는 경우에만 시도 (로그인했던 이력이 있는 경우)
     // user 정보도 없으면 이미 로그인하지 않은 상태이므로 토큰 갱신 시도하지 않음
-    // 하지만 남아있을 수 있는 쿠키는 정리해야 함
     if (!accessToken && !user && !rehydrationAttemptedRef.current) {
       // 로그인하지 않은 상태이므로 토큰 갱신 시도하지 않음
-      // 하지만 남아있을 수 있는 refresh token 쿠키를 정리
       rehydrationAttemptedRef.current = true;
-      const clearCookies = async () => {
-        try {
-          const { clearAuthCookies } = await import('@/utils/cookies');
-          await clearAuthCookies();
-          logger.info(
-            '[Token Refresh] Rehydration 후 accessToken과 user가 모두 없음 - 로그인하지 않은 상태이므로 쿠키 정리 완료'
-          );
-        } catch (error) {
-          // 쿠키 정리 실패는 무시 (이미 로그인하지 않은 상태이므로)
-          logger.info(
-            '[Token Refresh] Rehydration 후 accessToken과 user가 모두 없음 - 로그인하지 않은 상태 (쿠키 정리 시도했으나 실패할 수 있음)'
-          );
-        }
-      };
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      clearCookies();
       return () => {
         mountedRef.current = false;
       };

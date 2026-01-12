@@ -12,7 +12,7 @@ export type BackendProduct = {
   name: string;
   price: number;
   categoryId?: number | null;
-  image?: string | null;
+  imageUrl?: string | null;
   salesCount?: number | null;
   link?: string | null;
   isActive?: boolean;
@@ -25,9 +25,7 @@ export const mapBackendProductToTemplate = (p: BackendProduct): TemplateProduct 
   name: p.name,
   price: p.price,
   categoryId: p.categoryId ?? null,
-  // 프록시 API를 통해 이미지 로드 (CORS 방지, SSR 하이드레이션 불일치 방지)
-  // Supports both old format (filename) and new S3 key format (products/xxx.png)
-  // 타임스탬프는 컴포넌트 레벨에서 추가 (캐시 무효화)
-  imageUrl: p.image ? `/api/product/image?key=${encodeURIComponent(p.image)}` : undefined,
+  // 이미지 key(S3 key) 그대로 전달하고, 실제 URL 변환은 클라이언트에서 수행
+  imageUrl: p.imageUrl ?? undefined,
   purchaseCount: p.salesCount ?? 0,
 });
