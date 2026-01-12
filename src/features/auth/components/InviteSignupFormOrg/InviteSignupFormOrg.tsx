@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { PATHNAME } from '@/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { inviteSignupSchema, type InviteSignupInput } from '@/features/auth/schemas/signup.schema';
@@ -71,8 +72,7 @@ export const useInviteSignupForm = (email: string, token: string) => {
       });
 
       // 상품 리스트 페이지로 리다이렉트
-      const redirectPath = `/${user.companyId}/products`;
-      router.push(redirectPath);
+      router.push(PATHNAME.PRODUCTS(user.companyId));
     } catch (error) {
       logger.error('[InviteSignup] 초대 회원가입 실패', {
         message: error instanceof Error ? error.message : '알 수 없는 오류',
