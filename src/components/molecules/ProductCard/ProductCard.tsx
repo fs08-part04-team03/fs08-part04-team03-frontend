@@ -138,23 +138,23 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
 
   let imageContent;
   if (shouldShowImage) {
-    // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
-    if (isExternalUrl) {
+    // 외부 URL 또는 프록시 API URL은 일반 img 태그 사용
+    // 프록시 API URL은 인증이 필요하므로 쿠키가 자동으로 포함되도록 img 태그 사용
+    if (isExternalUrl || isProxyApiUrl) {
       imageContent = (
         <img
-          src={imageUrl}
+          src={imageUrlWithTimestamp || imageUrl}
           alt={name}
           className="max-w-full max-h-full w-auto h-auto object-contain"
           onError={() => setImgError(true)}
-          crossOrigin="anonymous"
+          crossOrigin={isExternalUrl ? 'anonymous' : undefined}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           fetchPriority={priority ? 'high' : 'auto'}
         />
       );
     } else {
-      // 내부 이미지는 Next.js Image 컴포넌트 사용
-      // 프록시 API URL은 unoptimized로 처리 (이미 최적화된 이미지를 반환하므로)
+      // 내부 정적 이미지는 Next.js Image 컴포넌트 사용
       imageContent = (
         <Image
           key={imageUrlWithTimestamp} // 이미지 URL 변경 시 강제 리렌더링 (캐시 무효화)
@@ -165,7 +165,6 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
           onError={() => setImgError(true)}
           className="object-contain"
           style={{ objectPosition: 'center' }}
-          unoptimized={isProxyApiUrl}
           loading={priority ? 'eager' : 'lazy'}
           priority={priority}
           fetchPriority={priority ? 'high' : 'auto'}

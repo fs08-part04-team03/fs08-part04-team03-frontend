@@ -20,18 +20,15 @@ export const sanitizeImageUrl = (url: string | null): string => {
   if (trimmed.startsWith('/')) return trimmed;
 
   // 로컬 파일 미리보기용 blob: URL 허용 (URL.createObjectURL 결과)
-  // 예: blob:https://example.com/550e8400-e29b-41d4-a716-446655440000
+  // 예: blob:http://localhost:3000/550e8400-e29b-41d4-a716-446655440000
+  // blob: URL은 new URL()로 파싱할 수 없으므로 직접 검증
   if (trimmed.startsWith('blob:')) {
-    try {
-      const blobUrl = new URL(trimmed);
-      // blob: 스킴만 허용하며, 호스트/오리진이 존재하는 정상적인 형태만 통과시킵니다.
-      if (blobUrl.protocol === 'blob:' && blobUrl.origin && blobUrl.host) {
-        return trimmed;
-      }
-      return '';
-    } catch {
-      return '';
+    // blob: 프로토콜로 시작하는지 확인하고, 최소한의 형식 검증
+    const blobUrlPattern = /^blob:https?:\/\/[^\s]+/;
+    if (blobUrlPattern.test(trimmed)) {
+      return trimmed;
     }
+    return '';
   }
 
   // http, https만 허용

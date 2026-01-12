@@ -22,6 +22,7 @@ import { getMyProfile } from '@/features/profile/api/profile.api';
 import { logger } from '@/utils/logger';
 import { STALE_TIME } from '@/constants/staleTime';
 import { profileKeys } from '@/features/profile/queries/profile.keys';
+import { cartKeys } from '@/features/cart/queries/cart.keys';
 import GNB from './GNB';
 
 /**
@@ -85,7 +86,7 @@ export const GNBWrapper: React.FC = () => {
 
   // 장바구니 아이템 개수 조회
   const { data: cartData } = useQuery({
-    queryKey: ['cart', 1, 1], // 장바구니 페이지와 동일한 queryKey 패턴 사용
+    queryKey: cartKeys.list(1, 1), // cartKeys를 사용하여 일관성 유지
     queryFn: () => cartApi.getMyCart(1, 1), // 최소한의 데이터만 조회 (summary만 필요)
     enabled: !!companyId && !!user, // companyId와 user가 있을 때만 조회
     staleTime: STALE_TIME.NONE, // 캐시 없이 항상 최신 데이터 사용

@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import ProductListTem from '@/features/products/template/ProductListTem/ProductListTem';
 import { CATEGORY_SECTIONS, BREADCRUMB_ITEMS, ERROR_MESSAGES } from '@/constants';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
@@ -19,7 +19,9 @@ import { PRODUCT_SORT_OPTIONS, DEFAULT_PRODUCT_SORT } from '@/features/products/
 
 const ProductListSection = ({ companyId }: { companyId: string }) => {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
+  const pathnameRef = useRef<string | null>(null);
 
   // 핸들러 훅 사용
   const navigation = useProductNavigation(companyId);
@@ -43,16 +45,39 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     setSearchQuery(searchQueryFromUrl);
   }, [categoryIdFromUrl, searchQueryFromUrl]);
 
-  const { data, isLoading, error } = useProducts({
+  const { data, isLoading, error, refetch } = useProducts({
     categoryId: selectedCategoryId,
     sort: selectedSort.key,
     searchQuery,
     enabled: !!companyId,
   });
 
-  // Note: 불필요한 invalidateQueries 제거 (성능 개선)
-  // useProducts 훅이 이미 자동으로 최신 데이터를 가져오므로
-  // 페이지 진입 시마다 캐시를 무효화할 필요가 없음
+  // breadcrumb에서 "상품" 클릭 시 같은 경로로 이동할 때 refetch
+  // URL 전체(경로 + 쿼리) 변경을 감지하여 페이지 진입 시마다 최신 데이터 가져오기
+  useEffect(() => {
+    if (!pathname) return undefined;
+
+    // 상품 리스트 페이지 경로인지 확인
+    const isProductListPage = pathname.includes('/products') && !pathname.includes('/products/');
+
+    if (isProductListPage) {
+      // 현재 URL 전체를 문자열로 생성 (경로 + 쿼리 파라미터)
+      const currentUrl = `${pathname}?${searchParams?.toString() || ''}`;
+
+      // 이전 URL과 다르거나 처음 마운트된 경우 refetch
+      if (pathnameRef.current !== currentUrl) {
+        pathnameRef.current = currentUrl;
+        // 약간의 지연을 두어 라우팅 완료 후 refetch
+        const timeoutId = setTimeout(() => {
+          refetch().catch(() => {
+            // 에러는 무시 (백그라운드 작업)
+          });
+        }, 100);
+        return () => clearTimeout(timeoutId);
+      }
+    }
+    return undefined;
+  }, [pathname, searchParams, refetch]);
 
   // 상품 등록 성공 핸들러
   // Note: 상품 등록 후 캐시를 무효화하여 새로 등록된 상품이 즉시 표시되도록 함
@@ -69,37 +94,6 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
     if (!data) return [];
     return data.data.map(mapBackendProductToTemplate);
   }, [data]);
-
-  // LCP 최적화: 첫 번째 상품 이미지 preload
-  useEffect(() => {
-    if (products.length === 0 || !products[0]?.imageUrl) {
-      return;
-    }
-
-    const firstImageUrl = products[0].imageUrl;
-
-    // 이미 preload된 링크가 있는지 확인 (중복 방지)
-    const existingLink = document.querySelector(`link[rel="preload"][href="${firstImageUrl}"]`);
-    if (existingLink) {
-      return;
-    }
-
-    // 첫 번째 상품 이미지 preload 추가
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = firstImageUrl;
-    link.setAttribute('fetchpriority', 'high');
-    document.head.appendChild(link);
-
-    // cleanup: 컴포넌트 언마운트 또는 products 변경 시 preload 링크 제거
-    return () => {
-      const linkToRemove = document.querySelector(`link[rel="preload"][href="${firstImageUrl}"]`);
-      if (linkToRemove) {
-        linkToRemove.remove();
-      }
-    };
-  }, [products]);
 
   // 선택된 categoryId에서 대분류(ParentCategory) ID 찾기
   const activeSectionId = useMemo(() => {

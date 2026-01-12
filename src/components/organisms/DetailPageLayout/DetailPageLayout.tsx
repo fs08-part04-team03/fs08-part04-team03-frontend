@@ -109,36 +109,21 @@ const ProductImageBox = ({
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             {(() => {
-              if (isExternalUrl) {
-                // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
+              // 외부 URL 또는 프록시 API URL은 일반 img 태그 사용
+              // 프록시 API URL은 인증이 필요하므로 쿠키가 자동으로 포함되도록 img 태그 사용
+              if (isExternalUrl || isProxyApiUrl) {
                 return (
                   <img
                     src={imageSrc}
                     alt={imageAlt}
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                     onError={() => setImgError(true)}
-                    crossOrigin="anonymous"
+                    crossOrigin={isExternalUrl ? 'anonymous' : undefined}
                   />
                 );
               }
 
-              if (isProxyApiUrl) {
-                // 프록시 API URL은 unoptimized 사용 (Next.js Image 최적화 우회)
-                return (
-                  <Image
-                    src={imageSrc}
-                    alt={imageAlt}
-                    fill
-                    sizes={imageSizes}
-                    className="object-contain"
-                    style={{ objectPosition: 'center' }}
-                    onError={() => setImgError(true)}
-                    unoptimized
-                  />
-                );
-              }
-
-              // 내부 이미지는 Next.js Image 최적화 사용
+              // 내부 정적 이미지는 Next.js Image 최적화 사용
               return (
                 <Image
                   src={imageSrc}

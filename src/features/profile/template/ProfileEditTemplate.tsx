@@ -63,8 +63,9 @@ const ProfileEditForm = ({
   // 기본 업로드 아이콘 경로인지 정확히 확인 (외부 URL에 'upload.svg'가 포함된 경우 오동작 방지)
   const isDefaultUploadIcon = preview === '/icons/upload.svg' || preview?.endsWith('/upload.svg');
   const hasImage = preview && !isDefaultUploadIcon;
+  // blob URL과 외부 URL은 일반 img 태그 사용 (Next.js Image 컴포넌트는 blob URL 지원 안 함)
   const isExternalUrl = hasImage
-    ? preview.startsWith('http://') || preview.startsWith('https://')
+    ? preview.startsWith('http://') || preview.startsWith('https://') || preview.startsWith('blob:')
     : false;
 
   // ✅ 안전한 URL로 sanitize
