@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
+import { PATHNAME } from '@/constants';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
@@ -187,7 +188,7 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
   // 상품 상세 페이지로 이동
   const handleProductClick = () => {
     if (productId && companyId) {
-      router.push(`/${companyId}/products/${productId}`);
+      router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
     }
   };
 
