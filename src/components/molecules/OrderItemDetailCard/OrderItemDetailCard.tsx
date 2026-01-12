@@ -30,6 +30,7 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   onProductClick,
 }) => {
   const router = useRouter();
+  const effectiveImageSrc = imageSrc;
 
   const handleProductNameClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -60,16 +61,16 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
-  const shouldShowImage = isValidImageUrl && !imageError;
+  const isValidImageUrl =
+    effectiveImageSrc &&
+    typeof effectiveImageSrc === 'string' &&
+    effectiveImageSrc.trim().length > 0;
+  const shouldShowImage = !!effectiveImageSrc && !imageError;
 
   // 외부 URL인지 확인 (유효한 URL일 때만 체크)
   const isExternalUrl = isValidImageUrl
-    ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
+    ? effectiveImageSrc.startsWith('http://') || effectiveImageSrc.startsWith('https://')
     : false;
-
-  // 프록시 API URL인지 확인
-  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('tablet:hidden', className)}>
@@ -79,18 +80,16 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 {/* 외부 URL 또는 프록시 API URL은 일반 img 태그 사용 */}
-                {/* 프록시 API URL은 인증이 필요하므로 쿠키가 자동으로 포함되도록 img 태그 사용 */}
-                {isExternalUrl || isProxyApiUrl ? (
+                {isExternalUrl ? (
                   <img
-                    src={imageSrc}
+                    src={effectiveImageSrc}
                     alt={name}
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                     onError={() => setImageError(true)}
-                    crossOrigin={isExternalUrl ? 'anonymous' : undefined}
                   />
                 ) : (
                   <Image
-                    src={imageSrc}
+                    src={effectiveImageSrc || '/icons/no-image.svg'}
                     alt={name}
                     fill
                     sizes="85px"
@@ -154,6 +153,7 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   onProductClick,
 }) => {
   const router = useRouter();
+  const effectiveImageSrc = imageSrc;
 
   const handleProductNameClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -184,16 +184,16 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
-  const shouldShowImage = isValidImageUrl && !imageError;
+  const isValidImageUrl =
+    effectiveImageSrc &&
+    typeof effectiveImageSrc === 'string' &&
+    effectiveImageSrc.trim().length > 0;
+  const shouldShowImage = !!effectiveImageSrc && !imageError;
 
   // 외부 URL인지 확인 (유효한 URL일 때만 체크)
   const isExternalUrl = isValidImageUrl
-    ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
+    ? effectiveImageSrc.startsWith('http://') || effectiveImageSrc.startsWith('https://')
     : false;
-
-  // 프록시 API URL인지 확인
-  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
@@ -203,18 +203,16 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 {/* 외부 URL 또는 프록시 API URL은 일반 img 태그 사용 */}
-                {/* 프록시 API URL은 인증이 필요하므로 쿠키가 자동으로 포함되도록 img 태그 사용 */}
-                {isExternalUrl || isProxyApiUrl ? (
+                {isExternalUrl ? (
                   <img
-                    src={imageSrc}
+                    src={effectiveImageSrc}
                     alt={name}
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                     onError={() => setImageError(true)}
-                    crossOrigin={isExternalUrl ? 'anonymous' : undefined}
                   />
                 ) : (
                   <Image
-                    src={imageSrc}
+                    src={effectiveImageSrc || '/icons/no-image.svg'}
                     alt={name}
                     fill
                     sizes="140px"
@@ -284,6 +282,7 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   onProductClick,
 }) => {
   const router = useRouter();
+  const effectiveImageSrc = imageSrc;
 
   const handleProductNameClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -314,16 +313,16 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
-  const shouldShowImage = isValidImageUrl && !imageError;
+  const isValidImageUrl =
+    effectiveImageSrc &&
+    typeof effectiveImageSrc === 'string' &&
+    effectiveImageSrc.trim().length > 0;
+  const shouldShowImage = !!effectiveImageSrc && !imageError;
 
   // 외부 URL인지 확인 (유효한 URL일 때만 체크)
   const isExternalUrl = isValidImageUrl
-    ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
+    ? effectiveImageSrc.startsWith('http://') || effectiveImageSrc.startsWith('https://')
     : false;
-
-  // 프록시 API URL인지 확인
-  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
 
   return (
     <div className={clsx('hidden desktop:flex', className)}>
@@ -333,18 +332,16 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 {/* 외부 URL 또는 프록시 API URL은 일반 img 태그 사용 */}
-                {/* 프록시 API URL은 인증이 필요하므로 쿠키가 자동으로 포함되도록 img 태그 사용 */}
-                {isExternalUrl || isProxyApiUrl ? (
+                {isExternalUrl ? (
                   <img
-                    src={imageSrc}
+                    src={effectiveImageSrc}
                     alt={name}
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                     onError={() => setImageError(true)}
-                    crossOrigin={isExternalUrl ? 'anonymous' : undefined}
                   />
                 ) : (
                   <Image
-                    src={imageSrc}
+                    src={effectiveImageSrc || '/icons/no-image.svg'}
                     alt={name}
                     fill
                     sizes="140px"

@@ -193,7 +193,6 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
                                     width={29}
                                     height={50}
                                     onError={() => handleImageError(product.id)}
-                                    crossOrigin="anonymous"
                                     className="object-contain"
                                   />
                                 );

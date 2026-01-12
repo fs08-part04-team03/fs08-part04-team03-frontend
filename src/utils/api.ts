@@ -45,13 +45,6 @@ export function getApiUrl(): string {
       ? process.env.NEXT_PUBLIC_API_URL // 클라이언트 사이드: 직접 접근
       : process.env[ENV_KEYS.API_URL]; // 서버 사이드: 상수 키 사용
 
-  // 개발 환경의 클라이언트 사이드에서만 상대 경로 사용 (프록시 활용)
-  // 서버 사이드에서는 절대 URL 필요 (서버는 상대 경로 사용 불가)
-  // 이렇게 하면 브라우저에서 쿠키가 퍼스트파티로 처리됨
-  if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-    return ''; // 빈 값 = 상대 경로, next.config.ts의 rewrites가 프록시 처리
-  }
-
   const apiUrl = envApiUrl || DEFAULT_API_URL;
 
   // 개발 환경에서만 API URL 로그 출력 (주석 처리하여 로그 비활성화)
@@ -99,64 +92,7 @@ export function getApiTimeout(): number {
  * @param imageKey - 이미지 S3 key (예: products/xxx.png)
  * @returns signed URL 또는 undefined
  */
-export async function buildImageUrl(
-  imageKey: string | null | undefined
-): Promise<string | undefined> {
-  if (!imageKey) return undefined;
-
-  // 서버 사이드에서는 이 함수를 호출하지 않아야 함
-  if (typeof window === 'undefined') {
-    logger.warn('buildImageUrl called on server-side', { imageKey });
-    return undefined;
-  }
-
-  try {
-    // S3 키를 쿼리 파라미터로 전달하여 Next.js API 라우트를 통해 조회
-    // 브라우저에서는 상대 경로 사용 (Next.js rewrites를 통해)
-    const encodedKey = encodeURIComponent(imageKey);
-    const imageUrl = `/api/product/image?key=${encodedKey}`;
-    const response = await fetch(imageUrl, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        // fetchWithAuth 대신 직접 헤더 설정
-        ...(useAuthStore.getState().accessToken
-          ? { Authorization: `Bearer ${useAuthStore.getState().accessToken}` }
-          : {}),
-      },
-    });
-
-    if (!response.ok) {
-      logger.warn('Failed to fetch image URL', { imageKey, status: response.status });
-      return undefined;
-    }
-
-    // 응답이 이미지 스트림인 경우(프록시가 직접 반환)에는 프록시 URL을 그대로 사용
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.startsWith('image/')) {
-      return imageUrl;
-    }
-
-    // JSON 응답인 경우(signed URL 제공) 처리
-    const result = (await response.json()) as {
-      success: boolean;
-      data?: { url: string };
-    };
-    if (result.success && result.data?.url) {
-      return result.data.url;
-    }
-
-    logger.warn('Invalid image URL response', { imageKey, result });
-    return undefined;
-  } catch (error) {
-    logger.error('Error in buildImageUrl', {
-      hasError: true,
-      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-      imageKey,
-    });
-    return undefined;
-  }
-}
+// buildImageUrl은 fetchWithAuth 정의 이후에 선언합니다. (eslint no-use-before-define 회피)
 
 /**
  * 브라우저 환경인지 확인
@@ -180,110 +116,9 @@ function joinUrl(base: string, path: string): string {
  * CSRF 토큰 가져오기 (브라우저 환경용)
  * 네트워크 일시 장애를 고려하여 재시도 로직 포함
  */
-async function getCsrfTokenForBrowser(
-  backendOrigin: string,
-  maxRetries: number = 3,
-  initialDelay: number = 100,
-  attempt: number = 0
-): Promise<string | null> {
-  const csrfUrl = `${backendOrigin}${AUTH_API_PATHS.CSRF}`;
-
-  try {
-    const response = await fetch(csrfUrl, {
-      method: 'GET',
-      credentials: 'include', // 필수: 쿠키 자동 전송
-    });
-
-    if (!response.ok) {
-      // 5xx 서버 에러인 경우에만 재시도 (4xx는 재시도 불필요)
-      const isRetryable = response.status >= 500 || response.status === 0;
-      if (isRetryable && attempt < maxRetries - 1) {
-        const delay = initialDelay * 2 ** attempt; // 지수 백오프
-        logger.warn('[CSRF] CSRF 토큰 가져오기 실패, 재시도 예정', {
-          attempt: attempt + 1,
-          maxRetries,
-          status: response.status,
-          statusText: response.statusText,
-          nextRetryDelay: delay,
-          url: csrfUrl,
-        });
-        await new Promise<void>((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, delay);
-        });
-        return getCsrfTokenForBrowser(backendOrigin, maxRetries, initialDelay, attempt + 1);
-      }
-
-      logger.warn('[CSRF] CSRF 토큰 가져오기 실패', {
-        attempt: attempt + 1,
-        maxRetries,
-        status: response.status,
-        statusText: response.statusText,
-        url: csrfUrl,
-        isRetryable,
-      });
-      return null;
-    }
-
-    const result = (await response.json()) as { csrfToken?: string };
-    if (result.csrfToken) {
-      if (attempt > 0) {
-        logger.info('[CSRF] CSRF 토큰 가져오기 성공 (재시도 후)', {
-          attempt: attempt + 1,
-        });
-      } else {
-        logger.info('[CSRF] CSRF 토큰 가져오기 성공');
-      }
-      return result.csrfToken;
-    }
-
-    logger.warn('[CSRF] CSRF 토큰이 응답에 없음', {
-      attempt: attempt + 1,
-      maxRetries,
-    });
-    return null;
-  } catch (error) {
-    // 네트워크 에러인 경우에만 재시도
-    const isNetworkError = error instanceof TypeError && error.message === 'Failed to fetch';
-    const isRetryable = isNetworkError && attempt < maxRetries - 1;
-
-    if (isRetryable) {
-      const delay = initialDelay * 2 ** attempt; // 지수 백오프
-      logger.warn('[CSRF] CSRF 토큰 가져오기 중 네트워크 에러, 재시도 예정', {
-        attempt: attempt + 1,
-        maxRetries,
-        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-        errorMessage: error instanceof Error ? error.message : String(error),
-        nextRetryDelay: delay,
-        url: csrfUrl,
-      });
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, delay);
-      });
-      return getCsrfTokenForBrowser(backendOrigin, maxRetries, initialDelay, attempt + 1);
-    }
-
-    logger.error('[CSRF] CSRF 토큰 가져오기 중 예외 발생', {
-      attempt: attempt + 1,
-      maxRetries,
-      hasError: true,
-      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-      errorMessage: error instanceof Error ? error.message : String(error),
-      url: csrfUrl,
-      isRetryable,
-    });
-    return null;
-  }
-}
-
 /**
  * refreshToken을 사용하여 토큰 갱신 시도
  * refreshToken이 httpOnly 쿠키에 있다면 백엔드가 자동으로 확인합니다
- *
- * 브라우저 환경에서는 백엔드 절대 URL을 직접 사용하여 credentials: 'include'로 쿠키 자동 전송
  */
 export async function tryRefreshToken(): Promise<string | null> {
   const timeout = getApiTimeout();
@@ -294,69 +129,20 @@ export async function tryRefreshToken(): Promise<string | null> {
     const isBrowserEnv = isBrowser();
     const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
 
-    // 브라우저에서는 백엔드 절대 URL 직접 사용 (credentials: 'include'로 쿠키 자동 전송)
-    // 서버 사이드에서는 절대 URL 사용
-    let refreshUrl: string;
-    let csrfToken: string | null = null;
-
-    if (isBrowserEnv) {
-      // 1단계: CSRF 토큰 가져오기
-      csrfToken = await getCsrfTokenForBrowser(backendOrigin);
-      if (!csrfToken) {
-        logger.warn('[Token Refresh] CSRF 토큰을 가져올 수 없어 토큰 갱신 실패');
-        return null;
-      }
-
-      // 2단계: 백엔드 절대 URL 사용 (경로에 /v1 포함)
-      refreshUrl = `${backendOrigin}${AUTH_API_PATHS.REFRESH}`;
-    } else {
-      // 서버 사이드에서는 절대 URL 사용
-      refreshUrl = joinUrl(backendOrigin, AUTH_API_PATHS.REFRESH);
-    }
-
-    // 브라우저에서 쿠키 확인 (개발 환경에서만)
-    let cookieInfo = null;
-    if (isBrowserEnv && typeof document !== 'undefined') {
-      const allCookies = document.cookie;
-      // HttpOnly 쿠키는 document.cookie로 읽을 수 없으므로,
-      // refreshToken, XSRF-TOKEN, SESSION_ID는 항상 false일 수 있음
-      // 하지만 다른 쿠키가 있는지 확인하여 쿠키 자체가 작동하는지 확인
-      const cookieNames = allCookies
-        .split(';')
-        .map((c) => c.split('=')[0]?.trim() ?? '')
-        .filter(Boolean);
-      cookieInfo = {
-        hasCookies: allCookies.length > 0,
-        cookieCount: cookieNames.length,
-        // 쿠키 이름만 로깅 (값은 로깅하지 않음)
-        // HttpOnly 쿠키(refreshToken, XSRF-TOKEN, SESSION_ID)는 document.cookie로 읽을 수 없으므로 안전
-        cookieNames: cookieNames.filter(
-          (name) => !name.toLowerCase().includes('token') && !name.toLowerCase().includes('session')
-        ), // 토큰/세션 관련 쿠키 이름은 필터링
-        // HttpOnly 쿠키는 document.cookie로 읽을 수 없으므로 항상 false일 수 있음
-        // 실제 확인은 브라우저 개발자 도구 → Application → Cookies에서 해야 함
-        note: 'HttpOnly 쿠키(refreshToken, XSRF-TOKEN, SESSION_ID)는 document.cookie로 읽을 수 없습니다. 브라우저 개발자 도구에서 확인하세요.',
-      };
-    }
+    const refreshUrl = joinUrl(backendOrigin, AUTH_API_PATHS.REFRESH);
 
     logger.info('[Token Refresh] 토큰 갱신 요청 시작', {
       refreshUrl,
       isBrowserEnv,
       backendOrigin,
       hasCredentials: true, // credentials: 'include' 사용 (필수!)
-      hasCsrfToken: !!csrfToken,
-      cookieInfo,
-      note: isBrowserEnv
-        ? '브라우저에서는 백엔드 절대 URL 직접 사용 (credentials: "include"로 쿠키 자동 전송)'
-        : '서버 사이드에서는 백엔드 URL 직접 사용',
+      note: '브라우저/서버 모두 refreshToken(httpOnly 쿠키) 기반으로 refresh 요청',
     });
 
     const response = await fetch(refreshUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // 브라우저 환경에서는 CSRF 토큰 헤더 필수
-        ...(isBrowserEnv && csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
       },
       body: JSON.stringify({}), // 빈 body - refreshToken은 httpOnly 쿠키에서 읽음
       credentials: 'include', // 필수: 쿠키 자동 전송 (refreshToken 쿠키 포함)
@@ -409,23 +195,7 @@ export async function tryRefreshToken(): Promise<string | null> {
           };
           setAuth({ user: newUser, accessToken: result.data.accessToken });
 
-          // 쿠키에도 새 accessToken 저장 (서버 사이드 컴포넌트에서 사용하기 위해)
-          if (isBrowserEnv) {
-            try {
-              const { setAuthCookies } = await import('@/utils/cookies');
-              await setAuthCookies(newUser.role, newUser.companyId, result.data.accessToken);
-              logger.info('[Token Refresh] 토큰 갱신 성공 (user 정보 포함, 쿠키 업데이트 완료)');
-            } catch (cookieError) {
-              logger.warn('[Token Refresh] 쿠키 업데이트 실패 (store에는 저장됨)', {
-                hasError: true,
-                errorType: cookieError instanceof Error ? cookieError.constructor.name : 'Unknown',
-              });
-            }
-          } else {
-            logger.info(
-              '[Token Refresh] 토큰 갱신 성공 (user 정보 포함, 서버 사이드에서는 쿠키 업데이트 불필요)'
-            );
-          }
+          logger.info('[Token Refresh] 토큰 갱신 성공 (user 정보 포함)');
           return result.data.accessToken;
         }
 
@@ -433,29 +203,7 @@ export async function tryRefreshToken(): Promise<string | null> {
         if (existingUser) {
           setAuth({ user: existingUser, accessToken: result.data.accessToken });
 
-          // 쿠키에도 새 accessToken 저장 (서버 사이드 컴포넌트에서 사용하기 위해)
-          if (isBrowserEnv) {
-            try {
-              const { setAuthCookies } = await import('@/utils/cookies');
-              await setAuthCookies(
-                existingUser.role,
-                existingUser.companyId,
-                result.data.accessToken
-              );
-              logger.info(
-                '[Token Refresh] 토큰 갱신 성공 (기존 user 정보 사용, 쿠키 업데이트 완료)'
-              );
-            } catch (cookieError) {
-              logger.warn('[Token Refresh] 쿠키 업데이트 실패 (store에는 저장됨)', {
-                hasError: true,
-                errorType: cookieError instanceof Error ? cookieError.constructor.name : 'Unknown',
-              });
-            }
-          } else {
-            logger.info(
-              '[Token Refresh] 토큰 갱신 성공 (기존 user 정보 사용, 서버 사이드에서는 쿠키 업데이트 불필요)'
-            );
-          }
+          logger.info('[Token Refresh] 토큰 갱신 성공 (기존 user 정보 사용)');
           return result.data.accessToken;
         }
 
@@ -469,22 +217,6 @@ export async function tryRefreshToken(): Promise<string | null> {
             '[Token Refresh] 토큰 갱신 성공했지만 백엔드 응답에 user 정보가 없음. 기존 user 정보 유지.'
           );
           setAuth({ user: currentUser, accessToken: result.data.accessToken });
-          // 쿠키에도 새 accessToken 저장
-          if (isBrowserEnv) {
-            try {
-              const { setAuthCookies } = await import('@/utils/cookies');
-              await setAuthCookies(
-                currentUser.role,
-                currentUser.companyId,
-                result.data.accessToken
-              );
-            } catch (cookieError) {
-              logger.warn('[Token Refresh] 쿠키 업데이트 실패 (store에는 저장됨)', {
-                hasError: true,
-                errorType: cookieError instanceof Error ? cookieError.constructor.name : 'Unknown',
-              });
-            }
-          }
           return result.data.accessToken;
         }
 
@@ -534,7 +266,6 @@ export async function tryRefreshToken(): Promise<string | null> {
             {
               errorText: errorText.substring(0, 300), // 처음 300자만
               errorJson,
-              cookieInfo, // 쿠키 정보도 함께 로깅
               refreshUrl,
             }
           );
@@ -545,7 +276,6 @@ export async function tryRefreshToken(): Promise<string | null> {
             {
               errorText: errorText.substring(0, 300), // 처음 300자만
               errorJson,
-              cookieInfo,
               refreshUrl,
             }
           );
@@ -557,7 +287,6 @@ export async function tryRefreshToken(): Promise<string | null> {
         logger.warn('[Token Refresh] 403 에러 - CSRF 토큰 불일치 또는 누락', {
           errorText: errorText.substring(0, 300), // 처음 300자만
           errorJson,
-          cookieInfo,
         });
         return null;
       }
@@ -632,50 +361,22 @@ export async function fetchWithAuth(
   const requestOptions = options || {};
 
   // accessToken이 제공되지 않으면 store에서 가져옴
-  const token = accessToken || useAuthStore.getState().accessToken;
+  // accessToken이 없더라도 refreshToken(httpOnly 쿠키)이 유효하면 재발급으로 복구 가능
+  let token = accessToken || useAuthStore.getState().accessToken;
   if (!token) {
-    throw new Error('인증 토큰이 없습니다. 로그인이 필요합니다.');
+    const refreshed = await tryRefreshToken();
+    token = refreshed || useAuthStore.getState().accessToken;
   }
+  if (!token) throw new Error('인증 토큰이 없습니다. 로그인이 필요합니다.');
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  // 브라우저에서는 항상 상대 URL만 사용 (Next.js rewrites를 통해)
-  // 서버 사이드에서는 절대 URL 사용 (환경 변수에서 가져오기)
-  const isBrowserEnv = isBrowser();
+  // 브라우저/서버 모두 백엔드 절대 URL로 직접 호출
   const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
 
-  // 브라우저에서는 절대 URL을 상대 경로로 변환
-  let path = url;
-  if (isBrowserEnv) {
-    // 브라우저에서는 절대 URL이어도 상대 경로로 변환
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      // 절대 URL에서 경로만 추출
-      try {
-        const urlObj = new URL(url);
-        path = urlObj.pathname + urlObj.search;
-      } catch {
-        // URL 파싱 실패 시 원본 사용
-        path = url;
-      }
-    }
-    // 상대 경로로 정규화 (앞에 /가 없으면 추가)
-    path = path.startsWith('/') ? path : `/${path}`;
-  } else if (url.startsWith('http://') || url.startsWith('https://')) {
-    // 서버 사이드에서 절대 URL인 경우 pathname 추출
-    try {
-      const urlObj = new URL(url);
-      path = urlObj.pathname + urlObj.search;
-    } catch {
-      // URL 파싱 실패 시 원본 사용
-      path = url;
-    }
-  } else {
-    // 서버 사이드에서 상대 경로인 경우 backendOrigin과 결합
-    path = joinUrl(backendOrigin, url);
-  }
-
-  const finalUrl = path;
+  const finalUrl =
+    url.startsWith('http://') || url.startsWith('https://') ? url : joinUrl(backendOrigin, url);
 
   // FormData인 경우 Content-Type을 설정하지 않음 (브라우저가 자동으로 boundary 포함)
   const isFormData = requestOptions.body instanceof FormData;
@@ -756,5 +457,48 @@ export async function fetchWithAuth(
       throw new Error('요청 시간이 초과되었습니다.');
     }
     throw error;
+  }
+}
+
+/**
+ * 이미지 URL 구성 (비동기)
+ * S3 키를 사용하여 signed URL을 가져옵니다.
+ * 클라이언트 사이드에서만 사용해야 합니다.
+ * @param imageKey - 이미지 S3 key (예: products/xxx.png)
+ * @returns signed URL 또는 undefined
+ */
+export async function buildImageUrl(
+  imageKey: string | null | undefined
+): Promise<string | undefined> {
+  if (!imageKey) return undefined;
+
+  // 서버 사이드에서는 이 함수를 호출하지 않아야 함
+  if (typeof window === 'undefined') {
+    logger.warn('buildImageUrl called on server-side', { imageKey });
+    return undefined;
+  }
+
+  try {
+    const encodedKey = encodeURIComponent(imageKey);
+    const response = await fetchWithAuth(`/api/v1/upload/image/${encodedKey}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) return undefined;
+
+    const result = (await response.json()) as {
+      data?: { url?: string; signedUrl?: string };
+      url?: string;
+    };
+
+    return result.data?.url || result.data?.signedUrl || result.url || undefined;
+  } catch (error) {
+    logger.error('Error in buildImageUrl', {
+      hasError: true,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      imageKey,
+    });
+    return undefined;
   }
 }

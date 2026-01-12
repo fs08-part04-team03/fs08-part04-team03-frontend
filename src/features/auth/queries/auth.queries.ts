@@ -6,7 +6,6 @@ import type { LoginInput } from '@/features/auth/schemas/login.schema';
 import type { SignupInput, InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/lib/store/authStore';
-import { setAuthCookies } from '@/utils/cookies';
 import { logger } from '@/utils/logger';
 import { STALE_TIME } from '@/constants/staleTime';
 import type { User } from '@/lib/store/authStore';
@@ -37,16 +36,6 @@ export function useLogin() {
   return useMutation<{ user: User; accessToken: string }, Error, LoginInput>({
     mutationFn: async (credentials: LoginInput) => {
       const result = await login(credentials);
-
-      // 쿠키에 인증 정보 저장 (서버 인증 경로에서 사용)
-      try {
-        await setAuthCookies(result.user.role, result.user.companyId, result.accessToken);
-        logger.info('[Login] 쿠키 저장 완료');
-      } catch (cookieError) {
-        logger.error('[Login] 쿠키 저장 실패:', cookieError);
-        throw new Error('인증 정보 저장에 실패했습니다. 다시 시도해주세요.');
-      }
-
       return result;
     },
     onSuccess: (data) => {
@@ -123,18 +112,8 @@ export function useInviteSignup() {
     mutationFn: (
       signupData: Omit<InviteSignupInput, 'confirmPassword'> & { inviteToken: string }
     ) => inviteSignup(signupData),
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       const { user, accessToken } = data;
-
-      // 쿠키에 인증 정보 저장 (서버 인증 경로에서 사용)
-      try {
-        await setAuthCookies(user.role, user.companyId, accessToken);
-        logger.info('[InviteSignup] 쿠키 저장 완료');
-      } catch (cookieError) {
-        logger.error('[InviteSignup] 쿠키 저장 실패:', cookieError);
-        throw new Error('인증 정보 저장에 실패했습니다. 다시 시도해주세요.');
-      }
-
       setAuth({ user, accessToken });
       logger.info('[InviteSignup] 초대 회원가입 성공', {
         hasUserId: !!user.id,

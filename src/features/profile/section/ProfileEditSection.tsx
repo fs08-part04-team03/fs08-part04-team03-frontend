@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileEditSchema, type ProfileEditInput } from '@/features/profile/schemas/profileSchema';
 import { useAuthStore } from '@/lib/store/authStore';
+import { buildImageUrl } from '@/utils/api';
 import { getCompany } from '@/features/profile/api/company.api';
 import {
   updateAdminProfile,
@@ -67,22 +68,23 @@ const ProfileEditSection = () => {
 
   // 초기 이미지 로드 (myProfile.profileImage가 있으면)
   useEffect(() => {
-    if (myProfile?.profileImage) {
-      const { profileImage } = myProfile;
-
-      // 이미 URL 형식이면 그대로 사용
-      if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-        setPreview(profileImage);
-      } else {
-        // S3 키 형식이면 프록시 API URL로 변환
-        // users/ 접두사가 없으면 추가 (프록시 API가 자동으로 products/를 추가하는 것을 방지)
+    const run = async () => {
+      if (myProfile?.profileImage) {
+        const { profileImage } = myProfile;
+        if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
+          setPreview(profileImage);
+          return;
+        }
         const imageKey = profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
-        const imageUrl = `/api/product/image?key=${encodeURIComponent(imageKey)}`;
-        setPreview(imageUrl);
+        const url = await buildImageUrl(imageKey);
+        setPreview(url || '/icons/upload.svg');
+        return;
       }
-    } else {
       setPreview('/icons/upload.svg');
-    }
+    };
+    run().catch(() => {
+      setPreview('/icons/upload.svg');
+    });
   }, [myProfile?.profileImage, myProfile]);
 
   // 회사 정보 조회 (폼 초기값 설정)
@@ -225,8 +227,8 @@ const ProfileEditSection = () => {
             const imageKey = profileImage.startsWith('users/')
               ? profileImage
               : `users/${profileImage}`;
-            const imageUrl = `/api/product/image?key=${encodeURIComponent(imageKey)}`;
-            setPreview(imageUrl);
+            const url = await buildImageUrl(imageKey);
+            setPreview(url || '/icons/upload.svg');
           }
         }
       }

@@ -4,7 +4,6 @@ import React, { useMemo } from 'react';
 import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
 import { PATHNAME } from '@/constants';
-import { clearAuthCookies } from '@/utils/cookies';
 import { logout } from '@/features/auth/api/auth.api';
 import { getCompany } from '@/features/profile/api/company.api';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
@@ -62,8 +61,6 @@ export const GNBWrapper: React.FC = () => {
     // 비동기 작업을 시작하지만 Promise를 반환하지 않음
     (async () => {
       try {
-        // 서버 측 쿠키 삭제
-        await clearAuthCookies();
         // 로그아웃 API 호출 (백엔드 세션 정리)
         await logout();
       } catch (error) {
@@ -117,10 +114,8 @@ export const GNBWrapper: React.FC = () => {
     if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
       return profileImage;
     }
-    // S3 키 형식이면 프록시 API URL로 변환
-    // users/ 접두사가 없으면 추가 (프록시 API가 자동으로 처리하지만 명시적으로 추가)
-    const imageKey = profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
-    return `/api/product/image?key=${encodeURIComponent(imageKey)}`;
+    // S3 key 그대로 전달 (Avatar에서 signed URL로 변환)
+    return profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
   })();
 
   const userProfile = user ? (

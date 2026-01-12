@@ -33,6 +33,36 @@ interface ApprovalRequestModalProps {
   action: ModalAction;
 }
 
+const ApprovalItemIcon = ({ srcOrKey, alt }: { srcOrKey?: string; alt: string }) => {
+  const effectiveSrc = (() => {
+    if (!srcOrKey || srcOrKey.trim().length === 0) return '/icons/no-image-small.svg';
+    return srcOrKey.trim();
+  })();
+
+  if (effectiveSrc.startsWith('http://') || effectiveSrc.startsWith('https://')) {
+    return (
+      <img
+        src={effectiveSrc}
+        width={40}
+        height={40}
+        alt={alt}
+        className="w-40 h-40 shrink-0 object-cover"
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={effectiveSrc}
+      width={40}
+      height={40}
+      alt={alt}
+      className="w-40 h-40 shrink-0 object-cover"
+      unoptimized
+    />
+  );
+};
+
 const ApprovalRequestModal = ({
   open,
   onClose,
@@ -49,39 +79,18 @@ const ApprovalRequestModal = ({
   const modalRef = useRef<HTMLDivElement>(null);
 
   const calculatedItems = items.map((item) => {
-    // S3 이미지 키를 프록시 API로 변환
-    // imageSrc가 이미 프록시 API URL(/api/product/image?key=...)이 아닌 경우,
-    // S3 키로 간주하고 프록시 API URL로 변환
     const { imageSrc: originalImageSrc } = item;
     let imageSrc = originalImageSrc;
 
     // 빈 문자열이나 undefined인 경우 처리
     if (!imageSrc || imageSrc.trim() === '') {
       imageSrc = undefined;
-    } else if (
-      !imageSrc.startsWith('/api/') &&
-      !imageSrc.startsWith('http://') &&
-      !imageSrc.startsWith('https://')
-    ) {
-      // S3 키를 프록시 API URL로 변환
-      imageSrc = `/api/product/image?key=${encodeURIComponent(imageSrc)}`;
     }
-
-    const finalImageSrc = imageSrc || '/icons/no-image-small.svg';
 
     return {
       ...item,
       totalPrice: item.price * item.quantity,
-      icon: (
-        <Image
-          src={finalImageSrc}
-          width={40}
-          height={40}
-          alt={item.title}
-          className="w-40 h-40 shrink-0 object-cover"
-          unoptimized={imageSrc?.startsWith('/api/product/image')}
-        />
-      ),
+      icon: <ApprovalItemIcon srcOrKey={imageSrc} alt={item.title} />,
     };
   });
 

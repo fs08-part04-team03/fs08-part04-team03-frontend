@@ -23,7 +23,7 @@ export const adaptCartItemToOrderItem = (item: CartItem): OrderItem => {
     } else {
       // S3 키 형식이면 products/ 접두사 확인
       const normalizedKey = image.startsWith('products/') ? image : `products/${image}`;
-      imageKey = `/api/product/image?key=${encodeURIComponent(normalizedKey)}`;
+      imageKey = normalizedKey;
     }
   }
 

@@ -47,8 +47,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   const [internalLiked, setInternalLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
   const [imgError, setImgError] = useState(false);
-  // 페이지 마운트 시 타임스탬프 생성 (이미지 캐시 무효화)
-  const [imageTimestamp, setImageTimestamp] = useState(() => Date.now());
+  // (백엔드에서 presigned URL을 내려주므로 별도의 캐시 버스터 불필요)
 
   const isWishlist = variant === 'wishlist';
   const liked = externalLiked !== undefined ? externalLiked : internalLiked;
@@ -101,32 +100,27 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       Image 처리
   ====================== */
   // imageUrl이 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
-  const isValidImageUrl = imageUrl && typeof imageUrl === 'string' && imageUrl.trim().length > 0;
+  const rawImageUrl =
+    imageUrl && typeof imageUrl === 'string' && imageUrl.trim().length > 0 ? imageUrl.trim() : null;
+
+  const isExternalRaw = !!rawImageUrl && /^(https?:)\/\//.test(rawImageUrl);
+  const isInternalRaw = !!rawImageUrl && rawImageUrl.startsWith('/');
 
   // 유효한 imageUrl이 있고 에러가 없을 때만 실제 이미지 표시
-  const shouldShowImage = isValidImageUrl && !imgError;
+  // 백엔드에서 항상 "조회 가능한 URL"을 내려주는 계약이므로 그대로 사용
+  // (방어적으로 http(s) 또는 내부 정적 경로(/...)만 허용)
+  const effectiveImageUrl = isExternalRaw || isInternalRaw ? rawImageUrl : null;
+  const shouldShowImage = !!effectiveImageUrl && !imgError;
 
   // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = isValidImageUrl
-    ? imageUrl.startsWith('http://') || imageUrl.startsWith('https://')
+  const isExternalUrl = effectiveImageUrl
+    ? effectiveImageUrl.startsWith('http://') || effectiveImageUrl.startsWith('https://')
     : false;
 
-  // 프록시 API URL인지 확인
-  const isProxyApiUrl = isValidImageUrl ? imageUrl.startsWith('/api/product/image') : false;
-
-  // imageUrl이 변경될 때마다 타임스탬프 업데이트 (이미지 업데이트 반영)
+  // imageUrl이 변경될 때 에러 상태 초기화
   useEffect(() => {
-    if (isValidImageUrl && isProxyApiUrl) {
-      // imageUrl이 변경되면 새로운 타임스탬프 생성하여 캐시 무효화
-      setImageTimestamp(Date.now());
-    }
-  }, [imageUrl, isValidImageUrl, isProxyApiUrl]);
-
-  // 프록시 API URL인 경우 타임스탬프 추가하여 캐시 무효화
-  const imageUrlWithTimestamp =
-    isValidImageUrl && isProxyApiUrl && imageUrl
-      ? `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${imageTimestamp}`
-      : imageUrl;
+    setImgError(false);
+  }, [rawImageUrl]);
 
   // 반응형 이미지 크기 설정 (CLS 방지)
   // Wishlist: Mobile 115px, Tablet 200px, Desktop 345px
@@ -138,16 +132,14 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
 
   let imageContent;
   if (shouldShowImage) {
-    // 외부 URL 또는 프록시 API URL은 일반 img 태그 사용
-    // 프록시 API URL은 인증이 필요하므로 쿠키가 자동으로 포함되도록 img 태그 사용
-    if (isExternalUrl || isProxyApiUrl) {
+    // signed URL/외부 URL은 일반 img 태그 사용
+    if (isExternalUrl) {
       imageContent = (
         <img
-          src={imageUrlWithTimestamp || imageUrl}
+          src={effectiveImageUrl || undefined}
           alt={name}
           className="max-w-full max-h-full w-auto h-auto object-contain"
           onError={() => setImgError(true)}
-          crossOrigin={isExternalUrl ? 'anonymous' : undefined}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           fetchPriority={priority ? 'high' : 'auto'}
@@ -157,8 +149,8 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
       // 내부 정적 이미지는 Next.js Image 컴포넌트 사용
       imageContent = (
         <Image
-          key={imageUrlWithTimestamp} // 이미지 URL 변경 시 강제 리렌더링 (캐시 무효화)
-          src={imageUrlWithTimestamp!}
+          key={effectiveImageUrl} // 이미지 URL 변경 시 강제 리렌더링
+          src={effectiveImageUrl}
           alt={name}
           fill
           sizes={imageSizes}

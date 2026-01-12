@@ -73,16 +73,17 @@ const ProductImageBox = ({
   const isValidImageUrl =
     productImage?.src && typeof productImage.src === 'string' && productImage.src.trim().length > 0;
 
+  const effectiveSrc = isValidImageUrl ? productImage?.src : undefined;
+
   // 유효한 imageUrl이 있고 에러가 없을 때만 실제 이미지 표시
-  const shouldShowImage = isValidImageUrl && !imgError;
+  const shouldShowImage = !!effectiveSrc && !imgError;
 
   // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = isValidImageUrl
-    ? productImage.src.startsWith('http://') || productImage.src.startsWith('https://')
+  const isExternalUrl = effectiveSrc
+    ? effectiveSrc.startsWith('http://') || effectiveSrc.startsWith('https://')
     : false;
-  const isProxyApiUrl = isValidImageUrl ? productImage.src.startsWith('/api/product/image') : false;
 
-  const imageSrc = shouldShowImage ? productImage.src : '/icons/no-image.svg';
+  const imageSrc = shouldShowImage && effectiveSrc ? effectiveSrc : '/icons/no-image.svg';
   const imageAlt = productImage?.alt || '이미지 없음';
 
   const isNoImage = imageSrc === '/icons/no-image.svg';
@@ -109,16 +110,14 @@ const ProductImageBox = ({
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             {(() => {
-              // 외부 URL 또는 프록시 API URL은 일반 img 태그 사용
-              // 프록시 API URL은 인증이 필요하므로 쿠키가 자동으로 포함되도록 img 태그 사용
-              if (isExternalUrl || isProxyApiUrl) {
+              // signed URL/외부 URL은 일반 img 태그 사용
+              if (isExternalUrl) {
                 return (
                   <img
                     src={imageSrc}
                     alt={imageAlt}
                     className="max-w-full max-h-full w-auto h-auto object-contain"
                     onError={() => setImgError(true)}
-                    crossOrigin={isExternalUrl ? 'anonymous' : undefined}
                   />
                 );
               }

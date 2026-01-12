@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchWithAuth, AuthExpiredError } from '@/utils/api';
+import { fetchWithAuth, AuthExpiredError, getApiUrl } from '@/utils/api';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { RegisteredProductOrgItem } from '@/features/products/components/RegisteredProductOrg/RegisteredProductOrg';
 import type { BackendProduct } from '@/features/products/utils/product.utils';
@@ -70,10 +70,8 @@ const getCategoryLabel = (categoryId: number | null | undefined): string => {
  * 클라이언트 사이드에서 전체 URL을 구성해야 함
  */
 const mapBackendProductToRegisteredItem = (product: BackendProduct): RegisteredProductOrgItem => {
-  // 상대 경로만 반환 (클라이언트에서 origin 추가)
-  const imageSrc: string = product.image
-    ? `/api/product/image?key=${encodeURIComponent(product.image)}`
-    : '';
+  // 이미지 key(S3 key) 그대로 전달하고, 실제 URL 변환은 클라이언트에서 수행
+  const imageSrc: string = product.imageUrl ? product.imageUrl : '';
 
   return {
     id: product.id,
@@ -261,9 +259,6 @@ export async function getAllProducts(
   const { sort, categoryId, accessToken, q } = params || {};
   const qs = new URLSearchParams();
 
-  // 모든 상품을 가져오기 위해 all=true 사용
-  qs.set('all', 'true');
-
   // 백엔드 API 스펙에 맞게 파라미터 설정
   if (sort) {
     const SORT_MAP: Record<string, string> = {
@@ -281,141 +276,57 @@ export async function getAllProducts(
   if (categoryId != null) qs.set('categoryId', String(categoryId));
   if (q) qs.set('q', q);
 
-  const headers: Record<string, string> = { Accept: 'application/json' };
-  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  // 백엔드는 페이지네이션을 기본으로 하므로, 클라이언트에서 전체 페이지를 병합합니다.
+  const pageSize = 100;
 
-  // Next.js API route를 통해 모든 상품 조회: /api/product?all=true
-  const res = await fetch(`/api/product?${qs.toString()}`, {
-    headers,
-    credentials: 'include',
-  });
+  const fetchPage = async (page: number) => {
+    const pageParams = new URLSearchParams(qs);
+    pageParams.set('page', String(page));
+    pageParams.set('limit', String(pageSize));
 
-  if (!res.ok) {
-    const bodyText = await res.text();
-    let parsed: GetAllProductsResponse | null = null;
+    const res = await fetchWithAuth(
+      `/api/v1/product?${pageParams.toString()}`,
+      { method: 'GET', headers: { Accept: 'application/json' } },
+      accessToken ?? undefined
+    );
 
-    try {
-      parsed = JSON.parse(bodyText) as GetAllProductsResponse;
-    } catch {
-      // ignore
+    if (!res.ok) {
+      if (res.status === 429) throw new Error('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+      if (res.status === 401) {
+        throw new AuthExpiredError(
+          '인증이 필요합니다. 다시 로그인해주세요.',
+          res.status,
+          res,
+          null
+        );
+      }
+      const text = await res.text();
+      throw new Error(`product fetch failed: ${res.status} ${text}`);
     }
 
-    // 429 Too Many Requests 에러 처리
-    if (res.status === 429) {
-      throw new Error('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+    const json = (await res.json()) as {
+      success?: boolean;
+      data?: BackendProduct[];
+      pagination?: { totalPages?: number };
+      message?: string;
+    };
+
+    if (!json || typeof json !== 'object' || !Array.isArray(json.data)) {
+      throw new Error(json?.message || 'product fetch failed: invalid response format');
     }
 
-    // 401 Unauthorized 에러 처리 (재시도 없이 즉시 에러 반환)
-    if (res.status === 401) {
-      throw new AuthExpiredError(
-        '인증이 필요합니다. 다시 로그인해주세요.',
-        res.status,
-        res,
-        parsed as unknown
-      );
-    }
-
-    const isAuthExpired = parsed?.error?.code === 'AUTH_TOKEN_EXPIRED';
-
-    if (isAuthExpired) {
-      const retryRes = await fetch(`/api/product?${qs.toString()}`, {
-        headers: { Accept: 'application/json' },
-        credentials: 'include',
-      });
-
-      // 재시도 시에도 에러 체크
-      if (!retryRes.ok) {
-        // 429 Too Many Requests 에러 처리
-        if (retryRes.status === 429) {
-          throw new Error('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
-        }
-
-        // 401 에러는 재시도하지 않고 즉시 반환
-        if (retryRes.status === 401) {
-          throw new AuthExpiredError(
-            '인증이 필요합니다. 다시 로그인해주세요.',
-            retryRes.status,
-            retryRes,
-            null
-          );
-        }
-
-        const retryText = await retryRes.text();
-        let retryParsed: GetAllProductsResponse | null = null;
-
-        try {
-          retryParsed = JSON.parse(retryText) as GetAllProductsResponse;
-        } catch {
-          // ignore
-        }
-
-        const isRetryAuthExpired = retryParsed?.error?.code === 'AUTH_TOKEN_EXPIRED';
-
-        if (isRetryAuthExpired) {
-          throw new AuthExpiredError(
-            '인증이 만료되었습니다.',
-            retryRes.status,
-            retryRes,
-            retryParsed as unknown
-          );
-        }
-
-        throw new Error(`product fetch failed: ${retryRes.status} ${retryText}`);
-      }
-
-      const retryBodyText = await retryRes.text();
-      let retryParsed: {
-        success?: boolean;
-        data?: BackendProduct[];
-        pagination?: unknown;
-        message?: string;
-      } | null = null;
-
-      try {
-        retryParsed = JSON.parse(retryBodyText) as {
-          success?: boolean;
-          data?: BackendProduct[];
-          pagination?: unknown;
-          message?: string;
-        };
-      } catch {
-        throw new Error('product fetch failed: invalid JSON response');
-      }
-
-      if (!retryParsed || typeof retryParsed !== 'object') {
-        throw new Error('product fetch failed: invalid JSON response');
-      }
-
-      // Next.js API route 응답 형식 변환: { success: true, data: [...] } -> { data: [...] }
-      if ('data' in retryParsed && Array.isArray(retryParsed.data)) {
-        return {
-          data: retryParsed.data,
-        } as GetAllProductsResponse;
-      }
-
-      // data 필드가 없거나 배열이 아닌 경우 에러 발생
-      throw new Error('product fetch failed: invalid response format - missing data array');
-    }
-
-    throw new Error(`product fetch failed: ${res.status} ${bodyText}`);
-  }
-
-  const result = (await res.json()) as {
-    success?: boolean;
-    data?: BackendProduct[];
-    pagination?: unknown;
-    message?: string;
+    return { data: json.data, totalPages: json.pagination?.totalPages ?? 1 };
   };
 
-  // Next.js API route 응답 형식 변환: { success: true, data: [...] } -> { data: [...] }
-  if (result && typeof result === 'object' && 'data' in result && Array.isArray(result.data)) {
-    return {
-      data: result.data,
-    } as GetAllProductsResponse;
-  }
+  const first = await fetchPage(1);
+  const totalPages = Math.max(1, first.totalPages);
+  if (totalPages === 1) return { data: first.data };
 
-  // data 필드가 없거나 배열이 아닌 경우 에러 발생
-  throw new Error('product fetch failed: invalid response format - missing data array');
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, i) => fetchPage(i + 2))
+  );
+
+  return { data: [first.data, ...rest.map((r) => r.data)].flat() };
 }
 
 /**
@@ -506,30 +417,12 @@ export async function uploadProductImage(
 
   const { accessToken } = useAuthStore.getState();
 
-  // 브라우저에서는 상대 경로 사용 (Next.js rewrites를 통해)
-  // 서버 사이드에서는 절대 URL 사용
-  const isBrowserEnv = typeof window !== 'undefined';
-  let uploadUrl: string;
-
-  if (isBrowserEnv) {
-    // 브라우저에서는 상대 경로 사용 (Next.js 프록시 라우트)
-    uploadUrl = `/api/product/image?folder=${encodeURIComponent(folder)}`;
-  } else {
-    // 서버 사이드에서는 Next.js 서버의 로컬 URL 사용
-    // /api/product/image는 Next.js 프록시 라우트이므로 백엔드 URL이 아닌 로컬 서버 URL 사용
-    const nextJsUrl = process.env.NEXT_PUBLIC_APP_URL;
-    if (!nextJsUrl) {
-      throw new Error(
-        'NEXT_PUBLIC_APP_URL environment variable is required for server-side image upload'
-      );
-    }
-    uploadUrl = `${nextJsUrl}/api/product/image?folder=${encodeURIComponent(folder)}`;
-  }
+  const uploadUrl = `/api/v1/upload/image?folder=${encodeURIComponent(folder)}`;
 
   // skipAuth가 true이거나 accessToken이 없으면 일반 fetch 사용 (회원가입 시)
   let response: Response;
   if (skipAuth || !accessToken) {
-    response = await fetch(uploadUrl, {
+    response = await fetch(`${getApiUrl()}${uploadUrl}`, {
       method: 'POST',
       body: formData,
       credentials: 'include', // 쿠키 전송 (CSRF 토큰 등)
