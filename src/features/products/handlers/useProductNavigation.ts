@@ -32,7 +32,7 @@ export function useProductNavigation(companyId: string) {
       // 카테고리 변경 시 검색어 초기화
       params.delete('q');
 
-      const newUrl = `/${companyId}/products${params.toString() ? `?${params.toString()}` : ''}`;
+      const newUrl = `${PATHNAME.PRODUCTS(companyId)}${params.toString() ? `?${params.toString()}` : ''}`;
       router.push(newUrl);
     },
     [companyId, router, searchParams]
@@ -52,7 +52,7 @@ export function useProductNavigation(companyId: string) {
       } else {
         params.delete('q');
       }
-      const newUrl = `/${companyId}/products${params.toString() ? `?${params.toString()}` : ''}`;
+      const newUrl = `${PATHNAME.PRODUCTS(companyId)}${params.toString() ? `?${params.toString()}` : ''}`;
       router.push(newUrl);
     },
     [companyId, router, searchParams]
@@ -63,7 +63,7 @@ export function useProductNavigation(companyId: string) {
    */
   const goToProductDetail = useCallback(
     (productId: number) => {
-      router.push(`/${companyId}/products/${productId}`);
+      router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
     },
     [companyId, router]
   );
@@ -77,7 +77,7 @@ export function useProductNavigation(companyId: string) {
         router.push(PATHNAME.PRODUCTS(companyId));
         return;
       }
-      router.push(`/${companyId}/products?categoryId=${categoryId}`);
+      router.push(`${PATHNAME.PRODUCTS(companyId)}?categoryId=${categoryId}`);
     },
     [companyId, router]
   );
@@ -93,7 +93,7 @@ export function useProductNavigation(companyId: string) {
    * 내 상품 목록으로 이동
    */
   const goToMyProducts = useCallback(() => {
-    router.push(`/${companyId}/products/my`);
+    router.push(PATHNAME.PRODUCT_MINE(companyId));
   }, [companyId, router]);
 
   /**

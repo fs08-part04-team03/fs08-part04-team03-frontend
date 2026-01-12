@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
+import { PATHNAME } from '@/constants';
 import { clearAuthCookies } from '@/utils/cookies';
 import { logout } from '@/features/auth/api/auth.api';
 import { getCompany } from '@/features/profile/api/company.api';
@@ -73,7 +74,7 @@ export const GNBWrapper: React.FC = () => {
       } finally {
         // 클라이언트 상태 정리
         clearAuth();
-        router.push('/login');
+        router.push(PATHNAME.LOGIN);
       }
     })().catch(() => {
       // Promise rejection 처리 (이미 catch 블록에서 처리되지만 린터를 위해 추가)
@@ -225,7 +226,7 @@ export const GNBWrapper: React.FC = () => {
     if (categoryKey === 'all') {
       // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
       queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
-      router.push(`/${companyId}/products`);
+      router.push(PATHNAME.PRODUCTS(companyId));
       return;
     }
 
@@ -234,7 +235,7 @@ export const GNBWrapper: React.FC = () => {
       // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
       queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
       // 상품 페이지로 이동하면서 카테고리 쿼리 파라미터 추가
-      router.push(`/${companyId}/products?category=${category.parentId}`);
+      router.push(`${PATHNAME.PRODUCTS(companyId)}?category=${category.parentId}`);
     }
   };
 
@@ -244,7 +245,7 @@ export const GNBWrapper: React.FC = () => {
     // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
     queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
     // 소분류 ID로 필터링하기 위해 categoryId 쿼리 파라미터 업데이트
-    router.push(`/${companyId}/products?categoryId=${subCategoryId}`);
+    router.push(`${PATHNAME.PRODUCTS(companyId)}?categoryId=${subCategoryId}`);
   };
 
   // 네비게이션 아이템 클릭 핸들러 (상품 페이지로 이동 시 refetch)
