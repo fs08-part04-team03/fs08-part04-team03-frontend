@@ -69,28 +69,13 @@ const ProductImageBox = ({
 }) => {
   const [imgError, setImgError] = useState(false);
 
-  // imageUrl이 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
-  const isValidImageUrl =
-    productImage?.src && typeof productImage.src === 'string' && productImage.src.trim().length > 0;
-
-  const effectiveSrc = isValidImageUrl ? productImage?.src : undefined;
-
-  // 유효한 imageUrl이 있고 에러가 없을 때만 실제 이미지 표시
+  const effectiveSrc = productImage?.src;
   const shouldShowImage = !!effectiveSrc && !imgError;
-
-  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = effectiveSrc
-    ? effectiveSrc.startsWith('http://') || effectiveSrc.startsWith('https://')
-    : false;
 
   const imageSrc = shouldShowImage && effectiveSrc ? effectiveSrc : '/icons/no-image.svg';
   const imageAlt = productImage?.alt || '이미지 없음';
 
   const isNoImage = imageSrc === '/icons/no-image.svg';
-
-  // 반응형 이미지 크기 설정 (CLS 방지)
-  // Mobile: 300px, Tablet: 456px, Desktop: 500px
-  const imageSizes = '(max-width: 767px) 300px, (max-width: 1199px) 456px, 500px';
 
   return (
     <div className={clsx('relative bg-gray-100 rounded-8 shadow-lg', sizeClass)}>
@@ -109,32 +94,12 @@ const ProductImageBox = ({
           </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            {(() => {
-              // signed URL/외부 URL은 일반 img 태그 사용
-              if (isExternalUrl) {
-                return (
-                  <img
-                    src={imageSrc}
-                    alt={imageAlt}
-                    className="max-w-full max-h-full w-auto h-auto object-contain"
-                    onError={() => setImgError(true)}
-                  />
-                );
-              }
-
-              // 내부 정적 이미지는 Next.js Image 최적화 사용
-              return (
-                <Image
-                  src={imageSrc}
-                  alt={imageAlt}
-                  fill
-                  sizes={imageSizes}
-                  className="object-contain"
-                  style={{ objectPosition: 'center' }}
-                  onError={() => setImgError(true)}
-                />
-              );
-            })()}
+            <img
+              src={imageSrc}
+              alt={imageAlt}
+              className="max-w-full max-h-full w-auto h-auto object-contain"
+              onError={() => setImgError(true)}
+            />
           </div>
         )}
       </div>

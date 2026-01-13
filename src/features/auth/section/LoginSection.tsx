@@ -28,12 +28,12 @@ const LoginSection = () => {
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
     defaultValues: {
-      email: '',
-      password: '',
+      email: 'test@test001.com',
+      password: '!Q2w3e4r',
     },
   });
 
-  const onSubmit = async (values: LoginInput): Promise<void> => {
+  const onSubmit = (values: LoginInput): void => {
     loginMutation.mutate(values, {
       onSuccess: (data) => {
         redirectToProducts(data.user);

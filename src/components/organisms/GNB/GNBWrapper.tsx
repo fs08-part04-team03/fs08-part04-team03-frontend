@@ -103,19 +103,12 @@ export const GNBWrapper: React.FC = () => {
   });
 
   // 프로필 이미지 URL 생성
-  // profileImage가 URL 형식이면 그대로 사용, S3 키 형식이면 프록시 API URL로 변환
   const avatarSrc = (() => {
     if (!myProfile?.profileImage) {
       return undefined;
     }
-    const { profileImage } = myProfile;
-
-    // 이미 URL 형식이면 그대로 사용
-    if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-      return profileImage;
-    }
-    // S3 key 그대로 전달 (Avatar에서 signed URL로 변환)
-    return profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
+    const trimmed = myProfile.profileImage.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
   })();
 
   const userProfile = user ? (

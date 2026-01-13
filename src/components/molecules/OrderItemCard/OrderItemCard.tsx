@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import { PATHNAME } from '@/constants';
@@ -22,9 +21,6 @@ interface ProductImageProps {
   productId?: number;
   onProductClick?: () => void;
   onImageError: () => void;
-  imageSizes: string;
-  isExternalUrl: boolean;
-  isProxyApiUrl: boolean;
   shouldShowImage: boolean;
 }
 
@@ -34,9 +30,6 @@ const ProductImage: React.FC<ProductImageProps> = ({
   productId,
   onProductClick,
   onImageError,
-  imageSizes,
-  isExternalUrl,
-  isProxyApiUrl,
   shouldShowImage,
 }) => {
   const containerClassName = clsx(
@@ -49,27 +42,12 @@ const ProductImage: React.FC<ProductImageProps> = ({
 
   const imageContent = shouldShowImage ? (
     <div className="absolute inset-0 flex items-center justify-center">
-      {/* 외부 URL 또는 프록시 API URL은 일반 img 태그 사용 */}
-      {/* 프록시 API URL은 인증이 필요하므로 쿠키가 자동으로 포함되도록 img 태그 사용 */}
-      {isExternalUrl || isProxyApiUrl ? (
-        <img
-          src={imageSrc}
-          alt={name}
-          className="max-w-full max-h-full w-auto h-auto object-contain"
-          onError={onImageError}
-        />
-      ) : (
-        <Image
-          key={imageSrc} // 이미지 URL 변경 시 강제 리렌더링 (캐시 무효화)
-          src={imageSrc!}
-          alt={name}
-          fill
-          sizes={imageSizes}
-          className="object-contain"
-          style={{ objectPosition: 'center' }}
-          onError={onImageError}
-        />
-      )}
+      <img
+        src={imageSrc}
+        alt={name}
+        className="max-w-full max-h-full w-auto h-auto object-contain"
+        onError={onImageError}
+      />
     </div>
   ) : (
     <div className="absolute inset-0 flex items-center justify-center">
@@ -200,23 +178,13 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
     productId && 'cursor-pointer hover:underline' // ✅ 클릭 가능한 경우 스타일 추가
   );
 
-  // 이미지 URL 유효성 검증
-  const effectiveImageSrc =
-    imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0 ? imageSrc.trim() : null;
+  const effectiveImageSrc = imageSrc ?? null;
   const shouldShowImage = !!effectiveImageSrc && !imageError;
 
   // imageSrc 변경 시 imageError 초기화
   useEffect(() => {
     setImageError(false);
   }, [imageSrc]);
-
-  // 외부 URL인지 확인
-  const isExternalUrl =
-    !!effectiveImageSrc &&
-    (effectiveImageSrc.startsWith('http://') || effectiveImageSrc.startsWith('https://'));
-
-  // 이미지 크기 설정 (CLS 방지)
-  const imageSizes = '(max-width: 767px) 85px, 140px';
 
   // Confirm variant
   if (variant === 'confirm') {
@@ -238,9 +206,6 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
             productId={productId}
             onProductClick={handleProductClick}
             onImageError={() => setImageError(true)}
-            imageSizes={imageSizes}
-            isExternalUrl={isExternalUrl}
-            isProxyApiUrl={false}
             shouldShowImage={shouldShowImage}
           />
 
@@ -302,9 +267,6 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
           productId={productId}
           onProductClick={handleProductClick}
           onImageError={() => setImageError(true)}
-          imageSizes={imageSizes}
-          isExternalUrl={isExternalUrl}
-          isProxyApiUrl={false}
           shouldShowImage={shouldShowImage}
         />
 

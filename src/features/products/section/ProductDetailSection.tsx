@@ -12,7 +12,6 @@ import {
   getParentById,
   buildProductBreadcrumb,
 } from '@/constants';
-import { buildImageUrl } from '@/utils/api';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
 import LinkText from '@/components/atoms/LinkText/LinkText';
@@ -59,22 +58,7 @@ const ProductDetailSection = () => {
 
   // 수정 모달용 이미지 URL 로드 (signed URL 필요)
   useEffect(() => {
-    const loadImageUrl = async () => {
-      if (product?.imageUrl) {
-        try {
-          const url = await buildImageUrl(product.imageUrl);
-          setEditModalImageUrl(url || null);
-        } catch {
-          // 이미지 로딩 실패 시 null로 설정
-          setEditModalImageUrl(null);
-        }
-      } else {
-        setEditModalImageUrl(null);
-      }
-    };
-    loadImageUrl().catch(() => {
-      // 에러는 이미 loadImageUrl 내부에서 처리됨
-    });
+    setEditModalImageUrl(product?.imageUrl ?? null);
   }, [product?.imageUrl]);
 
   const detailPageProps: DetailPageLayoutProps = useMemo(() => {

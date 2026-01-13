@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useRef, FormEvent } from 'react';
-import Image from 'next/image';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import TextAreaField from '@/components/molecules/TextAreaField/TextAreaField';
 import Button from '@/components/atoms/Button/Button';
@@ -39,26 +38,13 @@ const ApprovalItemIcon = ({ srcOrKey, alt }: { srcOrKey?: string; alt: string })
     return srcOrKey.trim();
   })();
 
-  if (effectiveSrc.startsWith('http://') || effectiveSrc.startsWith('https://')) {
-    return (
-      <img
-        src={effectiveSrc}
-        width={40}
-        height={40}
-        alt={alt}
-        className="w-40 h-40 shrink-0 object-cover"
-      />
-    );
-  }
-
   return (
-    <Image
+    <img
       src={effectiveSrc}
       width={40}
       height={40}
       alt={alt}
       className="w-40 h-40 shrink-0 object-cover"
-      unoptimized
     />
   );
 };
