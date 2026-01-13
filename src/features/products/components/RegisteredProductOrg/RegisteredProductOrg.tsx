@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { Divider } from '@/components/atoms/Divider/Divider';
 import { clsx } from '@/utils/clsx';
@@ -37,27 +37,6 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
 }) => {
   const isEmpty = products.length === 0;
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // 클라이언트 사이드에서만 전체 URL 구성 (SSR 하이드레이션 불일치 방지)
-  const productsWithFullUrls = useMemo(() => {
-    if (!isClient) {
-      // 서버 사이드에서는 상대 경로 그대로 반환
-      return products;
-    }
-    // 클라이언트 사이드에서만 origin 추가
-    return products.map((product) => ({
-      ...product,
-      imageSrc:
-        product.imageSrc && !product.imageSrc.startsWith('http')
-          ? `${window.location.origin}${product.imageSrc}`
-          : product.imageSrc,
-    }));
-  }, [products, isClient]);
 
   const handleImageError = (productId: number) => {
     setImageErrors((prev) => ({ ...prev, [productId]: true }));
@@ -128,14 +107,10 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
 
             return (
               <ul className={clsx('flex flex-col')}>
-                {productsWithFullUrls.map((product) => {
-                  // imageSrc가 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
-                  const isValidImageUrl =
-                    product.imageSrc &&
-                    typeof product.imageSrc === 'string' &&
-                    product.imageSrc.trim().length > 0;
+                {products.map((product) => {
                   const imgError = imageErrors[product.id] || false;
-                  const showNoImage = !isValidImageUrl || imgError;
+                  const showNoImage =
+                    !product.imageSrc || product.imageSrc.trim().length === 0 || imgError;
 
                   return (
                     <li key={product.id}>
@@ -180,41 +155,14 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
                                   />
                                 );
                               }
-                              if (
-                                isValidImageUrl &&
-                                (product.imageSrc.startsWith('http://') ||
-                                  product.imageSrc.startsWith('https://'))
-                              ) {
-                                // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
-                                return (
-                                  <img
-                                    src={product.imageSrc}
-                                    alt={product.name}
-                                    width={29}
-                                    height={50}
-                                    onError={() => handleImageError(product.id)}
-                                    className="object-contain"
-                                  />
-                                );
-                              }
-                              if (isValidImageUrl) {
-                                return (
-                                  <Image
-                                    src={product.imageSrc}
-                                    alt={product.name}
-                                    width={29}
-                                    height={50}
-                                    onError={() => handleImageError(product.id)}
-                                  />
-                                );
-                              }
                               return (
-                                <Image
-                                  src="/icons/no-image-small.svg"
-                                  alt="이미지 없음"
+                                <img
+                                  src={product.imageSrc}
+                                  alt={product.name}
                                   width={29}
                                   height={50}
-                                  unoptimized
+                                  onError={() => handleImageError(product.id)}
+                                  className="object-contain"
                                 />
                               );
                             })()}
@@ -307,42 +255,14 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
                                   />
                                 );
                               }
-                              if (
-                                isValidImageUrl &&
-                                (product.imageSrc.startsWith('http://') ||
-                                  product.imageSrc.startsWith('https://'))
-                              ) {
-                                // 외부 URL은 일반 img 태그 사용 (CORS 문제 방지)
-                                return (
-                                  <img
-                                    src={product.imageSrc}
-                                    alt={product.name}
-                                    width={16}
-                                    height={27}
-                                    onError={() => handleImageError(product.id)}
-                                    crossOrigin="anonymous"
-                                    className="object-contain"
-                                  />
-                                );
-                              }
-                              if (isValidImageUrl) {
-                                return (
-                                  <Image
-                                    src={product.imageSrc}
-                                    alt={product.name}
-                                    width={16}
-                                    height={27}
-                                    onError={() => handleImageError(product.id)}
-                                  />
-                                );
-                              }
                               return (
-                                <Image
-                                  src="/icons/no-image-small.svg"
-                                  alt="이미지 없음"
+                                <img
+                                  src={product.imageSrc}
+                                  alt={product.name}
                                   width={16}
                                   height={27}
-                                  unoptimized
+                                  onError={() => handleImageError(product.id)}
+                                  className="object-contain"
                                 />
                               );
                             })()}

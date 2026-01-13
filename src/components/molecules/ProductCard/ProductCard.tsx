@@ -99,28 +99,13 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   /** =====================
       Image 처리
   ====================== */
-  // imageUrl이 유효한 문자열인지 체크 (null, undefined, 빈 문자열 모두 처리)
-  const rawImageUrl =
-    imageUrl && typeof imageUrl === 'string' && imageUrl.trim().length > 0 ? imageUrl.trim() : null;
-
-  const isExternalRaw = !!rawImageUrl && /^(https?:)\/\//.test(rawImageUrl);
-  const isInternalRaw = !!rawImageUrl && rawImageUrl.startsWith('/');
-
-  // 유효한 imageUrl이 있고 에러가 없을 때만 실제 이미지 표시
-  // 백엔드에서 항상 "조회 가능한 URL"을 내려주는 계약이므로 그대로 사용
-  // (방어적으로 http(s) 또는 내부 정적 경로(/...)만 허용)
-  const effectiveImageUrl = isExternalRaw || isInternalRaw ? rawImageUrl : null;
+  const effectiveImageUrl = imageUrl ? imageUrl.trim() : null;
   const shouldShowImage = !!effectiveImageUrl && !imgError;
-
-  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = effectiveImageUrl
-    ? effectiveImageUrl.startsWith('http://') || effectiveImageUrl.startsWith('https://')
-    : false;
 
   // imageUrl이 변경될 때 에러 상태 초기화
   useEffect(() => {
     setImgError(false);
-  }, [rawImageUrl]);
+  }, [imageUrl]);
 
   // 반응형 이미지 크기 설정 (CLS 방지)
   // Wishlist: Mobile 115px, Tablet 200px, Desktop 345px
@@ -132,37 +117,17 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
 
   let imageContent;
   if (shouldShowImage) {
-    // signed URL/외부 URL은 일반 img 태그 사용
-    if (isExternalUrl) {
-      imageContent = (
-        <img
-          src={effectiveImageUrl || undefined}
-          alt={name}
-          className="max-w-full max-h-full w-auto h-auto object-contain"
-          onError={() => setImgError(true)}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding="async"
-          fetchPriority={priority ? 'high' : 'auto'}
-        />
-      );
-    } else {
-      // 내부 정적 이미지는 Next.js Image 컴포넌트 사용
-      imageContent = (
-        <Image
-          key={effectiveImageUrl} // 이미지 URL 변경 시 강제 리렌더링
-          src={effectiveImageUrl}
-          alt={name}
-          fill
-          sizes={imageSizes}
-          onError={() => setImgError(true)}
-          className="object-contain"
-          style={{ objectPosition: 'center' }}
-          loading={priority ? 'eager' : 'lazy'}
-          priority={priority}
-          fetchPriority={priority ? 'high' : 'auto'}
-        />
-      );
-    }
+    imageContent = (
+      <img
+        src={effectiveImageUrl || undefined}
+        alt={name}
+        className="max-w-full max-h-full w-auto h-auto object-contain"
+        onError={() => setImgError(true)}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        fetchPriority={priority ? 'high' : 'auto'}
+      />
+    );
   } else {
     // imageUrl이 없거나 유효하지 않거나 로딩 실패 시 fallback 이미지 표시
     imageContent = (

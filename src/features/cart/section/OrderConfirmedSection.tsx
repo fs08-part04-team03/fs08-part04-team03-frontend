@@ -76,12 +76,7 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
       if (item.products.image) {
         const image = item.products.image.trim();
         if (!image) return acc;
-        if (image.startsWith('http://') || image.startsWith('https://')) {
-          acc[item.products.id] = image;
-        } else {
-          const normalizedKey = image.startsWith('products/') ? image : `products/${image}`;
-          acc[item.products.id] = normalizedKey;
-        }
+        acc[item.products.id] = image;
       }
       return acc;
     }, {});

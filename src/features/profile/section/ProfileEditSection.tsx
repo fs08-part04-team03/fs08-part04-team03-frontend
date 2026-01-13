@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileEditSchema, type ProfileEditInput } from '@/features/profile/schemas/profileSchema';
 import { useAuthStore } from '@/lib/store/authStore';
-import { buildImageUrl } from '@/utils/api';
 import { getCompany } from '@/features/profile/api/company.api';
 import {
   updateAdminProfile,
@@ -68,23 +67,15 @@ const ProfileEditSection = () => {
 
   // 초기 이미지 로드 (myProfile.profileImage가 있으면)
   useEffect(() => {
-    const run = async () => {
+    const run = () => {
       if (myProfile?.profileImage) {
-        const { profileImage } = myProfile;
-        if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-          setPreview(profileImage);
-          return;
-        }
-        const imageKey = profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
-        const url = await buildImageUrl(imageKey);
-        setPreview(url || '/icons/upload.svg');
+        const trimmed = myProfile.profileImage.trim();
+        setPreview(trimmed.length > 0 ? trimmed : '/icons/upload.svg');
         return;
       }
       setPreview('/icons/upload.svg');
     };
-    run().catch(() => {
-      setPreview('/icons/upload.svg');
-    });
+    run();
   }, [myProfile?.profileImage, myProfile]);
 
   // 회사 정보 조회 (폼 초기값 설정)
@@ -220,16 +211,8 @@ const ProfileEditSection = () => {
         // 프로필 업데이트 성공 시 프로필 이미지가 변경되었을 수 있으므로
         // updatedProfile의 profileImage를 사용하여 미리보기 업데이트
         if (updatedProfile?.profileImage) {
-          const { profileImage } = updatedProfile;
-          if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-            setPreview(profileImage);
-          } else {
-            const imageKey = profileImage.startsWith('users/')
-              ? profileImage
-              : `users/${profileImage}`;
-            const url = await buildImageUrl(imageKey);
-            setPreview(url || '/icons/upload.svg');
-          }
+          const trimmed = updatedProfile.profileImage.trim();
+          setPreview(trimmed.length > 0 ? trimmed : '/icons/upload.svg');
         }
       }
 

@@ -61,16 +61,7 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl =
-    effectiveImageSrc &&
-    typeof effectiveImageSrc === 'string' &&
-    effectiveImageSrc.trim().length > 0;
   const shouldShowImage = !!effectiveImageSrc && !imageError;
-
-  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = isValidImageUrl
-    ? effectiveImageSrc.startsWith('http://') || effectiveImageSrc.startsWith('https://')
-    : false;
 
   return (
     <div className={clsx('tablet:hidden', className)}>
@@ -79,25 +70,12 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
           <div className="relative overflow-hidden rounded-8 bg-gray-50 w-85 h-85 shrink-0">
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                {/* 외부 URL 또는 프록시 API URL은 일반 img 태그 사용 */}
-                {isExternalUrl ? (
-                  <img
-                    src={effectiveImageSrc}
-                    alt={name}
-                    className="max-w-full max-h-full w-auto h-auto object-contain"
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <Image
-                    src={effectiveImageSrc || '/icons/no-image.svg'}
-                    alt={name}
-                    fill
-                    sizes="85px"
-                    className="object-contain"
-                    style={{ objectPosition: 'center' }}
-                    onError={() => setImageError(true)}
-                  />
-                )}
+                <img
+                  src={effectiveImageSrc}
+                  alt={name}
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
+                  onError={() => setImageError(true)}
+                />
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -184,16 +162,7 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl =
-    effectiveImageSrc &&
-    typeof effectiveImageSrc === 'string' &&
-    effectiveImageSrc.trim().length > 0;
   const shouldShowImage = !!effectiveImageSrc && !imageError;
-
-  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = isValidImageUrl
-    ? effectiveImageSrc.startsWith('http://') || effectiveImageSrc.startsWith('https://')
-    : false;
 
   return (
     <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
@@ -202,25 +171,12 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
           <div className="relative overflow-hidden rounded-8 bg-gray-50 w-140 h-140 shrink-0">
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                {/* 외부 URL 또는 프록시 API URL은 일반 img 태그 사용 */}
-                {isExternalUrl ? (
-                  <img
-                    src={effectiveImageSrc}
-                    alt={name}
-                    className="max-w-full max-h-full w-auto h-auto object-contain"
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <Image
-                    src={effectiveImageSrc || '/icons/no-image.svg'}
-                    alt={name}
-                    fill
-                    sizes="140px"
-                    className="object-contain"
-                    style={{ objectPosition: 'center' }}
-                    onError={() => setImageError(true)}
-                  />
-                )}
+                <img
+                  src={effectiveImageSrc}
+                  alt={name}
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
+                  onError={() => setImageError(true)}
+                />
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -313,16 +269,7 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl =
-    effectiveImageSrc &&
-    typeof effectiveImageSrc === 'string' &&
-    effectiveImageSrc.trim().length > 0;
   const shouldShowImage = !!effectiveImageSrc && !imageError;
-
-  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = isValidImageUrl
-    ? effectiveImageSrc.startsWith('http://') || effectiveImageSrc.startsWith('https://')
-    : false;
 
   return (
     <div className={clsx('hidden desktop:flex', className)}>
@@ -331,25 +278,12 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
           <div className="relative overflow-hidden rounded-8 bg-gray-50 w-140 h-140 shrink-0">
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                {/* 외부 URL 또는 프록시 API URL은 일반 img 태그 사용 */}
-                {isExternalUrl ? (
-                  <img
-                    src={effectiveImageSrc}
-                    alt={name}
-                    className="max-w-full max-h-full w-auto h-auto object-contain"
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <Image
-                    src={effectiveImageSrc || '/icons/no-image.svg'}
-                    alt={name}
-                    fill
-                    sizes="140px"
-                    className="object-contain"
-                    style={{ objectPosition: 'center' }}
-                    onError={() => setImageError(true)}
-                  />
-                )}
+                <img
+                  src={effectiveImageSrc}
+                  alt={name}
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
+                  onError={() => setImageError(true)}
+                />
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">

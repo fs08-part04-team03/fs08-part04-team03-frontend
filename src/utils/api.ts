@@ -449,45 +449,5 @@ export async function fetchWithAuth(
   }
 }
 
-/**
- * 이미지 URL 구성 (비동기)
- * S3 키를 사용하여 signed URL을 가져옵니다.
- * 클라이언트 사이드에서만 사용해야 합니다.
- * @param imageKey - 이미지 S3 key (예: products/xxx.png)
- * @returns signed URL 또는 undefined
- */
-export async function buildImageUrl(
-  imageKey: string | null | undefined
-): Promise<string | undefined> {
-  if (!imageKey) return undefined;
-
-  // 서버 사이드에서는 이 함수를 호출하지 않아야 함
-  if (typeof window === 'undefined') {
-    logger.warn('buildImageUrl called on server-side', { imageKey });
-    return undefined;
-  }
-
-  try {
-    const encodedKey = encodeURIComponent(imageKey);
-    const response = await fetchWithAuth(`/api/v1/upload/image/${encodedKey}`, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-    });
-
-    if (!response.ok) return undefined;
-
-    const result = (await response.json()) as {
-      data?: { url?: string; signedUrl?: string };
-      url?: string;
-    };
-
-    return result.data?.url || result.data?.signedUrl || result.url || undefined;
-  } catch (error) {
-    logger.error('Error in buildImageUrl', {
-      hasError: true,
-      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-      imageKey,
-    });
-    return undefined;
-  }
-}
+// buildImageUrl 제거됨:
+// 백엔드가 항상 접근 가능한 완전한 이미지 URL을 내려주는 계약을 사용합니다.
