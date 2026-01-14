@@ -8,7 +8,6 @@ import {
   useRequestPurchase,
   useUrgentRequestPurchase,
 } from '@/features/purchase/queries/purchase.queries';
-import { cartApi } from '../api/cart.api';
 import { cartKeys } from '../queries/cart.keys';
 import { CART_ROUTES } from '../constants/routes';
 import type { OrderItem } from '../components/CartSummaryBlockOrg/CartSummaryBlockOrg';
@@ -29,7 +28,7 @@ interface UseOrderHandlersProps {
 export function useOrderHandlers({
   companyId,
   selectedItems,
-  cartItemIds,
+  cartItemIds: _cartItemIds,
   onSuccess,
   onError,
 }: UseOrderHandlersProps) {
@@ -62,32 +61,23 @@ export function useOrderHandlers({
     mutation.mutate(requestBody, {
       onSuccess: (data) => {
         if (data?.id) {
-          // 페이지 이동 전에 카트 아이템 삭제 (user role일 때)
-          // 비동기 작업을 시작하지만 Promise를 기다리지 않음
-          if (cartItemIds.length > 0) {
-            cartApi
-              .deleteMultiple(cartItemIds)
-              .then(() => {
-                logger.info('Cart items deleted before navigation', {
-                  deletedCount: cartItemIds.length,
-                });
-                // 모든 카트 쿼리 무효화 (GNB의 카트 아이콘도 refetch됨)
-                return queryClient.invalidateQueries({ queryKey: cartKeys.all });
-              })
-              .then(() =>
-                // GNB의 카트 쿼리도 명시적으로 refetch
-                queryClient.refetchQueries({ queryKey: cartKeys.all })
-              )
-              .catch((deleteError) => {
-                logger.error('Failed to delete cart items before navigation', {
-                  hasError: true,
-                  errorType:
-                    deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
-                  cartItemIds,
-                });
-                // 카트 삭제 실패해도 구매 요청은 성공했으므로 계속 진행
+          // 백엔드에서 구매 요청 시 자동으로 카트 아이템을 삭제하므로
+          // 프론트엔드에서는 캐시만 무효화하여 최신 데이터를 가져옴
+          queryClient
+            .invalidateQueries({ queryKey: cartKeys.all })
+            .then(() => {
+              // GNB의 카트 쿼리도 명시적으로 refetch
+              queryClient.refetchQueries({ queryKey: cartKeys.all }).catch(() => {
+                // refetch 실패는 무시 (백그라운드 작업)
               });
-          }
+            })
+            .catch((error) => {
+              logger.error('Failed to invalidate cart queries', {
+                hasError: true,
+                errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+              });
+              // 캐시 무효화 실패해도 구매 요청은 성공했으므로 계속 진행
+            });
 
           triggerToast('success', '구매 요청이 완료되었습니다.');
           router.push(CART_ROUTES.ORDER_COMPLETED(companyId, data.id));

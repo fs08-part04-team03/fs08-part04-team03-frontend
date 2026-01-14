@@ -253,7 +253,7 @@ const PurchaseRequestListTem = ({
             : undefined,
       },
       items: selectedRequest.purchaseItems.map((item, index) => {
-        const imageSrc = item.products.image ? item.products.image : '';
+        const imageSrc = item.products.imageUrl ? item.products.imageUrl : '';
         return {
           id: index,
           title: item.products.name,

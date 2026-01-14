@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/lib/store/authStore';
+import { ADMIN_BUDGET_API_PATHS } from '@/features/admin/budget/constants/api';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -32,14 +33,14 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
 
   // 401 Unauthorized 에러 처리
   if (response.status === 401) {
-    const { clearAuth } = useAuthStore.getState();
-    clearAuth();
+    // const { clearAuth } = useAuthStore.getState();
+    // clearAuth();
     // 리다이렉트를 약간 지연시켜 React Query가 에러를 처리할 수 있도록 함
-    if (typeof window !== 'undefined') {
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 100);
-    }
+    // if (typeof window !== 'undefined') {
+    //   setTimeout(() => {
+    //     window.location.href = '/login';
+    //   }, 100);
+    // }
     throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
   }
 
@@ -68,9 +69,12 @@ export interface BudgetResponse {
  * GET /api/v1/budget?year=YYYY&month=M
  */
 export const getBudget = async (year: string, month: string) =>
-  fetchWithAuth<BudgetResponse[]>(`/api/v1/budget?year=${year}&month=${month}`, {
-    method: 'GET',
-  });
+  fetchWithAuth<BudgetResponse[]>(
+    `${ADMIN_BUDGET_API_PATHS.GET_BUDGET}?year=${year}&month=${month}`,
+    {
+      method: 'GET',
+    }
+  );
 
 /**
  * 이번 달 예산 등록/수정
@@ -93,7 +97,7 @@ export const updateBudget = async (amount: number) => {
     amount,
   };
 
-  return fetchWithAuth('/api/v1/budget', {
+  return fetchWithAuth(ADMIN_BUDGET_API_PATHS.UPDATE_BUDGET, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
@@ -112,7 +116,7 @@ export interface BudgetCriteriaResponse {
  * GET /api/v1/budget/criteria
  */
 export const getBudgetCriteria = async () =>
-  fetchWithAuth<BudgetCriteriaResponse>('/api/v1/budget/criteria', {
+  fetchWithAuth<BudgetCriteriaResponse>(ADMIN_BUDGET_API_PATHS.GET_BUDGET_CRITERIA, {
     method: 'GET',
   });
 
@@ -129,7 +133,7 @@ export const updateBudgetCriteria = async (amount: number) => {
     amount,
   };
 
-  return fetchWithAuth('/api/v1/budget/criteria', {
+  return fetchWithAuth(ADMIN_BUDGET_API_PATHS.UPDATE_BUDGET_CRITERIA, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
