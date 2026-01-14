@@ -74,11 +74,6 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
     );
   }
 
-  // purchaseDetail이 없으면 렌더링하지 않음 (위에서 이미 처리됨)
-  if (!purchaseDetail) {
-    return null;
-  }
-
   // 승인 정보 변환
   const { status } = purchaseDetail;
   const approvedInfo = {
