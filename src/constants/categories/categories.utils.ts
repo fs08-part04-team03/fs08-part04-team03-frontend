@@ -62,8 +62,10 @@ export function buildChildPath(parent: ParentCategory, child: ChildCategory) {
 // Breadcrumb
 export function buildProductBreadcrumb(params: {
   categoryId?: number | null;
+  onParentCategoryClick?: (parentKey: ParentCategoryKey) => void;
+  onSubCategoryClick?: (subCategoryId: number) => void;
 }): CategoryBreadcrumbItem[] {
-  const { categoryId } = params;
+  const { categoryId, onParentCategoryClick, onSubCategoryClick } = params;
 
   const items: CategoryBreadcrumbItem[] = [];
 
@@ -73,7 +75,28 @@ export function buildProductBreadcrumb(params: {
     const parent = getParentById(child.parentId);
 
     if (parent) {
-      items.push({ label: parent.name, href: buildParentPath(parent) });
+      // 대분류 클릭 시 CategorySwitcher와 동일하게 첫 소분류로 이동
+      if (onParentCategoryClick) {
+        const parentKey = parent.key;
+        items.push({
+          label: parent.name,
+          onClick: () => {
+            onParentCategoryClick(parentKey);
+            // 해당 대분류의 첫 소분류로 필터링
+            if (onSubCategoryClick) {
+              const firstChild = getChildrenByParentId(parent.id)[0];
+              if (firstChild) {
+                queueMicrotask(() => {
+                  onSubCategoryClick(firstChild.id);
+                });
+              }
+            }
+          },
+        });
+      } else {
+        // onClick 핸들러가 없으면 클릭 불가능
+        items.push({ label: parent.name });
+      }
       items.push({ label: child.name, href: buildChildPath(parent, child) });
     }
   }
