@@ -6,7 +6,6 @@ import MyProductDetailTem from '@/features/products/template/MyProductDetailTem/
 import { useMyProduct } from '@/features/products/queries/product.queries';
 import {
   CATEGORY_SECTIONS,
-  BREADCRUMB_ITEMS,
   LOADING_MESSAGES,
   ERROR_MESSAGES,
   buildProductBreadcrumb,
@@ -91,10 +90,6 @@ const MyProductDetailSection = () => {
 
     const breadcrumbItems = [
       {
-        label: BREADCRUMB_ITEMS.HOME.label,
-        href: BREADCRUMB_ITEMS.HOME.href(companyId),
-      },
-      {
         label: PRODUCT_LABELS.BREADCRUMB.MY_PRODUCT_LIST,
         href: `/${companyId}/products/my`,
       },
@@ -134,10 +129,12 @@ const MyProductDetailSection = () => {
           ),
         },
       ],
-      liked: wishlistActions.isLiked,
-      onToggleLike: wishlistActions.handleToggleLike,
+      liked: Boolean(wishlistActions.isLiked),
+      onToggleLike: () => {
+        wishlistActions.handleToggleLike();
+      },
     };
-  }, [product, companyId, wishlistActions.isLiked, wishlistActions.handleToggleLike]);
+  }, [product, companyId, wishlistActions]);
 
   // 로딩 상태 분기
   if (isLoading) {
