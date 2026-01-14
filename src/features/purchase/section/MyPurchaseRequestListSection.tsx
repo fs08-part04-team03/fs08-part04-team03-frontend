@@ -65,7 +65,6 @@ const MyPurchaseRequestListSection = () => {
     data,
     isLoading,
     error: queryError,
-    refetch,
   } = useMyPurchases({
     page,
     size,
@@ -99,9 +98,8 @@ const MyPurchaseRequestListSection = () => {
       { purchaseRequestId: cancelTargetItem.id },
       {
         onSuccess: () => {
-          refetch().catch(() => {
-            // 에러는 무시 (이미 mutation에서 처리됨)
-          });
+          // mutation의 onSuccess에서 이미 invalidateQueries를 호출하므로
+          // 여기서는 추가 작업 없이 UI만 업데이트
           setCancelModalOpen(false);
           setCancelTargetItem(null);
           triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_CANCELLED);
@@ -113,15 +111,7 @@ const MyPurchaseRequestListSection = () => {
         },
       }
     );
-  }, [cancelTargetItem, cancelMutation, refetch, triggerToast]);
-
-  if (queryError) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>{ERROR_MESSAGES.FETCH_ERROR}</p>
-      </div>
-    );
-  }
+  }, [cancelTargetItem, cancelMutation, triggerToast]);
 
   const handleSortChangeWithOption = useCallback(
     (option: Option) => {
@@ -152,6 +142,14 @@ const MyPurchaseRequestListSection = () => {
     },
     [navigation]
   );
+
+  if (queryError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>{ERROR_MESSAGES.FETCH_ERROR}</p>
+      </div>
+    );
+  }
 
   // 페이지당 6개만 표시
   const displayList = data?.purchaseList.slice(0, PURCHASE_DEFAULTS.DISPLAY_ITEM_COUNT) || [];

@@ -23,6 +23,7 @@ export function useCart(params?: {
     queryKey: cartKeys.list(page, pageSize, cartItemIdsParam),
     queryFn: () => cartApi.getMyCart(page, pageSize),
     staleTime: STALE_TIME.SHORT, // 30초간 캐시 유지 (이미지 업데이트 반영 + 성능 균형)
+    refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
     enabled,
   });
 }
