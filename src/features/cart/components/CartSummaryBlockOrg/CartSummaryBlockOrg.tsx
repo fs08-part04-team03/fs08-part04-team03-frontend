@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
 import Button from '@/components/atoms/Button/Button';
 import OrderItemCard from '@/components/molecules/OrderItemCard/OrderItemCard';
@@ -18,6 +19,7 @@ import {
   urgentRequestPurchase,
   type RequestPurchaseResponseData,
 } from '@/features/purchase/api/purchase.api';
+import { cartKeys } from '@/features/cart/queries/cart.keys';
 
 export type CartRole = 'user' | 'manager' | 'admin';
 
@@ -55,6 +57,7 @@ const CartSummaryBlockOrg = ({
 }: CartSummaryBlockOrgProps) => {
   const router = useRouter();
   const params = useParams();
+  const queryClient = useQueryClient();
   const { triggerToast } = useToast();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
 
@@ -137,7 +140,21 @@ const CartSummaryBlockOrg = ({
         quantity: item.quantity,
       });
 
-      // ✅ 장바구니 삭제 제거, UI 그대로 유지
+      // 백엔드에서 구매 요청 시 자동으로 카트 아이템을 삭제하므로 캐시만 무효화
+      queryClient
+        .invalidateQueries({ queryKey: cartKeys.all })
+        .then(() => {
+          queryClient.refetchQueries({ queryKey: cartKeys.all }).catch(() => {
+            // refetch 실패는 무시 (백그라운드 작업)
+          });
+        })
+        .catch((error) => {
+          logger.error('Failed to invalidate cart queries', {
+            hasError: true,
+            errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          });
+        });
+
       if (companyId) {
         router.push(PATHNAME.ORDER_COMPLETED(companyId));
         triggerToast('success', '즉시 구매가 완료되었습니다.');
@@ -168,6 +185,21 @@ const CartSummaryBlockOrg = ({
         requestMessage: '긴급 구매 요청',
       });
 
+      // 백엔드에서 구매 요청 시 자동으로 카트 아이템을 삭제하므로 캐시만 무효화
+      queryClient
+        .invalidateQueries({ queryKey: cartKeys.all })
+        .then(() => {
+          queryClient.refetchQueries({ queryKey: cartKeys.all }).catch(() => {
+            // refetch 실패는 무시 (백그라운드 작업)
+          });
+        })
+        .catch((error) => {
+          logger.error('Failed to invalidate cart queries', {
+            hasError: true,
+            errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          });
+        });
+
       if (companyId) {
         router.push(
           `${PATHNAME.ORDER_COMPLETED(companyId)}${result?.id ? `?id=${result.id}` : ''}`
@@ -196,6 +228,21 @@ const CartSummaryBlockOrg = ({
         })),
         shippingFee: 0,
       });
+
+      // 백엔드에서 구매 요청 시 자동으로 카트 아이템을 삭제하므로 캐시만 무효화
+      queryClient
+        .invalidateQueries({ queryKey: cartKeys.all })
+        .then(() => {
+          queryClient.refetchQueries({ queryKey: cartKeys.all }).catch(() => {
+            // refetch 실패는 무시 (백그라운드 작업)
+          });
+        })
+        .catch((error) => {
+          logger.error('Failed to invalidate cart queries', {
+            hasError: true,
+            errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          });
+        });
 
       if (companyId) {
         router.push(
