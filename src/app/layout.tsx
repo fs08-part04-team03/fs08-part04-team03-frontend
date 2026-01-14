@@ -3,6 +3,9 @@ import { Providers } from './providers';
 import './globals.css';
 import { suit } from './fonts';
 
+// ✅ 챗봇 컴포넌트 import
+import ChatBot from '../components/chatbot/ChatBot';
+
 export const metadata: Metadata = {
   title: {
     template: '%s | SNACK',
@@ -36,11 +39,15 @@ const RootLayout = ({
         crossOrigin="anonymous"
       />
       <link rel="dns-prefetch" href="https://snack-store-bucket.s3.ap-northeast-2.amazonaws.com" />
-      {/* 성능 최적화: 리소스 힌트 */}
       <meta httpEquiv="x-dns-prefetch-control" content="on" />
     </head>
+
     <body className={`${suit.variable} font-sans`} suppressHydrationWarning>
+      {/* 기존 전역 Provider */}
       <Providers>{children}</Providers>
+
+      {/* ✅ 모든 페이지에서 항상 보이는 챗봇 */}
+      <ChatBot />
     </body>
   </html>
 );
