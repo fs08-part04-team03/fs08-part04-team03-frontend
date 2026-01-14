@@ -73,8 +73,5 @@
     "*.{json,md,css,scss}": [
       "prettier --write"
     ]
-  },
-  "overrides": {
-    "elliptic": ">=6.6.2"
   }
 }
