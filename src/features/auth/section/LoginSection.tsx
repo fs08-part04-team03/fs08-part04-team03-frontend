@@ -28,8 +28,8 @@ const LoginSection = () => {
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
     defaultValues: {
-      email: 'test@test001.com',
-      password: '!Q2w3e4r',
+      email: '',
+      password: '',
     },
   });
 

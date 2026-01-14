@@ -322,11 +322,22 @@ export async function getAllProducts(
   const totalPages = Math.max(1, first.totalPages);
   if (totalPages === 1) return { data: first.data };
 
-  const rest = await Promise.all(
-    Array.from({ length: totalPages - 1 }, (_, i) => fetchPage(i + 2))
-  );
+  // 동시 요청 수 제한 (rate limiting 방지)
+  const BATCH_SIZE = 5;
+  const allData = [...first.data];
 
-  return { data: [first.data, ...rest.map((r) => r.data)].flat() };
+  // 배치 단위로 순차 처리하여 rate limiting 방지 (배치 내부는 병렬 처리)
+  /* eslint-disable no-await-in-loop */
+  for (let i = 2; i <= totalPages; i += BATCH_SIZE) {
+    const batch = Array.from({ length: Math.min(BATCH_SIZE, totalPages - i + 1) }, (_, idx) =>
+      fetchPage(i + idx)
+    );
+    const results = await Promise.all(batch);
+    allData.push(...results.flatMap((r) => r.data));
+  }
+  /* eslint-enable no-await-in-loop */
+
+  return { data: allData };
 }
 
 /**
