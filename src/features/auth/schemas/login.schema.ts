@@ -32,13 +32,6 @@ export const authResponseSchema = z.object({
 
 export type AuthResponse = z.infer<typeof authResponseSchema>;
 
-// 토큰 갱신 요청 스키마
-export const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, '리프레시 토큰이 필요합니다.'),
-});
-
-export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
-
 // 비밀번호 변경 스키마
 export const changePasswordSchema = z
   .object({

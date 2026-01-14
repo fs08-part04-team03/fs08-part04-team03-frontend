@@ -72,18 +72,11 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
   const imageUrls = useMemo(() => {
     if (!purchaseData?.purchaseItems) return {};
 
-    const timestamp = Date.now();
     return purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
       if (item.products.image) {
         const image = item.products.image.trim();
         if (!image) return acc;
-        if (image.startsWith('http://') || image.startsWith('https://')) {
-          acc[item.products.id] = image;
-        } else {
-          const normalizedKey = image.startsWith('products/') ? image : `products/${image}`;
-          acc[item.products.id] =
-            `/api/product/image?key=${encodeURIComponent(normalizedKey)}&t=${timestamp}`;
-        }
+        acc[item.products.id] = image;
       }
       return acc;
     }, {});

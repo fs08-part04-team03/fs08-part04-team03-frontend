@@ -105,19 +105,13 @@ const MyProductDetailSection = () => {
       })),
     ];
 
-    // 상대 경로 사용 (SSR 하이드레이션 불일치 방지)
-    // imageRefreshKey를 사용하여 이미지 업데이트 시 캐시 무효화
-    const imageUrl = product.image
-      ? `/api/product/image?key=${encodeURIComponent(product.image)}&t=${editActions.imageRefreshKey}`
-      : '/icons/no-image.svg';
-
     return {
       breadcrumbItems,
       productImage: {
-        src: imageUrl,
+        src: product.imageUrl || '/icons/no-image.svg',
         alt: product.name,
       },
-      productImageKey: product.image || null,
+      productImageKey: product.imageUrl || null,
       productDetailHeader: {
         productName: product.name,
         price: product.price,
@@ -143,13 +137,7 @@ const MyProductDetailSection = () => {
       liked: wishlistActions.isLiked,
       onToggleLike: wishlistActions.handleToggleLike,
     };
-  }, [
-    product,
-    companyId,
-    wishlistActions.isLiked,
-    wishlistActions.handleToggleLike,
-    editActions.imageRefreshKey,
-  ]);
+  }, [product, companyId, wishlistActions.isLiked, wishlistActions.handleToggleLike]);
 
   // 로딩 상태 분기
   if (isLoading) {
@@ -192,7 +180,7 @@ const MyProductDetailSection = () => {
       initialSubCategoryOption={initialSubCategoryOption}
       initialLink={initialLink}
       initialImage={null}
-      initialImageKey={product.image || null}
+      initialImageKey={product.imageUrl || null}
       productName={product.name}
       productPrice={String(product.price)}
       onProductUpdated={() => {

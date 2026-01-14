@@ -67,22 +67,15 @@ const ProfileEditSection = () => {
 
   // 초기 이미지 로드 (myProfile.profileImage가 있으면)
   useEffect(() => {
-    if (myProfile?.profileImage) {
-      const { profileImage } = myProfile;
-
-      // 이미 URL 형식이면 그대로 사용
-      if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-        setPreview(profileImage);
-      } else {
-        // S3 키 형식이면 프록시 API URL로 변환
-        // users/ 접두사가 없으면 추가 (프록시 API가 자동으로 products/를 추가하는 것을 방지)
-        const imageKey = profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
-        const imageUrl = `/api/product/image?key=${encodeURIComponent(imageKey)}`;
-        setPreview(imageUrl);
+    const run = () => {
+      if (myProfile?.profileImage) {
+        const trimmed = myProfile.profileImage.trim();
+        setPreview(trimmed.length > 0 ? trimmed : '/icons/upload.svg');
+        return;
       }
-    } else {
       setPreview('/icons/upload.svg');
-    }
+    };
+    run();
   }, [myProfile?.profileImage, myProfile]);
 
   // 회사 정보 조회 (폼 초기값 설정)
@@ -218,16 +211,8 @@ const ProfileEditSection = () => {
         // 프로필 업데이트 성공 시 프로필 이미지가 변경되었을 수 있으므로
         // updatedProfile의 profileImage를 사용하여 미리보기 업데이트
         if (updatedProfile?.profileImage) {
-          const { profileImage } = updatedProfile;
-          if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-            setPreview(profileImage);
-          } else {
-            const imageKey = profileImage.startsWith('users/')
-              ? profileImage
-              : `users/${profileImage}`;
-            const imageUrl = `/api/product/image?key=${encodeURIComponent(imageKey)}`;
-            setPreview(imageUrl);
-          }
+          const trimmed = updatedProfile.profileImage.trim();
+          setPreview(trimmed.length > 0 ? trimmed : '/icons/upload.svg');
         }
       }
 

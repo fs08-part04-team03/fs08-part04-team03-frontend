@@ -253,10 +253,7 @@ const PurchaseRequestListTem = ({
             : undefined,
       },
       items: selectedRequest.purchaseItems.map((item, index) => {
-        // 프록시 API를 통해 이미지 로드 (CORS 방지)
-        const imageSrc = item.products.image
-          ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
-          : '';
+        const imageSrc = item.products.image ? item.products.image : '';
         return {
           id: index,
           title: item.products.name,
