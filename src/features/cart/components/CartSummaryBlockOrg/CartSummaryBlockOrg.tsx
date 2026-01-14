@@ -19,6 +19,7 @@ import {
   urgentRequestPurchase,
   type RequestPurchaseResponseData,
 } from '@/features/purchase/api/purchase.api';
+import { cartApi } from '@/features/cart/api/cart.api';
 import { cartKeys } from '@/features/cart/queries/cart.keys';
 
 export type CartRole = 'user' | 'manager' | 'admin';
@@ -140,7 +141,20 @@ const CartSummaryBlockOrg = ({
         quantity: item.quantity,
       });
 
-      // 백엔드에서 구매 요청 시 자동으로 카트 아이템을 삭제하므로 캐시만 무효화
+      // 어드민 즉시 구매는 백엔드에서 카트를 자동 삭제하지 않으므로 프론트엔드에서 삭제
+      const cartItemIdToDelete = item.cartItemId;
+      if (cartItemIdToDelete) {
+        await cartApi.deleteFromCart(cartItemIdToDelete).catch((deleteError) => {
+          logger.error('Failed to delete cart item after purchase', {
+            hasError: true,
+            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+            cartItemId: cartItemIdToDelete,
+          });
+          // 카트 삭제 실패해도 구매는 성공했으므로 계속 진행
+        });
+      }
+
+      // 캐시 무효화 및 즉시 refetch (GNB의 카트 아이콘 숫자 즉시 업데이트)
       queryClient
         .invalidateQueries({ queryKey: cartKeys.all })
         .then(() => {
@@ -185,7 +199,19 @@ const CartSummaryBlockOrg = ({
         requestMessage: '긴급 구매 요청',
       });
 
-      // 백엔드에서 구매 요청 시 자동으로 카트 아이템을 삭제하므로 캐시만 무효화
+      // 매니저 긴급 구매 요청은 백엔드에서 카트를 자동 삭제하지 않으므로 프론트엔드에서 삭제
+      if (checkedIds.length > 0) {
+        await cartApi.deleteMultiple(checkedIds).catch((deleteError) => {
+          logger.error('Failed to delete cart items after urgent purchase', {
+            hasError: true,
+            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+            cartItemIds: checkedIds,
+          });
+          // 카트 삭제 실패해도 구매 요청은 성공했으므로 계속 진행
+        });
+      }
+
+      // 캐시 무효화 및 즉시 refetch (GNB의 카트 아이콘 숫자 즉시 업데이트)
       queryClient
         .invalidateQueries({ queryKey: cartKeys.all })
         .then(() => {
@@ -229,7 +255,19 @@ const CartSummaryBlockOrg = ({
         shippingFee: 0,
       });
 
-      // 백엔드에서 구매 요청 시 자동으로 카트 아이템을 삭제하므로 캐시만 무효화
+      // 매니저 구매 요청은 백엔드에서 카트를 자동 삭제하지 않으므로 프론트엔드에서 삭제
+      if (checkedIds.length > 0) {
+        await cartApi.deleteMultiple(checkedIds).catch((deleteError) => {
+          logger.error('Failed to delete cart items after purchase request', {
+            hasError: true,
+            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+            cartItemIds: checkedIds,
+          });
+          // 카트 삭제 실패해도 구매 요청은 성공했으므로 계속 진행
+        });
+      }
+
+      // 캐시 무효화 및 즉시 refetch (GNB의 카트 아이콘 숫자 즉시 업데이트)
       queryClient
         .invalidateQueries({ queryKey: cartKeys.all })
         .then(() => {

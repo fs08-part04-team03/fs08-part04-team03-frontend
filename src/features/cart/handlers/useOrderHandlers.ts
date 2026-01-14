@@ -15,7 +15,6 @@ import type { OrderItem } from '../components/CartSummaryBlockOrg/CartSummaryBlo
 interface UseOrderHandlersProps {
   companyId: string;
   selectedItems: OrderItem[];
-  cartItemIds: string[];
   onSuccess?: (purchaseId: string) => void;
   onError?: (errorMessage: string) => void;
 }
@@ -28,7 +27,6 @@ interface UseOrderHandlersProps {
 export function useOrderHandlers({
   companyId,
   selectedItems,
-  cartItemIds: _cartItemIds,
   onSuccess,
   onError,
 }: UseOrderHandlersProps) {
@@ -61,12 +59,11 @@ export function useOrderHandlers({
     mutation.mutate(requestBody, {
       onSuccess: (data) => {
         if (data?.id) {
-          // 백엔드에서 구매 요청 시 자동으로 카트 아이템을 삭제하므로
-          // 프론트엔드에서는 캐시만 무효화하여 최신 데이터를 가져옴
+          // 백엔드에서 구매 요청 시 자동으로 카트 아이템을 삭제하므로 캐시 무효화 및 즉시 refetch
+          // GNB의 카트 아이콘 숫자가 즉시 업데이트되도록 refetchQueries 사용
           queryClient
             .invalidateQueries({ queryKey: cartKeys.all })
             .then(() => {
-              // GNB의 카트 쿼리도 명시적으로 refetch
               queryClient.refetchQueries({ queryKey: cartKeys.all }).catch(() => {
                 // refetch 실패는 무시 (백그라운드 작업)
               });

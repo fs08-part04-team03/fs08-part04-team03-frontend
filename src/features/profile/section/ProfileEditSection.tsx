@@ -218,12 +218,10 @@ const ProfileEditSection = () => {
 
       // 프로필 업데이트 후 myProfile 쿼리 invalidate하여 최신 데이터 반영
       await queryClient.invalidateQueries({ queryKey: profileKeys.myProfile() });
-      await queryClient.refetchQueries({ queryKey: profileKeys.myProfile(), type: 'active' });
 
-      // 관리자가 회사명을 변경한 경우 회사 정보도 refetch
+      // 관리자가 회사명을 변경한 경우 회사 정보도 invalidate
       if (isAdmin && values.companyName && values.companyName.trim() !== '') {
         await queryClient.invalidateQueries({ queryKey: profileKeys.company() });
-        await queryClient.refetchQueries({ queryKey: profileKeys.company(), type: 'active' });
       }
 
       setToastMessage('프로필이 성공적으로 변경되었습니다.');
