@@ -57,7 +57,7 @@ const SearchBar = ({
       <div className="relative flex items-center">
         <div className="absolute left-1 bottom-10 z-10">
           <IconButton variant="default" size="md" aria-label="검색" onClick={() => handleSubmit()}>
-            <Image src="/icons/search-icon.svg" alt="Search" width={24} height={24} />
+            <Image src="/icons/search-icon.svg" alt="Search" width={24} height={24} unoptimized />
           </IconButton>
         </div>
         <Input

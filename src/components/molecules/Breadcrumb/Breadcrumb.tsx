@@ -6,6 +6,7 @@ import { clsx } from '@/utils/clsx';
 export interface BreadcrumbItem {
   label: string;
   href?: string;
+  onClick?: () => void;
 }
 
 export interface BreadcrumbProps {
@@ -19,9 +20,25 @@ const Breadcrumb = ({ items, className }: BreadcrumbProps) => (
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
 
-        return (
-          <li key={`${item.href ?? ''}-${item.label}`} className="flex items-center gap-8">
-            {item.href && !isLast ? (
+        const renderContent = () => {
+          if (item.onClick && !isLast) {
+            return (
+              <button
+                type="button"
+                onClick={item.onClick}
+                className={clsx(
+                  'text-14 tablet:text-16 font-normal',
+                  'text-gray-400 hover:text-gray-600',
+                  'transition-colors',
+                  'cursor-pointer'
+                )}
+              >
+                {item.label}
+              </button>
+            );
+          }
+          if (item.href && !isLast) {
+            return (
               <Link
                 href={item.href}
                 className={clsx(
@@ -32,17 +49,24 @@ const Breadcrumb = ({ items, className }: BreadcrumbProps) => (
               >
                 {item.label}
               </Link>
-            ) : (
-              <span
-                className={clsx(
-                  'text-14 tablet:text-16 font-normal',
-                  isLast ? 'text-gray-900' : 'text-gray-200'
-                )}
-                aria-current={isLast ? 'page' : undefined}
-              >
-                {item.label}
-              </span>
-            )}
+            );
+          }
+          return (
+            <span
+              className={clsx(
+                'text-14 tablet:text-16 font-normal',
+                isLast ? 'text-gray-900' : 'text-gray-200'
+              )}
+              aria-current={isLast ? 'page' : undefined}
+            >
+              {item.label}
+            </span>
+          );
+        };
+
+        return (
+          <li key={`${item.href ?? ''}-${item.label}`} className="flex items-center gap-8">
+            {renderContent()}
 
             {!isLast && (
               <svg

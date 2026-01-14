@@ -43,7 +43,7 @@ const ItemMenu: React.FC<ItemMenuProps> = ({ onClick }) => {
         onClick={() => setOpen(!open)}
         className="w-24 h-24 p-1 cursor-pointer"
       >
-        <Image src="/icons/ic-more.svg" alt="더보기" width={24} height={24} />
+        <Image src="/icons/ic-more.svg" alt="더보기" width={24} height={24} unoptimized />
       </IconButton>
 
       <div

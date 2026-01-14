@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
+import { tryRefreshToken } from '@/utils/api';
 import { hasAccess } from '@/utils/auth';
+import { PATHNAME } from '@/constants';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -20,32 +22,49 @@ interface AuthGuardProps {
 export const AuthGuard = ({ children, companyId }: AuthGuardProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isHydrated } = useAuthStore();
+  const { user, accessToken, clearAuth, isHydrated } = useAuthStore();
+  const refreshAttemptedRef = useRef(false);
 
   useEffect(() => {
-    // 하이드레이션이 완료되지 않았으면 리다이렉트하지 않음
     if (!isHydrated) return;
 
-    // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
+    // accessToken이 없으면 refreshToken(httpOnly 쿠키)로 복구 시도
+    if (!accessToken) {
+      if (refreshAttemptedRef.current) return;
+      refreshAttemptedRef.current = true;
+      (async () => {
+        try {
+          const newToken = await tryRefreshToken();
+          if (!newToken) {
+            // refresh token 만료/없음(401)이어도 여기서 localStorage를 지우면
+            // "포커스 복귀 시 갑자기 로그아웃"처럼 보일 수 있음 → 리다이렉트만 수행
+            const loginUrl = `${PATHNAME.LOGIN}?redirect=${encodeURIComponent(pathname)}`;
+            router.push(loginUrl);
+          }
+        } catch {
+          // 일시 장애(네트워크/타임아웃)로 refresh 실패 시에는 localStorage를 지우지 않음
+          const loginUrl = `${PATHNAME.LOGIN}?redirect=${encodeURIComponent(pathname)}`;
+          router.push(loginUrl);
+        }
+      })().catch(() => {});
+      return;
+    }
+
     if (!user) {
-      const loginUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
+      const loginUrl = `${PATHNAME.LOGIN}?redirect=${encodeURIComponent(pathname)}`;
       router.push(loginUrl);
       return;
     }
 
-    // 회사 ID 불일치 확인
     if (user.companyId !== companyId) {
-      // 사용자의 실제 회사 페이지로 리다이렉트
-      router.push(`/${user.companyId}/products`);
+      router.push(PATHNAME.PRODUCTS(user.companyId));
       return;
     }
 
-    // 권한 확인
     if (!hasAccess(user.role, pathname)) {
-      // 권한이 없으면 홈(상품 목록)으로 리다이렉트
-      router.push(`/${user.companyId}/products`);
+      router.push(PATHNAME.PRODUCTS(user.companyId));
     }
-  }, [user, companyId, pathname, router, isHydrated]);
+  }, [user, accessToken, clearAuth, companyId, pathname, router, isHydrated]);
 
   // 하이드레이션 완료 전까지는 로딩 상태 표시
   if (!isHydrated) {
@@ -53,7 +72,7 @@ export const AuthGuard = ({ children, companyId }: AuthGuardProps) => {
   }
 
   // 인증 확인 중이거나 리다이렉트 중일 때는 아무것도 렌더링하지 않음
-  if (!user || user.companyId !== companyId) {
+  if (!accessToken || !user || user.companyId !== companyId) {
     return null;
   }
 

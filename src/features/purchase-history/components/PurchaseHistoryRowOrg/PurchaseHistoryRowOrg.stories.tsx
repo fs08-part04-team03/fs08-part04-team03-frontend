@@ -12,9 +12,7 @@ const meta = {
       appDirectory: true,
       navigation: {
         pathname: '/company-1/purchase-history',
-        params: {
-          companyId: 'company-1',
-        },
+        params: {},
       },
     },
     docs: {
@@ -94,7 +92,6 @@ export const Default: Story = {
       '김스낵',
       approvers.김코드
     ),
-    companyId: 'company-1',
   },
   parameters: {
     docs: {
@@ -119,7 +116,6 @@ export const UrgentRequest: Story = {
       '이개발',
       approvers.김코드
     ),
-    companyId: 'company-1',
   },
   parameters: {
     docs: {
@@ -143,7 +139,6 @@ export const PendingRequest: Story = {
       false,
       '박디자인'
     ),
-    companyId: 'company-1',
   },
   parameters: {
     docs: {
@@ -168,7 +163,6 @@ export const MultipleProducts: Story = {
       '최기획',
       approvers.박관리
     ),
-    companyId: 'company-1',
   },
   parameters: {
     docs: {

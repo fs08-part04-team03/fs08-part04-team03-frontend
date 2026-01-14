@@ -44,11 +44,17 @@ export interface LargeChartItem {
   [key: string]: string | number;
 }
 
+/** ================= Medium Mode ================= */
+export type MediumCardMode = 'new' | 'changed';
+
 export interface DashboardCardProps {
   variant?: DashboardCardVariant;
   className?: string;
 
   defaultType?: DefaultCardType;
+
+  /** medium 전용 */
+  mediumMode?: MediumCardMode;
 
   monthlyExpense?: number;
   yearlyExpense?: number;
@@ -87,6 +93,7 @@ const variantStyles: Record<DashboardCardVariant, string> = {
 const DashboardCardOrg = ({
   variant = 'default',
   defaultType = 'summary',
+  mediumMode,
   className,
 
   monthlyExpense = 0,
@@ -110,7 +117,8 @@ const DashboardCardOrg = ({
     value,
   }));
 
-  const isChangedUserMode = variant === 'medium' && monthlyChangedUsers.length > 0;
+  /** 🔥 핵심 수정 */
+  const isChangedUserMode = variant === 'medium' && mediumMode === 'changed';
 
   const tableUsers = isChangedUserMode ? monthlyChangedUsers : monthlyNewUsers;
 
@@ -179,7 +187,6 @@ const DashboardCardOrg = ({
                   cursor={{ fill: 'transparent' }}
                   formatter={(value?: number) => [`${(value ?? 0).toLocaleString()}원`, '지출액']}
                 />
-
                 <Bar dataKey="value" fill="#2563EB" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -226,19 +233,13 @@ const DashboardCardOrg = ({
                     return (
                       <tr key={user.id} className="border-b border-gray-100 last:border-0">
                         <td className="py-6">
-                          <span className="block truncate" title={user.name}>
-                            {user.name}
-                          </span>
+                          <span className="block truncate">{user.name}</span>
                         </td>
                         <td className="py-6">
-                          <span className="block truncate" title={user.email}>
-                            {user.email}
-                          </span>
+                          <span className="block truncate">{user.email}</span>
                         </td>
                         <td className="py-6">
-                          <span className="block truncate" title={changeText}>
-                            {changeText}
-                          </span>
+                          <span className="block truncate">{changeText}</span>
                         </td>
                       </tr>
                     );
@@ -249,19 +250,13 @@ const DashboardCardOrg = ({
                   monthlyNewUsers.map((user) => (
                     <tr key={user.id} className="border-b border-gray-100 last:border-0">
                       <td className="py-6">
-                        <span className="block truncate font-medium" title={user.name}>
-                          {user.name}
-                        </span>
+                        <span className="block truncate font-medium">{user.name}</span>
                       </td>
                       <td className="py-6">
-                        <span className="block truncate" title={user.email}>
-                          {user.email}
-                        </span>
+                        <span className="block truncate">{user.email}</span>
                       </td>
                       <td className="py-6">
-                        <span className="block truncate capitalize" title={user.role}>
-                          {user.role}
-                        </span>
+                        <span className="block truncate capitalize">{user.role}</span>
                       </td>
                     </tr>
                   ))}
@@ -276,14 +271,8 @@ const DashboardCardOrg = ({
         <div className="w-full h-full flex flex-col gap-12">
           <span className="text-14 font-medium text-gray-900">이번 달 요청한 간식 순위</span>
 
-          <div
-            className="
-              flex items-start flex-1
-              gap-50 tablet:gap-330 desktop:gap-24
-              overflow-hidden
-            "
-          >
-            <div className="flex-shrink-0 w-40 h-40 tablet:w-80 tablet:h-80 desktop:w-260 desktop:h-260">
+          <div className="flex items-start flex-1 gap-24 overflow-hidden">
+            <div className="flex-shrink-0 w-260 h-260">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -298,24 +287,20 @@ const DashboardCardOrg = ({
                       <Cell key={item.label} fill={item.color} />
                     ))}
                   </Pie>
-
                   <Tooltip
-                    formatter={(value?: number, name?: string) => [`${value ?? 0}회`, name ?? '']}
+                    formatter={(value?: number, name?: string) => [`${value ?? 0}회`, name]}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
-            <ul className="flex-1 flex flex-col gap-8 text-12 text-gray-700 min-w-0 overflow-y-auto scrollbar-none max-h-full">
+            <ul className="flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none">
               {largeChartData.map((item, index) => (
-                <li key={item.label} className="flex items-center gap-8 min-h-20">
-                  <span className="text-gray-400 w-12 shrink-0">{index + 1}.</span>
-                  <span
-                    className="w-8 h-8 rounded-full shrink-0"
-                    style={{ backgroundColor: item.color }}
-                  />
+                <li key={item.label} className="flex items-center gap-8">
+                  <span className="text-gray-400 w-12">{index + 1}.</span>
+                  <span className="w-8 h-8 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="flex-1 truncate">{item.label}</span>
-                  <span className="text-gray-500 shrink-0">
+                  <span className="text-gray-500">
                     {item.value}회 ·{' '}
                     {largeTotal === 0 ? '0.0' : ((item.value / largeTotal) * 100).toFixed(1)}%
                   </span>

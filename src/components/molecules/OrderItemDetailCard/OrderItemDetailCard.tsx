@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
+import { PATHNAME } from '@/constants';
 
 export interface OrderItemDetailCardProps {
   name: string;
@@ -29,13 +30,14 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   onProductClick,
 }) => {
   const router = useRouter();
+  const effectiveImageSrc = imageSrc;
 
   const handleProductNameClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onProductClick && productId) {
       onProductClick(productId);
     } else if (companyId && productId) {
-      router.push(`/${companyId}/products/${productId}`);
+      router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
     }
   };
 
@@ -46,7 +48,7 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
       if (onProductClick && productId) {
         onProductClick(productId);
       } else if (companyId && productId) {
-        router.push(`/${companyId}/products/${productId}`);
+        router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
       }
     }
   };
@@ -59,16 +61,7 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
-  const shouldShowImage = isValidImageUrl && !imageError;
-
-  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = isValidImageUrl
-    ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
-    : false;
-
-  // 프록시 API URL인지 확인
-  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
+  const shouldShowImage = !!effectiveImageSrc && !imageError;
 
   return (
     <div className={clsx('tablet:hidden', className)}>
@@ -77,26 +70,12 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
           <div className="relative overflow-hidden rounded-8 bg-gray-50 w-85 h-85 shrink-0">
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                {isExternalUrl ? (
-                  <img
-                    src={imageSrc}
-                    alt={name}
-                    className="max-w-full max-h-full w-auto h-auto object-contain"
-                    onError={() => setImageError(true)}
-                    crossOrigin="anonymous"
-                  />
-                ) : (
-                  <Image
-                    src={imageSrc}
-                    alt={name}
-                    fill
-                    sizes="85px"
-                    className="object-contain"
-                    style={{ objectPosition: 'center' }}
-                    onError={() => setImageError(true)}
-                    unoptimized={isProxyApiUrl}
-                  />
-                )}
+                <img
+                  src={effectiveImageSrc}
+                  alt={name}
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
+                  onError={() => setImageError(true)}
+                />
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -152,13 +131,14 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   onProductClick,
 }) => {
   const router = useRouter();
+  const effectiveImageSrc = imageSrc;
 
   const handleProductNameClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onProductClick && productId) {
       onProductClick(productId);
     } else if (companyId && productId) {
-      router.push(`/${companyId}/products/${productId}`);
+      router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
     }
   };
 
@@ -169,7 +149,7 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
       if (onProductClick && productId) {
         onProductClick(productId);
       } else if (companyId && productId) {
-        router.push(`/${companyId}/products/${productId}`);
+        router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
       }
     }
   };
@@ -182,16 +162,7 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
-  const shouldShowImage = isValidImageUrl && !imageError;
-
-  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = isValidImageUrl
-    ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
-    : false;
-
-  // 프록시 API URL인지 확인
-  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
+  const shouldShowImage = !!effectiveImageSrc && !imageError;
 
   return (
     <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
@@ -200,26 +171,12 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
           <div className="relative overflow-hidden rounded-8 bg-gray-50 w-140 h-140 shrink-0">
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                {isExternalUrl ? (
-                  <img
-                    src={imageSrc}
-                    alt={name}
-                    className="max-w-full max-h-full w-auto h-auto object-contain"
-                    onError={() => setImageError(true)}
-                    crossOrigin="anonymous"
-                  />
-                ) : (
-                  <Image
-                    src={imageSrc}
-                    alt={name}
-                    fill
-                    sizes="140px"
-                    className="object-contain"
-                    style={{ objectPosition: 'center' }}
-                    onError={() => setImageError(true)}
-                    unoptimized={isProxyApiUrl}
-                  />
-                )}
+                <img
+                  src={effectiveImageSrc}
+                  alt={name}
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
+                  onError={() => setImageError(true)}
+                />
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -281,13 +238,14 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   onProductClick,
 }) => {
   const router = useRouter();
+  const effectiveImageSrc = imageSrc;
 
   const handleProductNameClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onProductClick && productId) {
       onProductClick(productId);
     } else if (companyId && productId) {
-      router.push(`/${companyId}/products/${productId}`);
+      router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
     }
   };
 
@@ -298,7 +256,7 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
       if (onProductClick && productId) {
         onProductClick(productId);
       } else if (companyId && productId) {
-        router.push(`/${companyId}/products/${productId}`);
+        router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
       }
     }
   };
@@ -311,16 +269,7 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   }, [imageSrc]);
 
   // 이미지 URL 유효성 검증
-  const isValidImageUrl = imageSrc && typeof imageSrc === 'string' && imageSrc.trim().length > 0;
-  const shouldShowImage = isValidImageUrl && !imageError;
-
-  // 외부 URL인지 확인 (유효한 URL일 때만 체크)
-  const isExternalUrl = isValidImageUrl
-    ? imageSrc.startsWith('http://') || imageSrc.startsWith('https://')
-    : false;
-
-  // 프록시 API URL인지 확인
-  const isProxyApiUrl = isValidImageUrl ? imageSrc.startsWith('/api/product/image') : false;
+  const shouldShowImage = !!effectiveImageSrc && !imageError;
 
   return (
     <div className={clsx('hidden desktop:flex', className)}>
@@ -329,26 +278,12 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
           <div className="relative overflow-hidden rounded-8 bg-gray-50 w-140 h-140 shrink-0">
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                {isExternalUrl ? (
-                  <img
-                    src={imageSrc}
-                    alt={name}
-                    className="max-w-full max-h-full w-auto h-auto object-contain"
-                    onError={() => setImageError(true)}
-                    crossOrigin="anonymous"
-                  />
-                ) : (
-                  <Image
-                    src={imageSrc}
-                    alt={name}
-                    fill
-                    sizes="140px"
-                    className="object-contain"
-                    style={{ objectPosition: 'center' }}
-                    onError={() => setImageError(true)}
-                    unoptimized={isProxyApiUrl}
-                  />
-                )}
+                <img
+                  src={effectiveImageSrc}
+                  alt={name}
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
+                  onError={() => setImageError(true)}
+                />
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">

@@ -1,33 +1,37 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useParams, useRouter } from 'next/navigation';
-import {
-  managePurchaseRequests,
-  approvePurchaseRequest,
-  rejectPurchaseRequest,
-  getBudget,
-  getPurchaseRequestDetail,
-} from '@/features/purchase/api/purchase.api';
+import { useCallback, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import PurchaseRequestListTem from '@/features/purchase/template/PurchaseRequestListTem/PurchaseRequestListTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
-import {
-  QUERY_STALE_TIME_BUDGET,
-  SUCCESS_MESSAGES,
-  PURCHASE_ERROR_MESSAGES,
-  ERROR_MESSAGES,
-  VALIDATION_MESSAGES,
-} from '@/constants';
+import { ERROR_MESSAGES, VALIDATION_MESSAGES } from '@/constants';
 import { useToast } from '@/hooks/useToast';
 import { usePaginationParams } from '@/hooks/usePaginationParams';
 import { logger } from '@/utils/logger';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
+import {
+  usePurchaseRequests,
+  usePurchaseRequestDetailForModal,
+  usePurchaseBudget,
+} from '@/features/purchase/queries/purchase.queries';
+import { PURCHASE_DEFAULTS } from '@/features/purchase/constants/defaults';
+import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseNavigation';
+import {
+  usePurchaseSortHandlers,
+  getSortParams,
+} from '@/features/purchase/handlers/usePurchaseSortHandlers';
+import { usePurchaseModalHandlers } from '@/features/purchase/handlers/usePurchaseModalHandlers';
 
+/**
+ * PurchaseRequestListSection
+ * 구매 요청 목록 데이터/상태 결정 레이어
+ * - 구매 요청 목록 API 호출
+ * - 예산 정보 API 호출
+ * - loading / error / empty 분기
+ * - Template에 필요한 props를 만들고 내려주기
+ */
 const PurchaseRequestListSection = () => {
   const params = useParams();
-  const router = useRouter();
-  const queryClient = useQueryClient();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
   // useToast 훅 사용
@@ -37,10 +41,15 @@ const PurchaseRequestListSection = () => {
   const {
     params: paginationParams,
     handlePageChange,
-    handleSortChange,
-  } = usePaginationParams({ defaultSize: 6 });
+    handleSortChange: handleSortChangeBase,
+  } = usePaginationParams({ defaultSize: PURCHASE_DEFAULTS.DISPLAY_ITEM_COUNT });
 
   const { page, size, sort } = paginationParams;
+
+  // 핸들러 훅 사용
+  const navigation = usePurchaseNavigation(companyId);
+  const { handleSortChange } = usePurchaseSortHandlers(handleSortChangeBase);
+  const modalHandlers = usePurchaseModalHandlers({ companyId, triggerToast });
 
   // requests 페이지에서는 PENDING 상태만 조회 (현재 요청되어 있는 것들만)
   const effectiveStatus = 'PENDING';
@@ -52,32 +61,6 @@ const PurchaseRequestListSection = () => {
     { key: 'totalPriceDesc', label: '높은 가격순' },
   ];
 
-  // 프론트엔드 sort 값을 백엔드 API 스펙에 맞게 변환
-  const getSortParams = (
-    frontendSort: string | undefined
-  ): {
-    sortBy: 'createdAt' | 'totalPrice';
-    order?: 'asc' | 'desc';
-  } => {
-    if (!frontendSort || frontendSort === 'createdAt') {
-      // 최신순: createdAt만 보내면 됨 (기본값 desc이므로 최신순)
-      return { sortBy: 'createdAt' };
-    }
-
-    if (frontendSort === 'totalPriceAsc') {
-      // 낮은 가격순: totalPrice + asc
-      return { sortBy: 'totalPrice', order: 'asc' };
-    }
-
-    if (frontendSort === 'totalPriceDesc') {
-      // 높은 가격순: totalPrice + desc
-      return { sortBy: 'totalPrice', order: 'desc' };
-    }
-
-    // 기본값: 최신순
-    return { sortBy: 'createdAt' };
-  };
-
   const { sortBy: effectiveSortBy, order: effectiveOrder } = getSortParams(sort);
 
   const selectedSortOption =
@@ -85,41 +68,24 @@ const PurchaseRequestListSection = () => {
       ? purchaseRequestSortOptions.find((opt) => opt.key === sort)
       : purchaseRequestSortOptions.find((opt) => opt.key === 'createdAt');
 
-  const [approveModalOpen, setApproveModalOpen] = useState(false);
-  const [rejectModalOpen, setRejectModalOpen] = useState(false);
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-
   // 모달용 상세 데이터 조회 (모달이 열릴 때만 호출)
-  const { data: modalDetailData, isLoading: isModalDetailLoading } = useQuery({
-    queryKey: ['purchaseRequestDetailForModal', selectedRequestId],
-    queryFn: async () => {
-      if (!selectedRequestId) {
-        throw new Error('Request ID is required');
-      }
-      return getPurchaseRequestDetail(selectedRequestId);
-    },
-    enabled: !!selectedRequestId && (approveModalOpen || rejectModalOpen),
-    staleTime: 0, // 모달용이므로 캐시 없이 항상 최신 데이터
-    retry: false,
-  });
+  const { data: modalDetailData, isLoading: isModalDetailLoading } =
+    usePurchaseRequestDetailForModal(
+      modalHandlers.selectedRequestId,
+      (modalHandlers.approveModalOpen || modalHandlers.rejectModalOpen) &&
+        !!modalHandlers.selectedRequestId
+    );
 
   const {
     data,
     isLoading,
     error: queryError,
-  } = useQuery({
-    queryKey: ['purchaseRequests', page, size, effectiveStatus, effectiveSortBy, effectiveOrder],
-    queryFn: () =>
-      managePurchaseRequests({
-        page,
-        size,
-        status: effectiveStatus,
-        sortBy: effectiveSortBy,
-        order: effectiveOrder,
-      }),
-    retry: false, // 401 에러 시 재시도 방지
-    refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+  } = usePurchaseRequests({
+    page,
+    size,
+    status: effectiveStatus,
+    sortBy: effectiveSortBy,
+    order: effectiveOrder,
   });
 
   // 예산 조회
@@ -127,20 +93,7 @@ const PurchaseRequestListSection = () => {
     data: budgetData,
     isLoading: isBudgetLoading,
     error: budgetError,
-  } = useQuery({
-    queryKey: ['budget', companyId],
-    queryFn: async () => {
-      if (!companyId) {
-        throw new Error('Company ID is required');
-      }
-      const result = await getBudget(companyId);
-      return result;
-    },
-    enabled: !!companyId,
-    staleTime: QUERY_STALE_TIME_BUDGET,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  } = usePurchaseBudget(companyId, { enabled: !!companyId });
 
   // 디버깅: 로딩 상태와 에러 상태 로깅
   useEffect(() => {
@@ -174,76 +127,22 @@ const PurchaseRequestListSection = () => {
     }
   }, [budgetError]);
 
-  const handleRejectClick = useCallback((purchaseRequestId: string) => {
-    setSelectedRequestId(purchaseRequestId);
-    setRejectModalOpen(true);
-  }, []);
-
-  const handleApproveClick = useCallback((purchaseRequestId: string) => {
-    setSelectedRequestId(purchaseRequestId);
-    setApproveModalOpen(true);
-  }, []);
-
-  const handleRejectModalClose = useCallback(() => {
-    setRejectModalOpen(false);
-    setSelectedRequestId(null);
-  }, []);
-
-  const handleApproveModalClose = useCallback(() => {
-    setApproveModalOpen(false);
-    setSelectedRequestId(null);
-  }, []);
-
-  const handleRejectSubmit = useCallback(
-    async (message: string) => {
-      if (!selectedRequestId) return;
-      try {
-        await rejectPurchaseRequest(selectedRequestId, { reason: message });
-        // 캐시 즉시 제거하여 최신 데이터 보장
-        queryClient.removeQueries({ queryKey: ['purchaseRequests'] });
-        setRejectModalOpen(false);
-        setSelectedRequestId(null);
-        triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_REJECTED);
-      } catch (rejectError) {
-        logger.error('구매 요청 반려 실패:', rejectError);
-        triggerToast('error', PURCHASE_ERROR_MESSAGES.REJECT_FAILED);
-      }
-    },
-    [selectedRequestId, queryClient, triggerToast]
-  );
-
-  const handleApproveSubmit = useCallback(
-    async (_message: string) => {
-      if (!selectedRequestId) return;
-      try {
-        await approvePurchaseRequest(selectedRequestId);
-        // 캐시 즉시 제거하여 최신 데이터 보장
-        queryClient.removeQueries({ queryKey: ['purchaseRequests'] });
-        queryClient.removeQueries({ queryKey: ['budget', companyId] });
-        setApproveModalOpen(false);
-        setSelectedRequestId(null);
-        triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_APPROVED);
-      } catch (approveError) {
-        logger.error('구매 요청 승인 실패:', approveError);
-        triggerToast('error', PURCHASE_ERROR_MESSAGES.APPROVE_FAILED);
-      }
-    },
-    [selectedRequestId, companyId, queryClient, triggerToast]
-  );
-
   const handleProductNavigation = useCallback(() => {
-    if (companyId) {
-      router.push(`/${companyId}/products`);
-    }
-  }, [companyId, router]);
+    navigation.goToProducts();
+  }, [navigation]);
 
   const handleRowClick = useCallback(
     (purchaseRequestId: string) => {
-      if (companyId) {
-        router.push(`/${companyId}/requests/${purchaseRequestId}`);
-      }
+      navigation.goToPurchaseRequestDetail(purchaseRequestId);
     },
-    [companyId, router]
+    [navigation]
+  );
+
+  const handleProductClick = useCallback(
+    (productId: number) => {
+      navigation.goToProductDetail(String(productId));
+    },
+    [navigation]
   );
 
   // companyId 필수 체크
@@ -282,25 +181,26 @@ const PurchaseRequestListSection = () => {
 
   const purchaseList = data?.purchaseRequests || [];
   // 무조건 6개까지만 표시
-  const displayList = purchaseList.slice(0, 6);
+  const displayList = purchaseList.slice(0, PURCHASE_DEFAULTS.DISPLAY_ITEM_COUNT);
 
   return (
     <div className="w-full mt-20 tablet:mt-20 desktop:mt-80">
       <PurchaseRequestListTem
         purchaseList={displayList}
         companyId={companyId}
-        onRejectClick={handleRejectClick}
-        onApproveClick={handleApproveClick}
+        onRejectClick={modalHandlers.handleRejectClick}
+        onApproveClick={modalHandlers.handleApproveClick}
         onRowClick={handleRowClick}
-        selectedRequestId={selectedRequestId}
+        onProductClick={handleProductClick}
+        selectedRequestId={modalHandlers.selectedRequestId}
         selectedRequestDetail={modalDetailData || undefined}
         isModalDetailLoading={isModalDetailLoading}
-        approveModalOpen={approveModalOpen}
-        rejectModalOpen={rejectModalOpen}
-        onApproveModalClose={handleApproveModalClose}
-        onRejectModalClose={handleRejectModalClose}
-        onApproveSubmit={handleApproveSubmit}
-        onRejectSubmit={handleRejectSubmit}
+        approveModalOpen={modalHandlers.approveModalOpen}
+        rejectModalOpen={modalHandlers.rejectModalOpen}
+        onApproveModalClose={modalHandlers.handleApproveModalClose}
+        onRejectModalClose={modalHandlers.handleRejectModalClose}
+        onApproveSubmit={modalHandlers.handleApproveSubmit}
+        onRejectSubmit={modalHandlers.handleRejectSubmit}
         budget={budgetData?.budget ?? 0}
         currentPage={data?.currentPage}
         totalPages={data?.totalPages}

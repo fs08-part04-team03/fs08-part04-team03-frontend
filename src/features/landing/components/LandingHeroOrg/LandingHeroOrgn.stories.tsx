@@ -32,7 +32,7 @@ const meta: Meta<typeof LandingHero> = {
 이 컴포넌트는 페이지의 최상단에 배치하여 유저의 이목을 집중시키는 용도로 사용하세요.
 
 ### 인터랙션
-*   **Sign Now 버튼 클릭**: \`/signup\` 페이지로 이동합니다.
+*   **Sign Now 버튼 클릭**: 회원가입(Sign Up) 페이지로 이동합니다. 
         `,
       },
     },

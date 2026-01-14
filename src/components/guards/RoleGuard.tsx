@@ -18,7 +18,7 @@ interface RoleGuardProps {
 export const RoleGuard: React.FC<RoleGuardProps> = ({ children, requiredRole, fallback }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isHydrated } = useAuthStore();
+  const { user, accessToken, isHydrated } = useAuthStore();
 
   const isRoleKnown = (role: UserRole | undefined): role is UserRole =>
     !!role && role in ROLE_LEVEL;
@@ -48,7 +48,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, requiredRole, fa
     // 하이드레이션이 완료되지 않았으면 리다이렉트하지 않음
     if (!isHydrated) return;
 
-    if (!user) {
+    if (!accessToken || !user) {
       router.replace(PATHNAME.LOGIN);
       return;
     }
@@ -63,7 +63,15 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, requiredRole, fa
     if (!passesRoutePolicy()) {
       redirectToSafePage();
     }
-  }, [isHydrated, user, router, hasRequiredRole, passesRoutePolicy, redirectToSafePage]);
+  }, [
+    isHydrated,
+    user,
+    accessToken,
+    router,
+    hasRequiredRole,
+    passesRoutePolicy,
+    redirectToSafePage,
+  ]);
 
   // 하이드레이션 완료 전까지는 로딩 상태 표시
   if (!isHydrated) {
@@ -81,7 +89,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, requiredRole, fa
     );
   }
 
-  if (!user) return null;
+  if (!accessToken || !user) return null;
 
   // 렌더링 레벨에서도 동일하게 2중 체크
   if (!hasRequiredRole()) {

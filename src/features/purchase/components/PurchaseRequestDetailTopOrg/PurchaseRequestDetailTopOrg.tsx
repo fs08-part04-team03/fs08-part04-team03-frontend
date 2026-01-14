@@ -45,10 +45,7 @@ const PurchaseItemsList = ({ items, companyId }: PurchaseItemsListProps) => {
   return (
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
       {items.map((item, index) => {
-        // 프록시 API를 통해 이미지 로드 (CORS 방지)
-        const imageSrc = item.products.image
-          ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
-          : undefined;
+        const imageSrc = item.products.imageUrl ? item.products.imageUrl : undefined;
 
         return (
           <React.Fragment key={item.id ?? `item-${index}`}>

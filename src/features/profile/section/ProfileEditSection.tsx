@@ -15,6 +15,8 @@ import { logger } from '@/utils/logger';
 import ProfileEditTemplate from '@/features/profile/template/ProfileEditTemplate';
 import { useToast } from '@/hooks/useToast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { STALE_TIME } from '@/constants/staleTime';
+import { profileKeys } from '@/features/profile/queries/profile.keys';
 
 const getRoleDisplayName = (role?: string) => {
   switch (role) {
@@ -56,31 +58,24 @@ const ProfileEditSection = () => {
 
   // 사용자 프로필 정보 조회 (profileImage 포함)
   const { data: myProfile } = useQuery({
-    queryKey: ['myProfile'],
+    queryKey: profileKeys.myProfile(),
     queryFn: () => getMyProfile(),
     enabled: !!user && !!accessToken,
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
     refetchOnWindowFocus: false,
   });
 
   // 초기 이미지 로드 (myProfile.profileImage가 있으면)
   useEffect(() => {
-    if (myProfile?.profileImage) {
-      const { profileImage } = myProfile;
-
-      // 이미 URL 형식이면 그대로 사용
-      if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-        setPreview(profileImage);
-      } else {
-        // S3 키 형식이면 프록시 API URL로 변환
-        // users/ 접두사가 없으면 추가 (프록시 API가 자동으로 products/를 추가하는 것을 방지)
-        const imageKey = profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
-        const imageUrl = `/api/product/image?key=${encodeURIComponent(imageKey)}`;
-        setPreview(imageUrl);
+    const run = () => {
+      if (myProfile?.profileImage) {
+        const trimmed = myProfile.profileImage.trim();
+        setPreview(trimmed.length > 0 ? trimmed : '/icons/upload.svg');
+        return;
       }
-    } else {
       setPreview('/icons/upload.svg');
-    }
+    };
+    run();
   }, [myProfile?.profileImage, myProfile]);
 
   // 회사 정보 조회 (폼 초기값 설정)
@@ -216,22 +211,18 @@ const ProfileEditSection = () => {
         // 프로필 업데이트 성공 시 프로필 이미지가 변경되었을 수 있으므로
         // updatedProfile의 profileImage를 사용하여 미리보기 업데이트
         if (updatedProfile?.profileImage) {
-          const { profileImage } = updatedProfile;
-          if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-            setPreview(profileImage);
-          } else {
-            const imageKey = profileImage.startsWith('users/')
-              ? profileImage
-              : `users/${profileImage}`;
-            const imageUrl = `/api/product/image?key=${encodeURIComponent(imageKey)}`;
-            setPreview(imageUrl);
-          }
+          const trimmed = updatedProfile.profileImage.trim();
+          setPreview(trimmed.length > 0 ? trimmed : '/icons/upload.svg');
         }
       }
 
       // 프로필 업데이트 후 myProfile 쿼리 invalidate하여 최신 데이터 반영
-      await queryClient.invalidateQueries({ queryKey: ['myProfile'] });
-      await queryClient.refetchQueries({ queryKey: ['myProfile'], type: 'active' });
+      await queryClient.invalidateQueries({ queryKey: profileKeys.myProfile() });
+
+      // 관리자가 회사명을 변경한 경우 회사 정보도 invalidate
+      if (isAdmin && values.companyName && values.companyName.trim() !== '') {
+        await queryClient.invalidateQueries({ queryKey: profileKeys.company() });
+      }
 
       setToastMessage('프로필이 성공적으로 변경되었습니다.');
       setShowToast(true);
