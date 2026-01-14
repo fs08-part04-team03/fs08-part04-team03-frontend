@@ -160,8 +160,6 @@ export function useMyPurchases(params?: {
     refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
     retry: false, // 401 에러 시 재시도 방지
     refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
-    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
-    enabled,
   });
 }
 
