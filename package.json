@@ -23,6 +23,7 @@
     "jsonwebtoken": "^9.0.3",
     "next": "16.0.10",
     "react": "^19.2.1",
+    "react-chatbot-kit": "^2.2.2",
     "react-dom": "^19.2.1",
     "react-hook-form": "^7.66.1",
     "recharts": "^3.6.0",
