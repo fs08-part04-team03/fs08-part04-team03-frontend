@@ -76,6 +76,7 @@ export type ChildCategoryKey = ChildCategory['key'];
 export type CategoryBreadcrumbItem = {
   label: string;
   href?: string;
+  onClick?: () => void;
 };
 
 // Panel 타입

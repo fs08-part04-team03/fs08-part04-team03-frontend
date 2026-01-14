@@ -101,15 +101,14 @@ export function useProductNavigation(companyId: string) {
    */
   const goToCart = useCallback(async () => {
     try {
-      // 장바구니 캐시를 무효화하고 refetch하여 최신 데이터를 가져오도록 함
+      // 장바구니 캐시를 무효화하여 최신 데이터를 가져오도록 함 (refetchOnMount로 자동 갱신)
       await queryClient.invalidateQueries({ queryKey: cartKeys.all });
-      await queryClient.refetchQueries({ queryKey: cartKeys.all });
       router.push(PATHNAME.CART(companyId));
-    } catch (refetchError) {
+    } catch (error) {
       // 에러 발생 시 로그만 남기고 계속 진행
-      logger.error('Failed to refetch cart before navigation', {
+      logger.error('Failed to invalidate cart before navigation', {
         hasError: true,
-        errorType: refetchError instanceof Error ? refetchError.constructor.name : 'Unknown',
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
       });
       // 에러가 발생해도 페이지 이동은 진행
       router.push(PATHNAME.CART(companyId));

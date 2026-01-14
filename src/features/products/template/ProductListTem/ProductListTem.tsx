@@ -83,7 +83,9 @@ const ProductListTem = ({
     companyId,
     selectedCategoryId,
     categorySections,
-    breadcrumbItems
+    breadcrumbItems,
+    onChangeCategory,
+    onChangeCategory // 소분류 변경도 같은 핸들러 사용
   );
 
   const handleProductClickInternal = (productId: number) => {
