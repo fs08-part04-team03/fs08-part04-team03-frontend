@@ -8,6 +8,7 @@ import {
   CATEGORY_SECTIONS,
   BREADCRUMB_ITEMS,
   ERROR_MESSAGES,
+  PARENT_CATEGORY_OPTIONS,
   getChildById,
   getParentById,
   buildProductBreadcrumb,
@@ -17,6 +18,7 @@ import { ROLE_LEVEL } from '@/utils/auth';
 import LinkText from '@/components/atoms/LinkText/LinkText';
 import type { DetailPageLayoutProps } from '@/components/organisms/DetailPageLayout/DetailPageLayout';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
+import type { BreadcrumbItem } from '@/components/molecules/Breadcrumb/Breadcrumb';
 import { useProductNavigation } from '@/features/products/handlers/useProductNavigation';
 import { useProductModals } from '@/features/products/handlers/useProductModals';
 import { useProductWishlistActions } from '@/features/products/handlers/useProductWishlistActions';
@@ -74,22 +76,30 @@ const ProductDetailSection = () => {
     }
 
     // buildProductBreadcrumb를 사용하여 대분류와 소분류를 모두 포함한 breadcrumb 생성
-    const categoryBreadcrumbItems = buildProductBreadcrumb({ categoryId: product.categoryId });
+    // CategorySwitcher와 동일한 방식으로 대분류 클릭 시 첫 소분류로 이동
+    const categoryBreadcrumbItems = buildProductBreadcrumb({
+      categoryId: product.categoryId,
+      onParentCategoryClick: (parentKey) => {
+        // 대분류 변경 (CategorySwitcher와 동일한 로직)
+        const category = PARENT_CATEGORY_OPTIONS.find((c) => c.id === parentKey);
+        if (category) {
+          // category.parentId는 ParentCategoryId (숫자)
+          navigation.handleCategoryChange(category.parentId);
+        }
+      },
+      onSubCategoryClick: (subCategoryId) => {
+        // 소분류 변경 (CategorySwitcher와 동일한 로직)
+        navigation.goToProductsByCategory(subCategoryId);
+      },
+    });
 
     const breadcrumbItems = [
-      {
-        label: BREADCRUMB_ITEMS.HOME.label,
-        href: BREADCRUMB_ITEMS.HOME.href(companyId),
-      },
       {
         label: BREADCRUMB_ITEMS.PRODUCTS.label,
         href: BREADCRUMB_ITEMS.PRODUCTS.href(companyId),
       },
       // buildProductBreadcrumb에서 반환된 대분류와 소분류 추가
-      ...categoryBreadcrumbItems.map((item) => ({
-        label: item.label,
-        href: item.href,
-      })),
+      ...(categoryBreadcrumbItems as unknown as BreadcrumbItem[]),
     ];
 
     return {
@@ -109,8 +119,12 @@ const ProductDetailSection = () => {
         // manager 이상일 때만 onMenuClick 전달
         onMenuClick: canUseMenu
           ? (action) => {
-              if (action === 'edit') modals.handleOpenEditModal();
-              if (action === 'delete') modals.handleOpenDeleteModal();
+              if (action === 'edit') {
+                modals.handleOpenEditModal();
+              }
+              if (action === 'delete') {
+                modals.handleOpenDeleteModal();
+              }
             }
           : undefined,
       },
@@ -129,14 +143,16 @@ const ProductDetailSection = () => {
           ),
         },
       ],
-      liked: wishlistActions.isLiked,
-      onToggleLike: wishlistActions.handleToggleLike,
+      liked: Boolean(wishlistActions.isLiked),
+      onToggleLike: () => {
+        wishlistActions.handleToggleLike();
+      },
     };
   }, [
     product,
     companyId,
-    wishlistActions.isLiked,
-    wishlistActions.handleToggleLike,
+    navigation,
+    wishlistActions,
     cartActions.handleAddToCart,
     canUseMenu,
     modals,
