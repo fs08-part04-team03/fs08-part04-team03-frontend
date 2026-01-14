@@ -12,6 +12,7 @@ export interface CartProduct {
   name: string;
   price: number;
   image?: string;
+  imageUrl?: string;
   link?: string;
   isActive: boolean;
 }

@@ -41,6 +41,7 @@ export interface PurchaseRequestItem {
       id: number;
       name: string;
       image?: string;
+      imageUrl?: string;
       link?: string;
     };
   }>;
@@ -80,6 +81,7 @@ export interface RequestPurchaseResponseData {
       id: number;
       name: string;
       image: string;
+      imageUrl?: string;
       link: string;
     };
   }>;

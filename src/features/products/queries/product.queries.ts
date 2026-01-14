@@ -141,15 +141,11 @@ export function useUpdateProduct() {
       const { productId } = variables;
 
       // 상품 상세와 목록 모두 invalidate하여 최신 데이터 보장
+      // refetchOnMount가 true이므로 다음 조회 시 자동으로 최신 데이터를 가져옴
       await queryClient.invalidateQueries({ queryKey: productKeys.detail(productId) });
       await queryClient.invalidateQueries({ queryKey: productKeys.all }); // 모든 상품 관련 쿼리 무효화
       await queryClient.invalidateQueries({ queryKey: productKeys.lists() }); // 상품 리스트 쿼리 명시적 무효화
       await queryClient.invalidateQueries({ queryKey: productKeys.myDetail(productId) });
-
-      // 상품 리스트 쿼리를 즉시 refetch하여 변경사항 즉시 반영
-      await queryClient.refetchQueries({ queryKey: productKeys.lists() }).catch(() => {
-        // 에러는 무시 (백그라운드 작업)
-      });
 
       triggerToast('success', '상품이 수정되었습니다.');
     },

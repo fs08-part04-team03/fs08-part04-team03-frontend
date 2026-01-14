@@ -57,6 +57,8 @@ const PurchaseRequestDetailSection = () => {
     budgetError,
     purchaseRequest: data,
     triggerToast,
+    onApproveModalOpen: modals.openApproveModal,
+    onRejectModalOpen: modals.openRejectModal,
     onApproveSuccess: () => {
       modals.closeApproveModal();
       modals.openSuccessModal('approved');

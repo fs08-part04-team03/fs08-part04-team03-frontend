@@ -1,5 +1,6 @@
 import { getApiUrl, getApiTimeout, fetchWithAuth } from '@/utils/api';
 import { logger } from '@/utils/logger';
+import { PROFILE_API_PATHS } from '@/features/profile/constants/api';
 
 /**
  * API 에러 응답 형식
@@ -64,7 +65,7 @@ export interface UpdateProfileResponse {
  */
 export async function getMyProfile(): Promise<GetMyProfileResponse> {
   try {
-    const response = await fetchWithAuth('/api/v1/user/me', {
+    const response = await fetchWithAuth(PROFILE_API_PATHS.GET_MY_PROFILE, {
       method: 'GET',
     });
 
@@ -276,7 +277,7 @@ export async function updateAdminProfile(
       // FormData는 Content-Type을 자동으로 설정하므로 명시하지 않음
     };
 
-    const response = await fetch(`${apiUrl}/api/v1/user/admin/profile`, {
+    const response = await fetch(`${apiUrl}${PROFILE_API_PATHS.UPDATE_ADMIN_PROFILE}`, {
       method: 'PATCH',
       headers,
       body: formData,
@@ -373,7 +374,7 @@ export async function updateUserProfile(
       // FormData는 Content-Type을 자동으로 설정하므로 명시하지 않음
     };
 
-    const response = await fetch(`${apiUrl}/api/v1/user/me/profile`, {
+    const response = await fetch(`${apiUrl}${PROFILE_API_PATHS.UPDATE_MY_PROFILE}`, {
       method: 'PATCH',
       headers,
       body: formData,

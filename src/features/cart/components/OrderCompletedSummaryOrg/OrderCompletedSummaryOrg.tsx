@@ -4,7 +4,6 @@ import { useState, useRef, FormEvent } from 'react';
 import OrderItemCard from '@/components/molecules/OrderItemCard/OrderItemCard';
 import Button from '@/components/atoms/Button/Button';
 import PriceText from '@/components/atoms/PriceText/PriceText';
-import Checkbox from '@/components/atoms/Checkbox/Checkbox';
 import { clsx } from '@/utils/clsx';
 
 export interface OrderCompletedItem {
@@ -47,7 +46,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
 
   const [message, setMessage] = useState('');
   const [touched, setTouched] = useState(false);
-  const [isUrgent, setIsUrgent] = useState(false);
+  const [isUrgent, _setIsUrgent] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const orderPrice = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
@@ -155,26 +154,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
 
       {isRequestUser && (
         <form onSubmit={handleSubmit}>
-          {/* 긴급 요청 토글 */}
-          <div className="mx-auto mt-40 mb-20 flex items-center gap-12">
-            <Checkbox checked={isUrgent} onChange={setIsUrgent} aria-label="긴급 요청" />
-            <span
-              className="text-16 font-bold text-gray-950 tracking-tight cursor-pointer"
-              onClick={() => setIsUrgent(!isUrgent)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setIsUrgent(!isUrgent);
-                }
-              }}
-            >
-              긴급 요청
-            </span>
-          </div>
-
-          <div className="mx-auto">
+          <div className="mx-auto mt-40 mb-20">
             <span
               id="order-request-label"
               className="block text-16 font-bold text-gray-950 tracking-tight mb-14 tablet:mb-20"

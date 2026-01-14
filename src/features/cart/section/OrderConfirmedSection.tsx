@@ -73,8 +73,8 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
     if (!purchaseData?.purchaseItems) return {};
 
     return purchaseData.purchaseItems.reduce<Record<string, string>>((acc, item) => {
-      if (item.products.image) {
-        const image = item.products.image.trim();
+      if (item.products.imageUrl) {
+        const image = item.products.imageUrl.trim();
         if (!image) return acc;
         acc[item.products.id] = image;
       }
