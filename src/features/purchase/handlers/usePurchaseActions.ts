@@ -16,6 +16,8 @@ interface UsePurchaseRequestActionsParams {
   budgetError: Error | null;
   purchaseRequest: PurchaseRequestItem | undefined;
   triggerToast: (variant: 'error' | 'success' | 'custom', message: string) => void;
+  onApproveModalOpen: () => void;
+  onRejectModalOpen: () => void;
   onApproveSuccess: () => void;
   onRejectSuccess: () => void;
   onBudgetInsufficient: () => void;
@@ -33,6 +35,8 @@ export const usePurchaseRequestActions = ({
   budgetError,
   purchaseRequest,
   triggerToast,
+  onApproveModalOpen,
+  onRejectModalOpen,
   onApproveSuccess,
   onRejectSuccess,
   onBudgetInsufficient,
@@ -64,12 +68,12 @@ export const usePurchaseRequestActions = ({
       onBudgetInsufficient();
       return;
     }
-    onApproveSuccess();
-  }, [hasBudgetData, isBudgetSufficient, triggerToast, onBudgetInsufficient, onApproveSuccess]);
+    onApproveModalOpen();
+  }, [hasBudgetData, isBudgetSufficient, triggerToast, onBudgetInsufficient, onApproveModalOpen]);
 
   const handleRejectClick = useCallback(() => {
-    onRejectSuccess();
-  }, [onRejectSuccess]);
+    onRejectModalOpen();
+  }, [onRejectModalOpen]);
 
   const handleApproveSubmit = useCallback(
     (_message: string) => {
