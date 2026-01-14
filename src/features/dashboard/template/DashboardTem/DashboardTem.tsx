@@ -197,8 +197,9 @@ const DashboardTem = ({
             desktop:hidden
           "
         >
-          <DashboardCard variant="medium" monthlyNewUsers={newUsers} />
-          <DashboardCard variant="medium" monthlyChangedUsers={changedUsers} />
+          <DashboardCard variant="medium" mediumMode="new" monthlyNewUsers={newUsers} />
+
+          <DashboardCard variant="medium" mediumMode="changed" monthlyChangedUsers={changedUsers} />
         </section>
 
         {/* ===== large (mobile / tablet) ===== */}
@@ -223,11 +224,11 @@ const DashboardTem = ({
             desktop:mb-30
           "
         >
-          <DashboardCard variant="medium" monthlyNewUsers={newUsers} />
+          <DashboardCard variant="medium" mediumMode="new" monthlyNewUsers={newUsers} />
 
           <DashboardCard variant="large" className="row-span-2" largeChartData={snackRank} />
 
-          <DashboardCard variant="medium" monthlyChangedUsers={changedUsers} />
+          <DashboardCard variant="medium" mediumMode="changed" monthlyChangedUsers={changedUsers} />
         </section>
       </main>
     </div>
