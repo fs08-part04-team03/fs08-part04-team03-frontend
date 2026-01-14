@@ -81,10 +81,6 @@ const ProductListSection = ({ companyId }: { companyId: string }) => {
 
   const breadcrumbItems = [
     {
-      label: BREADCRUMB_ITEMS.HOME.label,
-      href: BREADCRUMB_ITEMS.HOME.href(companyId),
-    },
-    {
       label: BREADCRUMB_ITEMS.PRODUCTS.label,
       href: BREADCRUMB_ITEMS.PRODUCTS.href(companyId),
     },
