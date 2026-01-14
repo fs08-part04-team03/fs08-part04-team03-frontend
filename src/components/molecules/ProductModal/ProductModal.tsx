@@ -11,6 +11,7 @@ import { CATEGORY_SECTIONS } from '@/constants';
 import { formatPrice, isInvalidPrice, isValidUrl, isValidPriceInput } from '@/utils/validation';
 import { logger } from '@/utils/logger';
 import { fetchWithAuth } from '@/utils/api';
+import { PRODUCT_API_PATHS } from '@/features/products/constants/api';
 
 interface ProductModalProps {
   open: boolean;
@@ -157,7 +158,7 @@ const ProductModal = ({
     setIsSubmitting(true);
 
     try {
-      const res = await fetchWithAuth('/api/product', {
+      const res = await fetchWithAuth(PRODUCT_API_PATHS.CREATE_PRODUCT, {
         method: 'POST',
         body: requestBody,
         headers,

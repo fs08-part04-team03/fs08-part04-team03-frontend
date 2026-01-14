@@ -6,6 +6,7 @@ import type { RegisteredProductOrgItem } from '@/features/products/components/Re
 import type { BackendProduct } from '@/features/products/utils/product.utils';
 import { getChildById, getParentById } from '@/constants/categories/categories.utils';
 import { logger } from '@/utils/logger';
+import { PRODUCT_API_PATHS } from '@/features/products/constants/api';
 
 /**
  * 백엔드 API 응답 타입
@@ -107,7 +108,7 @@ export async function getMyRegisteredProducts(
   }
 
   const queryString = queryParams.toString();
-  const url = `/api/v1/product/my${queryString ? `?${queryString}` : ''}`;
+  const url = `${PRODUCT_API_PATHS.GET_MY_PRODUCTS}${queryString ? `?${queryString}` : ''}`;
 
   // 개발 환경에서 요청 URL 로깅 제거 (의미 없는 디버그 로그)
 
@@ -285,7 +286,7 @@ export async function getAllProducts(
     pageParams.set('limit', String(pageSize));
 
     const res = await fetchWithAuth(
-      `/api/v1/product?${pageParams.toString()}`,
+      `${PRODUCT_API_PATHS.GET_PRODUCTS}?${pageParams.toString()}`,
       { method: 'GET', headers: { Accept: 'application/json' } },
       accessToken ?? undefined
     );
@@ -346,7 +347,7 @@ export async function getAllProducts(
  * @returns 상품 디테일 데이터
  */
 export async function getProductById(productId: string | number): Promise<BackendProduct> {
-  const response = await fetchWithAuth(`/api/v1/product/${productId}`, {
+  const response = await fetchWithAuth(PRODUCT_API_PATHS.GET_PRODUCT_BY_ID(productId), {
     method: 'GET',
   });
 
@@ -382,7 +383,7 @@ export async function getProductById(productId: string | number): Promise<Backen
  * @returns 상품 디테일 데이터
  */
 export async function getMyProductById(productId: string | number): Promise<BackendProduct> {
-  const response = await fetchWithAuth(`/api/v1/product/my/${productId}`, {
+  const response = await fetchWithAuth(PRODUCT_API_PATHS.GET_MY_PRODUCT_BY_ID(productId), {
     method: 'GET',
   });
 
@@ -428,7 +429,7 @@ export async function uploadProductImage(
 
   const { accessToken } = useAuthStore.getState();
 
-  const uploadUrl = `/api/v1/upload/image?folder=${encodeURIComponent(folder)}`;
+  const uploadUrl = `${PRODUCT_API_PATHS.UPLOAD_IMAGE}?folder=${encodeURIComponent(folder)}`;
 
   // skipAuth가 true이거나 accessToken이 없으면 일반 fetch 사용 (회원가입 시)
   let response: Response;
@@ -507,7 +508,7 @@ export async function getImageUrl(
 ): Promise<{ key: string; url: string; expiresIn: number }> {
   // S3 key를 URL 인코딩
   const encodedKey = encodeURIComponent(key);
-  let urlPath = `/api/v1/upload/image/${encodedKey}`;
+  let urlPath = PRODUCT_API_PATHS.GET_IMAGE(encodedKey);
   if (download) {
     urlPath += '?download=true';
   }
@@ -593,7 +594,7 @@ export async function deleteImage(key: string): Promise<void> {
   // S3 key를 URL 인코딩 (예: products/123-abc.jpg → products%2F123-abc.jpg)
   const encodedKey = encodeURIComponent(key);
 
-  const response = await fetchWithAuth(`/api/v1/upload/image/${encodedKey}`, {
+  const response = await fetchWithAuth(PRODUCT_API_PATHS.DELETE_IMAGE(encodedKey), {
     method: 'DELETE',
   });
 
@@ -675,7 +676,7 @@ export async function updateMyProduct(
   }
 
   // URL에 removeImage 쿼리 파라미터 추가
-  let url = `/api/v1/product/${productId}`;
+  let url = PRODUCT_API_PATHS.UPDATE_PRODUCT(productId);
   if (options?.removeImage) {
     url += '?removeImage=true';
   }
@@ -727,7 +728,7 @@ export async function updateMyProduct(
  * @param productId - 상품 ID
  */
 export async function deleteMyProduct(productId: string | number): Promise<void> {
-  const response = await fetchWithAuth(`/api/v1/product/${productId}`, {
+  const response = await fetchWithAuth(PRODUCT_API_PATHS.DELETE_PRODUCT(productId), {
     method: 'DELETE',
   });
 
@@ -747,7 +748,7 @@ export async function deleteMyProduct(productId: string | number): Promise<void>
  * @param productId - 상품 ID
  */
 export async function deleteProduct(productId: string | number): Promise<void> {
-  const response = await fetchWithAuth(`/api/v1/product/${productId}`, {
+  const response = await fetchWithAuth(PRODUCT_API_PATHS.DELETE_PRODUCT(productId), {
     method: 'DELETE',
   });
 

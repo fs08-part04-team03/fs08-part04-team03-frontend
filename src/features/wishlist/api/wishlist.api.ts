@@ -1,6 +1,7 @@
 'use client';
 
 import { fetchWithAuth } from '@/utils/api';
+import { WISHLIST_API_PATHS } from '@/features/wishlist/constants/api';
 
 /**
  * 백엔드 API 응답 타입
@@ -17,7 +18,7 @@ interface ApiResponse<T> {
  * @returns 위시리스트에 포함되어 있는지 여부
  */
 export async function checkWishlistStatus(productId: string | number): Promise<boolean> {
-  const response = await fetchWithAuth(`/api/v1/product/${productId}/wishlist`, {
+  const response = await fetchWithAuth(WISHLIST_API_PATHS.CHECK_WISHLIST_STATUS(productId), {
     method: 'GET',
   });
 
@@ -35,7 +36,7 @@ export async function checkWishlistStatus(productId: string | number): Promise<b
  * @param productId - 상품 ID
  */
 export async function addToWishlist(productId: string | number): Promise<void> {
-  const response = await fetchWithAuth(`/api/v1/wishlist/${productId}`, {
+  const response = await fetchWithAuth(WISHLIST_API_PATHS.ADD_TO_WISHLIST(productId), {
     method: 'POST',
   });
 
@@ -55,7 +56,7 @@ export async function addToWishlist(productId: string | number): Promise<void> {
  * @param productId - 상품 ID
  */
 export async function removeFromWishlist(productId: string | number): Promise<void> {
-  const response = await fetchWithAuth(`/api/v1/wishlist/${productId}`, {
+  const response = await fetchWithAuth(WISHLIST_API_PATHS.REMOVE_FROM_WISHLIST(productId), {
     method: 'DELETE',
   });
 
@@ -106,7 +107,7 @@ export interface GetWishlistResponse {
  * @returns 위시리스트 상품 목록
  */
 export async function getWishlist(): Promise<GetWishlistResponse> {
-  const response = await fetchWithAuth('/api/v1/wishlist/my', {
+  const response = await fetchWithAuth(WISHLIST_API_PATHS.GET_MY_WISHLIST, {
     method: 'GET',
   });
 
