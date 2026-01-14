@@ -51,8 +51,6 @@ const MyPurchaseRequestDetailSection = () => {
     return null;
   }
 
-  console.log('data -=> ', data);
-
   return (
     <MyPurchaseRequestDetailTem
       purchaseRequest={data}
