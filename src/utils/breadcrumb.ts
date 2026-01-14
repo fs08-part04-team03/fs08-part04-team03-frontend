@@ -2,10 +2,6 @@ import { type BreadcrumbItem } from '@/components/molecules/Breadcrumb/Breadcrum
 // eslint-disable-next-line import/no-unresolved
 import { BREADCRUMB_ITEMS } from '@/constants';
 
-export function generateHomeBreadcrumb(_companyId: string): BreadcrumbItem[] {
-  return [];
-}
-
 export function generateProductsBreadcrumb(companyId: string): BreadcrumbItem[] {
   return [
     { label: BREADCRUMB_ITEMS.PRODUCTS.label, href: BREADCRUMB_ITEMS.PRODUCTS.href(companyId) },
