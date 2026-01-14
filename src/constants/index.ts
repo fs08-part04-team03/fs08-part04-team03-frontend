@@ -55,10 +55,6 @@ export const PATHNAME = {
 
 // 공통 Breadcrumb 아이템
 export const BREADCRUMB_ITEMS = {
-  HOME: {
-    label: '홈',
-    href: (companyId: string) => PATHNAME.HOME(companyId),
-  },
   PRODUCTS: {
     label: '상품',
     href: (companyId: string) => PATHNAME.PRODUCTS(companyId),
