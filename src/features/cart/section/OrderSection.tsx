@@ -80,7 +80,6 @@ const OrderSection = () => {
   const { handlePurchaseRequest, handleGoCart, handleGoOrderHistory } = useOrderHandlers({
     companyId,
     selectedItems,
-    cartItemIds,
     onSuccess: () => {
       setIsPurchaseSuccess(true);
     },

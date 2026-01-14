@@ -127,15 +127,43 @@ export async function tryRefreshToken(): Promise<string | null> {
 
   try {
     const isBrowserEnv = isBrowser();
-    const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
+
+    // 브라우저 환경에서는 Next.js proxy(/api)를 사용하여 same-origin 요청으로 만듭니다
+    // 이렇게 하면 쿠키가 자동으로 전달됩니다
+    const backendOrigin = isBrowserEnv
+      ? '' // 상대 경로 사용 (Next.js rewrites가 /api를 백엔드로 프록시)
+      : process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
 
     const refreshUrl = joinUrl(backendOrigin, AUTH_API_PATHS.REFRESH);
+
+    // 쿠키 디버깅: 현재 브라우저의 쿠키 확인
+    let cookieDebugInfo: Record<string, unknown> = {};
+    if (isBrowserEnv) {
+      const allCookies = document.cookie;
+      const cookieNames = allCookies
+        .split(';')
+        .map((c) => c.trim().split('=')[0])
+        .filter(Boolean);
+
+      cookieDebugInfo = {
+        hasCookies: allCookies.length > 0,
+        cookieCount: cookieNames.length,
+        // refreshToken은 HttpOnly이므로 document.cookie로 볼 수 없음
+        visibleCookieNames: cookieNames.filter(
+          (name) => name && !name.toLowerCase().includes('token')
+        ),
+        note: 'refreshToken은 HttpOnly이므로 여기에 표시되지 않지만, credentials: include로 자동 전송됨',
+      };
+    }
 
     logger.info('[Token Refresh] 토큰 갱신 요청 시작', {
       refreshUrl,
       isBrowserEnv,
       backendOrigin,
       hasCredentials: true, // credentials: 'include' 사용 (필수!)
+      cookieDebugInfo,
+      crossOrigin: isBrowserEnv && window.location.origin !== backendOrigin,
+      currentOrigin: isBrowserEnv ? window.location.origin : 'server',
       note: '브라우저/서버 모두 refreshToken(httpOnly 쿠키) 기반으로 refresh 요청',
     });
 
@@ -346,8 +374,12 @@ export async function fetchWithAuth(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  // 브라우저/서버 모두 백엔드 절대 URL로 직접 호출
-  const backendOrigin = process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
+  // 브라우저 환경에서는 Next.js proxy(/api)를 사용하여 same-origin 요청으로 만듭니다
+  // 서버 사이드에서는 백엔드 절대 URL로 직접 호출
+  const isBrowserEnv = isBrowser();
+  const backendOrigin = isBrowserEnv
+    ? '' // 상대 경로 사용 (Next.js rewrites가 /api를 백엔드로 프록시)
+    : process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
 
   const finalUrl =
     url.startsWith('http://') || url.startsWith('https://') ? url : joinUrl(backendOrigin, url);
