@@ -5,6 +5,7 @@ import { cartApi, type GetMyCartResponse } from '@/features/cart/api/cart.api';
 import { useToast } from '@/hooks/useToast';
 import { fetchWithAuth } from '@/utils/api';
 import { STALE_TIME } from '@/constants/staleTime';
+import { ADMIN_BUDGET_API_PATHS } from '@/features/admin/budget/constants/api';
 import { cartKeys } from './cart.keys';
 
 /**
@@ -35,9 +36,12 @@ export function useBudget(year: number, month: number, options?: { enabled?: boo
   return useQuery<number>({
     queryKey: cartKeys.budget(year, month),
     queryFn: async () => {
-      const response = await fetchWithAuth(`/api/v1/budget?year=${year}&month=${month}`, {
-        method: 'GET',
-      });
+      const response = await fetchWithAuth(
+        `${ADMIN_BUDGET_API_PATHS.GET_BUDGET}?year=${year}&month=${month}`,
+        {
+          method: 'GET',
+        }
+      );
       if (!response.ok) {
         return 0;
       }

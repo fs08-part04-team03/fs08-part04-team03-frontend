@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/lib/store/authStore';
+import { ADMIN_USER_API_PATHS } from '@/features/admin/users/constants/api';
 
 export interface Pagination {
   page: number;
@@ -87,7 +88,7 @@ export const getUsers = async ({
   if (role) params.append('role', role);
   if (isActive !== undefined) params.append('isActive', isActive.toString());
 
-  return fetchWithAuth<GetUsersResponse>(`/api/v1/user?${params.toString()}`, {
+  return fetchWithAuth<GetUsersResponse>(`${ADMIN_USER_API_PATHS.GET_USERS}?${params.toString()}`, {
     method: 'GET',
   });
 };
@@ -97,7 +98,7 @@ export const getUsers = async ({
  * PATCH /api/v1/user/admin/{id}/role
  */
 export const updateUserRole = async (userId: string, role: UserRole) =>
-  fetchWithAuth<void>(`/api/v1/user/admin/${userId}/role`, {
+  fetchWithAuth<void>(ADMIN_USER_API_PATHS.UPDATE_USER_ROLE(userId), {
     method: 'PATCH',
     body: JSON.stringify({ role }),
   });
@@ -107,7 +108,7 @@ export const updateUserRole = async (userId: string, role: UserRole) =>
  * PATCH /api/v1/user/admin/{id}/status
  */
 export const updateUserStatus = async (userId: string, isActive: boolean) =>
-  fetchWithAuth<void>(`/api/v1/user/admin/${userId}/status`, {
+  fetchWithAuth<void>(ADMIN_USER_API_PATHS.UPDATE_USER_STATUS(userId), {
     method: 'PATCH',
     body: JSON.stringify({ isActive }),
   });
@@ -117,7 +118,7 @@ export const updateUserStatus = async (userId: string, isActive: boolean) =>
  * POST /api/v1/auth/invitation/create
  */
 export const inviteUser = async (companyId: string, email: string, name: string, role: UserRole) =>
-  fetchWithAuth<void>(`/api/v1/auth/invitation/create`, {
+  fetchWithAuth<void>(ADMIN_USER_API_PATHS.INVITE_USER, {
     method: 'POST',
     body: JSON.stringify({ companyId, email, name, role }),
   });

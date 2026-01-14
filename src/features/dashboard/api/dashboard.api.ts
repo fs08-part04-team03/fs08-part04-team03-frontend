@@ -1,4 +1,5 @@
 import { fetchWithAuth } from '@/utils/api';
+import { DASHBOARD_API_PATHS } from '@/features/dashboard/constants/api';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -74,6 +75,6 @@ export interface DashboardApiResponse {
  * GET /api/v1/purchase/admin/purchaseDashboard
  */
 export const getPurchaseDashboard = async () =>
-  fetchDashboardData<DashboardApiResponse>('/api/v1/purchase/admin/purchaseDashboard', {
+  fetchDashboardData<DashboardApiResponse>(DASHBOARD_API_PATHS.GET_PURCHASE_DASHBOARD, {
     method: 'GET',
   });
