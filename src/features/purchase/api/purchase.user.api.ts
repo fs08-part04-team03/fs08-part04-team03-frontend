@@ -39,6 +39,7 @@ interface ApiMyPurchasesResponse {
       id: number;
       name: string;
       image: string;
+      imageUrl?: string;
       link: string;
     };
   }>;
@@ -169,6 +170,7 @@ export async function getMyPurchases(
                     id: purchaseItem.products.id ?? 0,
                     name: productName ?? '이름 없음',
                     image: purchaseItem.products.image ?? '',
+                    imageUrl: purchaseItem.products.imageUrl ?? purchaseItem.products.image ?? '',
                     link: purchaseItem.products.link ?? '',
                   },
                 };
@@ -238,6 +240,7 @@ export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<Pu
           id: number;
           name: string;
           image: string;
+          imageUrl?: string;
           link: string;
         };
       }>;
@@ -301,6 +304,7 @@ export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<Pu
                   id: item.products.id ?? 0,
                   name: item.products.name ?? '',
                   image: item.products.image ?? '',
+                  imageUrl: item.products.imageUrl ?? item.products.image ?? '',
                   link: item.products.link ?? '',
                 },
               };
