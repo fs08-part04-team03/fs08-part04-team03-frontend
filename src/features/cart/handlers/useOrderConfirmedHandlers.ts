@@ -31,14 +31,6 @@ export function useOrderConfirmedHandlers({ companyId }: UseOrderConfirmedHandle
         errorType: catchError instanceof Error ? catchError.constructor.name : 'Unknown',
       });
     });
-    queryClient
-      .refetchQueries({ queryKey: ['myPurchases'], type: 'active' })
-      .catch((catchError) => {
-        logger.error('Failed to refetch myPurchases queries', {
-          hasError: true,
-          errorType: catchError instanceof Error ? catchError.constructor.name : 'Unknown',
-        });
-      });
     router.push(CART_ROUTES.PURCHASE_REQUESTS(companyId));
     router.refresh();
   };
