@@ -33,7 +33,7 @@ const LoginSection = () => {
     },
   });
 
-  const onSubmit = async (values: LoginInput): Promise<void> => {
+  const onSubmit = (values: LoginInput): void => {
     loginMutation.mutate(values, {
       onSuccess: (data) => {
         redirectToProducts(data.user);

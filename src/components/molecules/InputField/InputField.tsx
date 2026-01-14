@@ -36,15 +36,17 @@ const InputField = ({
   const [internal, setInternal] = useState(value);
   const [visible, setVisible] = useState(false);
   const [touched, setTouched] = useState(false);
-  const generatedId = useId();
 
   // value prop 변경 시 internal 동기화
   useEffect(() => {
     setInternal(value);
   }, [value]);
 
-  // input과 label 연결을 위한 id (고유 ID 사용)
-  const inputId = id ?? generatedId;
+  // input과 label 연결을 위한 id
+  // RHFInputField에서는 항상 id가 제공되지만, 직접 사용하는 경우를 위해 fallback 제공
+  // 단, 하이드레이션 불일치를 방지하기 위해 가능한 한 외부에서 id를 제공받는 것이 좋음
+  const fallbackId = useId();
+  const inputId = id ?? fallbackId;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     let v = e.target.value;

@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { Controller, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
 
 import InputField, { type InputFieldType } from '@/components/molecules/InputField/InputField';
@@ -71,6 +72,11 @@ const RHFInputField = <T extends FieldValues>({
   errorLines = 2,
   formatAsBusinessNumber = false,
 }: RHFInputFieldProps<T>) => {
+  // 안정적인 ID 생성 (하이드레이션 불일치 방지)
+  // id prop이 제공되면 사용하고, 없으면 useId()로 생성
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+
   const errorSlotClassName =
     errorLines === 1
       ? 'mt-4 h-32 text-14 leading-16 font-normal tracking--0.35 text-error-500 truncate'
@@ -92,7 +98,7 @@ const RHFInputField = <T extends FieldValues>({
         return (
           <div className={className}>
             <InputField
-              id={id}
+              id={inputId}
               label={label}
               placeholder={placeholder}
               type={type}

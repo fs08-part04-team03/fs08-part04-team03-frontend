@@ -4,7 +4,6 @@ import React, { useMemo } from 'react';
 import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
 import { PATHNAME } from '@/constants';
-import { clearAuthCookies } from '@/utils/cookies';
 import { logout } from '@/features/auth/api/auth.api';
 import { getCompany } from '@/features/profile/api/company.api';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
@@ -22,6 +21,7 @@ import { getMyProfile } from '@/features/profile/api/profile.api';
 import { logger } from '@/utils/logger';
 import { STALE_TIME } from '@/constants/staleTime';
 import { profileKeys } from '@/features/profile/queries/profile.keys';
+import { cartKeys } from '@/features/cart/queries/cart.keys';
 import GNB from './GNB';
 
 /**
@@ -61,8 +61,6 @@ export const GNBWrapper: React.FC = () => {
     // 비동기 작업을 시작하지만 Promise를 반환하지 않음
     (async () => {
       try {
-        // 서버 측 쿠키 삭제
-        await clearAuthCookies();
         // 로그아웃 API 호출 (백엔드 세션 정리)
         await logout();
       } catch (error) {
@@ -85,7 +83,7 @@ export const GNBWrapper: React.FC = () => {
 
   // 장바구니 아이템 개수 조회
   const { data: cartData } = useQuery({
-    queryKey: ['cart', 1, 1], // 장바구니 페이지와 동일한 queryKey 패턴 사용
+    queryKey: cartKeys.list(1, 1), // cartKeys를 사용하여 일관성 유지
     queryFn: () => cartApi.getMyCart(1, 1), // 최소한의 데이터만 조회 (summary만 필요)
     enabled: !!companyId && !!user, // companyId와 user가 있을 때만 조회
     staleTime: STALE_TIME.NONE, // 캐시 없이 항상 최신 데이터 사용
@@ -105,21 +103,12 @@ export const GNBWrapper: React.FC = () => {
   });
 
   // 프로필 이미지 URL 생성
-  // profileImage가 URL 형식이면 그대로 사용, S3 키 형식이면 프록시 API URL로 변환
   const avatarSrc = (() => {
     if (!myProfile?.profileImage) {
       return undefined;
     }
-    const { profileImage } = myProfile;
-
-    // 이미 URL 형식이면 그대로 사용
-    if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-      return profileImage;
-    }
-    // S3 키 형식이면 프록시 API URL로 변환
-    // users/ 접두사가 없으면 추가 (프록시 API가 자동으로 처리하지만 명시적으로 추가)
-    const imageKey = profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
-    return `/api/product/image?key=${encodeURIComponent(imageKey)}`;
+    const trimmed = myProfile.profileImage.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
   })();
 
   const userProfile = user ? (

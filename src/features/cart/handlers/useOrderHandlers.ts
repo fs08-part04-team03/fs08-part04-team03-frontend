@@ -62,32 +62,35 @@ export function useOrderHandlers({
     mutation.mutate(requestBody, {
       onSuccess: (data) => {
         if (data?.id) {
+          // 페이지 이동 전에 카트 아이템 삭제 (user role일 때)
+          // 비동기 작업을 시작하지만 Promise를 기다리지 않음
+          if (cartItemIds.length > 0) {
+            cartApi
+              .deleteMultiple(cartItemIds)
+              .then(() => {
+                logger.info('Cart items deleted before navigation', {
+                  deletedCount: cartItemIds.length,
+                });
+                // 모든 카트 쿼리 무효화 (GNB의 카트 아이콘도 refetch됨)
+                return queryClient.invalidateQueries({ queryKey: cartKeys.all });
+              })
+              .then(() =>
+                // GNB의 카트 쿼리도 명시적으로 refetch
+                queryClient.refetchQueries({ queryKey: cartKeys.all })
+              )
+              .catch((deleteError) => {
+                logger.error('Failed to delete cart items before navigation', {
+                  hasError: true,
+                  errorType:
+                    deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+                  cartItemIds,
+                });
+                // 카트 삭제 실패해도 구매 요청은 성공했으므로 계속 진행
+              });
+          }
+
           triggerToast('success', '구매 요청이 완료되었습니다.');
           router.push(CART_ROUTES.ORDER_COMPLETED(companyId, data.id));
-
-          // 페이지 이동 후 카트 아이템 삭제
-          if (cartItemIds.length > 0) {
-            setTimeout(() => {
-              (async () => {
-                try {
-                  await cartApi.deleteMultiple(cartItemIds);
-                  logger.info('Cart items deleted after purchase request', {
-                    deletedCount: cartItemIds.length,
-                  });
-                  await queryClient.invalidateQueries({ queryKey: cartKeys.all });
-                } catch (deleteError) {
-                  logger.error('Failed to delete cart items after purchase request', {
-                    hasError: true,
-                    errorType:
-                      deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
-                    cartItemIds,
-                  });
-                }
-              })().catch(() => {
-                // 에러는 이미 catch 블록에서 처리됨
-              });
-            }, 100);
-          }
 
           onSuccess?.(data.id);
         } else {
