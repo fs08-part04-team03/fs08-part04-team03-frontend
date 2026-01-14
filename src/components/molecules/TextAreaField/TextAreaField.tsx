@@ -33,7 +33,7 @@ const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
           id={inputId}
           placeholder={placeholder}
           className={clsx(
-            'w-327 tablet:w-480 h-140',
+            'w-full tablet:w-480 h-140',
             'px-12 py-8',
             'text-16 tracking-tight',
             'font-sans font-normal text-gray-950',
