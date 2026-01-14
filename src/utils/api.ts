@@ -384,13 +384,13 @@ export async function fetchWithAuth(
       const refreshResult = await handle401Error();
       if (refreshResult === 'expired') {
         // refresh token 만료/없음인 경우에만 localStorage를 비우고 로그인으로 보냄
-        const { clearAuth } = useAuthStore.getState();
-        clearAuth();
-        if (typeof window !== 'undefined') {
-          queueMicrotask(() => {
-            window.location.href = '/login';
-          });
-        }
+        // const { clearAuth } = useAuthStore.getState();
+        // clearAuth();
+        // if (typeof window !== 'undefined') {
+        //   queueMicrotask(() => {
+        //     window.location.href = '/login';
+        //   });
+        // }
         throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
       }
       if (refreshResult === 'failed') {
@@ -419,15 +419,15 @@ export async function fetchWithAuth(
           clearTimeout(retryTimeoutId);
           if (retryResponse.status === 401) {
             // 재시도 후에도 401이면 로그아웃 처리
-            const { clearAuth } = useAuthStore.getState();
-            clearAuth();
+            // const { clearAuth } = useAuthStore.getState();
+            // clearAuth();
             // queueMicrotask를 사용하여 현재 스택이 모두 실행된 후 리다이렉트
             // React Query가 에러를 처리할 시간을 주면서 성능 경고를 방지
-            if (typeof window !== 'undefined') {
-              queueMicrotask(() => {
-                window.location.href = '/login';
-              });
-            }
+            // if (typeof window !== 'undefined') {
+            //   queueMicrotask(() => {
+            //     window.location.href = '/login';
+            //   });
+            // }
             throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
           }
           return retryResponse;
