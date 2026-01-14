@@ -101,13 +101,19 @@ function normalizeRole(role: string): 'user' | 'manager' | 'admin' {
  * 로그인 API 호출
  */
 export async function login(credentials: LoginInput): Promise<{ user: User; accessToken: string }> {
-  const apiUrl = getApiUrl();
   const timeout = getApiTimeout();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const requestUrl = new URL(AUTH_API_PATHS.LOGIN, apiUrl).toString();
+    // 브라우저 환경에서는 Next.js proxy(/api)를 사용하여 same-origin 요청으로 만듭니다
+    const isBrowserEnv = typeof window !== 'undefined';
+    const apiUrl = isBrowserEnv ? '' : getApiUrl();
+
+    const requestUrl = isBrowserEnv
+      ? AUTH_API_PATHS.LOGIN // 상대 경로 (/api/v1/auth/login)
+      : new URL(AUTH_API_PATHS.LOGIN, apiUrl).toString();
+
     const response = await fetch(requestUrl, {
       method: 'POST',
       headers: { 'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON },
@@ -176,9 +182,6 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
 export async function signup(
   signupData: SignupRequest
 ): Promise<{ user: User; accessToken: string }> {
-  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
-  const apiUrl = getApiUrl();
-
   // 타임아웃 설정 (환경 변수 또는 기본값)
   const timeout = getApiTimeout();
 
@@ -217,7 +220,15 @@ export async function signup(
       });
     }
 
-    response = await fetch(new URL(AUTH_API_PATHS.ADMIN_REGISTER, apiUrl).toString(), {
+    // 브라우저 환경에서는 Next.js proxy(/api)를 사용하여 same-origin 요청으로 만듭니다
+    const isBrowserEnv = typeof window !== 'undefined';
+    const apiUrl = isBrowserEnv ? '' : getApiUrl();
+
+    const requestUrl = isBrowserEnv
+      ? AUTH_API_PATHS.ADMIN_REGISTER // 상대 경로 (/api/v1/auth/admin/register)
+      : new URL(AUTH_API_PATHS.ADMIN_REGISTER, apiUrl).toString();
+
+    response = await fetch(requestUrl, {
       method: 'POST',
       headers,
       body: requestBody,
@@ -548,9 +559,6 @@ export async function inviteSignup(
  * 로그아웃 API 호출
  */
 export async function logout(): Promise<void> {
-  // API URL 설정 (환경 변수 또는 기본 배포 서버 URL)
-  const apiUrl = getApiUrl();
-
   // 타임아웃 설정 (환경 변수 또는 기본값)
   const timeout = getApiTimeout();
 
@@ -565,7 +573,15 @@ export async function logout(): Promise<void> {
 
   let response: Response;
   try {
-    response = await fetch(new URL(AUTH_API_PATHS.LOGOUT, apiUrl).toString(), {
+    // 브라우저 환경에서는 Next.js proxy(/api)를 사용하여 same-origin 요청으로 만듭니다
+    const isBrowserEnv = typeof window !== 'undefined';
+    const apiUrl = isBrowserEnv ? '' : getApiUrl();
+
+    const requestUrl = isBrowserEnv
+      ? AUTH_API_PATHS.LOGOUT // 상대 경로 (/api/v1/auth/logout)
+      : new URL(AUTH_API_PATHS.LOGOUT, apiUrl).toString();
+
+    response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
         'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON,
