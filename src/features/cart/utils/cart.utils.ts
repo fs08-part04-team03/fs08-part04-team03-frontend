@@ -10,7 +10,7 @@ import type { CartItem } from '../api/cart.api';
  * - 가격 필드는 price 기준으로 통일
  */
 export const adaptCartItemToOrderItem = (item: CartItem): OrderItem => {
-  const imageSrc = item.product.image?.trim();
+  const imageSrc = item.product.imageUrl?.trim();
 
   return {
     cartItemId: item.id, // cartItemId (UUID)

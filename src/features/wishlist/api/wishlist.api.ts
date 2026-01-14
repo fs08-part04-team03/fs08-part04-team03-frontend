@@ -81,6 +81,7 @@ export interface BackendWishlistProduct {
     name: string;
     price: number;
     image?: string | null;
+    imageUrl?: string | null;
     link?: string | null;
     isActive: boolean;
     createdAt: string;

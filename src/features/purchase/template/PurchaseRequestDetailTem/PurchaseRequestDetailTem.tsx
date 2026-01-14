@@ -76,7 +76,7 @@ const PurchaseRequestDetailTem = ({
           hasItemId: !!item.id,
         });
       }
-      const imageSrc = item.products.image ? item.products.image : '';
+      const imageSrc = item.products.imageUrl ? item.products.imageUrl : '';
       return {
         id: Number.isNaN(parsedId) ? 0 : parsedId,
         title: item.products.name,

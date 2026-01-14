@@ -20,7 +20,7 @@ const WishlistSection = () => {
   // 백엔드 데이터를 WishlistItem으로 변환
   const wishlistItems: WishlistItem[] =
     wishlistProducts?.data.map((item) => {
-      const imageUrl = item.product.image ? item.product.image : '';
+      const imageUrl = item.product.imageUrl ? item.product.imageUrl : '';
       return {
         id: item.product.id,
         name: item.product.name,

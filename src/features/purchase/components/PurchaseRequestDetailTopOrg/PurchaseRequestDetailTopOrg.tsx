@@ -45,7 +45,7 @@ const PurchaseItemsList = ({ items, companyId }: PurchaseItemsListProps) => {
   return (
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
       {items.map((item, index) => {
-        const imageSrc = item.products.image ? item.products.image : undefined;
+        const imageSrc = item.products.imageUrl ? item.products.imageUrl : undefined;
 
         return (
           <React.Fragment key={item.id ?? `item-${index}`}>
