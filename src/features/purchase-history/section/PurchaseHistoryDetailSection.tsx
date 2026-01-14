@@ -50,7 +50,7 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
   }
 
   // error 분기
-  if (error || (!isLoading && !purchaseDetail)) {
+  if (error || !purchaseDetail) {
     const isNotFoundError = error instanceof Error && error.message.includes('찾을 수 없습니다');
 
     const errorMessage =
