@@ -55,10 +55,6 @@ export const PATHNAME = {
 
 // 공통 Breadcrumb 아이템
 export const BREADCRUMB_ITEMS = {
-  HOME: {
-    label: '홈',
-    href: (companyId: string) => PATHNAME.HOME(companyId),
-  },
   PRODUCTS: {
     label: '상품',
     href: (companyId: string) => PATHNAME.PRODUCTS(companyId),
@@ -135,12 +131,12 @@ export {
   HTTP_HEADERS,
 } from '@/features/auth/utils/constants';
 
-// Purchase API 관련 상수 re-export (Feature-Sliced Design에 따라 features/purchase/utils로 이동)
+// Purchase API 관련 상수 re-export (Feature-Sliced Design에 따라 features/purchase/constants로 이동)
 export {
   PURCHASE_API_PATHS,
   BUDGET_API_PATHS,
   PURCHASE_REQUEST_STATUS_LABEL,
-} from '@/features/purchase/utils/constants';
+} from '@/features/purchase/constants';
 
 // 타이밍 관련 상수 re-export
 export { TOAST_AUTO_CLOSE_DURATION, QUERY_STALE_TIME_BUDGET, MAX_IMAGE_FILE_SIZE } from './timing';

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
-import { clearAuthCookies } from '@/utils/cookies';
+import { PATHNAME } from '@/constants';
 import { logout } from '@/features/auth/api/auth.api';
 import { getCompany } from '@/features/profile/api/company.api';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
@@ -19,6 +19,9 @@ import { getProductById } from '@/features/products/api/products.api';
 import { cartApi } from '@/features/cart/api/cart.api';
 import { getMyProfile } from '@/features/profile/api/profile.api';
 import { logger } from '@/utils/logger';
+import { STALE_TIME } from '@/constants/staleTime';
+import { profileKeys } from '@/features/profile/queries/profile.keys';
+import { cartKeys } from '@/features/cart/queries/cart.keys';
 import GNB from './GNB';
 
 /**
@@ -36,38 +39,28 @@ export const GNBWrapper: React.FC = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const [companyName, setCompanyName] = useState<string>('');
 
-  // 회사 정보 조회 (GNB에 표시할 회사명)
-  // Authorization 헤더를 포함하여 API 호출
-  useEffect(() => {
-    const fetchCompanyData = async () => {
-      if (!accessToken) return;
+  // 회사 정보 조회 (React Query로 관리)
+  const { data: companyData } = useQuery({
+    queryKey: profileKeys.company(),
+    queryFn: () => {
+      if (!accessToken) throw new Error('No access token');
+      return getCompany(accessToken);
+    },
+    enabled: !!accessToken,
+    staleTime: STALE_TIME.FIVE_MINUTES,
+    retry: 1,
+    // 에러 발생 시 기본값 사용
+    placeholderData: { id: '', name: 'SNACK' },
+  });
 
-      try {
-        const company = await getCompany(accessToken);
-        setCompanyName(company.name);
-      } catch (error) {
-        logger.error('Failed to fetch company information', {
-          hasError: true,
-          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-        });
-        // 실패 시 기본값 사용 (사용자에게는 에러를 표시하지 않음)
-        setCompanyName('SNACK');
-      }
-    };
-
-    // eslint-disable-next-line no-void
-    void fetchCompanyData();
-  }, [accessToken]);
+  const companyName = companyData?.name || 'SNACK';
 
   // 로그아웃 핸들러 (비동기 작업을 수행하지만 void를 반환)
   const handleLogout = () => {
     // 비동기 작업을 시작하지만 Promise를 반환하지 않음
     (async () => {
       try {
-        // 서버 측 쿠키 삭제
-        await clearAuthCookies();
         // 로그아웃 API 호출 (백엔드 세션 정리)
         await logout();
       } catch (error) {
@@ -79,7 +72,7 @@ export const GNBWrapper: React.FC = () => {
       } finally {
         // 클라이언트 상태 정리
         clearAuth();
-        router.push('/login');
+        router.push(PATHNAME.LOGIN);
       }
     })().catch(() => {
       // Promise rejection 처리 (이미 catch 블록에서 처리되지만 린터를 위해 추가)
@@ -90,10 +83,10 @@ export const GNBWrapper: React.FC = () => {
 
   // 장바구니 아이템 개수 조회
   const { data: cartData } = useQuery({
-    queryKey: ['cart', 1, 1], // 장바구니 페이지와 동일한 queryKey 패턴 사용
+    queryKey: cartKeys.list(1, 1), // cartKeys를 사용하여 일관성 유지
     queryFn: () => cartApi.getMyCart(1, 1), // 최소한의 데이터만 조회 (summary만 필요)
     enabled: !!companyId && !!user, // companyId와 user가 있을 때만 조회
-    staleTime: 0, // 캐시 없이 항상 최신 데이터 사용
+    staleTime: STALE_TIME.NONE, // 캐시 없이 항상 최신 데이터 사용
     refetchOnWindowFocus: true, // 창 포커스 시 자동 refetch
     refetchOnMount: true, // 마운트 시 항상 refetch
   });
@@ -102,29 +95,20 @@ export const GNBWrapper: React.FC = () => {
 
   // 사용자 프로필 정보 조회 (profileImage 포함)
   const { data: myProfile } = useQuery({
-    queryKey: ['myProfile'],
+    queryKey: profileKeys.myProfile(),
     queryFn: () => getMyProfile(),
     enabled: !!user && !!accessToken,
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
     refetchOnWindowFocus: false,
   });
 
   // 프로필 이미지 URL 생성
-  // profileImage가 URL 형식이면 그대로 사용, S3 키 형식이면 프록시 API URL로 변환
   const avatarSrc = (() => {
     if (!myProfile?.profileImage) {
       return undefined;
     }
-    const { profileImage } = myProfile;
-
-    // 이미 URL 형식이면 그대로 사용
-    if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-      return profileImage;
-    }
-    // S3 키 형식이면 프록시 API URL로 변환
-    // users/ 접두사가 없으면 추가 (프록시 API가 자동으로 처리하지만 명시적으로 추가)
-    const imageKey = profileImage.startsWith('users/') ? profileImage : `users/${profileImage}`;
-    return `/api/product/image?key=${encodeURIComponent(imageKey)}`;
+    const trimmed = myProfile.profileImage.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
   })();
 
   const userProfile = user ? (
@@ -165,7 +149,7 @@ export const GNBWrapper: React.FC = () => {
     queryKey: ['product', productId],
     queryFn: () => getProductById(productId!),
     enabled: !!productId && isProductDetailPage,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.FIVE_MINUTES,
   });
 
   // 상품의 대분류 ID (디테일 페이지용)
@@ -231,7 +215,7 @@ export const GNBWrapper: React.FC = () => {
     if (categoryKey === 'all') {
       // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
       queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
-      router.push(`/${companyId}/products`);
+      router.push(PATHNAME.PRODUCTS(companyId));
       return;
     }
 
@@ -240,7 +224,7 @@ export const GNBWrapper: React.FC = () => {
       // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
       queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
       // 상품 페이지로 이동하면서 카테고리 쿼리 파라미터 추가
-      router.push(`/${companyId}/products?category=${category.parentId}`);
+      router.push(`${PATHNAME.PRODUCTS(companyId)}?category=${category.parentId}`);
     }
   };
 
@@ -250,7 +234,7 @@ export const GNBWrapper: React.FC = () => {
     // products 쿼리 무효화 (active observer가 있으면 자동으로 refetch됨)
     queryClient.invalidateQueries({ queryKey: ['products'] }).catch(() => {});
     // 소분류 ID로 필터링하기 위해 categoryId 쿼리 파라미터 업데이트
-    router.push(`/${companyId}/products?categoryId=${subCategoryId}`);
+    router.push(`${PATHNAME.PRODUCTS(companyId)}?categoryId=${subCategoryId}`);
   };
 
   // 네비게이션 아이템 클릭 핸들러 (상품 페이지로 이동 시 refetch)

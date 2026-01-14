@@ -6,7 +6,6 @@ import Button from '@/components/atoms/Button/Button';
 import type { ProfileEditInput } from '@/features/profile/schemas/profileSchema';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import Image from 'next/image';
-import { sanitizeImageUrl } from '@/utils/urlValidator';
 
 /**
  * 프로필 수정 템플릿 Props
@@ -60,15 +59,8 @@ const ProfileEditForm = ({
   onImageDelete,
   isUploading = false,
 }: ProfileEditFormProps) => {
-  // 기본 업로드 아이콘 경로인지 정확히 확인 (외부 URL에 'upload.svg'가 포함된 경우 오동작 방지)
-  const isDefaultUploadIcon = preview === '/icons/upload.svg' || preview?.endsWith('/upload.svg');
+  const isDefaultUploadIcon = preview === '/icons/upload.svg';
   const hasImage = preview && !isDefaultUploadIcon;
-  const isExternalUrl = hasImage
-    ? preview.startsWith('http://') || preview.startsWith('https://')
-    : false;
-
-  // ✅ 안전한 URL로 sanitize
-  const safePreview = preview ? sanitizeImageUrl(preview) : null;
 
   return (
     <form
@@ -92,10 +84,9 @@ const ProfileEditForm = ({
                 isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer w-full h-full'
               }
             >
-              {/* ✅ safePreview 사용 + 에러 핸들링 추가 */}
-              {hasImage && isExternalUrl && safePreview && (
-                <img
-                  src={safePreview}
+              {hasImage && preview && (
+                <Image
+                  src={preview}
                   alt="프로필 미리보기"
                   className="w-full h-full object-contain"
                   style={{ maxWidth: '100%', maxHeight: '100%' }}
@@ -103,18 +94,6 @@ const ProfileEditForm = ({
                     // 이미지 로드 실패 시 기본 이미지로 대체
                     e.currentTarget.src = '/icons/upload.svg';
                   }}
-                  // ✅ 추가 보안: referrerPolicy 설정
-                  referrerPolicy="no-referrer"
-                />
-              )}
-              {/* ✅ safePreview 사용 */}
-              {hasImage && !isExternalUrl && safePreview && (
-                <Image
-                  src={safePreview}
-                  alt="프로필 미리보기"
-                  width={140}
-                  height={140}
-                  className="object-contain pointer-events-none"
                 />
               )}
               {!hasImage && (
@@ -151,7 +130,13 @@ const ProfileEditForm = ({
                 className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50"
                 aria-label="이미지 삭제"
               >
-                <Image src="/icons/close-circle.svg" alt="삭제" width={24} height={24} />
+                <Image
+                  src="/icons/close-circle.svg"
+                  alt="삭제"
+                  width={24}
+                  height={24}
+                  unoptimized
+                />
               </button>
             )}
           </div>

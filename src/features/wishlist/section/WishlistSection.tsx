@@ -1,50 +1,26 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useParams } from 'next/navigation';
 import WishlistTem, {
   type WishlistItem,
 } from '@/features/wishlist/template/WishlistTem/WishlistTem';
-import { getWishlist, removeFromWishlist } from '@/features/wishlist/api/wishlist.api';
-import { useToast } from '@/hooks/useToast';
 import { LOADING_MESSAGES, ERROR_MESSAGES, PATHNAME } from '@/constants';
+import { useWishlist, useRemoveWishlist } from '@/features/wishlist/queries/wishlist.queries';
 
 const WishlistSection = () => {
   const router = useRouter();
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : '';
-  const queryClient = useQueryClient();
-  const { triggerToast } = useToast();
 
-  const {
-    data: wishlistProducts,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['wishlist'],
-    queryFn: () => getWishlist(),
-  });
+  const { data: wishlistProducts, isLoading, error } = useWishlist();
 
   // 위시리스트 제거 mutation
-  const removeWishlistMutation = useMutation({
-    mutationFn: (productId: number) => removeFromWishlist(productId),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-      triggerToast('success', '위시리스트에서 제거되었습니다.');
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : '위시리스트 제거에 실패했습니다.';
-      triggerToast('error', message);
-    },
-  });
+  const removeWishlistMutation = useRemoveWishlist();
 
   // 백엔드 데이터를 WishlistItem으로 변환
   const wishlistItems: WishlistItem[] =
     wishlistProducts?.data.map((item) => {
-      // 프록시 API를 통해 이미지 로드 (CORS 방지)
-      const imageUrl = item.product.image
-        ? `/api/product/image?key=${encodeURIComponent(item.product.image)}`
-        : '';
+      const imageUrl = item.product.imageUrl ? item.product.imageUrl : '';
       return {
         id: item.product.id,
         name: item.product.name,
@@ -61,7 +37,7 @@ const WishlistSection = () => {
 
   // 상품 클릭 핸들러
   const handleProductClick = (productId: number) => {
-    router.push(`${PATHNAME.PRODUCTS(companyId)}/${productId}`);
+    router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
   };
 
   // 상품 보러가기 핸들러

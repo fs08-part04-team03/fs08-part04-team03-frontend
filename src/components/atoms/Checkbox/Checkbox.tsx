@@ -53,7 +53,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
           checked ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
         )}
       >
-        <Image src="/icons/check.svg" alt="check" fill />
+        <Image src="/icons/check.svg" alt="check" fill unoptimized />
       </span>
     </label>
   );

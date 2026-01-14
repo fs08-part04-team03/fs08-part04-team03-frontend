@@ -1,30 +1,31 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useMemo } from 'react';
+import { useParams } from 'next/navigation';
 import type {
   OrderItem,
   CartRole,
 } from '@/features/cart/components/CartSummaryBlockOrg/CartSummaryBlockOrg';
-import { useToast } from '@/hooks/useToast';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
-import { fetchWithAuth } from '@/utils/api';
 import { adaptCartItemToOrderItem } from '../utils/cart.utils';
+import { useShoppingCartHandlers } from '../handlers/useShoppingCartHandlers';
+import { CART_PAGE_DEFAULTS } from '../constants/defaults';
+import { useCart, useBudget } from '../queries/cart.queries';
 import ShoppingCartTem from '../template/ShoppingCartTem/ShoppingCartTem';
-import { cartApi } from '../api/cart.api';
 
+/**
+ * ShoppingCartSection
+ * - 데이터/상태 결정 레이어
+ * - query로 데이터 가져오기
+ * - loading / error / empty 분기
+ * - Template에 필요한 props를 만들고 내려주기
+ */
 const ShoppingCartSection = () => {
   const params = useParams();
-  const router = useRouter();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
-  const queryClient = useQueryClient();
-  const { triggerToast } = useToast();
   const { user } = useAuthStore();
-  const [currentPage] = useState(1);
-  const [pageSize] = useState(10);
 
   // 사용자 역할에 따른 cartRole 결정
   const cartRole: CartRole = useMemo(() => {
@@ -37,10 +38,9 @@ const ShoppingCartSection = () => {
     data: cartData,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ['cart', currentPage, pageSize],
-    queryFn: () => cartApi.getMyCart(currentPage, pageSize),
-    staleTime: 30 * 1000, // 30초간 캐시 유지 (이미지 업데이트 반영 + 성능 균형)
+  } = useCart({
+    page: CART_PAGE_DEFAULTS.PAGE,
+    pageSize: CART_PAGE_DEFAULTS.PAGE_SIZE,
   });
 
   // 월 예산 조회 (manager만)
@@ -49,85 +49,21 @@ const ShoppingCartSection = () => {
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
 
-  const { data: budgetData, isLoading: isBudgetLoading } = useQuery({
-    queryKey: ['budget', year, month],
-    queryFn: async () => {
-      const response = await fetchWithAuth(`/api/v1/budget?year=${year}&month=${month}`, {
-        method: 'GET',
-      });
-      if (!response.ok) {
-        return 0;
-      }
-      const result = (await response.json()) as {
-        success: boolean;
-        data?: Array<{ amount: number }>;
-      };
-      // 현재 월 예산이 있으면 첫 번째 항목의 amount를 반환, 없으면 0
-      if (result.success && result.data && result.data.length > 0) {
-        const firstItem = result.data[0];
-        return firstItem ? firstItem.amount : 0;
-      }
-      return 0;
-    },
+  const { data: budgetData, isLoading: isBudgetLoading } = useBudget(year, month, {
     enabled: isAdminRole,
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
   });
 
   const budget = budgetData ?? 0;
 
-  // 수량 변경 mutation
-  const updateQuantityMutation = useMutation({
-    mutationFn: ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) =>
-      cartApi.updateQuantity(cartItemId, quantity),
-    onSuccess: async () => {
-      // 캐시 무효화하여 자동으로 최신 데이터를 다시 가져옴
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('success', '수량이 변경되었습니다.');
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : '수량 변경에 실패했습니다.';
-      triggerToast('error', message);
-    },
-  });
-
-  // 선택 삭제 mutation
-  const deleteMultipleMutation = useMutation({
-    mutationFn: (cartItemIds: string[]) => cartApi.deleteMultiple(cartItemIds),
-    onSuccess: async () => {
-      // 캐시 무효화하여 자동으로 최신 데이터를 다시 가져옴
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('success', '선택한 상품이 삭제되었습니다.');
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : '삭제에 실패했습니다.';
-      triggerToast('error', message);
-    },
-  });
-
-  // 수량 변경 핸들러
-  const handleQuantityChange = (cartItemId: string, quantity: number) => {
-    if (quantity < 1) return;
-    updateQuantityMutation.mutate({ cartItemId, quantity });
-  };
-
-  // 선택 삭제 핸들러
-  const handleDeleteSelected = (cartItemIds: string[]) => {
-    if (cartItemIds.length === 0) return;
-    deleteMultipleMutation.mutate(cartItemIds);
-  };
-
-  // 구매 요청 핸들러 - OrderPage로 이동
-  const handleSubmit = (cartItemIds: string[]) => {
-    if (cartItemIds.length === 0) {
-      triggerToast('error', '선택된 상품이 없습니다.');
-      return;
-    }
-    // 선택된 아이템 ID를 쿼리 파라미터로 전달하여 OrderPage로 이동
-    if (companyId) {
-      const itemsParam = cartItemIds.join(',');
-      router.push(`/${companyId}/order?items=${itemsParam}`);
-    }
-  };
+  // 핸들러 훅
+  const {
+    handleQuantityChange,
+    handleDeleteSelected,
+    handleSubmit,
+    handleContinueShopping,
+    updateQuantityMutation,
+    deleteMultipleMutation,
+  } = useShoppingCartHandlers({ companyId });
 
   // 로딩 상태
   if (isLoading) {
@@ -149,13 +85,6 @@ const ShoppingCartSection = () => {
 
   // 데이터 변환
   const items: OrderItem[] = cartData?.data.map(adaptCartItemToOrderItem) || [];
-
-  // 계속 쇼핑하기 핸들러
-  const handleContinueShopping = () => {
-    if (companyId) {
-      router.push(`/${companyId}/products`);
-    }
-  };
 
   return (
     <ShoppingCartTem

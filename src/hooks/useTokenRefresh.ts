@@ -30,30 +30,40 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
     }
 
     // rehydration 후 accessToken이 없으면 refresh 시도 (한 번만)
-    if (!accessToken && !rehydrationAttemptedRef.current) {
+    // 단, user 정보가 있는 경우에만 시도 (로그인했던 이력이 있는 경우)
+    // user 정보도 없으면 이미 로그인하지 않은 상태이므로 토큰 갱신 시도하지 않음
+    if (!accessToken && !user && !rehydrationAttemptedRef.current) {
+      // 로그인하지 않은 상태이므로 토큰 갱신 시도하지 않음
+      rehydrationAttemptedRef.current = true;
+      return () => {
+        mountedRef.current = false;
+      };
+    }
+
+    // user 정보는 있지만 accessToken이 없는 경우 (예: localStorage에서 user는 복원되었지만 accessToken은 만료된 경우)
+    if (!accessToken && user && !rehydrationAttemptedRef.current) {
       rehydrationAttemptedRef.current = true;
       const attemptRefresh = async () => {
         if (inFlightRef.current) return;
         inFlightRef.current = true;
 
         try {
-          logger.info('[Token Refresh] Rehydration 후 토큰 갱신 시도');
+          logger.info('[Token Refresh] Rehydration 후 토큰 갱신 시도 (user 정보는 있음)');
           const newToken = await tryRefreshToken();
           if (newToken) {
             logger.info('[Token Refresh] Rehydration 후 토큰 갱신 성공');
           } else {
-            // refresh token이 만료되었거나 없음
-            // rehydration 직후이므로 localStorage에 저장된 정보가 없을 수 있음
-            // 이미 로그인하지 않은 상태이므로 추가 처리는 불필요
-            logger.info(
-              '[Token Refresh] Rehydration 후 토큰 갱신 실패 - refresh token 쿠키가 없거나 만료됨 (로그인하지 않은 상태일 수 있음)'
-            );
+            // refresh token 만료/없음(401)
+            // 포커스 복귀/백그라운드 타이밍에 자동 로그아웃처럼 보이는 현상을 막기 위해
+            // 여기서 localStorage를 지우지 않고, 이후 사용자 액션(API 호출/가드)에서 로그인 유도
+            logger.warn('[Token Refresh] Rehydration 후 토큰 갱신 실패 - refresh token 만료/없음');
           }
         } catch (error: unknown) {
           logger.warn('[Token Refresh] Rehydration 후 토큰 갱신 중 예외 발생', {
             hasError: true,
             errorType: error instanceof Error ? error.constructor.name : 'Unknown',
           });
+          // 일시 장애는 자동 로그아웃(스토리지 삭제)하지 않음
         } finally {
           inFlightRef.current = false;
         }
@@ -84,28 +94,16 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
         const newToken = await tryRefreshToken();
         if (!newToken) {
           // refresh token이 만료되었거나 없음 (401 에러)
-          // 현재 로그인 상태라면 로그아웃 처리
-          const {
-            accessToken: currentAccessToken,
-            user: currentUser,
-            clearAuth,
-          } = useAuthStore.getState();
-          if (currentAccessToken || currentUser) {
-            logger.warn('[Token Refresh] Refresh token 만료 - 로그인 상태에서 로그아웃 처리 필요');
-            clearAuth();
-            // 로그인 페이지로 리다이렉트
-            if (typeof window !== 'undefined') {
-              setTimeout(() => {
-                window.location.href = '/login';
-              }, 100);
-            }
-          }
+          // 주기적 갱신 타이밍에 자동 로그아웃처럼 보이는 현상을 막기 위해
+          // 여기서 localStorage를 지우거나 강제 리다이렉트하지 않음
+          logger.warn('[Token Refresh] Refresh token 만료 - 다음 사용자 액션에서 로그인 유도');
         }
       } catch (error: unknown) {
         logger.warn('Token refresh failed', {
           hasError: true,
           errorType: error instanceof Error ? error.constructor.name : 'Unknown',
         });
+        // 일시 장애는 자동 로그아웃(스토리지 삭제)하지 않음
       } finally {
         // 언마운트 이후라도 플래그는 정리 (메모리/상태 누수 방지)
         inFlightRef.current = false;

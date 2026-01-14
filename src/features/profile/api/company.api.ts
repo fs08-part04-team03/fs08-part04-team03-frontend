@@ -1,4 +1,5 @@
 import { fetchWithAuth } from '@/utils/api';
+import { COMPANY_API_PATHS } from '@/features/profile/constants/company.api';
 
 /**
  * 회사 정보 인터페이스
@@ -30,7 +31,7 @@ interface CompanyApiResponse {
 export async function getCompany(accessToken: string): Promise<Company> {
   try {
     const response = await fetchWithAuth(
-      '/api/v1/company',
+      COMPANY_API_PATHS.GET_COMPANY,
       {
         method: 'GET',
       },

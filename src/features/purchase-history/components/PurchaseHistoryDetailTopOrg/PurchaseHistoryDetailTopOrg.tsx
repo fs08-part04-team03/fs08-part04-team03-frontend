@@ -43,14 +43,7 @@ const PurchaseItemsList = ({ items }: PurchaseItemsListProps) => {
   return (
     <div className={clsx(hasScroll && 'max-h-280 overflow-y-auto')}>
       {items.map((item, index) => {
-        // S3 이미지 키를 프록시 API로 변환
-        // 백엔드에서 받은 S3 키(예: "products/xxx.png" 또는 "xxx.png")를
-        // 프록시 API 엔드포인트(/api/product/image?key=...)로 변환하여
-        // 프록시가 백엔드의 /api/v1/upload/image/{key}를 호출하고
-        // 백엔드가 S3에서 이미지를 가져와서 반환함
-        const imageSrc = item.products.image
-          ? `/api/product/image?key=${encodeURIComponent(item.products.image)}`
-          : '';
+        const imageSrc = item.products.imageUrl ? item.products.imageUrl : '';
 
         return (
           <React.Fragment key={item.id || `item-${index}`}>

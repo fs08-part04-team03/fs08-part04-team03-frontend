@@ -1,14 +1,13 @@
 'use client';
 
-import StepBreadcrumb, {
-  StepBreadcrumbStep,
-} from '@/components/molecules/StepBreadcrumb/StepBreadcrumb';
+import StepBreadcrumb from '@/components/molecules/StepBreadcrumb/StepBreadcrumb';
 import OrderCompletedSummaryOrg, {
   OrderCompletedItem,
   CartRole,
   UserType,
 } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import { clsx } from '@/utils/clsx';
+import { CART_USER_STEPS, CART_MANAGER_ADMIN_STEPS } from '@/features/cart/constants/steps';
 
 interface OrderConfirmedTemProps {
   cartRole: CartRole;
@@ -22,19 +21,12 @@ interface OrderConfirmedTemProps {
   onGoOrderHistory?: () => void;
 }
 
-/** =====================
- * StepBreadcrumb 설정
- ====================== */
-const USER_STEPS: StepBreadcrumbStep[] = [
-  { label: 'Shopping Cart' },
-  { label: 'Order' },
-  { label: 'Order Confirmed' },
-];
-
-const MANAGER_ADMIN_STEPS: StepBreadcrumbStep[] = [
-  { label: 'Shopping Cart' },
-  { label: 'Order Confirmed' },
-];
+/**
+ * OrderConfirmedTem
+ * - 순수 UI 조립 레이어
+ * - header / list / row / footer 컴포지션만 담당
+ * - props 기반 렌더링만 수행
+ */
 
 const OrderConfirmedTem = ({
   cartRole,
@@ -51,7 +43,7 @@ const OrderConfirmedTem = ({
    * 현재 페이지는 "Order Confirmed"
    * - StepBreadcrumb은 1-based index
    */
-  const steps = isUser ? USER_STEPS : MANAGER_ADMIN_STEPS;
+  const steps = isUser ? CART_USER_STEPS : CART_MANAGER_ADMIN_STEPS;
   const currentStep = steps.length; // 항상 마지막 단계
 
   return (

@@ -40,7 +40,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
       <div className="w-full flex-1 flex flex-col items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-24">
           <div className="w-[36px] h-[43px] relative opacity-50">
-            <Image src="/icons/book.svg" alt="empty" fill className="object-contain" />
+            <Image src="/icons/book.svg" alt="empty" fill className="object-contain" unoptimized />
           </div>
           <div className="flex flex-col items-center gap-8">
             <span className="text-18 font-bold text-gray-900">아직 회원이 없어요</span>
@@ -90,7 +90,13 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
               {/* Kebab Menu */}
               <div className="ml-auto relative">
                 <button type="button" onClick={() => toggleMenu(user.id)} className="p-4">
-                  <Image src="/icons/kebab-vertical.svg" alt="more" width={24} height={24} />
+                  <Image
+                    src="/icons/kebab-vertical.svg"
+                    alt="more"
+                    width={24}
+                    height={24}
+                    unoptimized
+                  />
                 </button>
 
                 {openMenuId === user.id && (

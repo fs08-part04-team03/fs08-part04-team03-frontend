@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
@@ -44,6 +46,8 @@ export const Avatar: React.FC<AvatarProps> = ({
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
 }) => {
+  const effectiveSrc = src;
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (onClick && (event.key === 'Enter' || event.key === ' ')) {
       event.preventDefault();
@@ -53,10 +57,10 @@ export const Avatar: React.FC<AvatarProps> = ({
   };
 
   const renderContent = () => {
-    if (src) {
+    if (effectiveSrc) {
       return (
         <img
-          src={src}
+          src={effectiveSrc}
           alt={alt}
           className="h-full w-full object-cover rounded-full aspect-square"
         />
@@ -78,6 +82,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         width={iconSizeClass[size]}
         height={iconSizeClass[size]}
         className="shrink-0"
+        unoptimized
       />
     );
   };

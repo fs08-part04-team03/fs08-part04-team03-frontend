@@ -21,6 +21,11 @@ interface DashboardTemProps {
   userRole?: UserRole;
 
   /** ✅ Dashboard Data (Story / Page에서 주입) */
+  monthlyExpense?: number;
+  yearlyExpense?: number;
+  progressValue?: number;
+  currentBudget?: number;
+  lastBudget?: number;
   monthlyExpenses: number[];
   newUsers: NewUser[];
   changedUsers: ChangedUser[];
@@ -32,6 +37,11 @@ const DashboardTem = ({
   user,
   userRole = 'admin',
 
+  monthlyExpense = 0,
+  yearlyExpense = 0,
+  progressValue = 0,
+  currentBudget = 0,
+  lastBudget = 0,
   monthlyExpenses,
   newUsers,
   changedUsers,
@@ -156,12 +166,12 @@ const DashboardTem = ({
           <DashboardCard
             variant="default"
             defaultType="summary"
-            monthlyExpense={350000}
-            yearlyExpense={4200000}
+            monthlyExpense={monthlyExpense}
+            yearlyExpense={yearlyExpense}
             showProgressBar
-            progressValue={65}
-            currentBudget={1200000}
-            lastBudget={900000}
+            progressValue={progressValue}
+            currentBudget={currentBudget}
+            lastBudget={lastBudget}
           />
 
           <DashboardCard
@@ -187,8 +197,9 @@ const DashboardTem = ({
             desktop:hidden
           "
         >
-          <DashboardCard variant="medium" monthlyNewUsers={newUsers} />
-          <DashboardCard variant="medium" monthlyChangedUsers={changedUsers} />
+          <DashboardCard variant="medium" mediumMode="new" monthlyNewUsers={newUsers} />
+
+          <DashboardCard variant="medium" mediumMode="changed" monthlyChangedUsers={changedUsers} />
         </section>
 
         {/* ===== large (mobile / tablet) ===== */}
@@ -213,11 +224,11 @@ const DashboardTem = ({
             desktop:mb-30
           "
         >
-          <DashboardCard variant="medium" monthlyNewUsers={newUsers} />
+          <DashboardCard variant="medium" mediumMode="new" monthlyNewUsers={newUsers} />
 
           <DashboardCard variant="large" className="row-span-2" largeChartData={snackRank} />
 
-          <DashboardCard variant="medium" monthlyChangedUsers={changedUsers} />
+          <DashboardCard variant="medium" mediumMode="changed" monthlyChangedUsers={changedUsers} />
         </section>
       </main>
     </div>

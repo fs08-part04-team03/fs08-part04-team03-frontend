@@ -18,6 +18,7 @@ export interface ProductEditFormData {
   link: string;
   categoryId: number;
   image?: string;
+  imageUrl?: string;
 }
 
 interface ProductEditModalProps {

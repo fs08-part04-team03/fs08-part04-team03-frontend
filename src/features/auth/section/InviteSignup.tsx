@@ -1,17 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
 import InviteSignupSection from '@/features/auth/section/InviteSignupSection';
-import { getInviteInfo } from '@/features/auth/api/auth.api';
 import { logger } from '@/utils/logger';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import { PATHNAME } from '@/constants';
 import { AUTH_ERROR_MESSAGES } from '@/constants/messages';
 import { TOAST_AUTO_CLOSE_DURATION } from '@/constants/timing';
+import { useInviteInfo } from '@/features/auth/queries/auth.queries';
 
 interface InviteSignupProps {
   token: string;
@@ -30,16 +29,7 @@ const InviteSignup = ({ token }: InviteSignupProps) => {
     }
   }, []);
 
-  const {
-    data: inviteData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['invite', inviteUrl],
-    queryFn: () => getInviteInfo(inviteUrl),
-    enabled: !!inviteUrl, // inviteUrl이 있을 때만 실행
-    retry: false, // 실패 시 재시도 안 함
-  });
+  const { data: inviteData, isLoading, error } = useInviteInfo(inviteUrl, { enabled: !!inviteUrl });
 
   // 디버깅용 로그 (개발 환경에서만)
   useEffect(() => {

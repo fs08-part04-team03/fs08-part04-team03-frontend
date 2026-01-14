@@ -25,7 +25,7 @@ const CloseButton = ({ onClose }: { onClose?: () => void }) => {
       className="bg-white hover:bg-white cursor-pointer ml-2"
     >
       <div className="relative w-24 h-24">
-        <Image src="/icons/close-circle.svg" alt="close" fill />
+        <Image src="/icons/close-circle.svg" alt="close" fill unoptimized />
       </div>
     </IconButton>
   );
@@ -161,7 +161,7 @@ export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) =
     >
       {/* 아이콘 */}
       <div className="shrink-0 w-24 h-24 relative">
-        <Image src={iconSrc} alt="toast-icon" fill />
+        <Image src={iconSrc} alt="toast-icon" fill unoptimized />
       </div>
 
       {/* 메시지 영역 */}

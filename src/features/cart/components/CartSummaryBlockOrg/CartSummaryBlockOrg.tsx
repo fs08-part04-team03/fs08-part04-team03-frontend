@@ -8,6 +8,7 @@ import Button from '@/components/atoms/Button/Button';
 import OrderItemCard from '@/components/molecules/OrderItemCard/OrderItemCard';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import { Toast } from '@/components/molecules/Toast/Toast';
+import { PATHNAME } from '@/constants';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
@@ -19,6 +20,7 @@ import {
   type RequestPurchaseResponseData,
 } from '@/features/purchase/api/purchase.api';
 import { cartApi } from '@/features/cart/api/cart.api';
+import { cartKeys } from '@/features/cart/queries/cart.keys';
 
 export type CartRole = 'user' | 'manager' | 'admin';
 
@@ -35,7 +37,7 @@ interface CartSummaryBlockOrgProps {
   cartRole: CartRole;
   items: OrderItem[];
   budget?: number;
-  loading?: boolean; // 🔹 로딩 상태 추가
+  loading?: boolean;
   onDeleteSelected?: (cartItemIds: string[]) => void;
   onSubmit?: (cartItemIds: string[]) => void;
   onGoBudgetManage?: () => void;
@@ -47,7 +49,7 @@ const CartSummaryBlockOrg = ({
   cartRole,
   items,
   budget = 0,
-  loading = false, // 🔹 기본값 false
+  loading = false,
   onDeleteSelected,
   onSubmit,
   onGoBudgetManage,
@@ -59,6 +61,7 @@ const CartSummaryBlockOrg = ({
   const queryClient = useQueryClient();
   const { triggerToast } = useToast();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
+
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
   const [showBudgetToast, setShowBudgetToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -87,7 +90,6 @@ const CartSummaryBlockOrg = ({
   const remainBudget = budget - totalPrice;
   const isBudgetExceeded = isAdminRole && remainBudget < 0;
 
-  /** 예산 초과 시 토스트 표시 */
   useEffect(() => {
     if (!isAdminRole) return;
     setShowBudgetToast(isBudgetExceeded);
@@ -133,11 +135,44 @@ const CartSummaryBlockOrg = ({
 
     try {
       setIsPurchasing(true);
+
       await purchaseNow({
-        productId: String(item.productId),
+        productId: item.productId,
         quantity: item.quantity,
       });
-      onSubmit?.([item.cartItemId]);
+
+      // 어드민 즉시 구매는 백엔드에서 카트를 자동 삭제하지 않으므로 프론트엔드에서 삭제
+      const cartItemIdToDelete = item.cartItemId;
+      if (cartItemIdToDelete) {
+        await cartApi.deleteFromCart(cartItemIdToDelete).catch((deleteError) => {
+          logger.error('Failed to delete cart item after purchase', {
+            hasError: true,
+            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+            cartItemId: cartItemIdToDelete,
+          });
+          // 카트 삭제 실패해도 구매는 성공했으므로 계속 진행
+        });
+      }
+
+      // 캐시 무효화 및 즉시 refetch (GNB의 카트 아이콘 숫자 즉시 업데이트)
+      queryClient
+        .invalidateQueries({ queryKey: cartKeys.all })
+        .then(() => {
+          queryClient.refetchQueries({ queryKey: cartKeys.all }).catch(() => {
+            // refetch 실패는 무시 (백그라운드 작업)
+          });
+        })
+        .catch((error) => {
+          logger.error('Failed to invalidate cart queries', {
+            hasError: true,
+            errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          });
+        });
+
+      if (companyId) {
+        router.push(PATHNAME.ORDER_COMPLETED(companyId));
+        triggerToast('success', '즉시 구매가 완료되었습니다.');
+      }
     } catch (error) {
       logger.error('[CartSummaryBlock] 즉시 구매 실패', {
         message: error instanceof Error ? error.message : '알 수 없는 오류',
@@ -148,12 +183,13 @@ const CartSummaryBlockOrg = ({
     }
   };
 
-  /** 매니저 긴급 구매 요청 (예산 초과 시) */
+  /** 매니저 긴급 구매 요청 */
   const handleManagerUrgentPurchase = async () => {
     if (checkedIds.length === 0 || loading || isPurchasing) return;
 
     try {
       setIsPurchasing(true);
+
       const result = await urgentRequestPurchase({
         items: selectedItems.map((item) => ({
           productId: item.productId,
@@ -163,42 +199,54 @@ const CartSummaryBlockOrg = ({
         requestMessage: '긴급 구매 요청',
       });
 
-      // 장바구니 무효화
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
-
-      // Order Completed 페이지로 이동
-      try {
-        if (companyId && result?.id) {
-          router.push(`/${companyId}/order/completed?id=${result.id}`);
-        } else if (companyId) {
-          // purchase ID가 없으면 장바구니로 이동
-          router.push(`/${companyId}/cart`);
-        }
-      } catch (navError) {
-        logger.warn('Navigation failed after purchase', {
-          hasError: true,
-          errorType: navError instanceof Error ? navError.constructor.name : 'Unknown',
+      // 매니저 긴급 구매 요청은 백엔드에서 카트를 자동 삭제하지 않으므로 프론트엔드에서 삭제
+      if (checkedIds.length > 0) {
+        await cartApi.deleteMultiple(checkedIds).catch((deleteError) => {
+          logger.error('Failed to delete cart items after urgent purchase', {
+            hasError: true,
+            errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
+            cartItemIds: checkedIds,
+          });
+          // 카트 삭제 실패해도 구매 요청은 성공했으므로 계속 진행
         });
-        // 네비게이션 실패는 무시 (구매는 성공했으므로)
+      }
+
+      // 캐시 무효화 및 즉시 refetch (GNB의 카트 아이콘 숫자 즉시 업데이트)
+      queryClient
+        .invalidateQueries({ queryKey: cartKeys.all })
+        .then(() => {
+          queryClient.refetchQueries({ queryKey: cartKeys.all }).catch(() => {
+            // refetch 실패는 무시 (백그라운드 작업)
+          });
+        })
+        .catch((error) => {
+          logger.error('Failed to invalidate cart queries', {
+            hasError: true,
+            errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          });
+        });
+
+      if (companyId) {
+        router.push(
+          `${PATHNAME.ORDER_COMPLETED(companyId)}${result?.id ? `?id=${result.id}` : ''}`
+        );
+        triggerToast('success', '긴급 구매 요청이 완료되었습니다.');
       }
     } catch (error) {
-      logger.error('Urgent purchase request failed', {
-        hasError: true,
-        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-      });
+      logger.error('Urgent purchase request failed', { error });
       setErrorMessage('긴급 구매 요청에 실패했습니다.');
     } finally {
       setIsPurchasing(false);
     }
   };
 
-  /** 매니저 이상 구매 요청 (예산 초과가 아닌 경우) */
+  /** 매니저 이상 구매 요청 */
   const handleManagerPurchaseRequest = async () => {
     if (checkedIds.length === 0 || loading || isPurchasing) return;
 
     try {
       setIsPurchasing(true);
+
       const result: RequestPurchaseResponseData = await purchaseNowMultiple({
         items: selectedItems.map((item) => ({
           productId: item.productId,
@@ -207,47 +255,41 @@ const CartSummaryBlockOrg = ({
         shippingFee: 0,
       });
 
-      // 선택된 아이템들을 장바구니에서 삭제
+      // 매니저 구매 요청은 백엔드에서 카트를 자동 삭제하지 않으므로 프론트엔드에서 삭제
       if (checkedIds.length > 0) {
-        try {
-          await cartApi.deleteMultiple(checkedIds);
-          logger.info('Cart items deleted after purchase request', {
-            deletedCount: checkedIds.length,
-          });
-        } catch (deleteError) {
-          // 삭제 실패해도 구매 요청은 성공했으므로 로그만 남기고 계속 진행
+        await cartApi.deleteMultiple(checkedIds).catch((deleteError) => {
           logger.error('Failed to delete cart items after purchase request', {
             hasError: true,
             errorType: deleteError instanceof Error ? deleteError.constructor.name : 'Unknown',
             cartItemIds: checkedIds,
           });
-        }
+          // 카트 삭제 실패해도 구매 요청은 성공했으므로 계속 진행
+        });
       }
 
-      // 장바구니 무효화
-      await queryClient.invalidateQueries({ queryKey: ['cart'] });
-      triggerToast('success', '구매 요청이 완료되었습니다.');
-
-      // Order Completed 페이지로 이동
-      try {
-        if (companyId && result?.id) {
-          router.push(`/${companyId}/order/completed?id=${result.id}`);
-        } else if (companyId) {
-          // purchase ID가 없으면 장바구니로 이동
-          router.push(`/${companyId}/cart`);
-        }
-      } catch (navError) {
-        logger.warn('Navigation failed after purchase', {
-          hasError: true,
-          errorType: navError instanceof Error ? navError.constructor.name : 'Unknown',
+      // 캐시 무효화 및 즉시 refetch (GNB의 카트 아이콘 숫자 즉시 업데이트)
+      queryClient
+        .invalidateQueries({ queryKey: cartKeys.all })
+        .then(() => {
+          queryClient.refetchQueries({ queryKey: cartKeys.all }).catch(() => {
+            // refetch 실패는 무시 (백그라운드 작업)
+          });
+        })
+        .catch((error) => {
+          logger.error('Failed to invalidate cart queries', {
+            hasError: true,
+            errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          });
         });
-        // 네비게이션 실패는 무시 (구매는 성공했으므로)
+
+      if (companyId) {
+        router.push(
+          `${PATHNAME.ORDER_COMPLETED(companyId)}${result?.id ? `?id=${result.id}` : ''}`
+        );
+        triggerToast('success', '구매 요청이 완료되었습니다.');
       }
     } catch (error) {
-      logger.error('Purchase request failed', {
-        hasError: true,
-        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-      });
+      logger.error('Purchase request failed', { error });
       setErrorMessage('구매 요청에 실패했습니다.');
     } finally {
       setIsPurchasing(false);
@@ -267,21 +309,16 @@ const CartSummaryBlockOrg = ({
       return;
     }
 
-    // 매니저 이상일 때는 바로 구매 요청 처리하고 오더 컨펌으로 이동
     if (isAdminRole && !isBudgetExceeded) {
       await handleManagerPurchaseRequest();
       return;
     }
 
-    // 유저일 때는 기존대로 Order 페이지로 이동
     onSubmit?.(checkedIds);
   };
 
   const handleSubmitClick = () => {
-    handleSubmit().catch((err) => {
-      logger.error('[CartSummaryBlock] 요청 처리 중 오류', {
-        message: err instanceof Error ? err.message : '알 수 없는 오류',
-      });
+    handleSubmit().catch(() => {
       setErrorMessage('요청 처리 중 오류가 발생했습니다.');
     });
   };
@@ -301,7 +338,7 @@ const CartSummaryBlockOrg = ({
             <button
               type="button"
               onClick={handleDeleteSelected}
-              disabled={loading || isPurchasing} // 🔹 로딩/구매 중 비활성화
+              disabled={loading || isPurchasing}
               className="text-gray-600 underline text-14 tablet:text-16 tracking--0.35 tablet:tracking--0.4 cursor-pointer"
             >
               선택 삭제
@@ -314,7 +351,7 @@ const CartSummaryBlockOrg = ({
 
               const purchaseButtonLabel = cartRole === 'user' ? '바로 요청' : '즉시 구매';
               const purchaseButtonDisabled =
-                cartRole === 'user' || !isChecked || isBudgetExceeded || isPurchasing || loading; // 🔹 로딩 포함
+                cartRole === 'user' || !isChecked || isBudgetExceeded || isPurchasing || loading;
 
               return (
                 <OrderItemCard
@@ -324,7 +361,7 @@ const CartSummaryBlockOrg = ({
                   quantity={item.quantity}
                   shippingCost={0}
                   imageSrc={item.imageSrc}
-                  productId={item.productId} // ✅ 상품 상세 페이지 이동을 위한 productId 전달
+                  productId={item.productId}
                   checked={isChecked}
                   onCheckboxChange={(checked) => handleToggleItem(item.cartItemId, checked)}
                   onQuantityChange={(option) => handleQuantityChange(item.cartItemId, option)}
@@ -376,7 +413,7 @@ const CartSummaryBlockOrg = ({
             <Button
               variant="secondary"
               className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
-              inactive={loading || isPurchasing} // 🔹 로딩 시 비활성화
+              inactive={loading || isPurchasing}
               onClick={onContinueShopping}
             >
               계속 쇼핑하기
@@ -385,7 +422,7 @@ const CartSummaryBlockOrg = ({
             <Button
               variant="primary"
               className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
-              inactive={checkedIds.length === 0 || loading || isPurchasing} // 🔹 로딩 포함
+              inactive={checkedIds.length === 0 || loading || isPurchasing}
               onClick={handleSubmitClick}
             >
               {submitButtonLabel}
