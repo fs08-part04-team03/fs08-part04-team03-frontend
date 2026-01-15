@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { Divider } from '@/components/atoms/Divider/Divider';
 import { clsx } from '@/utils/clsx';
@@ -28,13 +28,13 @@ interface RegisteredProductOrgProps {
   isLoading?: boolean;
 }
 
-const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
+const RegisteredProductOrg = ({
   products,
   totalCount,
   onRegisterClick,
   onProductClick,
   isLoading = false,
-}) => {
+}: RegisteredProductOrgProps) => {
   const isEmpty = products.length === 0;
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
 
@@ -156,7 +156,7 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
                                 );
                               }
                               return (
-                                <img
+                                <Image
                                   src={product.imageSrc}
                                   alt={product.name}
                                   width={29}
@@ -256,7 +256,7 @@ const RegisteredProductOrg: React.FC<RegisteredProductOrgProps> = ({
                                 );
                               }
                               return (
-                                <img
+                                <Image
                                   src={product.imageSrc}
                                   alt={product.name}
                                   width={16}

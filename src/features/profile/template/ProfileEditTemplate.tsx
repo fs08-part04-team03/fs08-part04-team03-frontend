@@ -85,7 +85,7 @@ const ProfileEditForm = ({
               }
             >
               {hasImage && preview && (
-                <img
+                <Image
                   src={preview}
                   alt="프로필 미리보기"
                   className="w-full h-full object-contain"

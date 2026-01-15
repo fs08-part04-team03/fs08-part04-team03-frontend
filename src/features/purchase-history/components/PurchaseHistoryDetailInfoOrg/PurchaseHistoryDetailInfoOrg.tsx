@@ -73,7 +73,7 @@ const InfoRowSingle = ({ label, value, fullWidth = false }: InfoRowSingleProps) 
     <p className="text-14 tablet:text-16 border-r border-gray-100 py-8 px-16 tablet:px-20">
       {label}
     </p>
-    <p className="text-14 tablet:text-16 py-8 px-16 tablet:px-20 break-words">{value}</p>
+    <p className="text-14 tablet:text-16 py-8 px-16 tablet:px-20 wrap-break-words">{value}</p>
   </div>
 );
 
