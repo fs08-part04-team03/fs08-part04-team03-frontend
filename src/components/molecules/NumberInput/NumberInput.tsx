@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
@@ -25,7 +25,7 @@ export interface NumberInputProps {
  * 수량을 선택할 수 있는 컴포넌트
  * 위/아래 화살표 버튼으로 수량을 조정하거나 직접 입력할 수 있습니다.
  */
-export const NumberInput: React.FC<NumberInputProps> = ({
+export const NumberInput = ({
   onQuantityChange,
   value,
   defaultValue,
@@ -34,7 +34,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
   variant = 'default',
   label,
   className,
-}) => {
+}: NumberInputProps) => {
   const [inputValue, setInputValue] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
 
