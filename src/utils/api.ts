@@ -131,10 +131,11 @@ export async function tryRefreshToken(): Promise<string | null> {
     // 브라우저 환경에서는 Next.js proxy(/api)를 사용하여 same-origin 요청으로 만듭니다
     // 이렇게 하면 쿠키가 자동으로 전달됩니다
     const backendOrigin = isBrowserEnv
-      ? '' // 상대 경로 사용 (Next.js rewrites가 /api를 백엔드로 프록시)
+      ? '' // 상대 경로 사용 (Next.js API Route 사용)
       : process.env.BACKEND_ORIGIN || process.env.BACKEND_API_URL || getApiUrl();
 
-    const refreshUrl = joinUrl(backendOrigin, AUTH_API_PATHS.REFRESH);
+    const refreshPath = isBrowserEnv ? '/api/auth/refresh' : AUTH_API_PATHS.REFRESH;
+    const refreshUrl = joinUrl(backendOrigin, refreshPath);
 
     // 쿠키 디버깅: 현재 브라우저의 쿠키 확인
     let cookieDebugInfo: Record<string, unknown> = {};
