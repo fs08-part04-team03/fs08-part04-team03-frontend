@@ -16,47 +16,61 @@ const normalizedHost = imageHost.trim().toLowerCase();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+
   typescript: {
     ignoreBuildErrors: false,
   },
+
   images: {
     formats: ['image/avif', 'image/webp'],
+
     remotePatterns: [
+      // 🔹 기존 백엔드 업로드 이미지
       {
         protocol: 'https',
         hostname: process.env.BACKEND_HOST || 'snock.tplinkdns.com',
         pathname: '/uploads/**',
       },
+
       {
         protocol: imageProtocol,
         hostname: normalizedHost,
         ...(normalizedPort && { port: normalizedPort }),
         pathname: '/uploads/**',
       },
+
+      // ✅ S3 presigned URL (상품 이미지)
+      {
+        protocol: 'https',
+        hostname: 'snack-store-bucket.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
     ],
+
     localPatterns: [
       { pathname: '/api/product/image/**' },
       { pathname: '/icons/**' },
       { pathname: '/images/**' },
       { pathname: '/logo/**' },
     ],
+
     // 이미지 최적화 설정
     minimumCacheTTL: 86400, // 24시간 캐시
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
-  // 프로덕션에서 source maps 비활성화 (Best Practices 개선)
+  // 프로덕션에서 source maps 비활성화
   productionBrowserSourceMaps: false,
 
-  // 성능 최적화: 컴파일러 옵션
+  // 성능 최적화
   compiler: {
-    // 프로덕션에서 console.log 제거
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
 
   async rewrites() {
     const backendUrl = process.env.BACKEND_API_URL || 'https://snock.tplinkdns.com:4000';
+
     return [
       {
         source: '/api/:path*',
@@ -65,13 +79,11 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // 압축 최적화 (gzip)
+  // 압축 최적화
   compress: true,
-  
-  // 실험적 기능: 성능 최적화
+
   experimental: {
     optimizePackageImports: ['@tanstack/react-query', 'recharts', 'zod'],
-    // 서버 컴포넌트 최적화
     serverActions: {
       bodySizeLimit: '2mb',
     },
