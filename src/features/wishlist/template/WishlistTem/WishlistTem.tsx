@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { clsx } from '@/utils/clsx';
 
 import { Divider } from '@/components/atoms/Divider/Divider';
@@ -54,12 +54,7 @@ const useItemsPerPage = () => {
 /* =====================
  * Component
  ====================== */
-const WishlistTem: React.FC<WishlistTemProps> = ({
-  items,
-  onRemove,
-  onProductClick,
-  onGoToProducts,
-}) => {
+const WishlistTem = ({ items, onRemove, onProductClick, onGoToProducts }: WishlistTemProps) => {
   const [likedItems, setLikedItems] = useState(items);
   const [page, setPage] = useState(1);
 
