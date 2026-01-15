@@ -220,26 +220,29 @@ export function useApprovePurchaseRequest() {
   const queryClient = useQueryClient();
   const { triggerToast } = useToast();
 
-  return useMutation<PurchaseRequestItem, Error, { purchaseRequestId: string; companyId?: string }>(
-    {
-      mutationFn: async ({ purchaseRequestId }) => approvePurchaseRequest(purchaseRequestId),
-      onSuccess: async (_, variables) => {
-        const { purchaseRequestId, companyId } = variables;
+  return useMutation<
+    PurchaseRequestItem,
+    Error,
+    { purchaseRequestId: string; message?: string; companyId?: string }
+  >({
+    mutationFn: async ({ purchaseRequestId, message }) =>
+      approvePurchaseRequest(purchaseRequestId, message ? { message } : undefined),
+    onSuccess: async (_, variables) => {
+      const { purchaseRequestId, companyId } = variables;
 
-        // 관련 쿼리 캐시 무효화
-        await queryClient.invalidateQueries({ queryKey: purchaseKeys.detail(purchaseRequestId) });
-        await queryClient.invalidateQueries({ queryKey: purchaseKeys.all });
-        if (companyId) {
-          await queryClient.invalidateQueries({ queryKey: purchaseKeys.budget(companyId) });
-        }
-      },
-      onError: (err: unknown) => {
-        const message = err instanceof Error ? err.message : '구매 요청 승인에 실패했습니다.';
-        triggerToast('error', message);
-        logger.error('구매 요청 승인 실패:', err);
-      },
-    }
-  );
+      // 관련 쿼리 캐시 무효화
+      await queryClient.invalidateQueries({ queryKey: purchaseKeys.detail(purchaseRequestId) });
+      await queryClient.invalidateQueries({ queryKey: purchaseKeys.all });
+      if (companyId) {
+        await queryClient.invalidateQueries({ queryKey: purchaseKeys.budget(companyId) });
+      }
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : '구매 요청 승인에 실패했습니다.';
+      triggerToast('error', message);
+      logger.error('구매 요청 승인 실패:', err);
+    },
+  });
 }
 
 /**
