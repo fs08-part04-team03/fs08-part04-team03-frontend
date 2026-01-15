@@ -49,8 +49,7 @@ export function OPTIONS(req: NextRequest) {
 
 /**
  * Refresh Token API Route
- * Vercel 환경에서 rewrites가 쿠키 전달에 실패할 수 있으므로
- * Next.js API Route를 통해 프록시하여 쿠키가 제대로 전달되도록 함
+ * 브라우저에서는 이 경로를 통해 쿠키 기반 갱신을 처리합니다.
  */
 export async function POST(req: NextRequest) {
   try {
