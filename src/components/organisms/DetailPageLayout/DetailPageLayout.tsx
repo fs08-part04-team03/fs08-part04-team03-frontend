@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
+import type { ReactNode } from 'react';
 import Breadcrumb, { type BreadcrumbItem } from '@/components/molecules/Breadcrumb/Breadcrumb';
 import AccordionPanel from '@/components/organisms/AccordionPanel/AccordionPanel';
 import { clsx } from '@/utils/clsx';
@@ -29,8 +30,8 @@ export interface DetailPageLayoutProps {
   accordionPanels?: Array<{
     id?: string | number;
     label: string;
-    content?: string | React.ReactNode;
-    subContent?: string | React.ReactNode;
+    content?: string | ReactNode;
+    subContent?: string | ReactNode;
   }>;
   className?: string;
   liked?: boolean;
@@ -94,11 +95,13 @@ const ProductImageBox = ({
           </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <img
+            <Image
               src={imageSrc}
               alt={imageAlt}
-              className="max-w-full max-h-full w-auto h-auto object-contain"
+              fill
+              className="object-contain"
               onError={() => setImgError(true)}
+              unoptimized
             />
           </div>
         )}
@@ -136,7 +139,7 @@ const ProductImageBox = ({
 /* =====================
  * Mobile
  ====================== */
-const DetailPageLayoutMobile: React.FC<InternalLayoutProps> = ({
+const DetailPageLayoutMobile = ({
   breadcrumbItems,
   productImage,
   liked,
@@ -150,7 +153,7 @@ const DetailPageLayoutMobile: React.FC<InternalLayoutProps> = ({
   onMenuClick,
   onAddToCart,
   headerClassName,
-}) => (
+}: InternalLayoutProps) => (
   <div className="w-full flex justify-center tablet:hidden">
     <div className="w-328 flex flex-col">
       <div className="mb-40">
@@ -194,7 +197,7 @@ const DetailPageLayoutMobile: React.FC<InternalLayoutProps> = ({
 /* =====================
  * Tablet
  ====================== */
-const DetailPageLayoutTablet: React.FC<InternalLayoutProps> = ({
+const DetailPageLayoutTablet = ({
   breadcrumbItems,
   productImage,
   liked,
@@ -208,7 +211,7 @@ const DetailPageLayoutTablet: React.FC<InternalLayoutProps> = ({
   onMenuClick,
   onAddToCart,
   headerClassName,
-}) => (
+}: InternalLayoutProps) => (
   <div className="hidden tablet:flex desktop:hidden w-full justify-center">
     <div className="w-496">
       <Breadcrumb items={breadcrumbItems} />
@@ -249,7 +252,7 @@ const DetailPageLayoutTablet: React.FC<InternalLayoutProps> = ({
 /* =====================
  * Desktop
  ====================== */
-const DetailPageLayoutDesktop: React.FC<InternalLayoutProps> = ({
+const DetailPageLayoutDesktop = ({
   breadcrumbItems,
   productImage,
   liked,
@@ -263,7 +266,7 @@ const DetailPageLayoutDesktop: React.FC<InternalLayoutProps> = ({
   onMenuClick,
   onAddToCart,
   headerClassName,
-}) => (
+}: InternalLayoutProps) => (
   <div className="hidden desktop:flex flex-col items-center w-full">
     <div className="w-1180 mb-20">
       <Breadcrumb items={breadcrumbItems} />
@@ -306,7 +309,7 @@ const DetailPageLayoutDesktop: React.FC<InternalLayoutProps> = ({
 /* =====================
  * Root
  ====================== */
-const DetailPageLayout: React.FC<DetailPageLayoutProps> = ({
+const DetailPageLayout = ({
   breadcrumbItems,
   productImage,
   productDetailHeader,
@@ -314,7 +317,7 @@ const DetailPageLayout: React.FC<DetailPageLayoutProps> = ({
   className,
   liked: externalLiked,
   onToggleLike: externalOnToggleLike,
-}) => {
+}: DetailPageLayoutProps) => {
   const [internalLiked, setInternalLiked] = useState(false);
 
   const liked = externalLiked !== undefined ? externalLiked : internalLiked;
