@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { clsx } from '@/utils/clsx';
+import type { ReactNode } from 'react';
 
 export interface CategoryFilterOption {
   value: number; // ChildCategory id
@@ -12,8 +13,8 @@ export interface CategoryFilterOption {
 export interface CategoryPanelSection {
   id: number; // ParentCategory id
   title: string;
-  icon?: React.ReactNode;
-  description?: React.ReactNode;
+  icon?: ReactNode;
+  description?: ReactNode;
   options: CategoryFilterOption[];
 }
 
@@ -38,13 +39,13 @@ type TabletDesktopPanelProps = Omit<CategoryPanelProps, 'activeSectionId'>;
 /* =========================
    Mobile Panel
 ========================= */
-const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
+const CategoryPanelMobile = ({
   sections,
   activeSectionId,
   selectedValue,
   onChange,
   className,
-}) => {
+}: InternalPanelProps) => {
   const activeSection = useMemo(() => {
     if (!sections?.length) return null;
 
@@ -125,12 +126,12 @@ const CategoryPanelMobile: React.FC<InternalPanelProps> = ({
 /* =========================
    Tablet Panel
 ========================= */
-const CategoryPanelTablet: React.FC<TabletDesktopPanelProps> = ({
+const CategoryPanelTablet = ({
   sections,
   selectedValue,
   onChange,
   className,
-}) => {
+}: TabletDesktopPanelProps) => {
   const getSectionWithSelectedOption = () => {
     if (!selectedValue) return null;
     return sections.find((section) =>
@@ -268,12 +269,12 @@ const CategoryPanelTablet: React.FC<TabletDesktopPanelProps> = ({
 /* =========================
    Desktop Panel
 ========================= */
-const CategoryPanelDesktop: React.FC<TabletDesktopPanelProps> = ({
+const CategoryPanelDesktop = ({
   sections = [],
   selectedValue,
   onChange,
   className,
-}) => {
+}: TabletDesktopPanelProps) => {
   const getSectionWithSelectedOption = () => {
     if (!selectedValue) return null;
     return sections.find((section) =>
@@ -405,13 +406,13 @@ const CategoryPanelDesktop: React.FC<TabletDesktopPanelProps> = ({
 /* =========================
    CategoryPanel Export
 ========================= */
-export const CategoryPanel: React.FC<CategoryPanelProps> = ({
+export const CategoryPanel = ({
   sections,
   activeSectionId,
   selectedValue,
   onChange,
   className,
-}) => (
+}: CategoryPanelProps) => (
   <>
     <CategoryPanelMobile
       sections={sections}

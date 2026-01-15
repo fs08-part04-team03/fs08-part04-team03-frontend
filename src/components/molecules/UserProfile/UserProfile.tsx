@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/atoms/Avatar/Avatar';
 import { clsx } from '@/utils/clsx';
@@ -22,13 +21,13 @@ export interface UserProfileProps extends UserProfileBaseProps {
 }
 
 // 모바일 전용 (아바타만 표시)
-export const UserProfileMobile: React.FC<UserProfileBaseProps> = ({
+export const UserProfileMobile = ({
   name,
   avatarSrc,
   profileHref = '/me/profile',
   className,
   company: _company, // 모바일에서 사용하지 않지만 props 타입 일관성을 위해 유지
-}) => (
+}: UserProfileBaseProps) => (
   <Link
     href={profileHref}
     aria-label={`View ${name}'s profile`}
@@ -39,13 +38,13 @@ export const UserProfileMobile: React.FC<UserProfileBaseProps> = ({
 );
 
 // 태블릿 전용 (아바타만 표시)
-export const UserProfileTablet: React.FC<UserProfileBaseProps> = ({
+export const UserProfileTablet = ({
   name,
   avatarSrc,
   profileHref = '/me/profile',
   className,
   company: _company, // 태블릿에서 사용하지 않지만 props 타입 일관성을 위해 유지
-}) => (
+}: UserProfileBaseProps) => (
   <Link
     href={profileHref}
     aria-label={`View ${name}'s profile`}
@@ -56,13 +55,13 @@ export const UserProfileTablet: React.FC<UserProfileBaseProps> = ({
 );
 
 // 데스크탑 전용
-export const UserProfileDesktop: React.FC<UserProfileBaseProps> = ({
+export const UserProfileDesktop = ({
   name,
   company,
   avatarSrc,
   profileHref = '/me/profile',
   className,
-}) => (
+}: UserProfileBaseProps) => (
   <Link
     href={profileHref}
     aria-label={`View ${name}'s profile`}
@@ -80,13 +79,13 @@ export const UserProfileDesktop: React.FC<UserProfileBaseProps> = ({
 
 // UserProfileDefault: 모든 뷰포트에서 사용, 모바일에서도 아바타와 이름, 회사명 표시
 // 사이즈 고정: 아바타 32x32, 이름 text-15
-export const UserProfileDefault: React.FC<UserProfileBaseProps> = ({
+export const UserProfileDefault = ({
   name,
   company,
   avatarSrc,
   profileHref = '/me/profile',
   className,
-}) => (
+}: UserProfileBaseProps) => (
   <Link
     href={profileHref}
     aria-label={`View ${name}'s profile`}
@@ -103,13 +102,13 @@ export const UserProfileDefault: React.FC<UserProfileBaseProps> = ({
 );
 
 // UserProfileNameOnly: 아바타와 이름만 표시 (회사명 제외)
-export const UserProfileNameOnly: React.FC<UserProfileBaseProps> = ({
+export const UserProfileNameOnly = ({
   name,
   avatarSrc,
   profileHref = '/me/profile',
   className,
   company: _company, // 사용하지 않지만 props 타입 일관성을 위해 유지
-}) => (
+}: UserProfileBaseProps) => (
   <Link
     href={profileHref}
     aria-label={`View ${name}'s profile`}
@@ -123,15 +122,14 @@ export const UserProfileNameOnly: React.FC<UserProfileBaseProps> = ({
 );
 
 // Main UserProfile Component (통합 컴포넌트)
-const UserProfile: React.FC<UserProfileProps> = ({
+const UserProfile = ({
   name,
   company,
   avatarSrc,
   profileHref = '/me/profile',
   variant = 'secondary',
   className,
-}) => {
-  // variant가 'default'이면 모든 뷰포트에서 동일하게 표시
+}: UserProfileProps) => {
   if (variant === 'default') {
     return (
       <UserProfileDefault
@@ -160,7 +158,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   // variant가 'secondary'이면 모바일 숨김, 태블릿/데스크탑에서만 표시
   return (
     <>
-      {/* 태블릿 (744px ~ 1199px) */}
+      {/* 태블릿 */}
       <div className={clsx('hidden tablet:flex desktop:hidden', className)}>
         <UserProfileTablet
           name={name}
@@ -170,7 +168,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         />
       </div>
 
-      {/* 데스크탑 (1200px ~) */}
+      {/* 데스크탑 */}
       <div className={clsx('hidden desktop:flex', className)}>
         <UserProfileDesktop
           name={name}

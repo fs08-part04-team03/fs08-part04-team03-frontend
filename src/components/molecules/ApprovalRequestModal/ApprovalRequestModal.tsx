@@ -5,13 +5,15 @@ import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import TextAreaField from '@/components/molecules/TextAreaField/TextAreaField';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
+import Image from 'next/image';
+import type { ReactNode } from 'react';
 
 interface Item {
   id: number;
   title: string;
   price: number;
   quantity: number;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   imageSrc?: string;
 }
 
@@ -39,7 +41,7 @@ const ApprovalItemIcon = ({ srcOrKey, alt }: { srcOrKey?: string; alt: string })
   })();
 
   return (
-    <img
+    <Image
       src={effectiveSrc}
       width={40}
       height={40}

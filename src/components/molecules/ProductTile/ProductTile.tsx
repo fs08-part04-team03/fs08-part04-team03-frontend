@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import type { ReactNode } from 'react';
 import { clsx } from '@/utils/clsx';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 
@@ -20,12 +20,12 @@ type ProductTileOrderProps = ProductTileBaseProps & {
   variant: 'order';
   quantity?: number;
   shippingFee?: number;
-  metaOverride?: React.ReactNode;
+  metaOverride?: ReactNode;
 };
 
 export type ProductTileProps = ProductTileProductProps | ProductTileOrderProps;
 
-const ProductTile: React.FC<ProductTileProps> = (props) => {
+const ProductTile = (props: ProductTileProps) => {
   const { name, price, size = 'md', className, variant } = props;
 
   // 상품명
@@ -46,10 +46,10 @@ const ProductTile: React.FC<ProductTileProps> = (props) => {
       ? 'text-14 leading-22 tracking--0.35'
       : 'text-14 leading-22 tracking--0.35 tablet:text-16 tablet:leading-24 tablet:tracking--0.4';
 
-  let subNode: React.ReactNode = null;
-  let purchaseCountNode: React.ReactNode = null;
-  let orderSubNode: React.ReactNode = null;
-  let orderSubNodeInline: React.ReactNode = null;
+  let subNode: ReactNode = null;
+  let purchaseCountNode: ReactNode = null;
+  let orderSubNode: ReactNode = null;
+  let orderSubNodeInline: ReactNode = null;
 
   if (variant === 'product') {
     const { purchaseCount } = props;

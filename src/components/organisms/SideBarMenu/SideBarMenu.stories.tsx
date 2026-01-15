@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
+import Image from 'next/image';
 import { SideBarMenu } from './SideBarMenu';
 
 const meta = {
@@ -46,7 +47,7 @@ export const Default: Story = {
             className="flex items-center justify-center"
             onClick={() => setOpen(true)}
           >
-            <img src="/icons/hamburger.svg" alt="" className="w-20 h-20" aria-hidden="true" />
+            <Image src="/icons/hamburger.svg" alt="" width={20} height={20} aria-hidden="true" />
           </IconButton>
           <span className="text-14 text-gray-600">햄버거 버튼을 클릭하면 사이드바가 열립니다</span>
         </div>

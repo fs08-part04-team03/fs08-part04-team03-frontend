@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Chatbot from 'react-chatbot-kit';
 import 'react-chatbot-kit/build/main.css';
-
+import Image from 'next/image';
 import config from './config';
 import MessageParser from './MessageParser';
 import ActionProvider from './ActionProvider';
@@ -45,7 +45,7 @@ const ChatBot = (): JSX.Element => {
         style={toggleButtonStyle}
         aria-label="챗봇 열기"
       >
-        <img
+        <Image
           src="/icons/chatbot.svg"
           alt="챗봇"
           width={24}

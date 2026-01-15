@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 import { PATHNAME } from '@/constants';
@@ -16,13 +16,13 @@ export interface AdminSidebarMenuItemProps {
 }
 
 // 모바일 메뉴 아이템 (가로 탭, 밑줄 강조)
-export const AdminSidebarMenuItemMobile: React.FC<AdminSidebarMenuItemProps> = ({
+export const AdminSidebarMenuItemMobile = ({
   href,
   iconSrc,
   label,
   active = false,
   className,
-}) => (
+}: AdminSidebarMenuItemProps) => (
   <Link
     href={href}
     className={clsx(
@@ -36,20 +36,20 @@ export const AdminSidebarMenuItemMobile: React.FC<AdminSidebarMenuItemProps> = (
     )}
   >
     <div className="w-25 h-25 flex items-center justify-center">
-      <img src={iconSrc} alt="" className="w-20 h-20" aria-hidden="true" />
+      <Image src={iconSrc} alt="" width={20} height={20} aria-hidden="true" />
     </div>
     <span className="text-14 font-medium">{label}</span>
   </Link>
 );
 
 // 태블릿 메뉴 아이템 (가로 탭, 밑줄 강조)
-export const AdminSidebarMenuItemTablet: React.FC<AdminSidebarMenuItemProps> = ({
+export const AdminSidebarMenuItemTablet = ({
   href,
   iconSrc,
   label,
   active = false,
   className,
-}) => (
+}: AdminSidebarMenuItemProps) => (
   <Link
     href={href}
     className={clsx(
@@ -63,20 +63,20 @@ export const AdminSidebarMenuItemTablet: React.FC<AdminSidebarMenuItemProps> = (
     )}
   >
     <div className="w-25 h-25 flex items-center justify-center">
-      <img src={iconSrc} alt="" className="w-20 h-20" aria-hidden="true" />
+      <Image src={iconSrc} alt="" width={20} height={20} aria-hidden="true" />
     </div>
     <span className="text-16 font-medium">{label}</span>
   </Link>
 );
 
 // 데스크톱 메뉴 아이템 (세로 사이드바, 배경색 강조)
-export const AdminSidebarMenuItemDesktop: React.FC<AdminSidebarMenuItemProps> = ({
+export const AdminSidebarMenuItemDesktop = ({
   href,
   iconSrc,
   label,
   active = false,
   className,
-}) => (
+}: AdminSidebarMenuItemProps) => (
   <Link
     href={href}
     className={clsx(
@@ -88,7 +88,7 @@ export const AdminSidebarMenuItemDesktop: React.FC<AdminSidebarMenuItemProps> = 
     )}
   >
     <div className="w-25 h-25 flex items-center justify-center">
-      <img src={iconSrc} alt="" className="w-20 h-20" aria-hidden="true" />
+      <Image src={iconSrc} alt="" width={20} height={20} aria-hidden="true" />
     </div>
     <span className="text-16 font-medium">{label}</span>
   </Link>
