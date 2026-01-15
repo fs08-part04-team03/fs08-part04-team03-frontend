@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 import { clsx } from '@/utils/clsx';
 import GNBBrand from '@/components/molecules/GNBBrand/GNBBrand';
 import { AuthUserActions } from '@/components/molecules/AuthUserActions/AuthUserActions';
@@ -10,7 +8,7 @@ interface AuthHeaderProps {
   className?: string;
 }
 
-const AuthHeader: React.FC<AuthHeaderProps> = ({ className }) => (
+const AuthHeader = ({ className }: AuthHeaderProps) => (
   <div
     className={clsx(
       'auth-header-container',

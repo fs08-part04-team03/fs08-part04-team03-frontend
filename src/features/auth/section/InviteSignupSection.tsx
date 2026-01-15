@@ -39,7 +39,7 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
     },
   });
 
-  const onSubmit = async (values: InviteSignupInput): Promise<void> => {
+  const onSubmit = (values: InviteSignupInput): void => {
     inviteSignupMutation.mutate(
       {
         email: values.email,
@@ -47,12 +47,21 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
         inviteToken: token,
       },
       {
-        onSuccess: async (data) => {
+        onSuccess: (data) => {
           const { user, accessToken } = data;
 
           // 이미지 파일이 있으면 회원가입 후 프로필 이미지 업데이트
           if (selectedFile) {
-            await updateProfileImage(selectedFile, accessToken);
+            updateProfileImage(selectedFile, accessToken)
+              .then(() => {
+                redirectToProducts(user);
+              })
+              .catch((error) => {
+                // eslint-disable-next-line no-console
+                console.error('프로필 이미지 업로드 실패:', error);
+                redirectToProducts(user);
+              });
+            return;
           }
 
           redirectToProducts(user);

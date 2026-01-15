@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
 import { PATHNAME } from '@/constants';
@@ -32,7 +32,7 @@ import GNB from './GNB';
  * - 로그아웃 핸들러
  * - Cart count, User profile 등 데이터 주입
  */
-export const GNBWrapper: React.FC = () => {
+export const GNBWrapper = () => {
   const { user, accessToken, clearAuth } = useAuthStore();
   const router = useRouter();
   const params = useParams();

@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { clsx } from '@/utils/clsx';
@@ -22,7 +22,7 @@ const AUTH_HEADER_MATCHERS = [
 
 const HIDDEN_HEADER_ROUTES: RegExp[] = [];
 
-export const HeaderShell: React.FC<HeaderShellProps> = ({ className }) => {
+export const HeaderShell = ({ className }: HeaderShellProps) => {
   const pathname = usePathname();
 
   const isAuthRoute = useMemo(() => {

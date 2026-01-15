@@ -48,8 +48,8 @@ export const Approve: Story = {
     items: sampleItems,
     deliveryFee: 3000,
     budget: 120000,
-    onClose: () => alert('모달 닫기 클릭됨'),
-    onSubmit: () => alert('승인하기 클릭됨'),
+    onClose: () => {},
+    onSubmit: () => {},
   },
 };
 
@@ -64,7 +64,7 @@ export const Reject: Story = {
     items: sampleItems,
     deliveryFee: 3000,
     budget: 120000,
-    onClose: () => alert('모달 닫기 클릭됨'),
-    onSubmit: () => alert('반려하기 클릭됨'),
+    onClose: () => {},
+    onSubmit: () => {},
   },
 };

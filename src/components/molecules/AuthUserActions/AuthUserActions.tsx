@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -33,7 +32,7 @@ export interface AuthUserActionsDesktopProps {
 }
 
 // Mobile Component
-export const AuthUserActionsMobile: React.FC<AuthUserActionsMobileProps> = ({ className }) => {
+export const AuthUserActionsMobile = ({ className }: AuthUserActionsMobileProps) => {
   const pathname = usePathname();
   const isLoginPage = pathname?.startsWith('/login');
   const isSignupPage = pathname?.startsWith('/signup');
@@ -67,7 +66,7 @@ export const AuthUserActionsMobile: React.FC<AuthUserActionsMobileProps> = ({ cl
 };
 
 // Tablet Component
-export const AuthUserActionsTablet: React.FC<AuthUserActionsTabletProps> = ({ className }) => {
+export const AuthUserActionsTablet = ({ className }: AuthUserActionsTabletProps) => {
   const pathname = usePathname();
   const isLoginPage = pathname?.startsWith('/login');
   const isSignupPage = pathname?.startsWith('/signup');
@@ -101,7 +100,7 @@ export const AuthUserActionsTablet: React.FC<AuthUserActionsTabletProps> = ({ cl
 };
 
 // Desktop Component
-export const AuthUserActionsDesktop: React.FC<AuthUserActionsDesktopProps> = ({ className }) => {
+export const AuthUserActionsDesktop = ({ className }: AuthUserActionsDesktopProps) => {
   const pathname = usePathname();
   const isLoginPage = pathname?.startsWith('/login');
   const isSignupPage = pathname?.startsWith('/signup');
@@ -147,7 +146,7 @@ export interface AuthUserActionsProps {
  * - 태블릿: 로그인, 기업 담당자 회원가입
  * - 데스크탑: 로그인, 기업 담당자 회원가입
  */
-export const AuthUserActions: React.FC<AuthUserActionsProps> = ({ className }) => (
+export const AuthUserActions = ({ className }: AuthUserActionsProps) => (
   <>
     {/* 모바일 */}
     <div className={clsx('tablet:hidden', className)}>

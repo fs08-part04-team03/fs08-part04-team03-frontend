@@ -30,7 +30,7 @@ interface OrderCompletedSummaryOrgProps {
 
 const MAX_LENGTH = 50;
 
-const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
+const OrderCompletedSummaryOrg = ({
   cartRole,
   userType = 'default',
   items,
@@ -39,7 +39,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
   onGoCart,
   onGoOrderHistory,
   onPurchaseRequest,
-}) => {
+}: OrderCompletedSummaryOrgProps) => {
   const isUser = cartRole === 'user';
   const isRequestUser = isUser && userType === 'request';
   const isDefaultUser = isUser && userType === 'default';
@@ -121,7 +121,7 @@ const OrderCompletedSummaryOrg: React.FC<OrderCompletedSummaryOrgProps> = ({
                 unitPrice={item.unitPrice}
                 quantity={item.quantity}
                 imageSrc={item.imageSrc}
-                productId={item.id} // ✅ 상품 상세 페이지 이동을 위한 productId 전달
+                productId={item.id} // 상품 상세 페이지 이동을 위한 productId 전달
               />
             ))}
           </div>

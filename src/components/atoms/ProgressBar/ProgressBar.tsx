@@ -9,12 +9,7 @@ export interface ProgressBarProps {
   className?: string; // 컨테이너 width를 조절하기 위한 className
 }
 
-const ProgressBar: React.FC<ProgressBarProps> = ({
-  value,
-  currentBudget,
-  lastBudget,
-  className,
-}) => {
+const ProgressBar = ({ value, currentBudget, lastBudget, className }: ProgressBarProps) => {
   // NaN, undefined, null 체크 및 기본값 0 처리
   const safeCurrentBudget = Number.isFinite(currentBudget) ? currentBudget : 0;
   const safeLastBudget = Number.isFinite(lastBudget) ? lastBudget : 0;

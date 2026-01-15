@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { clsx } from '@/utils/clsx';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
+import type { ReactNode } from 'react';
+import Image from 'next/image';
 
 export interface SideBarMenuProps {
   /** 사이드바 열림/닫힘 상태 */
@@ -13,7 +15,7 @@ export interface SideBarMenuProps {
   onClose: () => void;
 
   /** 사이드바 내부 컨텐츠 */
-  children: React.ReactNode;
+  children: ReactNode;
 
   /** 추가 스타일링용 className */
   className?: string;
@@ -86,7 +88,7 @@ export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuP
             onClick={onClose}
             className="text-gray-500 hover:text-gray-900"
           >
-            <img src="/icons/close-white.svg" alt="" className="w-24 h-24" aria-hidden="true" />
+            <Image src="/icons/close-white.svg" alt="" width={24} height={24} aria-hidden="true" />
           </IconButton>
         </div>
 

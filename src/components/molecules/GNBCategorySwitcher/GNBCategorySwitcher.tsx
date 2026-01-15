@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-
+import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import type { ParentCategoryKey, CategorySection } from '@/constants';
 import type { GNBCategorySwitcherProps } from './GNBCategorySwitcherProps';
 
-export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
+export const GNBCategorySwitcher = ({
   categories,
   categorySections,
   sectionIdByParentKey,
@@ -16,7 +16,7 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
   onCategoryChange,
   onSubCategoryChange,
   className,
-}) => {
+}: GNBCategorySwitcherProps) => {
   const sections = useMemo<CategorySection[]>(() => categorySections ?? [], [categorySections]);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -199,10 +199,12 @@ export const GNBCategorySwitcher: React.FC<GNBCategorySwitcherProps> = ({
           aria-label="카테고리 선택"
         >
           <span>{activeOption.label}</span>
-          <img
+          <Image
             src="/icons/arrow-down.svg"
             alt=""
-            className={clsx('w-12 h-7 transition-transform duration-200', isOpen && 'rotate-180')}
+            width={12}
+            height={7}
+            className={clsx('transition-transform duration-200', isOpen && 'rotate-180')}
             aria-hidden="true"
           />
         </button>

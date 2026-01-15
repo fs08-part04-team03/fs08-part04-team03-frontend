@@ -31,7 +31,8 @@ const MyPurchaseRequestDetailTem = ({
   if (purchaseRequest.status === 'REJECTED' && purchaseRequest.rejectReason) {
     resultMessage = purchaseRequest.rejectReason;
   } else if (purchaseRequest.status === 'APPROVED') {
-    resultMessage = PURCHASE_RESULT_MESSAGES.APPROVED;
+    // reason이 있으면 사용, 없으면 기본 메시지
+    resultMessage = purchaseRequest.reason || PURCHASE_RESULT_MESSAGES.APPROVED;
   }
 
   const approvedInfo = {

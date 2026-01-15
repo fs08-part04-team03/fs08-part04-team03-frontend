@@ -71,10 +71,10 @@ export const usePurchaseModalHandlers = ({
   );
 
   const handleApproveSubmit = useCallback(
-    (_message: string) => {
+    (message: string) => {
       if (!selectedRequestId) return;
       approveMutation.mutate(
-        { purchaseRequestId: selectedRequestId, companyId },
+        { purchaseRequestId: selectedRequestId, message, companyId },
         {
           onSuccess: () => {
             // 캐시 즉시 제거하여 최신 데이터 보장
