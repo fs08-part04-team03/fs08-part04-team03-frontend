@@ -76,14 +76,19 @@ const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionP
 
   // 승인 정보 변환
   const { status } = purchaseDetail;
+
+  let resultMessage: string;
+  if (status === 'APPROVED') {
+    resultMessage = purchaseDetail.reason || PURCHASE_HISTORY_MESSAGES.RESULT.APPROVED;
+  } else {
+    resultMessage = purchaseDetail.rejectReason || '';
+  }
+
   const approvedInfo = {
     approverName: purchaseDetail.approver?.name || '관리자',
     approvalDate: purchaseDetail.updatedAt,
     statusLabel: PURCHASE_REQUEST_STATUS_LABEL[status],
-    resultMessage:
-      status === 'APPROVED'
-        ? PURCHASE_HISTORY_MESSAGES.RESULT.APPROVED
-        : purchaseDetail.rejectReason || '',
+    resultMessage,
   };
 
   return (

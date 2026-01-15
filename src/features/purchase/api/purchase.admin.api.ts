@@ -202,18 +202,28 @@ export async function getPurchaseRequestDetail(
 }
 
 /**
+ * 구매 요청 승인 (관리자)
+ */
+export interface ApprovePurchaseRequestRequest {
+  message?: string;
+}
+
+/**
  * 관리자 권한으로 지정된 구매 요청을 승인합니다.
  *
  * @param purchaseRequestId - 승인할 구매 요청의 식별자
+ * @param request - 승인 메시지를 포함한 요청 본문 (선택적)
  * @returns 승인된 구매 요청의 상세 정보를 담은 `PurchaseRequestItem`
  */
 export async function approvePurchaseRequest(
-  purchaseRequestId: string
+  purchaseRequestId: string,
+  request?: ApprovePurchaseRequestRequest
 ): Promise<PurchaseRequestItem> {
   const result = await fetchWithAuth<PurchaseRequestItem>(
     `${PURCHASE_API_PATHS.ADMIN_APPROVE_PURCHASE_REQUEST}/${purchaseRequestId}`,
     {
       method: 'PATCH',
+      body: request ? JSON.stringify(request) : undefined,
     }
   );
 
