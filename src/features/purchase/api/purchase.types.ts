@@ -31,6 +31,7 @@ export interface PurchaseRequestItem {
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
   requestMessage?: string;
   rejectReason?: string;
+  reason?: string; // 승인 사유
   urgent?: boolean;
   purchaseItems: Array<{
     id: string;
