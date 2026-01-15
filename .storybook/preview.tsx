@@ -21,6 +21,10 @@ const preview: Preview = {
     },
     docs: {
       iframeHeight: 800,
+      description: {
+        component:
+          '전체 디자인 토큰 정보는 **Design System/Design Tokens** 페이지에서 확인할 수 있습니다.',
+      },
     },
     viewport: {
       viewports: {
