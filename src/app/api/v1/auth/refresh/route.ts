@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 응답 데이터 가져오기
-    const data = (await response.json()) as unknown;
+    const data: unknown = await response.json();
 
     // 응답 헤더에서 Set-Cookie가 있으면 전달 (여러 개일 수 있음)
     const headers = new Headers();
