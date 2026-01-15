@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
+import Image from 'next/image';
+import type { ReactNode } from 'react';
 import { clsx } from '@/utils/clsx';
 import { PATHNAME } from '@/constants';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
@@ -37,7 +38,7 @@ export interface GNBUserActionsMobileProps extends GNBUserActionsBaseProps {
  */
 export interface GNBUserActionsTabletProps extends GNBUserActionsBaseProps {
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
-  userProfile?: React.ReactNode;
+  userProfile?: ReactNode;
 
   /** 햄버거 메뉴 클릭 시 호출되는 콜백 */
   onMenuClick?: () => void;
@@ -49,7 +50,7 @@ export interface GNBUserActionsTabletProps extends GNBUserActionsBaseProps {
  */
 export interface GNBUserActionsDesktopProps extends GNBUserActionsBaseProps {
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
-  userProfile?: React.ReactNode;
+  userProfile?: ReactNode;
 
   /** 로그아웃 클릭 시 호출되는 콜백 */
   onLogout?: () => void;
@@ -75,7 +76,7 @@ export const GNBUserActionsMobile = ({
         className="flex items-center justify-center"
         onClick={onMenuClick}
       >
-        <img src="/icons/hamburger.svg" alt="" className="w-20 h-20" aria-hidden="true" />
+        <Image src="/icons/hamburger.svg" alt="" width={20} height={20} aria-hidden="true" />
       </IconButton>
     )}
   </div>
@@ -105,7 +106,7 @@ export const GNBUserActionsTablet = ({
         className="flex items-center justify-center"
         onClick={onMenuClick}
       >
-        <img src="/icons/hamburger.svg" alt="" className="w-20 h-20" aria-hidden="true" />
+        <Image src="/icons/hamburger.svg" alt="" width={20} height={20} aria-hidden="true" />
       </IconButton>
     )}
   </div>
@@ -151,13 +152,12 @@ export const GNBUserActionsDesktop = ({
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary'
         )}
       >
-        <img
+        <Image
           src={wishlistIconSrc}
           alt=""
-          className={clsx(
-            'w-24 h-24 transition-transform duration-300 ease-out',
-            isAnimating && 'scale-125'
-          )}
+          width={24}
+          height={24}
+          className={clsx('transition-transform duration-300 ease-out', isAnimating && 'scale-125')}
           aria-hidden="true"
         />
       </Link>
@@ -194,7 +194,7 @@ export interface GNBUserActionsProps {
   companyId: string;
 
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 (태블릿/데스크탑에서만 사용) */
-  userProfile?: React.ReactNode;
+  userProfile?: ReactNode;
 
   /** 장바구니에 담긴 상품 개수 */
   cartCount?: number;
