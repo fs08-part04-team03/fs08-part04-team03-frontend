@@ -1,21 +1,21 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-
+import type { ReactNode } from 'react';
 import { hasAccess, extractCompanyId, ROLE_LEVEL } from '@/utils/auth';
 import { PATHNAME } from '@/constants';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { UserRole } from '@/constants/roles';
 
 interface RoleGuardProps {
-  children: React.ReactNode;
+  children: ReactNode;
   /** 이 컴포넌트에 필요한 최소 역할 (명시적 최소 권한 체크) */
   requiredRole?: UserRole;
-  fallback?: React.ReactNode;
+  fallback?: ReactNode;
 }
 
-export const RoleGuard: React.FC<RoleGuardProps> = ({ children, requiredRole, fallback }) => {
+export const RoleGuard = ({ children, requiredRole, fallback }: RoleGuardProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const { user, accessToken, isHydrated } = useAuthStore();
