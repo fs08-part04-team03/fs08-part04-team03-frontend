@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
