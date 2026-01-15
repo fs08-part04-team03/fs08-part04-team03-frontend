@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 
 import { clsx } from '@/utils/clsx';
@@ -20,7 +21,7 @@ export interface GNBProps {
   role: UserRole;
 
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
-  userProfile?: React.ReactNode;
+  userProfile?: ReactNode;
 
   /** 장바구니에 담긴 상품 개수 */
   cartCount?: number;
@@ -61,7 +62,7 @@ export interface GNBProps {
  *
  * 반응형 전역 네비게이션 바 컴포넌트
  */
-const GNB: React.FC<GNBProps> = ({
+const GNB = ({
   role,
   userProfile,
   cartCount = 0,
@@ -75,7 +76,7 @@ const GNB: React.FC<GNBProps> = ({
   onCategoryChange,
   onSubCategoryChange,
   className,
-}) => {
+}: GNBProps) => {
   const params = useParams();
   const pathname = usePathname();
   const companyId = (params?.companyId as string) || '';
