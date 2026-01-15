@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
-
+import { useState } from 'react';
+import Image from 'next/image';
 import { PATHNAME } from '@/constants';
 import { clsx } from '@/utils/clsx';
 
@@ -16,13 +16,13 @@ import type { CartButtonProps } from './CartButtonProps';
  * - 숫자 폰트: 9px, text-gray-950
  * - 아이콘 크기: 24px
  */
-export const CartButton: React.FC<CartButtonProps> = ({
+export const CartButton = ({
   companyId,
   count,
   className,
   onClick,
   ariaLabel,
-}) => {
+}: CartButtonProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const href = PATHNAME.CART(companyId);
   const displayCount = count < 0 ? 0 : count;
@@ -51,13 +51,12 @@ export const CartButton: React.FC<CartButtonProps> = ({
       )}
     >
       <div className="relative inline-flex items-center justify-center">
-        <img
+        <Image
           src="/icons/cart.svg"
           alt=""
-          className={clsx(
-            'w-24 h-24 transition-transform duration-300 ease-out',
-            isAnimating && 'scale-125'
-          )}
+          width={24}
+          height={24}
+          className={clsx('transition-transform duration-300 ease-out', isAnimating && 'scale-125')}
           aria-hidden="true"
         />
 

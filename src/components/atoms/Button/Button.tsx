@@ -6,7 +6,7 @@ import { clsx } from '@/utils/clsx';
 type ButtonVariant = 'primary' | 'secondary' | 'signup';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-// ✨ type 허용: 'button' | 'submit' | 'reset'
+// type 허용: 'button', 'submit', 'reset'
 export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'disabled'> {
   type?: 'button' | 'submit' | 'reset';
   variant?: ButtonVariant;

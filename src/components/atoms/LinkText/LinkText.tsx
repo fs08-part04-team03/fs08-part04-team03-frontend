@@ -17,7 +17,7 @@ export interface LinkTextProps {
  * URL을 도메인까지만 표시하고 클릭 시 모달을 띄워 확인 후 이동하는 컴포넌트
  * 예: https://www.codeit.com/products → www.codeit.com
  */
-export const LinkText: React.FC<LinkTextProps> = ({ url, className, clickable = true }) => {
+export const LinkText = ({ url, className, clickable = true }: LinkTextProps) => {
   const [linkModalOpen, setLinkModalOpen] = useState(false);
 
   // URL을 .com/까지 표시하는 함수 (https:// 제거)

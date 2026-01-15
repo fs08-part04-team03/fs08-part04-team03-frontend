@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
 import { PATHNAME } from '@/constants';
+import Image from 'next/image';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import Button from '@/components/atoms/Button/Button';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
@@ -24,14 +25,14 @@ interface ProductImageProps {
   shouldShowImage: boolean;
 }
 
-const ProductImage: React.FC<ProductImageProps> = ({
+const ProductImage = ({
   imageSrc,
   name,
   productId,
   onProductClick,
   onImageError,
   shouldShowImage,
-}) => {
+}: ProductImageProps) => {
   const containerClassName = clsx(
     'relative overflow-hidden rounded-8 bg-gray-50',
     'w-85 h-85',
@@ -42,22 +43,26 @@ const ProductImage: React.FC<ProductImageProps> = ({
 
   const imageContent = shouldShowImage ? (
     <div className="absolute inset-0 flex items-center justify-center">
-      <img
-        src={imageSrc}
-        alt={name}
-        className="max-w-full max-h-full w-auto h-auto object-contain"
-        onError={onImageError}
-      />
+      <div className="relative w-full h-full">
+        <Image
+          src={imageSrc!}
+          alt={name}
+          fill
+          className="object-contain"
+          onError={onImageError}
+          sizes="(max-width: 768px) 85px, 140px"
+        />
+      </div>
     </div>
   ) : (
     <div className="absolute inset-0 flex items-center justify-center">
-      <img
+      <Image
         src="/icons/photo-icon.svg"
         alt=""
         width={28}
         height={28}
         className="opacity-40 w-20 h-20 tablet:w-24 tablet:h-24 desktop:w-28 desktop:h-28"
-        loading="eager"
+        priority
       />
     </div>
   );
@@ -88,12 +93,7 @@ interface ProductNameProps {
   className?: string;
 }
 
-const ProductName: React.FC<ProductNameProps> = ({
-  name,
-  productId,
-  onProductClick,
-  className,
-}) => {
+const ProductName = ({ name, productId, onProductClick, className }: ProductNameProps) => {
   if (productId && onProductClick) {
     return (
       <button
@@ -128,7 +128,7 @@ export interface OrderItemCardProps {
   className?: string;
 }
 
-const OrderItemCard: React.FC<OrderItemCardProps> = ({
+const OrderItemCard = ({
   variant = 'default',
   name,
   unitPrice,
@@ -144,7 +144,7 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({
   purchaseButtonLabel = '즉시 구매',
   purchaseButtonDisabled,
   className,
-}) => {
+}: OrderItemCardProps) => {
   const router = useRouter();
   const params = useParams();
   // companyId가 배열인 경우 첫 번째 요소 사용, 문자열이면 그대로 사용

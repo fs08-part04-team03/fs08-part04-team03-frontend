@@ -40,7 +40,7 @@ type InternalHeaderProps = Pick<
 
 // --- Mobile / Tablet / Desktop ---
 // UI 그대로, ItemMenu onClick만 수정
-const ProductDetailHeaderMobile: React.FC<InternalHeaderProps> = ({
+const ProductDetailHeaderMobile = ({
   productName,
   purchaseCount,
   price,
@@ -49,7 +49,7 @@ const ProductDetailHeaderMobile: React.FC<InternalHeaderProps> = ({
   onAddToCart,
   quantity,
   shouldShowItemMenu,
-}) => (
+}: InternalHeaderProps) => (
   <div className="flex tablet:hidden w-full">
     <div className="flex w-full flex-col gap-8">
       <div className="flex items-start justify-between gap-8">
@@ -88,7 +88,7 @@ const ProductDetailHeaderMobile: React.FC<InternalHeaderProps> = ({
   </div>
 );
 
-const ProductDetailHeaderTablet: React.FC<InternalHeaderProps> = ({
+const ProductDetailHeaderTablet = ({
   productName,
   purchaseCount,
   price,
@@ -97,7 +97,7 @@ const ProductDetailHeaderTablet: React.FC<InternalHeaderProps> = ({
   onAddToCart,
   quantity,
   shouldShowItemMenu,
-}) => (
+}: InternalHeaderProps) => (
   <div className="hidden tablet:flex desktop:hidden w-full">
     <div className="flex w-full flex-col gap-8">
       <div className="flex items-start justify-between gap-8">
@@ -131,7 +131,7 @@ const ProductDetailHeaderTablet: React.FC<InternalHeaderProps> = ({
   </div>
 );
 
-const ProductDetailHeaderDesktop: React.FC<InternalHeaderProps> = ({
+const ProductDetailHeaderDesktop = ({
   productName,
   purchaseCount,
   price,
@@ -140,7 +140,7 @@ const ProductDetailHeaderDesktop: React.FC<InternalHeaderProps> = ({
   onAddToCart,
   quantity,
   shouldShowItemMenu,
-}) => (
+}: InternalHeaderProps) => (
   <div className="hidden desktop:flex w-full">
     <div className="flex w-full flex-col gap-8">
       <div className="flex items-start justify-between gap-8">
@@ -175,7 +175,7 @@ const ProductDetailHeaderDesktop: React.FC<InternalHeaderProps> = ({
 );
 
 // --- Container ---
-const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
+const ProductDetailHeader = ({
   productName,
   purchaseCount,
   price,
@@ -184,7 +184,7 @@ const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
   onMenuClick,
   onAddToCart,
   className = '',
-}) => {
+}: ProductDetailHeaderProps) => {
   const [quantity, setQuantity] = useState(1);
   const { user } = useAuthStore();
 

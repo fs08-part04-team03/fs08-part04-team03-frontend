@@ -37,9 +37,9 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
   // 사용자 목록이 없을 때
   if (users.length === 0) {
     return (
-      <div className="w-full flex-1 flex flex-col items-center justify-center min-h-[400px]">
+      <div className="w-full flex-1 flex flex-col items-center justify-center min-h-400">
         <div className="flex flex-col items-center gap-24">
-          <div className="w-[36px] h-[43px] relative opacity-50">
+          <div className="w-36 h-43 relative opacity-50">
             <Image src="/icons/book.svg" alt="empty" fill className="object-contain" unoptimized />
           </div>
           <div className="flex flex-col items-center gap-8">
@@ -57,10 +57,10 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
     <div className="w-full">
       {/* Desktop/tablet용 헤더 */}
       <div className="hidden tablet:flex items-center w-full px-20 border-b border-gray-100 py-20 gap-20 desktop:gap-32">
-        <div className="w-[150px] shrink-0 text-16 font-bold text-[#878787]">이름</div>
-        <div className="flex-1 text-16 font-bold text-[#878787]">메일</div>
-        <div className="w-[72px] text-center text-16 font-bold text-[#878787]">권한</div>
-        <div className="w-[200px] text-center text-16 font-bold text-[#878787]">비고</div>
+        <div className="w-150 shrink-0 text-16 font-bold text-gray-500">이름</div>
+        <div className="flex-1 text-16 font-bold text-gray-500">메일</div>
+        <div className="w-72 text-center text-16 font-bold text-gray-500">권한</div>
+        <div className="w-200 text-center text-16 font-bold text-gray-500">비고</div>
       </div>
 
       {/* 리스트 아이템 */}
@@ -68,7 +68,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
         {users.map((user) => (
           <div key={user.id} className="contents">
             {/* Mobile View */}
-            <div className="flex tablet:hidden w-full max-w-[327px] py-16 gap-12 border-b border-gray-100 relative">
+            <div className="flex tablet:hidden w-full max-w-327 py-16 gap-12 border-b border-gray-100 relative">
               {/* Avatar */}
               <div className="flex justify-center items-center w-48 h-48 shrink-0 rounded-100 bg-gray-50">
                 <Avatar size={32} alt={user.name} src={user.avatarUrl} />
@@ -82,7 +82,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
                   </span>
                   <RoleBadge role={getBadgeRole(user.role)}>{getRoleLabel(user.role)}</RoleBadge>
                 </div>
-                <span className="w-[172px] text-gray-950 text-16 font-normal tracking-tight truncate">
+                <span className="w-172 text-gray-950 text-16 font-normal tracking-tight truncate">
                   {user.email}
                 </span>
               </div>
@@ -100,7 +100,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
                 </button>
 
                 {openMenuId === user.id && (
-                  <div className="absolute right-0 top-full mt-0 bg-white border border-gray-100 rounded-md shadow-lg z-[var(--z-dropdown)] w-fit whitespace-nowrap">
+                  <div className="absolute right-0 top-full mt-0 bg-white border border-gray-100 rounded-md shadow-lg z-dropdown w-fit whitespace-nowrap">
                     <button
                       type="button"
                       className="w-full px-16 py-12 text-left text-gray-950 text-16 font-normal tracking-tight hover:bg-gray-50"
@@ -119,33 +119,33 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
             {/* Desktop/Tablet View */}
             <div className="hidden tablet:flex items-center w-full h-100 px-20 border-b border-[#E6E6E6] bg-white gap-20 desktop:gap-32">
               {/* 이름/아바타 */}
-              <div className="flex items-center gap-12 w-[150px] shrink-0">
+              <div className="flex items-center gap-12 w-150 shrink-0">
                 <Avatar size={32} alt={user.name} src={user.avatarUrl} />
-                <span className="font-normal text-[#222] text-16 truncate">{user.name}</span>
+                <span className="font-normal text-gray-950 text-16 truncate">{user.name}</span>
               </div>
 
               {/* 메일 */}
-              <div className="flex-1 min-w-0 text-[#222] text-16 font-normal truncate">
+              <div className="flex-1 min-w-0 text-gray-950 text-16 font-normal truncate">
                 {user.email}
               </div>
 
               {/* 권한 */}
-              <div className="w-[72px] shrink-0 flex justify-center">
+              <div className="w-72 shrink-0 flex justify-center">
                 <RoleBadge role={getBadgeRole(user.role)}>{getRoleLabel(user.role)}</RoleBadge>
               </div>
 
               {/* 비고 */}
-              <div className="w-[200px] shrink-0 flex justify-center gap-8">
+              <div className="w-200 shrink-0 flex justify-center gap-8">
                 <Button
                   variant="secondary"
-                  className="!px-12 !py-8 !text-16 !font-normal !text-gray-900 !bg-white !border !border-gray-300 !rounded-[2px] hover:!bg-gray-50 transition-colors whitespace-nowrap !h-auto"
+                  className="!px-12 !py-8 !text-16 !font-normal !text-gray-900 !bg-white !border !border-gray-300 !rounded-default hover:!bg-gray-50 transition-colors whitespace-nowrap !h-auto"
                   onClick={() => onRoleChange(user.id)}
                 >
                   권한 변경
                 </Button>
                 <Button
                   variant="primary"
-                  className="!px-12 !py-8 !text-16 !font-normal !text-white !bg-red !rounded-[2px] hover:!opacity-90 transition-opacity whitespace-nowrap !h-auto"
+                  className="!px-12 !py-8 !text-16 !font-normal !text-white !bg-red !rounded-default hover:!opacity-90 transition-opacity whitespace-nowrap !h-auto"
                   onClick={() => onDelete(user.id)}
                 >
                   계정 탈퇴

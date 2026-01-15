@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import { getParentById, getChildById } from '@/constants/categories/categories.utils';
 
@@ -60,7 +61,8 @@ export const MobileCategoryBar = ({ categoryId, onClick, className }: MobileCate
         )}
       >
         <span>{displayText}</span>
-        <img src="/icons/arrow-down.svg" alt="" className="w-12 h-12" aria-hidden="true" />
+
+        <Image src="/icons/arrow-down.svg" alt="" width={12} height={12} aria-hidden="true" />
       </button>
     </div>
   );
