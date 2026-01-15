@@ -13,20 +13,39 @@ const LandingTem = ({ marqueeItems }: LandingTemProps) => (
     <LandingHero />
     {/* 반응형 이미지 (mobile, tablet, desktop에 따라 다른 이미지 사용) */}
     <div className="w-full flex justify-center px-4 pb-20">
-      <picture>
-        <source media="(min-width: 1024px)" srcSet="/images/landing-desktop.svg" />
-        <source media="(min-width: 768px)" srcSet="/images/landing-tablet.svg" />
-        <Image
-          src="/images/landing-mobile.svg"
-          alt="Snack App Interface"
-          className="
-                w-full 
-                max-w-375 tablet:max-w-768 desktop:max-w-1240
-                h-auto object-cover"
-          width={1240}
-          height={100}
-        />
-      </picture>
+      <Image
+        src="/images/landing-mobile.svg"
+        alt="Snack App Interface"
+        className="
+              w-full 
+              max-w-375 tablet:max-w-768 desktop:max-w-1240
+              h-auto object-cover
+              block tablet:hidden"
+        width={375}
+        height={100}
+      />
+      <Image
+        src="/images/landing-tablet.svg"
+        alt="Snack App Interface"
+        className="
+              w-full 
+              max-w-768
+              h-auto object-cover
+              hidden tablet:block desktop:hidden"
+        width={768}
+        height={100}
+      />
+      <Image
+        src="/images/landing-desktop.svg"
+        alt="Snack App Interface"
+        className="
+              w-full 
+              max-w-1240
+              h-auto object-cover
+              hidden desktop:block"
+        width={1240}
+        height={100}
+      />
     </div>
     <div className="fixed bottom-0 w-full -z-toast">
       <LandingMarqueeOrgn items={marqueeItems} />

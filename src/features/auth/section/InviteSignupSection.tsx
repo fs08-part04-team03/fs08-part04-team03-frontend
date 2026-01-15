@@ -56,7 +56,9 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
               .then(() => {
                 redirectToProducts(user);
               })
-              .catch(() => {
+              .catch((error) => {
+                // eslint-disable-next-line no-console
+                console.error('프로필 이미지 업로드 실패:', error);
                 redirectToProducts(user);
               });
             return;
