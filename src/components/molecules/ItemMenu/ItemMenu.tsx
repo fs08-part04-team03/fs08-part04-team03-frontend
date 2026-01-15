@@ -9,7 +9,7 @@ interface ItemMenuProps {
   onClick?: (action: 'edit' | 'delete') => void;
 }
 
-const ItemMenu: React.FC<ItemMenuProps> = ({ onClick }) => {
+const ItemMenu = ({ onClick }: ItemMenuProps) => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);

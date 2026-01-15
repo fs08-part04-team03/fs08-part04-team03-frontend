@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, KeyboardEvent, useEffect } from 'react';
+import { useState, KeyboardEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import ProductTile from '@/components/molecules/ProductTile/ProductTile';
@@ -29,7 +29,7 @@ interface BaseProductCardProps {
   priority?: boolean;
 }
 
-const ProductCard: React.FC<BaseProductCardProps> = ({
+const ProductCard = ({
   variant = 'product',
   name,
   price,
@@ -43,7 +43,7 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   liked: externalLiked,
   onToggleLike,
   priority = false,
-}) => {
+}: BaseProductCardProps) => {
   const [internalLiked, setInternalLiked] = useState(variant === 'wishlist');
   const [pressed, setPressed] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -118,14 +118,15 @@ const ProductCard: React.FC<BaseProductCardProps> = ({
   let imageContent;
   if (shouldShowImage) {
     imageContent = (
-      <img
-        src={effectiveImageUrl || undefined}
+      <Image
+        src={effectiveImageUrl}
         alt={name}
-        className="max-w-full max-h-full w-auto h-auto object-contain"
+        fill
+        sizes={imageSizes}
+        className="object-contain"
         onError={() => setImgError(true)}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding="async"
-        fetchPriority={priority ? 'high' : 'auto'}
+        priority={priority}
+        unoptimized
       />
     );
   } else {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { clsx } from '@/utils/clsx';
@@ -19,7 +19,7 @@ export interface OrderItemDetailCardProps {
 }
 
 // 모바일 버전
-export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
+export const OrderItemDetailCardMobile = ({
   name,
   unitPrice,
   quantity,
@@ -28,7 +28,7 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
   productId,
   companyId,
   onProductClick,
-}) => {
+}: OrderItemDetailCardProps) => {
   const router = useRouter();
   const effectiveImageSrc = imageSrc;
 
@@ -70,12 +70,17 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
           <div className="relative overflow-hidden rounded-8 bg-gray-50 w-85 h-85 shrink-0">
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <img
-                  src={effectiveImageSrc}
-                  alt={name}
-                  className="max-w-full max-h-full w-auto h-auto object-contain"
-                  onError={() => setImageError(true)}
-                />
+                <div className="flex items-center justify-center w-full h-full p-10">
+                  <Image
+                    src={effectiveImageSrc}
+                    alt={name}
+                    width={140}
+                    height={140}
+                    className="object-contain max-w-full max-h-full"
+                    onError={() => setImageError(true)}
+                    sizes="(max-width: 768px) 85px, 140px"
+                  />
+                </div>
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -120,7 +125,7 @@ export const OrderItemDetailCardMobile: React.FC<OrderItemDetailCardProps> = ({
 };
 
 // 태블릿 버전
-export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
+export const OrderItemDetailCardTablet = ({
   name,
   unitPrice,
   quantity,
@@ -129,7 +134,7 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
   productId,
   companyId,
   onProductClick,
-}) => {
+}: OrderItemDetailCardProps) => {
   const router = useRouter();
   const effectiveImageSrc = imageSrc;
 
@@ -171,12 +176,17 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
           <div className="relative overflow-hidden rounded-8 bg-gray-50 w-140 h-140 shrink-0">
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <img
-                  src={effectiveImageSrc}
-                  alt={name}
-                  className="max-w-full max-h-full w-auto h-auto object-contain"
-                  onError={() => setImageError(true)}
-                />
+                <div className="flex items-center justify-center w-full h-full p-20">
+                  <Image
+                    src={effectiveImageSrc}
+                    alt={name}
+                    width={140}
+                    height={140}
+                    className="object-contain max-w-full max-h-full"
+                    onError={() => setImageError(true)}
+                    sizes="(max-width: 768px) 85px, 140px"
+                  />
+                </div>
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -227,7 +237,7 @@ export const OrderItemDetailCardTablet: React.FC<OrderItemDetailCardProps> = ({
 };
 
 // 데스크탑 버전
-export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
+export const OrderItemDetailCardDesktop = ({
   name,
   unitPrice,
   quantity,
@@ -236,7 +246,7 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
   productId,
   companyId,
   onProductClick,
-}) => {
+}: OrderItemDetailCardProps) => {
   const router = useRouter();
   const effectiveImageSrc = imageSrc;
 
@@ -278,12 +288,17 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
           <div className="relative overflow-hidden rounded-8 bg-gray-50 w-140 h-140 shrink-0">
             {shouldShowImage ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <img
-                  src={effectiveImageSrc}
-                  alt={name}
-                  className="max-w-full max-h-full w-auto h-auto object-contain"
-                  onError={() => setImageError(true)}
-                />
+                <div className="flex items-center justify-center w-full h-full p-20">
+                  <Image
+                    src={effectiveImageSrc}
+                    alt={name}
+                    width={140}
+                    height={140}
+                    className="object-contain max-w-full max-h-full"
+                    onError={() => setImageError(true)}
+                    sizes="(max-width: 768px) 85px, 140px"
+                  />
+                </div>
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -334,7 +349,7 @@ export const OrderItemDetailCardDesktop: React.FC<OrderItemDetailCardProps> = ({
 };
 
 // 메인 컴포넌트
-const OrderItemDetailCard: React.FC<OrderItemDetailCardProps> = ({
+const OrderItemDetailCard = ({
   name,
   unitPrice,
   quantity,
@@ -343,7 +358,7 @@ const OrderItemDetailCard: React.FC<OrderItemDetailCardProps> = ({
   productId,
   companyId,
   onProductClick,
-}) => (
+}: OrderItemDetailCardProps) => (
   <>
     <OrderItemDetailCardMobile
       name={name}
