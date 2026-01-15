@@ -19,7 +19,7 @@ const meta: Meta<typeof BudgetFormOrg> = {
     },
   },
   args: {
-    onSubmit: () => alert('수정하기 클릭됨'),
+    onSubmit: () => {},
   },
   parameters: {
     layout: 'centered',

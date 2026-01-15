@@ -11,9 +11,8 @@ const meta: Meta<typeof InviteMemberModal> = {
   },
   args: {
     open: true,
-    onClose: () => alert('닫기 클릭'),
-    onSubmit: (role: Option, name: string, email: string) =>
-      alert(`초대하기 클릭\nRole: ${role?.label ?? ''}\nName: ${name}\nEmail: ${email}`),
+    onClose: () => {},
+    onSubmit: (_role: Option, _name: string, _email: string) => {},
   },
   argTypes: {
     open: {
