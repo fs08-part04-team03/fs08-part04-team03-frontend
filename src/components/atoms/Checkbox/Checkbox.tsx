@@ -12,13 +12,13 @@ export interface CheckboxProps {
   'aria-label': string;
 }
 
-const Checkbox: React.FC<CheckboxProps> = ({
+const Checkbox = ({
   checked,
   onChange,
   disabled = false,
   className = '',
   'aria-label': ariaLabel,
-}) => {
+}: CheckboxProps) => {
   const id = useId();
 
   const toggle = () => {
@@ -30,7 +30,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
     <label
       htmlFor={id}
       className={clsx(
-        'relative mobile:w-20 mobile:h-20 tablet:w-24 tablet:h-24 flex items-center justify-center rounded-[var(--radius-default)] border transition-colors duration-200',
+        'relative mobile:w-20 mobile:h-20 tablet:w-24 tablet:h-24 flex items-center justify-center rounded-default border transition-colors duration-200',
         checked ? 'bg-gray-950 border-gray-950' : 'bg-white border-gray-950',
         disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
         className

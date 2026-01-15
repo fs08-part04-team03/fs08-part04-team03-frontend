@@ -134,7 +134,6 @@ export const UserRequest: Story = {
  * Manager
  ====================== */
 export const Manager: Story = {
-  name: 'Manager',
   args: {
     cartRole: 'manager',
     items: mockItems,
@@ -148,7 +147,6 @@ export const Manager: Story = {
  * Admin
  ====================== */
 export const Admin: Story = {
-  name: 'Admin',
   args: {
     cartRole: 'admin',
     items: mockItems,

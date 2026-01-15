@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import LandingHero from '../components/LandingHeroOrg/LandingHeroOrgn';
 import { LandingMarqueeOrgn, MarqueeItem } from '../components/LandingMarquee/LandingMarqueeOrgn';
 
@@ -15,17 +16,19 @@ const LandingTem = ({ marqueeItems }: LandingTemProps) => (
       <picture>
         <source media="(min-width: 1024px)" srcSet="/images/landing-desktop.svg" />
         <source media="(min-width: 768px)" srcSet="/images/landing-tablet.svg" />
-        <img
+        <Image
           src="/images/landing-mobile.svg"
           alt="Snack App Interface"
           className="
                 w-full 
                 max-w-375 tablet:max-w-768 desktop:max-w-1240
                 h-auto object-cover"
+          width={1240}
+          height={100}
         />
       </picture>
     </div>
-    <div className="fixed bottom-0 w-full z-[var(--z-toast)]">
+    <div className="fixed bottom-0 w-full -z-toast">
       <LandingMarqueeOrgn items={marqueeItems} />
     </div>
   </div>

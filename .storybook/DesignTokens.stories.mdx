@@ -1,0 +1,273 @@
+import { Meta } from '@storybook/nextjs';
+
+<Meta title="Design System/Design Tokens" />
+
+# 디자인 토큰
+
+이 문서는 프로젝트에서 사용하는 컬러, 타이포그래피, 스페이싱 등 디자인 토큰을 정의합니다.
+
+## 컬러 팔레트
+
+### Gray (Primary Colors)
+
+| Color | Hex | CSS Variable | Tailwind Class |
+|-------|-----|--------------|----------------|
+| Gray 25 | `#fafafa` | `--color-gray-25` | `gray-25` |
+| Gray 50 | `#f5f5f5` | `--color-gray-50` | `gray-50` |
+| Gray 100 | `#e5e5e5` | `--color-gray-100` | `gray-100` |
+| Gray 200 | `#d1d1d1` | `--color-gray-200` | `gray-200` |
+| Gray 300 | `#b3b3b3` | `--color-gray-300` | `gray-300` |
+| Gray 400 | `#9e9e9e` | `--color-gray-400` | `gray-400` |
+| Gray 500 | `#878787` | `--color-gray-500` | `gray-500` |
+| Gray 600 | `#696969` | `--color-gray-600` | `gray-600` |
+| Gray 700 | `#555555` | `--color-gray-700` | `gray-700` |
+| Gray 800 | `#3a3a3a` | `--color-gray-800` | `gray-800` |
+| Gray 900 | `#2e2e2e` | `--color-gray-900` | `gray-900` |
+| Gray 950 | `#222222` | `--color-gray-950` | `gray-950` |
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '12px', marginTop: '16px', marginBottom: '24px' }}>
+  <div>
+    <div style={{ backgroundColor: '#fafafa', height: '60px', border: '1px solid #e5e5e5', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600' }}>Gray 25</div>
+    <div style={{ fontSize: '11px', color: '#696969' }}>#fafafa</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#f5f5f5', height: '60px', border: '1px solid #e5e5e5', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600' }}>Gray 50</div>
+    <div style={{ fontSize: '11px', color: '#696969' }}>#f5f5f5</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#e5e5e5', height: '60px', border: '1px solid #e5e5e5', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600' }}>Gray 100</div>
+    <div style={{ fontSize: '11px', color: '#696969' }}>#e5e5e5</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#d1d1d1', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600' }}>Gray 200</div>
+    <div style={{ fontSize: '11px', color: '#696969' }}>#d1d1d1</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#b3b3b3', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600' }}>Gray 300</div>
+    <div style={{ fontSize: '11px', color: '#696969' }}>#b3b3b3</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#9e9e9e', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Gray 400</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#9e9e9e</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#878787', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Gray 500</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#878787</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#696969', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Gray 600</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#696969</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#555555', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Gray 700</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#555555</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#3a3a3a', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Gray 800</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#3a3a3a</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#2e2e2e', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Gray 900</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#2e2e2e</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#222222', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Gray 950</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#222222</div>
+  </div>
+</div>
+
+**CSS 변수:**
+- `--color-gray-25` ~ `--color-gray-950`
+
+**Tailwind 클래스:**
+- `bg-gray-25` ~ `bg-gray-950`
+- `text-gray-25` ~ `text-gray-950`
+- `border-gray-25` ~ `border-gray-950`
+
+### Secondary Colors
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '12px', marginTop: '16px', marginBottom: '24px' }}>
+  <div>
+    <div style={{ backgroundColor: '#f2f6ff', height: '60px', border: '1px solid #e5e5e5', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600' }}>Secondary 100</div>
+    <div style={{ fontSize: '11px', color: '#696969' }}>#f2f6ff</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#4c8ae1', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Secondary 500</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#4c8ae1</div>
+  </div>
+</div>
+
+**CSS 변수:**
+- `--color-secondary-100`
+- `--color-secondary-500`
+
+### Error Colors
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '12px', marginTop: '16px', marginBottom: '24px' }}>
+  <div>
+    <div style={{ backgroundColor: '#f31d1d', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Error 500</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#f31d1d</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#e9655e', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Red</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#e9655e</div>
+  </div>
+</div>
+
+**CSS 변수:**
+- `--color-error-500`
+- `--color-red`
+
+### 기타 Colors
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '12px', marginTop: '16px', marginBottom: '24px' }}>
+  <div>
+    <div style={{ backgroundColor: '#ffffff', height: '60px', border: '1px solid #e5e5e5', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600' }}>White</div>
+    <div style={{ fontSize: '11px', color: '#696969' }}>#ffffff</div>
+  </div>
+  <div>
+    <div style={{ backgroundColor: '#000000', height: '60px', borderRadius: '8px', marginBottom: '8px' }}></div>
+    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>Black</div>
+    <div style={{ fontSize: '11px', color: '#fff' }}>#000000</div>
+  </div>
+</div>
+
+## 타이포그래피
+
+### Font Family
+
+- **Primary Font**: `Suit` (Sans-serif)
+- **CSS 변수**: `--font-family-base`
+- **Tailwind 클래스**: `font-sans`
+
+### Font Sizes
+
+| Size | CSS Variable | Tailwind Class | Usage |
+|------|-------------|----------------|-------|
+| 8px | `--text-8` | `text-8` | - |
+| 10px | `--font-size-10` | `text-10` | - |
+| 12px | `--font-size-12` | `text-12` | 작은 라벨, 캡션 |
+| 13px | `--font-size-13` | `text-13` | - |
+| 14px | `--font-size-14` | `text-14` | 본문 (작은) |
+| 15px | `--text-15` | `text-15` | 본문 |
+| 16px | `--font-size-16` | `text-16` | 본문 (기본) |
+| 18px | `--font-size-18` | `text-18` | 부제목 |
+| 20px | `--font-size-20` | `text-20` | 부제목 (큰) |
+| 24px | `--font-size-24` | `text-24` | 제목 (작은) |
+| 30px | `--font-size-30` | `text-30` | 제목 |
+| 32px | `--font-size-32` | `text-32` | 제목 (큰) |
+| 40px | `--text-40` | `text-40` | - |
+| 44px | `--font-size-44` | `text-44` | 큰 제목 |
+| 50px | `--font-size-50` | `text-50` | 큰 제목 |
+
+### Font Weights
+
+- **Normal**: `font-normal` (400)
+- **Semibold**: `font-semibold` (600)
+
+### Line Height & Tracking
+
+- **Tracking**: `tracking--0.4` (자간 -0.4px)
+- **Line Height**: 기본값 사용
+
+## Spacing
+
+기본 spacing 단위는 1px입니다.
+
+**사용 가능한 Spacing:**
+- `0px` ~ `50px` (1px 단위)
+- `8px`, `12px`, `16px`, `20px`, `24px`, `32px`, `40px`, `48px`, `64px` 등
+
+**CSS 변수:**
+- `--spacing-0` ~ `--spacing-50`
+
+**Tailwind 클래스:**
+- `p-8`, `p-12`, `p-16`, `p-20` 등
+- `m-8`, `m-12`, `m-16`, `m-20` 등
+- `gap-8`, `gap-12`, `gap-16`, `gap-20` 등
+
+## Z-Index Layers
+
+| Layer | Value | CSS Variable | Usage |
+|-------|-------|--------------|-------|
+| Back | 0 | `--z-back` | 기본 레이어 |
+| Base | 1 | `--z-base` | 기본 콘텐츠 |
+| Dropdown | 10 | `--z-dropdown` | 드롭다운 메뉴 |
+| Tooltip | 20 | `--z-tooltip` | 툴팁 |
+| Modal | 30 | `--z-modal` | 모달 |
+| Modal Dropdown | 35 | `--z-modaldropdown` | 모달 내 드롭다운 |
+| Header | 40 | `--z-header` | 헤더/네비게이션 |
+| Toast | 50 | `--z-toast` | 토스트 메시지 |
+| Menu | 60 | `--z-menu` | 메뉴 |
+
+## Shadows
+
+| Shadow | CSS Variable | Usage |
+|--------|--------------|-------|
+| Toast | `--shadow-toast` | 토스트 메시지 |
+| Dropdown | `--shadow-dropdown` | 드롭다운 메뉴 |
+| Ambient | `--shadow-ambient` | 부드러운 그림자 |
+| Depth | `--shadow-depth` | 깊이감 있는 그림자 |
+| Card | `--shadow-card` | 카드 컴포넌트 |
+
+## 반응형 Breakpoints
+
+| Breakpoint | Width | CSS Variable | Tailwind Prefix |
+|------------|-------|--------------|-----------------|
+| Mobile | 0px | `--breakpoint-mobile` | 기본 (prefix 없음) |
+| Tablet | 744px | `--breakpoint-tablet` | `tablet:` |
+| Desktop | 1024px | `--breakpoint-desktop` | `desktop:` |
+
+## 사용 예시
+
+### 컬러 사용
+
+```tsx
+// CSS 변수 사용
+<div style={{ backgroundColor: 'var(--color-gray-50)' }}>Gray 50</div>
+
+// Tailwind 클래스 사용
+<div className="bg-gray-50 text-gray-950">Gray 50 Background</div>
+```
+
+### 타이포그래피 사용
+
+```tsx
+// CSS 변수 사용
+<p style={{ fontSize: 'var(--font-size-16)' }}>16px 텍스트</p>
+
+// Tailwind 클래스 사용
+<p className="text-16 font-sans">16px 텍스트</p>
+<h1 className="text-32 font-semibold">큰 제목</h1>
+```
+
+### Spacing 사용
+
+```tsx
+// Tailwind 클래스 사용
+<div className="p-16 m-20 gap-12">
+  <div className="p-8">Padding 8px</div>
+  <div className="p-16">Padding 16px</div>
+</div>
+```
+
+---
+
+**참고:** 모든 디자인 토큰은 `src/app/globals.css` 파일에 정의되어 있습니다.

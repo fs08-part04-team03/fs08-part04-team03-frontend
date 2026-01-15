@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 
 export interface Option {
@@ -24,7 +25,7 @@ export interface DropDownProps {
   inModal?: boolean;
 }
 
-const DropDown: React.FC<DropDownProps> = ({
+const DropDown = ({
   items,
   placeholder = '선택',
   variant,
@@ -35,7 +36,7 @@ const DropDown: React.FC<DropDownProps> = ({
   onSelect,
   selected: externalSelected,
   inModal = false,
-}) => {
+}: DropDownProps) => {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selected, setSelected] = useState<Option | null>(externalSelected ?? null);
@@ -150,10 +151,12 @@ const DropDown: React.FC<DropDownProps> = ({
           {selected ? selected.label : placeholder}
         </span>
 
-        <img
+        <Image
           src="/icons/arrow-down.svg"
           alt=""
           aria-hidden
+          width={12}
+          height={12}
           className={clsx('w-12 h-12 transition-transform duration-200', open && 'rotate-180')}
         />
       </button>

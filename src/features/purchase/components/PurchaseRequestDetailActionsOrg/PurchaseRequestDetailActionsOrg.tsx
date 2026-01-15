@@ -161,7 +161,9 @@ const PurchaseRequestDetailActionsOrg = ({
             : PURCHASE_LABELS.BUTTONS.ADD_TO_CART
         }
         secondaryLabel={PURCHASE_LABELS.BUTTONS.GO_TO_LIST}
-        onPrimaryClick={handleAddToCart}
+        onPrimaryClick={() => {
+          Promise.resolve(handleAddToCart()).catch(() => {});
+        }}
         onSecondaryClick={handleGoToList}
         isPrimaryDisabled={isDisabled}
       />

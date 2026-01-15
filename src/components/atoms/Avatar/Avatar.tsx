@@ -30,7 +30,7 @@ const bgColorClass: Record<AvatarBgColor, string> = {
   'gray-50': 'bg-gray-50',
 };
 
-export const Avatar: React.FC<AvatarProps> = ({
+export const Avatar = ({
   src,
   alt = 'avatar',
   name,
@@ -45,7 +45,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   id,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
-}) => {
+}: AvatarProps) => {
   const effectiveSrc = src;
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -59,9 +59,11 @@ export const Avatar: React.FC<AvatarProps> = ({
   const renderContent = () => {
     if (effectiveSrc) {
       return (
-        <img
+        <Image
           src={effectiveSrc}
           alt={alt}
+          width={size}
+          height={size}
           className="h-full w-full object-cover rounded-full aspect-square"
         />
       );

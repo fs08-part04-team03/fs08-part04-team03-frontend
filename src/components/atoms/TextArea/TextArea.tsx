@@ -19,11 +19,11 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       placeholder={placeholder}
       className={clsx(
         'flex',
-        'w-[570px] h-[165px]',
+        'w-570 h-165',
         'p-6',
         'items-start',
         'gap-2',
-        'rounded-[2px]',
+        'rounded-default',
         'border',
         error ? 'border-error-500' : 'border-[#D1D1D1]',
         'bg-white',
