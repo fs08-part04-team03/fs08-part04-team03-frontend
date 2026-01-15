@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { Fragment } from 'react';
 import { clsx } from '@/utils/clsx';
 
 export interface StepBreadcrumbStep {
@@ -14,7 +14,7 @@ export interface StepBreadcrumbProps {
   className?: string;
 }
 
-const StepBreadcrumb: React.FC<StepBreadcrumbProps> = ({ steps, currentStep, className }) => {
+const StepBreadcrumb = ({ steps, currentStep, className }: StepBreadcrumbProps) => {
   if (!steps || steps.length === 0) return null;
 
   const safeCurrent = Math.min(Math.max(currentStep, 1), steps.length);
@@ -34,7 +34,7 @@ const StepBreadcrumb: React.FC<StepBreadcrumbProps> = ({ steps, currentStep, cla
 
         return (
           // eslint-disable-next-line react/no-array-index-key
-          <React.Fragment key={index}>
+          <Fragment key={index}>
             {index > 0 && <span className="hidden tablet:inline text-gray-300">&gt;</span>}
 
             <span
@@ -49,7 +49,7 @@ const StepBreadcrumb: React.FC<StepBreadcrumbProps> = ({ steps, currentStep, cla
               <span className="tabular-nums pr-4 tablet:pr-6">{stepNumber}.</span>
               <span>{step.label}</span>
             </span>
-          </React.Fragment>
+          </Fragment>
         );
       })}
     </nav>
