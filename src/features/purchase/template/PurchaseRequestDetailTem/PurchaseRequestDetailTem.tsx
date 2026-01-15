@@ -50,6 +50,36 @@ const PurchaseRequestDetailTem = ({
         purchaseRequest.shippingFee),
   };
 
+  // ApprovedInfo 생성 (승인/반려된 경우만)
+  let approvedInfo:
+    | {
+        approverName: string;
+        approvalDate: string | null;
+        statusLabel: string;
+        resultMessage: string;
+      }
+    | undefined;
+
+  if (purchaseRequest.status === 'APPROVED' || purchaseRequest.status === 'REJECTED') {
+    let statusLabel = '-';
+    if (purchaseRequest.status === 'APPROVED') {
+      statusLabel = '승인';
+    } else if (purchaseRequest.status === 'REJECTED') {
+      statusLabel = '반려';
+    }
+
+    const reasonMessage = purchaseRequest.reason || '';
+    const rejectMessage = purchaseRequest.rejectReason || '';
+    const resultMessage = reasonMessage || rejectMessage || '-';
+
+    approvedInfo = {
+      approverName: purchaseRequest.approver?.name || '-',
+      approvalDate: purchaseRequest.approvedAt || null,
+      statusLabel,
+      resultMessage,
+    };
+  }
+
   // 모달 데이터 변환
   const modalData = {
     user: {
@@ -94,7 +124,11 @@ const PurchaseRequestDetailTem = ({
       <div className="flex flex-col items-center gap-30 mt-30">
         <div className="tablet:mt-30 desktop:mt-60 mb-54 desktop:mb-254 tablet:mb-132">
           <PurchaseRequestDetailTopOrg purchaseRequest={purchaseRequest} />
-          <PurchaseRequestDetailOrg purchaseRequest={purchaseRequest} budgetInfo={budgetInfo} />
+          <PurchaseRequestDetailOrg
+            purchaseRequest={purchaseRequest}
+            budgetInfo={budgetInfo}
+            approvedInfo={approvedInfo}
+          />
           <PurchaseRequestDetailActionsOrg
             companyId={companyId}
             actionType="admin"
