@@ -17,8 +17,8 @@ export const Delete: Story = {
     type: 'delete',
     productName: '샘플 상품',
     cancelCount: 3,
-    onClose: () => alert('닫기 클릭됨'),
-    onConfirm: () => alert('상품 삭제 클릭'),
+    onClose: () => {},
+    onConfirm: () => {},
   },
 };
 
@@ -29,8 +29,8 @@ export const Cancel: Story = {
     type: 'cancel',
     productName: '샘플 상품',
     cancelCount: 3,
-    onClose: () => alert('닫기 클릭됨'),
-    onConfirm: () => alert('요청 취소 클릭'),
+    onClose: () => {},
+    onConfirm: () => {},
   },
 };
 
@@ -39,9 +39,9 @@ export const Approved: Story = {
   args: {
     open: true,
     type: 'approved',
-    onClose: () => alert('닫기 클릭됨'),
-    onHome: () => alert('홈으로 클릭'),
-    onOrder: () => alert('구매 내역 보기 클릭'),
+    onClose: () => {},
+    onHome: () => {},
+    onOrder: () => {},
   },
 };
 
@@ -50,8 +50,8 @@ export const Rejected: Story = {
   args: {
     open: true,
     type: 'rejected',
-    onClose: () => alert('닫기 클릭됨'),
-    onHome: () => alert('홈으로 클릭'),
-    onOrder: () => alert('구매 요청 내역 보기 클릭'),
+    onClose: () => {},
+    onHome: () => {},
+    onOrder: () => {},
   },
 };

@@ -39,8 +39,8 @@ const meta: Meta<typeof ProductModal> = {
   },
   args: {
     open: true,
-    onClose: () => alert('닫기 클릭됨'),
-    onSubmit: () => alert('등록하기 클릭됨'),
+    onClose: () => {},
+    onSubmit: () => {},
 
     initialName: '테스트 상품',
     initialPrice: '15000',

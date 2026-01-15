@@ -14,7 +14,7 @@ const meta: Meta<typeof LandingHero> = {
     nextjs: {
       appDirectory: true,
       navigation: {
-        push: (url: string) => alert(`Routing to: ${url}`),
+        push: (_url: string) => {},
       },
     },
     docs: {

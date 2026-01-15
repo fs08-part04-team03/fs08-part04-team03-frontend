@@ -42,7 +42,7 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
     },
   });
 
-  const onSubmit = async (values: SignupInput): Promise<void> => {
+  const onSubmit = (values: SignupInput): void => {
     signupMutation.mutate(
       {
         name: values.name,
@@ -53,12 +53,19 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
         businessNumber: values.businessNumber,
       },
       {
-        onSuccess: async (data) => {
+        onSuccess: (data) => {
           const { user, accessToken } = data;
 
           // 이미지 파일이 있으면 회원가입 후 프로필 이미지 업데이트
           if (selectedFile) {
-            await updateProfileImage(selectedFile, accessToken);
+            updateProfileImage(selectedFile, accessToken)
+              .then(() => {
+                redirectToProducts(user);
+              })
+              .catch(() => {
+                redirectToProducts(user);
+              });
+            return;
           }
 
           redirectToProducts(user);
