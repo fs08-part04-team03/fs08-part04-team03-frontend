@@ -33,29 +33,27 @@ export interface OrderItem {
   imageSrc?: string;
 }
 
+/**
+ * 개선된 Props 인터페이스 - 그룹화된 타입 사용
+ */
 interface CartSummaryBlockOrgProps {
-  cartRole: CartRole;
-  items: OrderItem[];
-  budget?: number;
-  loading?: boolean;
-  onDeleteSelected?: (cartItemIds: string[]) => void;
-  onSubmit?: (cartItemIds: string[]) => void;
-  onGoBudgetManage?: () => void;
-  onQuantityChange?: (cartItemId: string, quantity: number) => void;
-  onContinueShopping?: () => void;
+  dataState: {
+    cartRole: CartRole;
+    items: OrderItem[];
+    budget?: number;
+    loading?: boolean;
+  };
+  actionHandlers?: {
+    onDeleteSelected?: (cartItemIds: string[]) => void;
+    onSubmit?: (cartItemIds: string[]) => void;
+    onGoBudgetManage?: () => void;
+    onQuantityChange?: (cartItemId: string, quantity: number) => void;
+    onContinueShopping?: () => void;
+  };
 }
 
-const CartSummaryBlockOrg = ({
-  cartRole,
-  items,
-  budget = 0,
-  loading = false,
-  onDeleteSelected,
-  onSubmit,
-  onGoBudgetManage,
-  onQuantityChange,
-  onContinueShopping,
-}: CartSummaryBlockOrgProps) => {
+const CartSummaryBlockOrg = ({ dataState, actionHandlers }: CartSummaryBlockOrgProps) => {
+  const { cartRole, items, budget = 0, loading = false } = dataState;
   const router = useRouter();
   const params = useParams();
   const queryClient = useQueryClient();
@@ -114,11 +112,11 @@ const CartSummaryBlockOrg = ({
   const handleQuantityChange = (cartItemId: string, option: Option) => {
     const quantity = Number(option.key);
     if (Number.isNaN(quantity)) return;
-    onQuantityChange?.(cartItemId, quantity);
+    actionHandlers?.onQuantityChange?.(cartItemId, quantity);
   };
 
   const handleDeleteSelected = () => {
-    if (!loading && !isPurchasing) onDeleteSelected?.(checkedIds);
+    if (!loading && !isPurchasing) actionHandlers?.onDeleteSelected?.(checkedIds);
     setCheckedIds([]);
   };
 
@@ -300,7 +298,7 @@ const CartSummaryBlockOrg = ({
     if (loading || isPurchasing) return;
 
     if (cartRole === 'admin' && isBudgetExceeded) {
-      onGoBudgetManage?.();
+      actionHandlers?.onGoBudgetManage?.();
       return;
     }
 
@@ -314,7 +312,7 @@ const CartSummaryBlockOrg = ({
       return;
     }
 
-    onSubmit?.(checkedIds);
+    actionHandlers?.onSubmit?.(checkedIds);
   };
 
   const handleSubmitClick = () => {
@@ -414,7 +412,7 @@ const CartSummaryBlockOrg = ({
               variant="secondary"
               className="w-327 h-64 text-14 cursor-pointer font-bold tracking--0.4 tablet:w-296 tablet:text-16"
               inactive={loading || isPurchasing}
-              onClick={onContinueShopping}
+              onClick={actionHandlers?.onContinueShopping}
             >
               계속 쇼핑하기
             </Button>

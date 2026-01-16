@@ -8,16 +8,19 @@ import CartSummaryBlockOrg, {
 import { CART_USER_STEPS, CART_MANAGER_ADMIN_STEPS } from '@/features/cart/constants/steps';
 
 interface ShoppingCartTemProps {
-  cartRole: CartRole;
-  items: OrderItem[];
-  budget?: number;
-  loading?: boolean;
-
-  onDeleteSelected?: (ids: string[]) => void;
-  onSubmit?: (itemIds: string[]) => void;
-  onGoBudgetManage?: () => void;
-  onQuantityChange?: (cartItemId: string, quantity: number) => void;
-  onContinueShopping?: () => void;
+  dataState: {
+    cartRole: CartRole;
+    items: OrderItem[];
+    budget?: number;
+    loading?: boolean;
+  };
+  actionHandlers?: {
+    onDeleteSelected?: (ids: string[]) => void;
+    onSubmit?: (itemIds: string[]) => void;
+    onGoBudgetManage?: () => void;
+    onQuantityChange?: (cartItemId: string, quantity: number) => void;
+    onContinueShopping?: () => void;
+  };
 }
 
 /**
@@ -26,17 +29,8 @@ interface ShoppingCartTemProps {
  * - header / list / row / footer 컴포지션만 담당
  * - props 기반 렌더링만 수행
  */
-const ShoppingCartTem = ({
-  cartRole,
-  items,
-  budget,
-  loading = false,
-  onDeleteSelected,
-  onSubmit,
-  onGoBudgetManage,
-  onQuantityChange,
-  onContinueShopping,
-}: ShoppingCartTemProps) => {
+const ShoppingCartTem = ({ dataState, actionHandlers }: ShoppingCartTemProps) => {
+  const { cartRole } = dataState;
   const isUser = cartRole === 'user';
   const currentStep = 1;
 
@@ -50,17 +44,7 @@ const ShoppingCartTem = ({
           />
         </div>
 
-        <CartSummaryBlockOrg
-          cartRole={cartRole} // 🔥 같이 변경 (권장)
-          items={items}
-          budget={budget}
-          onDeleteSelected={onDeleteSelected}
-          onSubmit={onSubmit}
-          onGoBudgetManage={onGoBudgetManage}
-          onQuantityChange={onQuantityChange}
-          loading={loading} // 🔹 로딩 상태 전달
-          onContinueShopping={onContinueShopping}
-        />
+        <CartSummaryBlockOrg dataState={dataState} actionHandlers={actionHandlers} />
       </div>
     </div>
   );
