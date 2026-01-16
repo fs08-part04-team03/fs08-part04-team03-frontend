@@ -1,7 +1,14 @@
 'use client';
 
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getInviteInfo, login, signup, inviteSignup, logout } from '@/features/auth/api/auth.api';
+import {
+  getInviteInfo,
+  login,
+  signup,
+  inviteSignup,
+  logout,
+  isCompanySelectionRequiredError,
+} from '@/features/auth/api/auth.api';
 import type { LoginInput } from '@/features/auth/schemas/login.schema';
 import type { SignupInput, InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import { useToast } from '@/hooks/useToast';
@@ -58,6 +65,10 @@ export function useLogin() {
       });
     },
     onError: (err: unknown) => {
+      // CompanySelectionRequiredError는 Toast로 표시 X (LoginSection에서 처리)
+      if (isCompanySelectionRequiredError(err)) {
+        return;
+      }
       const message =
         err instanceof Error ? err.message : '이메일 또는 비밀번호가 올바르지 않습니다.';
       triggerToast('custom', message);
