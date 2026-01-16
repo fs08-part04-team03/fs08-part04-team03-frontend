@@ -1,14 +1,13 @@
 'use client';
 
+/**
+ * 상품 목록 Template
+ * Props Drilling 개선 - 그룹화된 Props 사용
+ */
+
 import { useState, lazy, Suspense } from 'react';
 import { clsx } from '@/utils/clsx';
-import type { GetWishlistResponse } from '@/features/wishlist/api/wishlist.api';
-import {
-  CategoryPanel,
-  type CategoryPanelSection,
-} from '@/components/organisms/CategoryPanel/CategoryPanel';
-import type { BreadcrumbItem } from '@/components/molecules/Breadcrumb/Breadcrumb';
-import type { Option } from '@/components/atoms/DropDown/DropDown';
+import { CategoryPanel } from '@/components/organisms/CategoryPanel/CategoryPanel';
 import { ProductListHeader } from '@/features/products/template/ProductListTem/components/ProductListHeader';
 import { ProductListContent } from '@/features/products/template/ProductListTem/components/ProductListContent';
 import { useItemsPerPage } from '@/features/products/hooks/useItemsPerPage';
@@ -17,80 +16,62 @@ import { useProductSorting } from '@/features/products/hooks/useProductSorting';
 import { useProductPagination } from '@/features/products/hooks/useProductPagination';
 import { useProductBreadcrumb } from '@/features/products/hooks/useProductBreadcrumb';
 import { PRODUCT_LIST_LAYOUT } from '@/features/products/utils/constants';
-import type { TemplateProduct } from '@/features/products/utils/product.utils';
+import type {
+  ProductCategoryState,
+  ProductSortSearchState,
+  ProductDataState,
+  ProductActionHandlers,
+} from '@/features/products/types/product-list.types';
 // 동적 import로 코드 스플리팅 적용 (성능 최적화)
 const ProductModal = lazy(() => import('@/components/molecules/ProductModal/ProductModal'));
 
-/* =====================
- * Props
- ====================== */
+/**
+ * 개선된 Props 인터페이스 - 그룹화된 타입 사용
+ */
 interface ProductListTemProps {
-  categorySections: CategoryPanelSection[];
-  activeSectionId?: number | null;
-  selectedCategoryId?: number | null;
-  onChangeCategory?: (value: number | null) => void;
-
-  breadcrumbItems: BreadcrumbItem[];
-  sortOptions: Option[];
-  selectedSort?: Option;
-  onChangeSort?: (option: Option) => void;
-
-  products: TemplateProduct[];
-
   companyId: string;
-  wishlistData?: GetWishlistResponse;
-  isLoading?: boolean;
-  searchQuery?: string;
-  onSearch?: (query: string) => void;
-  onProductClick?: (productId: number) => void;
-  onProductRegister?: () => void;
+
+  // 그룹화된 Props
+  categoryState: ProductCategoryState;
+  sortSearchState: ProductSortSearchState;
+  productData: ProductDataState;
+  actionHandlers: ProductActionHandlers;
 }
 
-/* =====================
- * Component
- ====================== */
+/**
+ * 개선된 상품 목록 Template - 깔끔하고 단순한 조립 레이어
+ */
 const ProductListTem = ({
-  categorySections,
-  activeSectionId,
-  selectedCategoryId,
-  onChangeCategory,
-  breadcrumbItems,
-  sortOptions,
-  selectedSort,
-  onChangeSort,
-  products,
   companyId,
-  wishlistData,
-  isLoading = false,
-  searchQuery,
-  onSearch,
-  onProductClick,
-  onProductRegister,
+  categoryState,
+  sortSearchState,
+  productData,
+  actionHandlers,
 }: ProductListTemProps) => {
   const [modalOpen, setModalOpen] = useState(false);
 
   // 커스텀 훅 사용
   const itemsPerPage = useItemsPerPage();
-  const { isProductLiked, handleToggleLike } = useWishlistToggle(wishlistData);
-  const sortedProducts = useProductSorting(products, selectedSort);
+  const { isProductLiked, handleToggleLike } = useWishlistToggle(productData.wishlistData);
+  const sortedProducts = useProductSorting(productData.products, sortSearchState.selectedSort);
   const { page, setPage, totalPage, currentProducts } = useProductPagination(
     sortedProducts,
     itemsPerPage,
-    selectedSort,
-    selectedCategoryId
+    sortSearchState.selectedSort,
+    categoryState.selectedCategoryId
   );
   const breadcrumbForRender = useProductBreadcrumb(
     companyId,
-    selectedCategoryId,
-    categorySections,
-    breadcrumbItems,
-    onChangeCategory,
-    onChangeCategory // 소분류 변경도 같은 핸들러 사용
+    categoryState.selectedCategoryId,
+    categoryState.categorySections,
+    sortSearchState.breadcrumbItems,
+    categoryState.onChangeCategory,
+    categoryState.onChangeCategory // 소분류 변경도 같은 핸들러 사용
   );
 
   const handleProductClickInternal = (productId: number) => {
-    if (onProductClick) {
-      onProductClick(productId);
+    if (actionHandlers.onProductClick) {
+      actionHandlers.onProductClick(productId);
     }
   };
 
@@ -108,10 +89,10 @@ const ProductListTem = ({
               )}
             >
               <CategoryPanel
-                sections={categorySections}
-                activeSectionId={activeSectionId}
-                selectedValue={selectedCategoryId}
-                onChange={onChangeCategory}
+                sections={categoryState.categorySections}
+                activeSectionId={categoryState.activeSectionId}
+                selectedValue={categoryState.selectedCategoryId}
+                onChange={categoryState.onChangeCategory}
               />
             </div>
           </div>
@@ -128,25 +109,33 @@ const ProductListTem = ({
         >
           <ProductListHeader
             breadcrumbItems={breadcrumbForRender}
-            sortOptions={sortOptions}
-            selectedSort={selectedSort}
-            onChangeSort={onChangeSort}
+            sortOptions={sortSearchState.sortOptions}
+            selectedSort={sortSearchState.selectedSort}
+            onChangeSort={sortSearchState.onChangeSort}
             onOpenModal={() => setModalOpen(true)}
           />
 
           <ProductListContent
-            products={currentProducts}
-            isLoading={isLoading}
-            itemsPerPage={itemsPerPage}
-            page={page}
-            totalPage={totalPage}
-            onPageChange={setPage}
-            searchQuery={searchQuery}
-            onSearch={onSearch}
-            onProductClick={handleProductClickInternal}
-            onOpenModal={() => setModalOpen(true)}
-            isProductLiked={isProductLiked}
-            handleToggleLike={handleToggleLike}
+            dataState={{
+              products: currentProducts,
+              isLoading: productData.isLoading ?? false,
+            }}
+            paginationState={{
+              itemsPerPage,
+              page,
+              totalPage,
+              onPageChange: setPage,
+            }}
+            searchState={{
+              searchQuery: sortSearchState.searchQuery,
+              onSearch: sortSearchState.onSearch,
+            }}
+            actionHandlers={{
+              onProductClick: handleProductClickInternal,
+              onOpenModal: () => setModalOpen(true),
+              isProductLiked,
+              handleToggleLike,
+            }}
           />
         </div>
       </div>
@@ -158,7 +147,7 @@ const ProductListTem = ({
             onClose={() => setModalOpen(false)}
             onSubmit={() => {
               setModalOpen(false);
-              onProductRegister?.();
+              actionHandlers.onProductRegister?.();
             }}
             initialName=""
             initialPrice=""

@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * 상품 리스트 컨텐츠
+ * Props Drilling 개선 - 그룹화된 Props 사용
+ */
+
 import { clsx } from '@/utils/clsx';
 import { Divider } from '@/components/atoms/Divider/Divider';
 import ProductCard from '@/components/molecules/ProductCard/ProductCard';
@@ -14,40 +19,34 @@ import {
   PRODUCT_LIST_SEARCH,
   PRODUCT_LIST_EMPTY_HEIGHT,
 } from '@/features/products/utils/constants';
-import type { TemplateProduct } from '@/features/products/utils/product.utils';
+import type {
+  ProductContentDataState,
+  ProductContentPaginationState,
+  ProductContentSearchState,
+  ProductContentActionHandlers,
+} from '@/features/products/types/product-content.types';
 
+/**
+ * 개선된 Props 인터페이스 - 그룹화된 타입 사용
+ */
 interface ProductListContentProps {
-  products: TemplateProduct[];
-  isLoading: boolean;
-  itemsPerPage: number;
-  page: number;
-  totalPage: number;
-  onPageChange: (page: number) => void;
-  searchQuery?: string;
-  onSearch?: (query: string) => void;
-  onProductClick: (productId: number) => void;
-  onOpenModal: () => void;
-  isProductLiked: (productId: number) => boolean;
-  handleToggleLike: (productId: number, isLiked: boolean) => void;
+  dataState: ProductContentDataState;
+  paginationState: ProductContentPaginationState;
+  searchState?: ProductContentSearchState;
+  actionHandlers: ProductContentActionHandlers;
 }
 
 /**
- * 상품 목록 컨텐츠 컴포넌트 (검색바, 상품 그리드, 페이지네이션)
+ * 개선된 상품 목록 컨텐츠 - 깔끔하고 단순한 조립 레이어
  */
 export const ProductListContent = ({
-  products,
-  isLoading,
-  itemsPerPage,
-  page,
-  totalPage,
-  onPageChange,
-  searchQuery,
-  onSearch,
-  onProductClick,
-  onOpenModal,
-  isProductLiked,
-  handleToggleLike,
+  dataState,
+  paginationState,
+  searchState,
+  actionHandlers,
 }: ProductListContentProps) => {
+  const { products, isLoading } = dataState;
+  const { itemsPerPage, page, totalPage, onPageChange } = paginationState;
   const isEmpty = products.length === 0;
 
   return (
@@ -65,8 +64,8 @@ export const ProductListContent = ({
         >
           <SearchBar
             placeholder={PRODUCT_LIST_SEARCH.PLACEHOLDER}
-            defaultValue={searchQuery}
-            onSearch={onSearch}
+            defaultValue={searchState?.searchQuery}
+            onSearch={searchState?.onSearch}
             instant
             className="w-full"
           />
@@ -88,7 +87,7 @@ export const ProductListContent = ({
             title={PRODUCT_LIST_EMPTY.TITLE}
             description={PRODUCT_LIST_EMPTY.DESCRIPTION}
             buttonText={PRODUCT_LIST_EMPTY.BUTTON_TEXT}
-            onButtonClick={onOpenModal}
+            onButtonClick={actionHandlers.onOpenModal}
           />
         </div>
       )}
@@ -103,7 +102,7 @@ export const ProductListContent = ({
           )}
         >
           {products.map((product, index) => {
-            const liked = isProductLiked(product.id);
+            const liked = actionHandlers.isProductLiked(product.id);
             // 첫 화면에 보이는 상위 8개 이미지에 priority 부여 (LCP 개선)
             // 데스크톱 기준 2행(4개씩) = 8개, 모바일/태블릿도 커버
             const isPriority = index < 8;
@@ -115,9 +114,9 @@ export const ProductListContent = ({
                 price={product.price}
                 purchaseCount={product.purchaseCount}
                 imageUrl={product.imageUrl}
-                onClick={() => onProductClick(product.id)}
+                onClick={() => actionHandlers.onProductClick(product.id)}
                 liked={liked}
-                onToggleLike={() => handleToggleLike(product.id, liked)}
+                onToggleLike={() => actionHandlers.handleToggleLike(product.id, liked)}
                 priority={isPriority}
               />
             );
