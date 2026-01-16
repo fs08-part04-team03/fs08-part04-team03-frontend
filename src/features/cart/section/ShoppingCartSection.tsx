@@ -88,16 +88,19 @@ const ShoppingCartSection = () => {
 
   return (
     <ShoppingCartTem
-      cartRole={cartRole}
-      items={items}
-      budget={budget}
-      loading={
-        isBudgetLoading || updateQuantityMutation.isPending || deleteMultipleMutation.isPending
-      }
-      onQuantityChange={handleQuantityChange}
-      onDeleteSelected={handleDeleteSelected}
-      onSubmit={handleSubmit}
-      onContinueShopping={handleContinueShopping}
+      dataState={{
+        cartRole,
+        items,
+        budget,
+        loading:
+          isBudgetLoading || updateQuantityMutation.isPending || deleteMultipleMutation.isPending,
+      }}
+      actionHandlers={{
+        onQuantityChange: handleQuantityChange,
+        onDeleteSelected: handleDeleteSelected,
+        onSubmit: handleSubmit,
+        onContinueShopping: handleContinueShopping,
+      }}
     />
   );
 };
