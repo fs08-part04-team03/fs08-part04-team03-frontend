@@ -9,7 +9,6 @@ import OrderItemCard from '@/components/molecules/OrderItemCard/OrderItemCard';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import { PATHNAME } from '@/constants';
-import type { Option } from '@/components/atoms/DropDown/DropDown';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
 
@@ -107,12 +106,6 @@ const CartSummaryBlockOrg = ({ dataState, actionHandlers }: CartSummaryBlockOrgP
     setCheckedIds((prev) =>
       checked ? [...prev, cartItemId] : prev.filter((v) => v !== cartItemId)
     );
-  };
-
-  const handleQuantityChange = (cartItemId: string, option: Option) => {
-    const quantity = Number(option.key);
-    if (Number.isNaN(quantity)) return;
-    actionHandlers?.onQuantityChange?.(cartItemId, quantity);
   };
 
   const handleDeleteSelected = () => {
@@ -360,9 +353,9 @@ const CartSummaryBlockOrg = ({ dataState, actionHandlers }: CartSummaryBlockOrgP
                   shippingCost={0}
                   imageSrc={item.imageSrc}
                   productId={item.productId}
+                  cartItemId={item.cartItemId}
                   checked={isChecked}
                   onCheckboxChange={(checked) => handleToggleItem(item.cartItemId, checked)}
-                  onQuantityChange={(option) => handleQuantityChange(item.cartItemId, option)}
                   purchaseButtonLabel={purchaseButtonLabel}
                   purchaseButtonDisabled={purchaseButtonDisabled}
                   onPurchaseClick={() => {

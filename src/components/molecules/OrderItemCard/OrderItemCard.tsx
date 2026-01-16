@@ -10,6 +10,7 @@ import Button from '@/components/atoms/Button/Button';
 import Checkbox from '@/components/atoms/Checkbox/Checkbox';
 import { NumberInput } from '@/components/molecules/NumberInput/NumberInput';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
+import { useCartItemDirect } from '@/features/cart/hooks/useCartItemDirect';
 
 export type OrderItemCardVariant = 'default' | 'confirm';
 
@@ -119,8 +120,11 @@ export interface OrderItemCardProps {
   shippingLabelText?: string;
   imageSrc?: string;
   productId?: number; // ✅ 상품 상세 페이지 이동을 위한 productId 추가
+  /** Props Depth 1단계: cartItemId가 있으면 직접 hook 사용 */
+  cartItemId?: string;
   checked?: boolean;
   onCheckboxChange?: (checked: boolean) => void;
+  /** 하위 호환성을 위한 props (deprecated - cartItemId 사용 권장) */
   onQuantityChange?: (option: Option) => void;
   onPurchaseClick?: () => void;
   purchaseButtonLabel?: string;
@@ -137,6 +141,7 @@ const OrderItemCard = ({
   shippingLabelText = '택배',
   imageSrc,
   productId,
+  cartItemId,
   checked = false,
   onCheckboxChange,
   onQuantityChange,
@@ -160,10 +165,24 @@ const OrderItemCard = ({
   const [imageError, setImageError] = useState(false);
   const displayTotalPrice = unitPrice * quantity;
 
+  // Props Depth 1단계: cartItemId가 있으면 직접 hook 사용
+  // React Hook은 항상 호출되어야 하므로 조건부 호출 불가
+  const cartItemHook = useCartItemDirect(cartItemId);
+
   // 상품 상세 페이지로 이동
   const handleProductClick = () => {
     if (productId && companyId) {
       router.push(PATHNAME.PRODUCT_DETAIL(companyId, String(productId)));
+    }
+  };
+
+  // 수량 변경 핸들러: cartItemId가 있으면 hook 사용, 없으면 기존 props 사용
+  const handleQuantityChange = (option: Option) => {
+    const quantityValue = Number(option.key);
+    if (cartItemId && !Number.isNaN(quantityValue)) {
+      cartItemHook.handleQuantityChange(quantityValue);
+    } else if (onQuantityChange) {
+      onQuantityChange(option);
     }
   };
 
@@ -301,7 +320,7 @@ const OrderItemCard = ({
         <div className="w-72 flex justify-end tablet:w-99">
           <NumberInput
             variant="secondary"
-            onQuantityChange={onQuantityChange}
+            onQuantityChange={handleQuantityChange}
             value={quantity}
             className="h-40 tablet:h-44"
           />
