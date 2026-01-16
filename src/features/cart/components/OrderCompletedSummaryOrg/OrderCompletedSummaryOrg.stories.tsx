@@ -1,8 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import OrderCompletedSummaryOrg, {
-  type OrderCompletedItem,
-  type CartRole,
-} from './OrderCompletedSummaryOrg';
+import type { CartRole } from '@/features/cart/types/cart-summary.types';
+import OrderCompletedSummaryOrg, { type OrderCompletedItem } from './OrderCompletedSummaryOrg';
 
 /** =====================
  * Mock Data
