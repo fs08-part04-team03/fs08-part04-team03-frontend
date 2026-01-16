@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { PARENT_CATEGORY_OPTIONS } from '@/constants';
-import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import GNB from './GNB';
 
 const meta = {
@@ -30,33 +29,6 @@ const meta = {
       },
     },
   },
-  argTypes: {
-    role: {
-      control: 'select',
-      options: ['user', 'manager', 'admin'],
-      description: '사용자 역할',
-    },
-    cartCount: {
-      control: 'number',
-      description: '장바구니에 담긴 상품 개수',
-    },
-    onLogout: {
-      action: 'logout',
-      description: '로그아웃 클릭 시 호출되는 콜백',
-    },
-    onMenuClick: {
-      action: 'menu-click',
-      description: '햄버거 메뉴 클릭 시 호출되는 콜백',
-    },
-    onNavItemClick: {
-      action: 'nav-item-clicked',
-      description: '네비게이션 아이템 클릭 시 호출되는 콜백',
-    },
-    onCategoryChange: {
-      action: 'category-changed',
-      description: '카테고리 변경 시 호출되는 콜백',
-    },
-  },
 } satisfies Meta<typeof GNB>;
 
 export default meta;
@@ -69,25 +41,34 @@ export const Default: Story = {
       defaultViewport: 'desktop',
     },
   },
-  render: ({ role, activeCategoryId: initialCategoryId, onCategoryChange, ...args }) => {
-    const [activeCategoryId, setActiveCategoryId] = useState(initialCategoryId ?? 'drink');
+  render: () => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [activeCategoryId, setActiveCategoryId] = useState<
+      'drink' | 'snack' | 'water' | 'simple-meal' | 'fresh-food' | 'coffee-beans' | 'supplies'
+    >('drink');
 
     return (
       <div className="w-full min-h-screen bg-gray-50">
         <GNB
-          role={role ?? 'user'}
-          userProfile={args.userProfile}
-          cartCount={args.cartCount}
-          onLogout={args.onLogout}
-          onMenuClick={args.onMenuClick}
-          onNavItemClick={args.onNavItemClick}
-          activePath={args.activePath}
-          className={args.className}
-          categories={PARENT_CATEGORY_OPTIONS}
-          activeCategoryId={activeCategoryId}
-          onCategoryChange={(id) => {
-            setActiveCategoryId(id);
-            onCategoryChange?.(id);
+          baseState={{
+            role: 'user',
+            userProfile: <div>사용자</div>,
+            cartCount: 3,
+          }}
+          handlers={{
+            onLogout: () => {},
+            onMenuClick: () => {},
+            onNavItemClick: () => {},
+          }}
+          navigationState={{
+            activePath: '/company-1/products',
+          }}
+          categoryState={{
+            categories: PARENT_CATEGORY_OPTIONS,
+            activeCategoryId,
+            onCategoryChange: (id) => {
+              setActiveCategoryId(id);
+            },
           }}
         />
         <main className="p-24">
@@ -110,19 +91,6 @@ export const Default: Story = {
         </main>
       </div>
     );
-  },
-  args: {
-    role: 'user',
-    cartCount: 3,
-    userProfile: (
-      <UserProfile
-        name="홍길동"
-        company={{ name: '스낵코리아' }}
-        avatarSrc="/images/test-profile-image.jpg"
-        variant="secondary"
-      />
-    ),
-    activeCategoryId: 'drink' as const,
   },
 };
 
