@@ -77,6 +77,12 @@ const LoginSection = () => {
           setCompanies([]);
           redirectToProducts(data.user);
         },
+        onError: () => {
+          // 에러 시 모달 닫고 상태 초기화 (toast는 useLogin의 onError에서 처리)
+          setShowCompanyModal(false);
+          setPendingCredentials(null);
+          setCompanies([]);
+        },
       }
     );
   };
