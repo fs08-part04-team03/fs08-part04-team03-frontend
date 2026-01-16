@@ -135,20 +135,7 @@ export const useMyPurchaseRequestList = ({
   );
 
   // 네비게이션 핸들러
-  const handleRowClick = useCallback(
-    (purchaseRequestId: string) => {
-      navigation.goToMyPurchaseRequestDetail(purchaseRequestId);
-    },
-    [navigation]
-  );
-
-  const handleProductClick = useCallback(
-    (productId: number) => {
-      navigation.goToProductDetail(String(productId));
-    },
-    [navigation]
-  );
-
+  // onRowClick과 onProductClick은 각 컴포넌트에서 직접 hook을 사용하므로 제거됨
   const handleNavigateToProducts = useCallback(() => {
     navigation.goToProducts();
   }, [navigation]);
@@ -186,9 +173,8 @@ export const useMyPurchaseRequestList = ({
   };
 
   // 네비게이션 핸들러 그룹
+  // onRowClick과 onProductClick은 각 컴포넌트에서 직접 hook을 사용하므로 제거됨
   const navigationHandlers: MyPurchaseNavigationHandlers = {
-    onRowClick: handleRowClick,
-    onProductClick: handleProductClick,
     onNavigateToProducts: handleNavigateToProducts,
   };
 

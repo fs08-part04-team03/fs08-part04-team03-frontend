@@ -1,15 +1,18 @@
 import { useCallback } from 'react';
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import { logger } from '@/utils/logger';
+import { usePurchaseNavigationDirect } from '@/features/purchase/hooks/usePurchaseNavigationDirect';
 
 /**
  * 구매 요청 행 클릭 핸들러 훅
+ * Props Depth 1단계: 직접 hook 사용 (하위 호환성을 위해 onRowClick도 지원)
  */
 export const usePurchaseRowHandlers = (
   item: PurchaseRequestItem,
-  onRowClick?: (purchaseRequestId: string) => void,
-  companyId?: string
+  onRowClick?: (purchaseRequestId: string) => void
 ) => {
+  // Props Depth 1단계: 직접 hook 사용
+  const navigation = usePurchaseNavigationDirect();
+
   const handleRowClick = useCallback(
     (e?: React.MouseEvent) => {
       if (e) {
@@ -17,11 +20,11 @@ export const usePurchaseRowHandlers = (
       }
       if (onRowClick) {
         onRowClick(item.id);
-      } else if (companyId) {
-        logger.warn('[PurchaseRowHandlers] onRowClick callback이 없습니다. 핸들러를 전달해주세요.');
+      } else {
+        navigation.goToPurchaseRequestDetail(item.id);
       }
     },
-    [item.id, onRowClick, companyId]
+    [item.id, onRowClick, navigation]
   );
 
   const handleRowKeyDown = useCallback(
@@ -31,14 +34,12 @@ export const usePurchaseRowHandlers = (
         e.stopPropagation();
         if (onRowClick) {
           onRowClick(item.id);
-        } else if (companyId) {
-          logger.warn(
-            '[PurchaseRowHandlers] onRowClick callback이 없습니다. 핸들러를 전달해주세요.'
-          );
+        } else {
+          navigation.goToPurchaseRequestDetail(item.id);
         }
       }
     },
-    [item.id, onRowClick, companyId]
+    [item.id, onRowClick, navigation]
   );
 
   return { handleRowClick, handleRowKeyDown };

@@ -14,6 +14,7 @@ import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
 import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
 import { formatDate, formatItemDescription } from '@/features/purchase/utils/purchase.utils';
+import { usePurchaseNavigationDirect } from '@/features/purchase/hooks/usePurchaseNavigationDirect';
 import {
   PURCHASE_DEFAULTS,
   PURCHASE_TABLE_STYLES,
@@ -48,7 +49,6 @@ export interface PurchaseRequestListTemProps {
   onApproveClick?: (purchaseRequestId: string) => void;
   onRowClick?: (purchaseRequestId: string) => void;
   onNavigateToProducts?: () => void;
-  onProductClick?: (productId: number) => void;
   selectedRequestId?: string | null;
   selectedRequestDetail?: PurchaseRequestItem; // 모달용 상세 데이터
   isModalDetailLoading?: boolean; // 모달 상세 데이터 로딩 중
@@ -94,9 +94,16 @@ const PurchaseRequestTableRowDesktop = ({
   const isUrgent = item.urgent === true;
   const totalPrice = (item.itemsTotalPrice ?? item.totalPrice ?? 0) + item.shippingFee;
 
+  // Props Depth 1단계: 직접 hook 사용 (하위 호환성을 위해 onRowClick도 지원)
+  const navigation = usePurchaseNavigationDirect();
+
   const handleRowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onRowClick?.(item.id);
+    if (onRowClick) {
+      onRowClick(item.id);
+    } else {
+      navigation.goToPurchaseRequestDetail(item.id);
+    }
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
@@ -205,7 +212,6 @@ const PurchaseRequestListTem = ({
   onApproveClick,
   onRowClick,
   onNavigateToProducts,
-  onProductClick,
   selectedRequestId,
   selectedRequestDetail,
   isModalDetailLoading = false,
@@ -331,7 +337,6 @@ const PurchaseRequestListTem = ({
               onApprove={onApproveClick}
               onRowClick={onRowClick}
               companyId={companyId}
-              onProductClick={onProductClick}
             />
           );
         })()}

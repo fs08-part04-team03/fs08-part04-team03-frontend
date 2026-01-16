@@ -138,13 +138,6 @@ const PurchaseRequestListSection = () => {
     [navigation]
   );
 
-  const handleProductClick = useCallback(
-    (productId: number) => {
-      navigation.goToProductDetail(String(productId));
-    },
-    [navigation]
-  );
-
   // companyId 필수 체크
   if (!companyId) {
     return (
@@ -191,7 +184,6 @@ const PurchaseRequestListSection = () => {
         onRejectClick={modalHandlers.handleRejectClick}
         onApproveClick={modalHandlers.handleApproveClick}
         onRowClick={handleRowClick}
-        onProductClick={handleProductClick}
         selectedRequestId={modalHandlers.selectedRequestId}
         selectedRequestDetail={modalDetailData || undefined}
         isModalDetailLoading={isModalDetailLoading}

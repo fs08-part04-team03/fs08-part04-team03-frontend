@@ -28,6 +28,7 @@ import type {
   MyPurchaseCancelModalHandlers,
   MyPurchaseNavigationHandlers,
 } from '@/features/purchase/types/my-purchase-list.types';
+import { usePurchaseNavigationDirect } from '@/features/purchase/hooks/usePurchaseNavigationDirect';
 
 const TABLE_CELL_BASE_STYLES = {
   header: PURCHASE_TABLE_STYLES.CELL_BASE.HEADER,
@@ -97,23 +98,36 @@ const PurchaseRequestTableRow = ({
   const isUrgent = item.urgent === true;
   const totalPrice = calculateTotalPrice(item);
 
+  // Props Depth 1단계: 직접 hook 사용 (하위 호환성을 위해 onRowClick도 지원)
+  const navigation = usePurchaseNavigationDirect();
+
   const handleRowClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest('button')) return;
-    onRowClick?.(item.id);
+    if (onRowClick) {
+      onRowClick(item.id);
+    } else {
+      navigation.goToMyPurchaseRequestDetail(item.id);
+    }
   };
 
   const handleRowKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       e.stopPropagation();
-      onRowClick?.(item.id);
+      if (onRowClick) {
+        onRowClick(item.id);
+      } else {
+        navigation.goToMyPurchaseRequestDetail(item.id);
+      }
     }
   };
 
   const handleCancelClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onCancelClick?.(item.id);
+    if (onCancelClick) {
+      onCancelClick(item.id);
+    }
   };
 
   return (
@@ -207,7 +221,6 @@ export const MyPurchaseRequestTable = ({
             key={item.id}
             item={item}
             onCancelClick={cancelModalHandlers?.onCancelClick}
-            onRowClick={navigationHandlers?.onRowClick}
           />
         ))}
       </div>
@@ -226,9 +239,7 @@ export const MyPurchaseRequestTable = ({
             <PurchaseRequestItemListOrg
               purchaseList={purchaseList}
               onCancel={cancelModalHandlers?.onCancelClick}
-              onRowClick={navigationHandlers?.onRowClick}
               companyId={companyId}
-              onProductClick={navigationHandlers?.onProductClick}
             />
           );
         })()}
