@@ -125,8 +125,6 @@ export const Default: Story = {
         onStatusChange: () => {},
       }}
       navigationHandlers={{
-        onRowClick: () => {},
-        onProductClick: () => {},
         onNavigateToProducts: () => {},
       }}
     />
@@ -154,8 +152,6 @@ export const Empty: Story = {
         onStatusChange: () => {},
       }}
       navigationHandlers={{
-        onRowClick: () => {},
-        onProductClick: () => {},
         onNavigateToProducts: () => {},
       }}
     />
@@ -196,8 +192,6 @@ export const Urgent: Story = {
         onStatusChange: () => {},
       }}
       navigationHandlers={{
-        onRowClick: () => {},
-        onProductClick: () => {},
         onNavigateToProducts: () => {},
       }}
     />
@@ -258,8 +252,6 @@ export const Interactive: Story = {
           onStatusChange: () => {},
         }}
         navigationHandlers={{
-          onRowClick: () => {},
-          onProductClick: () => {},
           onNavigateToProducts: () => {},
         }}
       />
