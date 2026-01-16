@@ -1,90 +1,73 @@
 'use client';
 
-import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import type { Option } from '@/components/atoms/DropDown/DropDown';
+/**
+ * 구매 내역 Template
+ * Props Drilling 개선 - 그룹화된 Props 사용
+ */
+
 import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
+import type {
+  PurchaseHistoryBudgetInfo,
+  PurchaseHistorySortState,
+  PurchaseHistoryTableState,
+  PurchaseHistoryNavigationHandlers,
+  PurchaseHistoryEmptyState,
+} from '@/features/purchase-history/types/purchase-history.types';
 import PurchaseHistoryListTopOrg from '../../components/PurchaseHistoryListTopOrg/PurchaseHistoryListTopOrg';
 import PurchaseHistoryListOrg from '../../components/PurchaseHistoryListBottomOrg/PurchaseHistoryListBottomOrg';
 import { PurchaseHistoryTableHeader } from '../../components/PurchaseHistoryTableHeader/PurchaseHistoryTableHeader';
 import { PURCHASE_HISTORY_DEFAULTS } from '../../constants/defaults';
 
+/**
+ * 개선된 Props 인터페이스 - 그룹화된 타입 사용
+ */
 interface PurchaseHistoryTemProps {
-  // TopOrg props
-  thisMonthBudget: number;
-  lastMonthBudget: number;
-  thisMonthSpending: number;
-  lastMonthSpending: number;
-  thisYearTotalSpending: number;
-  lastYearTotalSpending: number;
-  spendingPercentage?: number;
-  currentBudget?: number;
-  lastBudget?: number;
-  selectedSort?: Option;
-  onSortChange?: (option: Option) => void;
-
-  // BottomOrg props
-  items: PurchaseRequestItem[];
-  currentPage?: number;
-  totalPages?: number;
-  onPageChange?: (page: number) => void;
-  isLoading?: boolean;
-  isEmpty?: boolean;
-  onNavigateToProducts?: () => void;
-  onItemClick?: (orderId: string) => void;
-  emptyMessage?: {
-    TITLE: string;
-    DESCRIPTION: string;
-    BUTTON_TEXT: string;
-  };
+  // 그룹화된 Props
+  budgetInfo: PurchaseHistoryBudgetInfo;
+  sortState?: PurchaseHistorySortState;
+  tableState: PurchaseHistoryTableState;
+  navigationHandlers?: PurchaseHistoryNavigationHandlers;
+  emptyState?: PurchaseHistoryEmptyState;
 }
 
 /**
- * PurchaseHistoryTem
- * 순수 UI 조립 레이어
- * - header / list / row / footer 컴포지션만 담당
- * - props 기반 렌더링만 수행
+ * 개선된 구매 내역 Template - 깔끔하고 단순한 조립 레이어
  */
 export const PurchaseHistoryTem = ({
-  thisMonthBudget,
-  lastMonthBudget,
-  thisMonthSpending,
-  lastMonthSpending,
-  thisYearTotalSpending,
-  lastYearTotalSpending,
-  spendingPercentage,
-  currentBudget,
-  lastBudget,
-  selectedSort,
-  onSortChange,
-  items,
-  currentPage,
-  totalPages,
-  onPageChange,
-  isLoading = false,
-  isEmpty = false,
-  onNavigateToProducts,
-  onItemClick,
-  emptyMessage,
+  budgetInfo,
+  sortState,
+  tableState,
+  navigationHandlers,
+  emptyState,
 }: PurchaseHistoryTemProps) => {
+  const {
+    items,
+    currentPage,
+    totalPages,
+    onPageChange,
+    isLoading = false,
+    isEmpty = false,
+  } = tableState;
+
   const safeItems = items || [];
-  // 화면에 최대 4개만 표시
   const displayItems = safeItems.slice(0, PURCHASE_HISTORY_DEFAULTS.DISPLAY_ITEMS_COUNT);
 
   return (
     <div className="flex flex-col gap-34 tablet:gap-25 mt-24 tablet:mt-14 desktop:mt-71">
+      {/* 예산 정보 상단 */}
       <PurchaseHistoryListTopOrg
-        thisMonthBudget={thisMonthBudget}
-        lastMonthBudget={lastMonthBudget}
-        thisMonthSpending={thisMonthSpending}
-        lastMonthSpending={lastMonthSpending}
-        thisYearTotalSpending={thisYearTotalSpending}
-        lastYearTotalSpending={lastYearTotalSpending}
-        spendingPercentage={spendingPercentage}
-        currentBudget={currentBudget}
-        lastBudget={lastBudget}
-        selectedSort={selectedSort}
-        onSortChange={onSortChange}
+        thisMonthBudget={budgetInfo.thisMonthBudget}
+        lastMonthBudget={budgetInfo.lastMonthBudget}
+        thisMonthSpending={budgetInfo.thisMonthSpending}
+        lastMonthSpending={budgetInfo.lastMonthSpending}
+        thisYearTotalSpending={budgetInfo.thisYearTotalSpending}
+        lastYearTotalSpending={budgetInfo.lastYearTotalSpending}
+        spendingPercentage={budgetInfo.spendingPercentage}
+        currentBudget={budgetInfo.currentBudget}
+        lastBudget={budgetInfo.lastBudget}
+        selectedSort={sortState?.selectedSort}
+        onSortChange={sortState?.onSortChange}
       />
 
       {/* Loading 상태 */}
@@ -96,13 +79,13 @@ export const PurchaseHistoryTem = ({
       )}
 
       {/* Empty 상태 */}
-      {!isLoading && isEmpty && emptyMessage && (
+      {!isLoading && isEmpty && emptyState?.emptyMessage && (
         <div className="flex justify-center items-center min-h-[calc(100vh-400px)]">
           <StatusNotice
-            title={emptyMessage.TITLE}
-            description={emptyMessage.DESCRIPTION}
-            buttonText={emptyMessage.BUTTON_TEXT}
-            onButtonClick={onNavigateToProducts}
+            title={emptyState.emptyMessage.TITLE}
+            description={emptyState.emptyMessage.DESCRIPTION}
+            buttonText={emptyState.emptyMessage.BUTTON_TEXT}
+            onButtonClick={navigationHandlers?.onNavigateToProducts}
           />
         </div>
       )}
@@ -114,7 +97,7 @@ export const PurchaseHistoryTem = ({
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={onPageChange}
-          onItemClick={onItemClick}
+          onItemClick={navigationHandlers?.onItemClick}
         />
       )}
     </div>

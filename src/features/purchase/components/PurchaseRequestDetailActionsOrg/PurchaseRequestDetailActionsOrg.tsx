@@ -7,10 +7,14 @@ import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import { PURCHASE_LABELS, PURCHASE_TIMERS, PURCHASE_MESSAGES } from '@/features/purchase/constants';
 import { usePurchaseCartActions } from '@/features/purchase/handlers/usePurchaseCartActions';
 import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseNavigation';
+import { usePurchaseRequestActionsDirect } from '@/features/purchase/hooks/usePurchaseRequestActionsDirect';
 
 export interface PurchaseRequestDetailActionsOrgProps {
   companyId?: string;
   actionType?: 'user' | 'admin';
+  /** Props Depth 1단계: 관리자용일 때 requestId를 받아서 직접 hook 사용 */
+  requestId?: string;
+  /** 하위 호환성을 위한 props (deprecated - requestId 사용 권장) */
   onApproveClick?: () => void;
   onRejectClick?: () => void;
   isBudgetSufficient?: boolean;
@@ -87,6 +91,7 @@ const ActionButtonGroup = ({
 const PurchaseRequestDetailActionsOrg = ({
   companyId,
   actionType = 'user',
+  requestId,
   onApproveClick,
   onRejectClick,
   isBudgetSufficient = true,
@@ -98,6 +103,11 @@ const PurchaseRequestDetailActionsOrg = ({
   const [toastVariant, setToastVariant] = useState<'error' | 'success'>('error');
 
   const navigation = usePurchaseNavigation(companyId);
+
+  // Props Depth 1단계: 관리자용일 때 직접 hook 사용
+  const adminActions = usePurchaseRequestActionsDirect(
+    actionType === 'admin' ? requestId : undefined
+  );
 
   const { isAddingToCart, handleAddToCart } = usePurchaseCartActions({
     companyId,
@@ -138,13 +148,18 @@ const PurchaseRequestDetailActionsOrg = ({
 
   // 관리자용 버튼 세트
   if (actionType === 'admin') {
+    // Props Depth 1단계: requestId가 있으면 직접 hook 사용, 없으면 기존 props 사용 (하위 호환)
+    const handleApproveClick = requestId ? adminActions.handleApproveClick : onApproveClick;
+    const handleRejectClick = requestId ? adminActions.handleRejectClick : onRejectClick;
+    const budgetSufficient = requestId ? adminActions.isBudgetSufficient : isBudgetSufficient;
+
     return (
       <ActionButtonGroup
         primaryLabel={PURCHASE_LABELS.BUTTONS.APPROVE_ACTION}
         secondaryLabel={PURCHASE_LABELS.BUTTONS.REJECT_ACTION}
-        onPrimaryClick={onApproveClick}
-        onSecondaryClick={onRejectClick}
-        isPrimaryDisabled={!isBudgetSufficient}
+        onPrimaryClick={handleApproveClick}
+        onSecondaryClick={handleRejectClick}
+        isPrimaryDisabled={!budgetSufficient}
       />
     );
   }

@@ -20,7 +20,6 @@ export interface PurchaseRequestItemListOrgProps {
   onCancel?: (purchaseRequestId: string) => void;
   onRowClick?: (purchaseRequestId: string) => void;
   companyId?: string;
-  onProductClick?: (productId: number) => void;
 }
 
 /**
@@ -34,7 +33,6 @@ const PurchaseRequestItemListOrg = ({
   onCancel,
   onRowClick,
   companyId,
-  onProductClick,
 }: PurchaseRequestItemListOrgProps) => (
   <div className={clsx('w-full', className)}>
     {purchaseList.map((item) => (
@@ -48,7 +46,6 @@ const PurchaseRequestItemListOrg = ({
             onCancel={onCancel}
             onRowClick={onRowClick}
             companyId={companyId}
-            onProductClick={onProductClick}
           />
         </div>
 
@@ -61,7 +58,6 @@ const PurchaseRequestItemListOrg = ({
             onCancel={onCancel}
             onRowClick={onRowClick}
             companyId={companyId}
-            onProductClick={onProductClick}
           />
         </div>
       </React.Fragment>

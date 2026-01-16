@@ -84,54 +84,62 @@ const approvers = {
 
 export const Default: Story = {
   args: {
-    thisMonthBudget: 1000000,
-    lastMonthBudget: 2000000,
-    thisMonthSpending: 126000,
-    lastMonthSpending: 2000000,
-    thisYearTotalSpending: 10000000,
-    lastYearTotalSpending: 4000000,
-    selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: () => {
-      // eslint-disable-next-line no-console
+    budgetInfo: {
+      thisMonthBudget: 1000000,
+      lastMonthBudget: 2000000,
+      thisMonthSpending: 126000,
+      lastMonthSpending: 2000000,
+      thisYearTotalSpending: 10000000,
+      lastYearTotalSpending: 4000000,
     },
-    items: [
-      createPurchaseItem(
-        '1',
-        'APPROVED',
-        2,
-        21000,
-        '2025-07-05T00:00:00.000Z',
-        '2025-07-07T00:00:00.000Z',
-        false,
-        '김스낵',
-        approvers.김코드
-      ),
-      createPurchaseItem(
-        '2',
-        'APPROVED',
-        3,
-        45000,
-        '2025-07-03T00:00:00.000Z',
-        '2025-07-03T06:00:00.000Z',
-        true,
-        '이개발',
-        approvers.김코드
-      ),
-      createPurchaseItem(
-        '3',
-        'PENDING',
-        1,
-        15000,
-        '2025-07-08T00:00:00.000Z',
-        '2025-07-08T00:00:00.000Z',
-        false,
-        '박디자인'
-      ),
-    ],
-    currentPage: 1,
-    totalPages: 1,
-    onPageChange: () => {
-      // eslint-disable-next-line no-console
+    sortState: {
+      selectedSort: COMMON_SORT_OPTIONS[0],
+      onSortChange: () => {},
+    },
+    tableState: {
+      items: [
+        createPurchaseItem(
+          '1',
+          'APPROVED',
+          2,
+          21000,
+          '2025-07-05T00:00:00.000Z',
+          '2025-07-07T00:00:00.000Z',
+          false,
+          '김스낵',
+          approvers.김코드
+        ),
+        createPurchaseItem(
+          '2',
+          'APPROVED',
+          3,
+          45000,
+          '2025-07-03T00:00:00.000Z',
+          '2025-07-03T06:00:00.000Z',
+          true,
+          '이개발',
+          approvers.김코드
+        ),
+        createPurchaseItem(
+          '3',
+          'PENDING',
+          1,
+          15000,
+          '2025-07-08T00:00:00.000Z',
+          '2025-07-08T00:00:00.000Z',
+          false,
+          '박디자인'
+        ),
+      ],
+      currentPage: 1,
+      totalPages: 1,
+      onPageChange: () => {},
+      isLoading: false,
+      isEmpty: false,
+    },
+    navigationHandlers: {
+      onNavigateToProducts: () => {},
+      onItemClick: () => {},
     },
   },
   parameters: {
@@ -146,33 +154,41 @@ export const Default: Story = {
 
 export const WithPagination: Story = {
   args: {
-    thisMonthBudget: 1000000,
-    lastMonthBudget: 2000000,
-    thisMonthSpending: 500000,
-    lastMonthSpending: 150000,
-    thisYearTotalSpending: 5000000,
-    lastYearTotalSpending: 6000000,
-    selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: () => {
-      // eslint-disable-next-line no-console
+    budgetInfo: {
+      thisMonthBudget: 1000000,
+      lastMonthBudget: 2000000,
+      thisMonthSpending: 500000,
+      lastMonthSpending: 150000,
+      thisYearTotalSpending: 5000000,
+      lastYearTotalSpending: 6000000,
     },
-    items: Array.from({ length: 10 }, (_, i) =>
-      createPurchaseItem(
-        `${i + 1}`,
-        i % 3 === 0 ? 'PENDING' : 'APPROVED',
-        Math.floor(Math.random() * 5) + 1,
-        Math.floor(Math.random() * 100000) + 10000,
-        `2025-07-${String(i + 1).padStart(2, '0')}T00:00:00.000Z`,
-        `2025-07-${String(i + 2).padStart(2, '0')}T00:00:00.000Z`,
-        i % 4 === 0,
-        `사용자${i + 1}`,
-        i % 3 === 0 ? undefined : Object.values(approvers)[(i % 3) - 1]
-      )
-    ),
-    currentPage: 1,
-    totalPages: 3,
-    onPageChange: () => {
-      // eslint-disable-next-line no-console
+    sortState: {
+      selectedSort: COMMON_SORT_OPTIONS[0],
+      onSortChange: () => {},
+    },
+    tableState: {
+      items: Array.from({ length: 10 }, (_, i) =>
+        createPurchaseItem(
+          `${i + 1}`,
+          i % 3 === 0 ? 'PENDING' : 'APPROVED',
+          Math.floor(Math.random() * 5) + 1,
+          Math.floor(Math.random() * 100000) + 10000,
+          `2025-07-${String(i + 1).padStart(2, '0')}T00:00:00.000Z`,
+          `2025-07-${String(i + 2).padStart(2, '0')}T00:00:00.000Z`,
+          i % 4 === 0,
+          `사용자${i + 1}`,
+          i % 3 === 0 ? undefined : Object.values(approvers)[(i % 3) - 1]
+        )
+      ),
+      currentPage: 1,
+      totalPages: 3,
+      onPageChange: () => {},
+      isLoading: false,
+      isEmpty: false,
+    },
+    navigationHandlers: {
+      onNavigateToProducts: () => {},
+      onItemClick: () => {},
     },
   },
   parameters: {
@@ -187,21 +203,36 @@ export const WithPagination: Story = {
 
 export const EmptyList: Story = {
   args: {
-    thisMonthBudget: 1000000,
-    lastMonthBudget: 1000000,
-    thisMonthSpending: 0,
-    lastMonthSpending: 0,
-    thisYearTotalSpending: 0,
-    lastYearTotalSpending: 0,
-    selectedSort: COMMON_SORT_OPTIONS[0],
-    onSortChange: () => {
-      // eslint-disable-next-line no-console
+    budgetInfo: {
+      thisMonthBudget: 1000000,
+      lastMonthBudget: 1000000,
+      thisMonthSpending: 0,
+      lastMonthSpending: 0,
+      thisYearTotalSpending: 0,
+      lastYearTotalSpending: 0,
     },
-    items: [],
-    currentPage: 1,
-    totalPages: 1,
-    onPageChange: () => {
-      // eslint-disable-next-line no-console
+    sortState: {
+      selectedSort: COMMON_SORT_OPTIONS[0],
+      onSortChange: () => {},
+    },
+    tableState: {
+      items: [],
+      currentPage: 1,
+      totalPages: 1,
+      onPageChange: () => {},
+      isLoading: false,
+      isEmpty: true,
+    },
+    navigationHandlers: {
+      onNavigateToProducts: () => {},
+      onItemClick: () => {},
+    },
+    emptyState: {
+      emptyMessage: {
+        TITLE: '구매 내역이 없어요',
+        DESCRIPTION: '구매 요청을 승인하고\n상품을 주문해 보세요',
+        BUTTON_TEXT: '상품으로 이동',
+      },
     },
   },
   parameters: {

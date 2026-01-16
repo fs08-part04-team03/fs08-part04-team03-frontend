@@ -7,10 +7,8 @@ import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import { logger } from '@/utils/logger';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
-import type {
-  OrderCompletedItem,
-  CartRole,
-} from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
+import type { CartRole } from '@/features/cart/types/cart-summary.types';
+import type { OrderCompletedItem } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
 import { useOrderConfirmedHandlers } from '../handlers/useOrderConfirmedHandlers';
 import { CART_ROUTES } from '../constants/routes';
