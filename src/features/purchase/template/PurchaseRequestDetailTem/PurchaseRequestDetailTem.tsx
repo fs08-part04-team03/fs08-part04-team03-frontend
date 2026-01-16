@@ -32,13 +32,13 @@ const PurchaseRequestDetailTem = ({
   remainingBudget,
   approveModalOpen,
   rejectModalOpen,
-  onApproveClick,
-  onRejectClick,
+  onApproveClick: _onApproveClick,
+  onRejectClick: _onRejectClick,
   onApproveModalClose,
   onRejectModalClose,
   onApproveSubmit,
   onRejectSubmit,
-  isBudgetSufficient = true,
+  isBudgetSufficient: _isBudgetSufficient = true,
 }: PurchaseRequestDetailTemProps) => {
   // BudgetInfo 계산
   const budgetInfo = {
@@ -132,9 +132,7 @@ const PurchaseRequestDetailTem = ({
           <PurchaseRequestDetailActionsOrg
             companyId={companyId}
             actionType="admin"
-            onApproveClick={onApproveClick}
-            onRejectClick={onRejectClick}
-            isBudgetSufficient={isBudgetSufficient}
+            requestId={purchaseRequest.id}
           />
         </div>
       </div>

@@ -1,9 +1,9 @@
 'use client';
 
 import StepBreadcrumb from '@/components/molecules/StepBreadcrumb/StepBreadcrumb';
+import type { CartRole } from '@/features/cart/types/cart-summary.types';
 import OrderCompletedSummaryOrg, {
   OrderCompletedItem,
-  CartRole,
   UserType,
 } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import { clsx } from '@/utils/clsx';

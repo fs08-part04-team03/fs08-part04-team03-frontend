@@ -23,7 +23,6 @@ interface RegisteredProductTemProps {
   totalPage: number;
   onPageChange: (page: number) => void;
   onRegisterClick: () => void;
-  onProductClick?: (productId: number) => void;
 }
 
 const RegisteredProductTem = ({
@@ -37,7 +36,6 @@ const RegisteredProductTem = ({
   totalPage,
   onPageChange,
   onRegisterClick,
-  onProductClick,
 }: RegisteredProductTemProps) => (
   <section className="w-full bg-white">
     {/* =====================
@@ -76,7 +74,6 @@ const RegisteredProductTem = ({
         products={products}
         totalCount={totalCount}
         onRegisterClick={onRegisterClick}
-        onProductClick={onProductClick}
         isLoading={isLoading}
       />
     </div>

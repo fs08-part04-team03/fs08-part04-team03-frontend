@@ -247,20 +247,29 @@ export const GNBWrapper = () => {
 
   return (
     <GNB
-      role={user?.role || 'user'}
-      cartCount={cartCount}
-      onLogout={handleLogout}
-      userProfile={userProfile}
-      categories={isProductOrWishlistPage && activeCategoryId ? PARENT_CATEGORY_OPTIONS : undefined}
-      activeCategoryId={isProductOrWishlistPage && activeCategoryId ? activeCategoryId : undefined}
-      productCategoryId={isProductDetailPage ? productCategoryId : undefined}
-      onCategoryChange={
-        isProductOrWishlistPage && activeCategoryId ? handleCategoryChange : undefined
+      baseState={{
+        role: user?.role || 'user',
+        userProfile,
+        cartCount,
+      }}
+      handlers={{
+        onLogout: handleLogout,
+        onNavItemClick: handleNavItemClick,
+      }}
+      navigationState={{
+        activePath: pathname,
+      }}
+      categoryState={
+        isProductOrWishlistPage && activeCategoryId
+          ? {
+              categories: PARENT_CATEGORY_OPTIONS,
+              activeCategoryId,
+              productCategoryId: isProductDetailPage ? productCategoryId : undefined,
+              onCategoryChange: handleCategoryChange,
+              onSubCategoryChange: handleSubCategoryChange,
+            }
+          : undefined
       }
-      onSubCategoryChange={
-        isProductOrWishlistPage && activeCategoryId ? handleSubCategoryChange : undefined
-      }
-      onNavItemClick={handleNavItemClick}
     />
   );
 };

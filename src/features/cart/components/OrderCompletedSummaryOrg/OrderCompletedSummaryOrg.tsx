@@ -6,6 +6,8 @@ import Button from '@/components/atoms/Button/Button';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import { clsx } from '@/utils/clsx';
 
+import type { CartRole } from '@/features/cart/types/cart-summary.types';
+
 export interface OrderCompletedItem {
   id: number;
   name: string;
@@ -14,7 +16,6 @@ export interface OrderCompletedItem {
   imageSrc?: string;
 }
 
-export type CartRole = 'user' | 'manager' | 'admin';
 export type UserType = 'default' | 'request';
 
 interface OrderCompletedSummaryOrgProps {
