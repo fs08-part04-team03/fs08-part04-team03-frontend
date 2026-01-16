@@ -81,21 +81,15 @@ export const useMyPurchaseRequestList = ({
       : statusOptions.find((opt) => opt.key === 'ALL');
 
   // 취소 모달 핸들러
-  // purchaseList가 없어도 purchaseRequestId만으로 처리 가능하도록 수정
-  // 실제로는 컴포넌트 레벨에서 purchaseList를 전달받아 사용
+  // purchaseList에서 아이템을 찾을 수 있을 때만 모달을 열도록 함
+  // (모달에서 purchaseItems 속성에 접근하므로 완전한 객체가 필요)
   const handleCancelClick = useCallback(
     (purchaseRequestId: string) => {
-      // purchaseList가 있으면 사용, 없으면 purchaseRequestId만으로 처리
-      if (purchaseList) {
-        const item = purchaseList.find((p) => p.id === purchaseRequestId);
-        if (item) {
-          setCancelTargetItem(item);
-          setCancelModalOpen(true);
-        }
-      } else {
-        // purchaseList가 없을 경우, purchaseRequestId만으로 처리
-        // 이 경우 실제 아이템 정보는 모달에서 별도로 조회해야 함
-        setCancelTargetItem({ id: purchaseRequestId } as PurchaseRequestItem);
+      if (!purchaseList) return;
+
+      const item = purchaseList.find((p) => p.id === purchaseRequestId);
+      if (item) {
+        setCancelTargetItem(item);
         setCancelModalOpen(true);
       }
     },

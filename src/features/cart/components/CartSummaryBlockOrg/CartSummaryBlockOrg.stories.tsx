@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import CartSummaryBlockOrg, { type OrderItem, type CartRole } from './CartSummaryBlockOrg';
+import CartSummaryBlockOrg, { type OrderItem } from './CartSummaryBlockOrg';
 
 /** =====================
  * Mock Data
@@ -66,9 +66,9 @@ const meta: Meta<typeof CartSummaryBlockOrg> = {
     },
   },
   argTypes: {
-    'dataState.cartRole': {
-      control: 'radio',
-      options: ['user', 'manager', 'admin'] satisfies CartRole[],
+    dataState: {
+      control: 'object',
+      description: '장바구니 데이터 상태 (cartRole, items, budget, loading)',
     },
   },
 };
