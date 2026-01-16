@@ -20,7 +20,6 @@ interface PurchaseRequestItemRowDesktopProps {
   onCancel?: (purchaseRequestId: string) => void;
   onRowClick?: (purchaseRequestId: string) => void;
   companyId?: string;
-  onProductClick?: (productId: number) => void;
 }
 
 /**
@@ -32,13 +31,12 @@ export const PurchaseRequestItemRowDesktop = ({
   onApprove,
   onCancel,
   onRowClick,
-  companyId,
-  onProductClick,
+  companyId: _companyId,
 }: PurchaseRequestItemRowDesktopProps) => {
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   const totalPrice = calculateTotalPrice(item);
-  const { handleRowClick, handleRowKeyDown } = usePurchaseRowHandlers(item, onRowClick, companyId);
+  const { handleRowClick, handleRowKeyDown } = usePurchaseRowHandlers(item, onRowClick);
 
   return (
     <div
@@ -72,7 +70,6 @@ export const PurchaseRequestItemRowDesktop = ({
           PURCHASE_ITEM_LIST_STYLES.CELL.PRODUCT.TABLET,
           PURCHASE_ITEM_LIST_STYLES.CELL.PRODUCT.DESKTOP
         )}
-        onProductClick={onProductClick}
       >
         {formatItemDescription(item.purchaseItems)}
       </ProductLink>

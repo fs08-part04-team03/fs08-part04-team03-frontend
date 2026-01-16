@@ -174,15 +174,29 @@ const Template = ({
 
   return (
     <ProductListTem
-      categorySections={categorySections}
-      breadcrumbItems={breadcrumbItemsProp}
-      sortOptions={sortOptionsProp}
-      products={sortedProducts}
-      selectedSort={selectedSort}
-      onChangeSort={setSelectedSort}
-      selectedCategoryId={selectedCategoryId}
-      onChangeCategory={setSelectedCategoryId}
       companyId="test-company-id"
+      categoryState={{
+        categorySections,
+        activeSectionId: 1,
+        selectedCategoryId,
+        onChangeCategory: setSelectedCategoryId,
+      }}
+      sortSearchState={{
+        breadcrumbItems: breadcrumbItemsProp,
+        sortOptions: sortOptionsProp,
+        selectedSort,
+        onChangeSort: setSelectedSort,
+        searchQuery: '',
+        onSearch: () => {},
+      }}
+      productData={{
+        products: sortedProducts,
+        wishlistData: undefined,
+        isLoading: false,
+      }}
+      actionHandlers={{
+        onProductRegister: () => {},
+      }}
     />
   );
 };

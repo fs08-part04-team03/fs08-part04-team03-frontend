@@ -13,6 +13,7 @@ interface RHFFloatingLabelInputProps<T extends FieldValues, TName extends Path<T
   showPasswordToggle?: boolean;
   className?: string;
   errorLines?: number;
+  autoComplete?: string;
 }
 
 const RHFFloatingLabelInput = <T extends FieldValues>({
@@ -24,6 +25,7 @@ const RHFFloatingLabelInput = <T extends FieldValues>({
   showPasswordToggle = false,
   className,
   errorLines = 1,
+  autoComplete,
 }: RHFFloatingLabelInputProps<T>) => {
   const errorSlotHeight = errorLines === 1 ? 'h-24' : 'h-48';
   const errorSlotClassName = clsx(
@@ -47,6 +49,7 @@ const RHFFloatingLabelInput = <T extends FieldValues>({
             disabled={disabled}
             showPasswordToggle={showPasswordToggle}
             error={!!fieldState.error}
+            autoComplete={autoComplete}
           />
           <div className={errorSlotClassName} aria-live="polite">
             {fieldState.error?.message ?? '\u00A0'}

@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+/**
+ * MyPurchaseRequestListSection - 개선된 버전
+ * Props Drilling 개선 - 통합 훅 사용
+ */
+
 import { useParams } from 'next/navigation';
-import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import type { Option } from '@/components/atoms/DropDown/DropDown';
 import MyPurchaseRequestListTem from '@/features/purchase/template/MyPurchaseRequestListTem/MyPurchaseRequestListTem';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import {
@@ -14,53 +16,48 @@ import {
 } from '@/constants';
 import { COMMON_SORT_OPTIONS, DEFAULT_SORT_KEY } from '@/constants/sort';
 import { useToast } from '@/hooks/useToast';
-import { usePaginationParams } from '@/hooks/usePaginationParams';
-import {
-  useMyPurchases,
-  useCancelPurchaseRequest,
-} from '@/features/purchase/queries/purchase.queries';
+import { useMyPurchases } from '@/features/purchase/queries/purchase.queries';
 import { PURCHASE_DEFAULTS } from '@/features/purchase/constants/defaults';
-import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseNavigation';
+import { useMyPurchaseRequestList } from '@/features/purchase/hooks/useMyPurchaseRequestList';
 
 /**
- * MyPurchaseRequestListSection
- * 내 구매 요청 목록 데이터/상태 결정 레이어
- * - 내 구매 요청 목록 API 호출
- * - loading / error / empty 분기
- * - Template에 필요한 props를 만들고 내려주기
+ * MyPurchaseRequestListSection - 개선된 버전
+ * 통합 훅을 사용하여 Props Drilling 최소화
  */
 const MyPurchaseRequestListSection = () => {
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
-  // useToast 훅 사용
+
+  // Toast
   const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
 
-  // usePaginationParams 훅 사용
+  // 🎯 통합 훅 사용 - 모든 상태와 핸들러를 그룹화하여 관리
+  // 먼저 hook을 호출하여 paginationParams를 얻음
+  const hookResult = useMyPurchaseRequestList({
+    companyId,
+    defaultSize: PURCHASE_DEFAULTS.DISPLAY_ITEM_COUNT,
+    defaultSortKey: DEFAULT_SORT_KEY,
+    triggerToast,
+    sortOptions: COMMON_SORT_OPTIONS,
+    statusOptions: PURCHASE_REQUEST_STATUS_OPTIONS,
+    purchaseList: undefined, // API 호출 후 업데이트됨
+    successMessage: SUCCESS_MESSAGES.PURCHASE_CANCELLED,
+    errorMessage: PURCHASE_ERROR_MESSAGES.CANCEL_FAILED,
+  });
+
   const {
-    params: paginationParams,
-    handlePageChange,
-    handleSortChange,
-    handleStatusChange,
-  } = usePaginationParams({ defaultSize: 6, defaultSortKey: 'LATEST' });
+    paginationParams,
+    cancelModalState,
+    cancelModalHandlers,
+    paginationState,
+    sortState,
+    filterState,
+    navigationHandlers,
+  } = hookResult;
 
   const { page, size, status, sort } = paginationParams;
 
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [cancelTargetItem, setCancelTargetItem] = useState<PurchaseRequestItem | null>(null);
-
-  // 핸들러 훅 사용
-  const navigation = usePurchaseNavigation(companyId);
-
-  const selectedSortOption =
-    sort && sort !== DEFAULT_SORT_KEY
-      ? COMMON_SORT_OPTIONS.find((opt) => opt.key === sort)
-      : COMMON_SORT_OPTIONS.find((opt) => opt.key === DEFAULT_SORT_KEY);
-
-  const selectedStatusOption =
-    status && status !== 'ALL'
-      ? PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === status)
-      : PURCHASE_REQUEST_STATUS_OPTIONS.find((opt) => opt.key === 'ALL');
-
+  // API 호출 - paginationParams를 사용
   const {
     data,
     isLoading,
@@ -72,77 +69,6 @@ const MyPurchaseRequestListSection = () => {
     sort,
   });
 
-  const cancelMutation = useCancelPurchaseRequest();
-
-  const handleCancelClick = useCallback(
-    (purchaseRequestId: string) => {
-      if (!data) return;
-      const item = data.purchaseList.find((p) => p.id === purchaseRequestId);
-      if (item) {
-        setCancelTargetItem(item);
-        setCancelModalOpen(true);
-      }
-    },
-    [data]
-  );
-
-  const handleCancelModalClose = useCallback(() => {
-    setCancelModalOpen(false);
-    setCancelTargetItem(null);
-  }, []);
-
-  const handleCancelConfirm = useCallback(() => {
-    if (!cancelTargetItem) return;
-
-    cancelMutation.mutate(
-      { purchaseRequestId: cancelTargetItem.id },
-      {
-        onSuccess: () => {
-          // mutation의 onSuccess에서 이미 invalidateQueries를 호출하므로
-          // 여기서는 추가 작업 없이 UI만 업데이트
-          setCancelModalOpen(false);
-          setCancelTargetItem(null);
-          triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_CANCELLED);
-        },
-        onError: () => {
-          triggerToast('error', PURCHASE_ERROR_MESSAGES.CANCEL_FAILED);
-          setCancelModalOpen(false);
-          setCancelTargetItem(null);
-        },
-      }
-    );
-  }, [cancelTargetItem, cancelMutation, triggerToast]);
-
-  const handleSortChangeWithOption = useCallback(
-    (option: Option) => {
-      const sortKey = option.key === 'LATEST' ? undefined : option.key;
-      handleSortChange(sortKey);
-    },
-    [handleSortChange]
-  );
-
-  const handleStatusChangeWithOption = useCallback(
-    (option: Option) => {
-      const statusKey = option.key === 'ALL' ? undefined : option.key;
-      handleStatusChange(statusKey);
-    },
-    [handleStatusChange]
-  );
-
-  const handleRowClick = useCallback(
-    (purchaseRequestId: string) => {
-      navigation.goToMyPurchaseRequestDetail(purchaseRequestId);
-    },
-    [navigation]
-  );
-
-  const handleProductClick = useCallback(
-    (productId: number) => {
-      navigation.goToProductDetail(String(productId));
-    },
-    [navigation]
-  );
-
   if (queryError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -151,33 +77,30 @@ const MyPurchaseRequestListSection = () => {
     );
   }
 
-  // 페이지당 6개만 표시
-  const displayList = data?.purchaseList.slice(0, PURCHASE_DEFAULTS.DISPLAY_ITEM_COUNT) || [];
+  const displayList = data?.purchaseList || [];
+
+  // 🎯 그룹화된 Props 준비
+  const updatedPaginationState = {
+    ...paginationState,
+    currentPage: data?.currentPage,
+    totalPages: data?.totalPages,
+  };
 
   return (
     <div className="w-full">
+      {/* 🎯 깔끔하게 그룹화된 Props 전달 */}
       <MyPurchaseRequestListTem
         purchaseList={displayList}
-        onCancelClick={handleCancelClick}
-        cancelModalOpen={cancelModalOpen}
-        cancelTargetItem={cancelTargetItem}
-        onCancelModalClose={handleCancelModalClose}
-        onCancelConfirm={handleCancelConfirm}
-        currentPage={data?.currentPage}
-        totalPages={data?.totalPages}
-        onPageChange={handlePageChange}
-        sortOptions={COMMON_SORT_OPTIONS}
-        selectedSortOption={selectedSortOption}
-        onSortChange={handleSortChangeWithOption}
-        statusOptions={PURCHASE_REQUEST_STATUS_OPTIONS}
-        selectedStatusOption={selectedStatusOption}
-        onStatusChange={handleStatusChangeWithOption}
-        isLoading={isLoading}
-        onNavigateToProducts={navigation.goToProducts}
-        onRowClick={handleRowClick}
-        onProductClick={handleProductClick}
         companyId={companyId}
+        isLoading={isLoading}
+        cancelModalState={cancelModalState}
+        cancelModalHandlers={cancelModalHandlers}
+        paginationState={updatedPaginationState}
+        sortState={sortState}
+        filterState={filterState}
+        navigationHandlers={navigationHandlers}
       />
+
       {/* Toast */}
       {showToast && (
         <div className="fixed top-60 left-1/2 -translate-x-1/2 z-toast tablet:top-30">
