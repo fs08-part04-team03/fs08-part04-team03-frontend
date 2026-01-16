@@ -52,9 +52,9 @@ export interface MyPurchaseFilterState {
 
 /**
  * 네비게이션 핸들러
+ * onProductClick은 ProductCard/ProductLink가 직접 hook을 사용하므로 제거됨
+ * onRowClick도 usePurchaseRowHandlers에서 직접 hook을 사용하므로 제거됨
  */
 export interface MyPurchaseNavigationHandlers {
-  onRowClick?: (purchaseRequestId: string) => void;
-  onProductClick?: (productId: number) => void;
   onNavigateToProducts?: () => void;
 }
