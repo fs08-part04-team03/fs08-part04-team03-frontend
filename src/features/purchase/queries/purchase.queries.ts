@@ -275,7 +275,6 @@ export function useRejectPurchaseRequest() {
  */
 export function useCancelPurchaseRequest() {
   const queryClient = useQueryClient();
-  const { triggerToast } = useToast();
 
   return useMutation<void, Error, { purchaseRequestId: string }>({
     mutationFn: async ({ purchaseRequestId }) => {
@@ -289,8 +288,7 @@ export function useCancelPurchaseRequest() {
       await queryClient.invalidateQueries({ queryKey: purchaseKeys.detail(purchaseRequestId) });
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : '구매 요청 취소에 실패했습니다.';
-      triggerToast('error', message);
+      // 에러 토스트는 컴포넌트 레벨에서 처리하므로 여기서는 로깅만 수행
       logger.error('구매 요청 취소 실패:', err);
     },
   });

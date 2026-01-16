@@ -3,10 +3,22 @@
  * Props Drilling 개선을 위한 그룹화된 타입
  */
 
-import type {
-  CartRole,
-  OrderItem,
-} from '@/features/cart/components/CartSummaryBlockOrg/CartSummaryBlockOrg';
+/**
+ * 장바구니 역할 타입
+ */
+export type CartRole = 'user' | 'manager' | 'admin';
+
+/**
+ * 장바구니 아이템 타입
+ */
+export interface OrderItem {
+  cartItemId: string;
+  productId: number;
+  name: string;
+  price: number;
+  quantity: number;
+  imageSrc?: string;
+}
 
 /**
  * 장바구니 데이터 상태
@@ -25,6 +37,5 @@ export interface CartSummaryActionHandlers {
   onDeleteSelected?: (cartItemIds: string[]) => void;
   onSubmit?: (cartItemIds: string[]) => void;
   onGoBudgetManage?: () => void;
-  onQuantityChange?: (cartItemId: string, quantity: number) => void;
   onContinueShopping?: () => void;
 }

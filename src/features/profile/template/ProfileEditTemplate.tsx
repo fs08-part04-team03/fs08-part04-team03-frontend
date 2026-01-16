@@ -95,10 +95,8 @@ const ProfileEditForm = ({
                   className="object-contain"
                   unoptimized
                   onError={() => {
-                    // 이미지 로드 실패 시 기본 이미지로 대체
-                    // Next.js Image에서는 src를 직접 변경할 수 없으므로
-                    // 부모 컴포넌트에서 state로 관리해야 함
-                    console.error('프로필 이미지 로드 실패:', preview);
+                    // 이미지 로드 실패 시 부모 컴포넌트에 알려서 기본 이미지로 대체
+                    onImageDelete?.();
                   }}
                 />
               )}
