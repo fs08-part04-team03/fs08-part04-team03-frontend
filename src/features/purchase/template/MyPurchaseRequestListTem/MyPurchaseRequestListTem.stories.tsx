@@ -99,20 +99,34 @@ export const Default: Story = {
         createPurchaseItem('2', 'PENDING', 1, 3000, 0, '2024-07-03T00:00:00.000Z'),
         createPurchaseItem('3', 'REJECTED', 3, 5000, 0, '2024-07-02T00:00:00.000Z'),
       ]}
-      onCancelClick={() => {}}
-      cancelModalOpen={false}
-      cancelTargetItem={null}
-      onCancelModalClose={() => {}}
-      onCancelConfirm={() => {}}
-      currentPage={1}
-      totalPages={3}
-      onPageChange={() => {}}
-      sortOptions={sortOptions}
-      selectedSortOption={defaultSelectedSortOption}
-      onSortChange={() => {}}
-      statusOptions={statusOptions}
-      selectedStatusOption={defaultSelectedStatusOption}
-      onStatusChange={() => {}}
+      companyId="company-123"
+      cancelModalState={{
+        cancelModalOpen: false,
+        cancelTargetItem: null,
+      }}
+      cancelModalHandlers={{
+        onCancelClick: () => {},
+        onCancelModalClose: () => {},
+        onCancelConfirm: () => {},
+      }}
+      paginationState={{
+        currentPage: 1,
+        totalPages: 3,
+        onPageChange: () => {},
+      }}
+      sortState={{
+        sortOptions,
+        selectedSortOption: defaultSelectedSortOption,
+        onSortChange: () => {},
+      }}
+      filterState={{
+        statusOptions,
+        selectedStatusOption: defaultSelectedStatusOption,
+        onStatusChange: () => {},
+      }}
+      navigationHandlers={{
+        onNavigateToProducts: () => {},
+      }}
     />
   ),
 };
@@ -121,15 +135,25 @@ export const Empty: Story = {
   render: () => (
     <MyPurchaseRequestListTem
       purchaseList={[]}
-      currentPage={1}
-      totalPages={0}
-      onPageChange={() => {}}
-      sortOptions={sortOptions}
-      selectedSortOption={defaultSelectedSortOption}
-      onSortChange={() => {}}
-      statusOptions={statusOptions}
-      selectedStatusOption={defaultSelectedStatusOption}
-      onStatusChange={() => {}}
+      companyId="company-123"
+      paginationState={{
+        currentPage: 1,
+        totalPages: 0,
+        onPageChange: () => {},
+      }}
+      sortState={{
+        sortOptions,
+        selectedSortOption: defaultSelectedSortOption,
+        onSortChange: () => {},
+      }}
+      filterState={{
+        statusOptions,
+        selectedStatusOption: defaultSelectedStatusOption,
+        onStatusChange: () => {},
+      }}
+      navigationHandlers={{
+        onNavigateToProducts: () => {},
+      }}
     />
   ),
 };
@@ -142,20 +166,34 @@ export const Urgent: Story = {
         createPurchaseItem('2', 'APPROVED', 2, 3000, 0, '2024-07-03T00:00:00.000Z'),
         createPurchaseItem('3', 'PENDING', 1, 8000, 0, '2024-07-02T00:00:00.000Z', true),
       ]}
-      onCancelClick={() => {}}
-      cancelModalOpen={false}
-      cancelTargetItem={null}
-      onCancelModalClose={() => {}}
-      onCancelConfirm={() => {}}
-      currentPage={1}
-      totalPages={1}
-      onPageChange={() => {}}
-      sortOptions={sortOptions}
-      selectedSortOption={defaultSelectedSortOption}
-      onSortChange={() => {}}
-      statusOptions={statusOptions}
-      selectedStatusOption={defaultSelectedStatusOption}
-      onStatusChange={() => {}}
+      companyId="company-123"
+      cancelModalState={{
+        cancelModalOpen: false,
+        cancelTargetItem: null,
+      }}
+      cancelModalHandlers={{
+        onCancelClick: () => {},
+        onCancelModalClose: () => {},
+        onCancelConfirm: () => {},
+      }}
+      paginationState={{
+        currentPage: 1,
+        totalPages: 1,
+        onPageChange: () => {},
+      }}
+      sortState={{
+        sortOptions,
+        selectedSortOption: defaultSelectedSortOption,
+        onSortChange: () => {},
+      }}
+      filterState={{
+        statusOptions,
+        selectedStatusOption: defaultSelectedStatusOption,
+        onStatusChange: () => {},
+      }}
+      navigationHandlers={{
+        onNavigateToProducts: () => {},
+      }}
     />
   ),
 };
@@ -176,32 +214,46 @@ export const Interactive: Story = {
     return (
       <MyPurchaseRequestListTem
         purchaseList={purchaseList}
-        onCancelClick={(id) => {
-          const item = purchaseList.find((p) => p.id === id);
-          if (item) {
-            setCancelTargetItem(item);
-            setCancelModalOpen(true);
-          }
+        companyId="company-123"
+        cancelModalState={{
+          cancelModalOpen,
+          cancelTargetItem,
         }}
-        cancelModalOpen={cancelModalOpen}
-        cancelTargetItem={cancelTargetItem}
-        onCancelModalClose={() => {
-          setCancelModalOpen(false);
-          setCancelTargetItem(null);
+        cancelModalHandlers={{
+          onCancelClick: (id: string) => {
+            const item = purchaseList.find((p) => p.id === id);
+            if (item) {
+              setCancelTargetItem(item);
+              setCancelModalOpen(true);
+            }
+          },
+          onCancelModalClose: () => {
+            setCancelModalOpen(false);
+            setCancelTargetItem(null);
+          },
+          onCancelConfirm: () => {
+            setCancelModalOpen(false);
+            setCancelTargetItem(null);
+          },
         }}
-        onCancelConfirm={() => {
-          setCancelModalOpen(false);
-          setCancelTargetItem(null);
+        paginationState={{
+          currentPage: 1,
+          totalPages: 1,
+          onPageChange: () => {},
         }}
-        currentPage={1}
-        totalPages={1}
-        onPageChange={() => {}}
-        sortOptions={sortOptions}
-        selectedSortOption={defaultSelectedSortOption}
-        onSortChange={() => {}}
-        statusOptions={statusOptions}
-        selectedStatusOption={defaultSelectedStatusOption}
-        onStatusChange={() => {}}
+        sortState={{
+          sortOptions,
+          selectedSortOption: defaultSelectedSortOption,
+          onSortChange: () => {},
+        }}
+        filterState={{
+          statusOptions,
+          selectedStatusOption: defaultSelectedStatusOption,
+          onStatusChange: () => {},
+        }}
+        navigationHandlers={{
+          onNavigateToProducts: () => {},
+        }}
       />
     );
   },

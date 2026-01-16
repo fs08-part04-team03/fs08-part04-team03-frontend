@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 
 import AuthGuard from '@/components/auth/AuthGuard';
 import HeaderShell from '@/components/organisms/HeaderShell/HeaderShell';
+import { CompanyProvider } from '@/lib/context/CompanyContext';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,10 +36,12 @@ const CompanyLayout = async ({
 
   return (
     <AuthGuard companyId={companyId}>
-      <HeaderShell />
-      <main className="container mx-auto px-16 tablet:px-24 desktop:max-w-1200 min-w-371">
-        {children}
-      </main>
+      <CompanyProvider>
+        <HeaderShell />
+        <main className="container mx-auto px-16 tablet:px-24 desktop:max-w-1200 min-w-371">
+          {children}
+        </main>
+      </CompanyProvider>
     </AuthGuard>
   );
 };

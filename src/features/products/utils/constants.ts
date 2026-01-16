@@ -19,7 +19,7 @@ export const PRODUCT_LIST_BREAKPOINTS = {
 export const PRODUCT_LIST_STYLES = {
   BUTTON: {
     BASE: 'flex items-center justify-center gap-6',
-    HEIGHT: 'h-56 tablet:h-44',
+    HEIGHT: 'h-44',
     PADDING: 'px-16',
     ROUNDED: 'rounded-4',
     BACKGROUND: 'bg-[#222]',

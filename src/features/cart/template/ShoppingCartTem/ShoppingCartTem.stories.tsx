@@ -64,9 +64,9 @@ StepBreadcrumb과 CartSummaryBlockOrg를 조합하여
     },
   },
   argTypes: {
-    cartRole: {
-      control: 'radio',
-      options: ['user', 'manager', 'admin'],
+    dataState: {
+      control: 'object',
+      description: '장바구니 데이터 상태 (cartRole, items, budget, loading)',
     },
   },
 };
@@ -79,11 +79,14 @@ type Story = StoryObj<typeof ShoppingCartTem>;
  ====================== */
 export const User: Story = {
   args: {
-    cartRole: 'user',
-    items: mockItems,
-    onSubmit: () => {},
-    onDeleteSelected: () => {},
-    onQuantityChange: () => {},
+    dataState: {
+      cartRole: 'user',
+      items: mockItems,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onDeleteSelected: () => {},
+    },
   },
 };
 
@@ -92,12 +95,15 @@ export const User: Story = {
  ====================== */
 export const ManagerWithinBudget: Story = {
   args: {
-    cartRole: 'manager',
-    items: mockItems,
-    budget: 2_000_000,
-    onSubmit: () => {},
-    onDeleteSelected: () => {},
-    onQuantityChange: () => {},
+    dataState: {
+      cartRole: 'manager',
+      items: mockItems,
+      budget: 2_000_000,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onDeleteSelected: () => {},
+    },
   },
 };
 
@@ -106,11 +112,15 @@ export const ManagerWithinBudget: Story = {
  ====================== */
 export const ManagerBudgetExceeded: Story = {
   args: {
-    cartRole: 'manager',
-    items: mockItems,
-    budget: 100_000,
-    onSubmit: () => {},
-    onDeleteSelected: () => {},
+    dataState: {
+      cartRole: 'manager',
+      items: mockItems,
+      budget: 100_000,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onDeleteSelected: () => {},
+    },
   },
 };
 
@@ -119,11 +129,15 @@ export const ManagerBudgetExceeded: Story = {
  ====================== */
 export const AdminWithinBudget: Story = {
   args: {
-    cartRole: 'admin',
-    items: mockItems,
-    budget: 2_000_000,
-    onSubmit: () => {},
-    onDeleteSelected: () => {},
+    dataState: {
+      cartRole: 'admin',
+      items: mockItems,
+      budget: 2_000_000,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onDeleteSelected: () => {},
+    },
   },
 };
 
@@ -132,10 +146,14 @@ export const AdminWithinBudget: Story = {
  ====================== */
 export const AdminBudgetExceeded: Story = {
   args: {
-    cartRole: 'admin',
-    items: mockItems,
-    budget: 100_000,
-    onSubmit: () => {},
-    onGoBudgetManage: () => {},
+    dataState: {
+      cartRole: 'admin',
+      items: mockItems,
+      budget: 100_000,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onGoBudgetManage: () => {},
+    },
   },
 };

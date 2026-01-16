@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import CartSummaryBlockOrg, { type OrderItem, type CartRole } from './CartSummaryBlockOrg';
+import CartSummaryBlockOrg, { type OrderItem } from './CartSummaryBlockOrg';
 
 /** =====================
  * Mock Data
@@ -66,9 +66,9 @@ const meta: Meta<typeof CartSummaryBlockOrg> = {
     },
   },
   argTypes: {
-    cartRole: {
-      control: 'radio',
-      options: ['user', 'manager', 'admin'] satisfies CartRole[],
+    dataState: {
+      control: 'object',
+      description: '장바구니 데이터 상태 (cartRole, items, budget, loading)',
     },
   },
 };
@@ -81,11 +81,14 @@ type Story = StoryObj<typeof CartSummaryBlockOrg>;
  ====================== */
 export const User: Story = {
   args: {
-    cartRole: 'user',
-    items: mockItems,
-    onSubmit: () => {},
-    onDeleteSelected: () => {},
-    onQuantityChange: () => {},
+    dataState: {
+      cartRole: 'user',
+      items: mockItems,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onDeleteSelected: () => {},
+    },
   },
 };
 
@@ -94,12 +97,15 @@ export const User: Story = {
  ====================== */
 export const ManagerWithinBudget: Story = {
   args: {
-    cartRole: 'manager',
-    items: mockItems,
-    budget: 2_000_000,
-    onSubmit: () => {},
-    onDeleteSelected: () => {},
-    onQuantityChange: () => {},
+    dataState: {
+      cartRole: 'manager',
+      items: mockItems,
+      budget: 2_000_000,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onDeleteSelected: () => {},
+    },
   },
 };
 
@@ -108,11 +114,15 @@ export const ManagerWithinBudget: Story = {
  ====================== */
 export const ManagerBudgetExceeded: Story = {
   args: {
-    cartRole: 'manager',
-    items: mockItems,
-    budget: 100_000,
-    onSubmit: () => {},
-    onDeleteSelected: () => {},
+    dataState: {
+      cartRole: 'manager',
+      items: mockItems,
+      budget: 100_000,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onDeleteSelected: () => {},
+    },
   },
 };
 
@@ -121,11 +131,15 @@ export const ManagerBudgetExceeded: Story = {
  ====================== */
 export const AdminWithinBudget: Story = {
   args: {
-    cartRole: 'admin',
-    items: mockItems,
-    budget: 2_000_000,
-    onSubmit: () => {},
-    onDeleteSelected: () => {},
+    dataState: {
+      cartRole: 'admin',
+      items: mockItems,
+      budget: 2_000_000,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onDeleteSelected: () => {},
+    },
   },
 };
 
@@ -134,10 +148,14 @@ export const AdminWithinBudget: Story = {
  ====================== */
 export const AdminBudgetExceeded: Story = {
   args: {
-    cartRole: 'admin',
-    items: mockItems,
-    budget: 100_000,
-    onSubmit: () => {},
-    onGoBudgetManage: () => {},
+    dataState: {
+      cartRole: 'admin',
+      items: mockItems,
+      budget: 100_000,
+    },
+    actionHandlers: {
+      onSubmit: () => {},
+      onGoBudgetManage: () => {},
+    },
   },
 };

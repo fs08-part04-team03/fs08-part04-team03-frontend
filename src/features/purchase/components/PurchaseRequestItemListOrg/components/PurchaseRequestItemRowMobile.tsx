@@ -22,7 +22,6 @@ interface PurchaseRequestItemRowMobileProps {
   onCancel?: (purchaseRequestId: string) => void;
   onRowClick?: (purchaseRequestId: string) => void;
   companyId?: string;
-  onProductClick?: (productId: number) => void;
 }
 
 /**
@@ -34,13 +33,12 @@ export const PurchaseRequestItemRowMobile = ({
   onApprove,
   onCancel,
   onRowClick,
-  companyId,
-  onProductClick,
+  companyId: _companyId,
 }: PurchaseRequestItemRowMobileProps) => {
   const isPending = item.status === 'PENDING';
   const isUrgent = item.urgent === true;
   const totalPrice = calculateTotalPrice(item);
-  const { handleRowClick, handleRowKeyDown } = usePurchaseRowHandlers(item, onRowClick, companyId);
+  const { handleRowClick, handleRowKeyDown } = usePurchaseRowHandlers(item, onRowClick);
 
   return (
     <div
@@ -69,11 +67,7 @@ export const PurchaseRequestItemRowMobile = ({
           </div>
 
           {/* 아이템 설명 - 클릭 가능 */}
-          <ProductLink
-            item={item}
-            className={PURCHASE_ITEM_LIST_STYLES.CELL.TEXT}
-            onProductClick={onProductClick}
-          >
+          <ProductLink item={item} className={PURCHASE_ITEM_LIST_STYLES.CELL.TEXT}>
             {formatItemDescription(item.purchaseItems)}
           </ProductLink>
 
