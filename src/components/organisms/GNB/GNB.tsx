@@ -1,13 +1,15 @@
 'use client';
 
+/**
+ * GNB (Global Navigation Bar)
+ * Props Drilling 개선 - 그룹화된 Props 사용
+ */
+
 import { useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
 import { useParams, usePathname } from 'next/navigation';
-
 import { clsx } from '@/utils/clsx';
-import type { UserRole, AppRouteKey, ParentCategoryKey, ParentCategoryOption } from '@/constants';
+import type { AppRouteKey } from '@/constants';
 import { CATEGORY_SECTIONS } from '@/constants';
-
 import GNBBrand from '@/components/molecules/GNBBrand/GNBBrand';
 import GNBPrimaryNav, {
   GNBPrimaryNavSidebar,
@@ -15,75 +17,37 @@ import GNBPrimaryNav, {
 import { GNBUserActions } from '@/components/molecules/GNBUserActions/GNBUserActions';
 import { GNBCategorySwitcher } from '@/components/molecules/GNBCategorySwitcher/GNBCategorySwitcher';
 import { SideBarMenu } from '@/components/organisms/SideBarMenu/SideBarMenu';
+import type {
+  GNBBaseState,
+  GNBHandlers,
+  GNBNavigationState,
+  GNBCategoryState,
+} from './types/gnb.types';
 
+/**
+ * 개선된 Props 인터페이스 - 그룹화된 타입 사용
+ */
 export interface GNBProps {
-  /** 사용자 역할 */
-  role: UserRole;
-
-  /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
-  userProfile?: ReactNode;
-
-  /** 장바구니에 담긴 상품 개수 */
-  cartCount?: number;
-
-  /** 로그아웃 콜백 */
-  onLogout?: () => void;
-
-  /** 햄버거 메뉴 클릭 콜백 */
-  onMenuClick?: () => void;
-
-  /** 네비게이션 아이템 클릭 콜백 */
-  onNavItemClick?: (key: AppRouteKey) => void;
-
-  /** 현재 활성 경로 */
-  activePath?: string;
-
-  /** 대분류 카테고리 리스트 */
-  categories?: ParentCategoryOption[];
-
-  /** 현재 선택된 카테고리 ID */
-  activeCategoryId?: ParentCategoryKey;
-
-  /** 상품의 대분류 ID */
-  productCategoryId?: ParentCategoryKey;
-
-  /** 카테고리 변경 콜백 */
-  onCategoryChange?: (id: ParentCategoryKey) => void;
-
-  /** 소분류 카테고리 변경 콜백 */
-  onSubCategoryChange?: (id: number) => void;
-
-  /** GNB 컨테이너 className */
-  className?: string;
+  // 그룹화된 Props
+  baseState: GNBBaseState;
+  handlers?: GNBHandlers;
+  navigationState?: GNBNavigationState;
+  categoryState?: GNBCategoryState;
 }
 
 /**
- * GNB (Global Navigation Bar)
- *
- * 반응형 전역 네비게이션 바 컴포넌트
+ * 개선된 GNB - 깔끔하고 단순한 조립 레이어
  */
-const GNB = ({
-  role,
-  userProfile,
-  cartCount = 0,
-  onLogout,
-  onMenuClick,
-  onNavItemClick,
-  activePath,
-  categories = [],
-  activeCategoryId,
-  productCategoryId,
-  onCategoryChange,
-  onSubCategoryChange,
-  className,
-}: GNBProps) => {
+const GNB = ({ baseState, handlers, navigationState, categoryState }: GNBProps) => {
   const params = useParams();
   const pathname = usePathname();
   const companyId = (params?.companyId as string) || '';
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const currentActivePath = activePath ?? pathname ?? '';
+  const { role, userProfile, cartCount = 0, className } = baseState;
+  const currentActivePath = navigationState?.activePath ?? pathname ?? '';
+  const categories = categoryState?.categories ?? [];
 
   // GNBCategorySwitcher를 보여줄 페이지인지 확인 (모바일 전용)
   // "내가 등록한 상품" 페이지(/products/my)는 제외
@@ -109,7 +73,7 @@ const GNB = ({
 
   const handleMenuClick = () => {
     setIsSidebarOpen(true);
-    onMenuClick?.();
+    handlers?.onMenuClick?.();
   };
 
   const closeSidebar = () => {
@@ -118,12 +82,12 @@ const GNB = ({
 
   const handleNavItemClick = (key: AppRouteKey) => {
     closeSidebar();
-    onNavItemClick?.(key);
+    handlers?.onNavItemClick?.(key);
   };
 
   const handleSidebarLogout = () => {
     closeSidebar();
-    onLogout?.();
+    handlers?.onLogout?.();
   };
 
   return (
@@ -147,22 +111,22 @@ const GNB = ({
           role={role}
           companyId={companyId}
           activePath={currentActivePath}
-          onItemClick={onNavItemClick}
+          onItemClick={handlers?.onNavItemClick}
         />
 
         {showCategorySwitcher &&
           categories &&
           categories.length > 0 &&
-          activeCategoryId &&
-          onCategoryChange && (
+          categoryState?.activeCategoryId &&
+          categoryState?.onCategoryChange && (
             <div className="flex-1 flex items-center justify-center tablet:hidden">
               <GNBCategorySwitcher
                 categories={categories}
                 categorySections={CATEGORY_SECTIONS}
-                activeCategoryId={activeCategoryId}
-                productCategoryId={productCategoryId}
-                onCategoryChange={onCategoryChange}
-                onSubCategoryChange={onSubCategoryChange}
+                activeCategoryId={categoryState.activeCategoryId}
+                productCategoryId={categoryState.productCategoryId}
+                onCategoryChange={categoryState.onCategoryChange}
+                onSubCategoryChange={categoryState.onSubCategoryChange}
               />
             </div>
           )}
@@ -173,7 +137,7 @@ const GNB = ({
           companyId={companyId}
           userProfile={userProfile}
           cartCount={cartCount}
-          onLogout={onLogout}
+          onLogout={handlers?.onLogout}
           onMenuClick={handleMenuClick}
         />
       </div>
@@ -185,7 +149,7 @@ const GNB = ({
           activePath={currentActivePath}
           onItemClick={handleNavItemClick}
           onProfileClick={closeSidebar}
-          onLogout={onLogout ? handleSidebarLogout : undefined}
+          onLogout={handlers?.onLogout ? handleSidebarLogout : undefined}
         />
       </SideBarMenu>
     </div>
