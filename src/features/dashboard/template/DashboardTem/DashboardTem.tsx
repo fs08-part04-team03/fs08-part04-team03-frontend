@@ -93,7 +93,12 @@ const DashboardTem = ({
         </h1>
 
         <div className="flex gap-8">
-          <Button variant="secondary" size="sm" onClick={handleEmergencyClick}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleEmergencyClick}
+            className="whitespace-nowrap"
+          >
             긴급 알림
           </Button>
           <Button variant="secondary" size="sm" onClick={handleExcelClick}>

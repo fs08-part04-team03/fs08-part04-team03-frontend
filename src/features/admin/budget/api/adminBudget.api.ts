@@ -1,55 +1,10 @@
-import { useAuthStore } from '@/lib/store/authStore';
+import { fetchWithAuth } from '@/utils/api';
 import { ADMIN_BUDGET_API_PATHS } from '@/features/admin/budget/constants/api';
 
 interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string;
-}
-
-/**
- * 공통 API 요청 헬퍼 함수
- */
-async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) {
-    throw new Error('NEXT_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다.');
-  }
-
-  const { accessToken } = useAuthStore.getState();
-  if (!accessToken) {
-    throw new Error('인증 토큰이 없습니다. 로그인이 필요합니다.');
-  }
-
-  const response = await fetch(`${apiUrl}${url}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-      ...options.headers,
-    },
-    credentials: 'include', // 쿠키 기반 인증을 위해 필요
-  });
-
-  // 401 Unauthorized 에러 처리
-  if (response.status === 401) {
-    // const { clearAuth } = useAuthStore.getState();
-    // clearAuth();
-    // 리다이렉트를 약간 지연시켜 React Query가 에러를 처리할 수 있도록 함
-    // if (typeof window !== 'undefined') {
-    //   setTimeout(() => {
-    //     window.location.href = '/login';
-    //   }, 100);
-    // }
-    throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
-  }
-
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
-    throw new Error(errorData.message || '요청에 실패했습니다.');
-  }
-
-  return (await response.json()) as ApiResponse<T>;
 }
 
 /**
@@ -68,13 +23,21 @@ export interface BudgetResponse {
  * 이번 달 예산 조회
  * GET /api/v1/budget?year=YYYY&month=M
  */
-export const getBudget = async (year: string, month: string) =>
-  fetchWithAuth<BudgetResponse[]>(
+export const getBudget = async (year: string, month: string) => {
+  const response = await fetchWithAuth(
     `${ADMIN_BUDGET_API_PATHS.GET_BUDGET}?year=${year}&month=${month}`,
     {
       method: 'GET',
     }
   );
+
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(errorData.message || '예산 조회에 실패했습니다.');
+  }
+
+  return response.json() as Promise<ApiResponse<BudgetResponse[]>>;
+};
 
 /**
  * 이번 달 예산 등록/수정
@@ -97,10 +60,17 @@ export const updateBudget = async (amount: number) => {
     amount,
   };
 
-  return fetchWithAuth(ADMIN_BUDGET_API_PATHS.UPDATE_BUDGET, {
+  const response = await fetchWithAuth(ADMIN_BUDGET_API_PATHS.UPDATE_BUDGET, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
+
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(errorData.message || '예산 수정에 실패했습니다.');
+  }
+
+  return response.json() as Promise<ApiResponse<void>>;
 };
 
 /**
@@ -115,10 +85,18 @@ export interface BudgetCriteriaResponse {
  * 매달 시작 예산 조회
  * GET /api/v1/budget/criteria
  */
-export const getBudgetCriteria = async () =>
-  fetchWithAuth<BudgetCriteriaResponse>(ADMIN_BUDGET_API_PATHS.GET_BUDGET_CRITERIA, {
+export const getBudgetCriteria = async () => {
+  const response = await fetchWithAuth(ADMIN_BUDGET_API_PATHS.GET_BUDGET_CRITERIA, {
     method: 'GET',
   });
+
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(errorData.message || '예산 기준 조회에 실패했습니다.');
+  }
+
+  return response.json() as Promise<ApiResponse<BudgetCriteriaResponse>>;
+};
 
 /**
  * 매달 시작 예산 등록/수정
@@ -133,8 +111,15 @@ export const updateBudgetCriteria = async (amount: number) => {
     amount,
   };
 
-  return fetchWithAuth(ADMIN_BUDGET_API_PATHS.UPDATE_BUDGET_CRITERIA, {
+  const response = await fetchWithAuth(ADMIN_BUDGET_API_PATHS.UPDATE_BUDGET_CRITERIA, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
+
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(errorData.message || '예산 기준 수정에 실패했습니다.');
+  }
+
+  return response.json() as Promise<ApiResponse<void>>;
 };
