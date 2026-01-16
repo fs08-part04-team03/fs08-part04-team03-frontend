@@ -60,7 +60,7 @@ const AdminUsersTemplate = ({
               <div className="hidden tablet:block">
                 <Button
                   variant="primary"
-                  className="!w-[200px] !h-64 !p-[12px_16px] !rounded-[2px] !bg-gray-950 !text-white !text-16 !font-bold tracking-tight"
+                  className="!w-[150px] !h-44 !py-12 !px-16 !rounded-default !bg-gray-950 !text-white !text-16 !font-bold tracking-tight"
                   onClick={onInvite}
                 >
                   회원 초대하기
@@ -100,7 +100,7 @@ const AdminUsersTemplate = ({
             <div className="fixed bottom-0 left-0 w-full p-24 bg-white border-t border-gray-100 tablet:hidden z-[var(--z-base)] flex justify-center">
               <Button
                 variant="primary"
-                className="!w-[327px] !h-[64px] !p-[12px_16px] !rounded-[2px] !bg-[#222] !text-white !text-16 !font-bold tracking-[-0.4px]"
+                className="!w-327 !h-44 !py-12 !px-16 !rounded-default !bg-gray-950 !text-white !text-16 !font-bold tracking-tight"
                 onClick={onInvite}
               >
                 회원 초대하기
