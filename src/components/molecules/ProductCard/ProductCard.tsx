@@ -4,6 +4,7 @@ import { useState, KeyboardEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import ProductTile from '@/components/molecules/ProductTile/ProductTile';
+import { useProductNavigationDirect } from '@/features/products/hooks/useProductNavigationDirect';
 
 type ProductCardVariant = 'product' | 'order' | 'wishlist';
 
@@ -16,6 +17,9 @@ interface BaseProductCardProps {
   shippingFee?: number;
   imageUrl?: string;
   className?: string;
+  /** Props Depth 1단계: productId가 있으면 직접 hook 사용 */
+  productId?: number;
+  /** 하위 호환성을 위한 props (deprecated - productId 사용 권장) */
   onClick?: () => void;
 
   /** ✅ wishlist 전용 */
@@ -38,6 +42,7 @@ const ProductCard = ({
   shippingFee,
   imageUrl,
   className,
+  productId,
   onClick,
   onUnlike,
   liked: externalLiked,
@@ -49,9 +54,22 @@ const ProductCard = ({
   const [imgError, setImgError] = useState(false);
   // (백엔드에서 presigned URL을 내려주므로 별도의 캐시 버스터 불필요)
 
+  // Props Depth 1단계: productId가 있으면 직접 hook 사용
+  // React Hook은 항상 호출되어야 하므로 조건부 호출 불가
+  const navigation = useProductNavigationDirect();
+
   const isWishlist = variant === 'wishlist';
   const liked = externalLiked !== undefined ? externalLiked : internalLiked;
   const isLiked = isWishlist ? true : liked;
+
+  // 클릭 핸들러: productId가 있으면 hook 사용, 없으면 기존 onClick 사용
+  const handleClick = () => {
+    if (productId && navigation) {
+      navigation.goToProductDetail(productId);
+    } else if (onClick) {
+      onClick();
+    }
+  };
 
   const rootClasses = clsx(
     'flex flex-col overflow-hidden',
@@ -73,10 +91,10 @@ const ProductCard = ({
   );
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (!onClick) return;
+    if (!productId && !onClick) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      onClick();
+      handleClick();
     }
   };
 
@@ -176,7 +194,7 @@ const ProductCard = ({
       role="link"
       tabIndex={0}
       aria-label={`${name} 상세 페이지로 이동`}
-      onClick={onClick}
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}

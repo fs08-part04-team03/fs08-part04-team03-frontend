@@ -9,6 +9,7 @@ import LinkText from '@/components/atoms/LinkText/LinkText';
 import ListSkeletonUI from '@/components/molecules/ListSkeletonUI/ListSkeletonUI';
 import { PRODUCT_LABELS, PRODUCT_MESSAGES } from '@/features/products/constants';
 import { formatDate } from '@/utils/formatDate';
+import { useProductNavigationDirect } from '@/features/products/hooks/useProductNavigationDirect';
 
 export interface RegisteredProductOrgItem {
   id: number;
@@ -24,6 +25,7 @@ interface RegisteredProductOrgProps {
   products: RegisteredProductOrgItem[];
   totalCount: number;
   onRegisterClick?: () => void;
+  /** 하위 호환성을 위한 props (deprecated - 직접 hook 사용) */
   onProductClick?: (productId: number) => void;
   isLoading?: boolean;
 }
@@ -38,11 +40,16 @@ const RegisteredProductOrg = ({
   const isEmpty = products.length === 0;
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
 
+  // Props Depth 1단계: 직접 hook 사용
+  const navigation = useProductNavigationDirect();
+
   const handleImageError = (productId: number) => {
     setImageErrors((prev) => ({ ...prev, [productId]: true }));
   };
 
   const handleProductClick = (productId: number) => {
+    // 직접 hook 사용 (하위 호환성을 위해 onProductClick도 지원)
+    navigation.goToProductDetail(productId);
     if (onProductClick) {
       onProductClick(productId);
     }

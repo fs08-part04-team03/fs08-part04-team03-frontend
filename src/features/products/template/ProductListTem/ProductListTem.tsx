@@ -69,12 +69,6 @@ const ProductListTem = ({
     categoryState.onChangeCategory // 소분류 변경도 같은 핸들러 사용
   );
 
-  const handleProductClickInternal = (productId: number) => {
-    if (actionHandlers.onProductClick) {
-      actionHandlers.onProductClick(productId);
-    }
-  };
-
   return (
     <div className="w-full flex justify-center">
       <div className="flex mobile:flex-col tablet:flex-row desktop:gap-40 tablet:gap-20 mobile:gap-0">
@@ -131,7 +125,6 @@ const ProductListTem = ({
               onSearch: sortSearchState.onSearch,
             }}
             actionHandlers={{
-              onProductClick: handleProductClickInternal,
               onOpenModal: () => setModalOpen(true),
               isProductLiked,
               handleToggleLike,

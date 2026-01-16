@@ -94,8 +94,8 @@ export const useProductListState = ({ companyId }: UseProductListStateParams) =>
   };
 
   // 상품 액션 핸들러 그룹
+  // onProductClick은 ProductCard가 productId를 통해 직접 hook을 사용하므로 제거됨
   const actionHandlers: ProductActionHandlers = {
-    onProductClick: navigation.goToProductDetail,
     onProductRegister: handleProductRegister,
   };
 

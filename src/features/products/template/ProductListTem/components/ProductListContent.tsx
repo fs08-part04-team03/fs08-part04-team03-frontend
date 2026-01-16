@@ -114,7 +114,7 @@ export const ProductListContent = ({
                 price={product.price}
                 purchaseCount={product.purchaseCount}
                 imageUrl={product.imageUrl}
-                onClick={() => actionHandlers.onProductClick(product.id)}
+                productId={product.id}
                 liked={liked}
                 onToggleLike={() => actionHandlers.handleToggleLike(product.id, liked)}
                 priority={isPriority}
