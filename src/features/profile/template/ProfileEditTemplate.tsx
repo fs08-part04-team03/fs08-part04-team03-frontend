@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { type Control, type UseFormHandleSubmit } from 'react-hook-form';
 import RHFFloatingLabelInput from '@/components/molecules/RHFFloatingLabelInput/RHFFloatingLabelInput';
 import Button from '@/components/atoms/Button/Button';
@@ -59,6 +60,8 @@ const ProfileEditForm = ({
   onImageDelete,
   isUploading = false,
 }: ProfileEditFormProps) => {
+  // 고유 ID 생성 (중복 ID 문제 해결)
+  const imageUploadId = useId();
   const isDefaultUploadIcon = preview === '/icons/upload.svg';
   const hasImage = preview && !isDefaultUploadIcon;
 
@@ -79,7 +82,7 @@ const ProfileEditForm = ({
         <div className="flex justify-center">
           <div className="relative w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
             <label
-              htmlFor="profile-image-upload"
+              htmlFor={imageUploadId}
               className={
                 isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer w-full h-full'
               }
@@ -88,11 +91,14 @@ const ProfileEditForm = ({
                 <Image
                   src={preview}
                   alt="프로필 미리보기"
-                  className="w-full h-full object-contain"
-                  style={{ maxWidth: '100%', maxHeight: '100%' }}
-                  onError={(e) => {
+                  fill
+                  className="object-contain"
+                  unoptimized
+                  onError={() => {
                     // 이미지 로드 실패 시 기본 이미지로 대체
-                    e.currentTarget.src = '/icons/upload.svg';
+                    // Next.js Image에서는 src를 직접 변경할 수 없으므로
+                    // 부모 컴포넌트에서 state로 관리해야 함
+                    console.error('프로필 이미지 로드 실패:', preview);
                   }}
                 />
               )}
@@ -113,7 +119,7 @@ const ProfileEditForm = ({
               )}
             </label>
             <input
-              id="profile-image-upload"
+              id={imageUploadId}
               type="file"
               accept="image/*"
               onChange={onImageChange}
@@ -166,6 +172,7 @@ const ProfileEditForm = ({
           label="비밀번호를 입력해주세요"
           type="password"
           showPasswordToggle
+          autoComplete="new-password"
         />
         <RHFFloatingLabelInput
           control={control}
@@ -173,6 +180,7 @@ const ProfileEditForm = ({
           label="비밀번호를 한번 더 입력해주세요"
           type="password"
           showPasswordToggle
+          autoComplete="new-password"
         />
       </div>
 
