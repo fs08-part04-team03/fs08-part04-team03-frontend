@@ -33,9 +33,9 @@ export interface ProductContentSearchState {
 
 /**
  * 상품 액션 핸들러
+ * onProductClick은 ProductCard가 productId를 통해 직접 hook을 사용하므로 제거됨
  */
 export interface ProductContentActionHandlers {
-  onProductClick: (productId: number) => void;
   onOpenModal: () => void;
   isProductLiked: (productId: number) => boolean;
   handleToggleLike: (productId: number, isLiked: boolean) => void;

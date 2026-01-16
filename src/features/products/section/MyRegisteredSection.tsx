@@ -12,7 +12,6 @@ import type { Option } from '@/components/atoms/DropDown/DropDown';
 import { useProductResponsivePageSize } from '@/features/products/handlers/useProductResponsivePageSize';
 import { useProductPaginationHandlers } from '@/features/products/handlers/useProductPaginationHandlers';
 import { useProductModalHandlers } from '@/features/products/handlers/useProductModalHandlers';
-import { useProductNavigation } from '@/features/products/handlers/useProductNavigation';
 import { PRODUCT_DEFAULTS } from '@/features/products/constants/defaults';
 
 const MyRegisteredSection = () => {
@@ -23,7 +22,6 @@ const MyRegisteredSection = () => {
   const [selectedSort, setSelectedSort] = useState<Option>(DEFAULT_REGISTERED_PRODUCT_SORT);
 
   // 핸들러 훅 사용
-  const navigation = useProductNavigation(companyId || '');
   const pagination = useProductPaginationHandlers(undefined, PRODUCT_DEFAULTS.INITIAL_PAGE);
   const pageSize = useProductResponsivePageSize(pagination.resetPage);
   const modalHandlers = useProductModalHandlers(pagination.currentPage, pageSize, selectedSort.key);
@@ -97,7 +95,6 @@ const MyRegisteredSection = () => {
         totalPage={totalPage}
         onPageChange={pagination.setCurrentPage}
         onRegisterClick={modalHandlers.handleOpenModal}
-        onProductClick={(productId) => navigation.goToProductDetail(productId)}
       />
       <ProductModal
         open={modalHandlers.modalOpen}
