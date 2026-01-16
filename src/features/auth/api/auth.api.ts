@@ -48,6 +48,64 @@ function isApiErrorResponse(response: ApiResponse<unknown>): response is ApiErro
 }
 
 /**
+ * 회사 선택이 필요한 경우 발생하는 에러 타입
+ */
+export interface CompanySelectionRequiredError extends Error {
+  companies: Array<{ id: string; name: string }>;
+}
+
+/**
+ * 회사 선택 필요 에러 생성 함수
+ */
+export function createCompanySelectionRequiredError(
+  companies: Array<{ id: string; name: string }>
+): CompanySelectionRequiredError {
+  const error = new Error('회사 선택이 필요합니다.') as CompanySelectionRequiredError;
+  error.name = 'CompanySelectionRequiredError';
+  error.companies = companies;
+  return error;
+}
+
+/**
+ * 회사 선택 필요 에러인지 확인하는 타입 가드
+ */
+export function isCompanySelectionRequiredError(
+  error: unknown
+): error is CompanySelectionRequiredError {
+  return (
+    error instanceof Error && error.name === 'CompanySelectionRequiredError' && 'companies' in error
+  );
+}
+
+/**
+ * 회사 선택 필요 응답 타입
+ */
+interface CompanySelectionErrorResponse {
+  success: false;
+  error: {
+    code: 'AUTH_COMPANY_SELECTION_REQUIRED';
+    message: string;
+    details: {
+      requiresCompanySelection: true;
+      companies: Array<{ id: string; name: string }>;
+    };
+  };
+}
+
+/**
+ * 회사 선택 필요 응답인지 확인하는 타입 가드
+ */
+function isCompanySelectionRequired(response: unknown): response is CompanySelectionErrorResponse {
+  const r = response as CompanySelectionErrorResponse;
+  return (
+    r?.success === false &&
+    r?.error?.code === 'AUTH_COMPANY_SELECTION_REQUIRED' &&
+    r?.error?.details?.requiresCompanySelection === true &&
+    Array.isArray(r?.error?.details?.companies)
+  );
+}
+
+/**
  * 로그인 응답 데이터 타입
  * Note: company 필드는 선택적입니다. 로그인 시 회사 정보가 포함되지 않을 수 있습니다.
  */
@@ -117,7 +175,11 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     const response = await fetch(requestUrl, {
       method: 'POST',
       headers: { 'Content-Type': HTTP_HEADERS.CONTENT_TYPE_JSON },
-      body: JSON.stringify({ email: credentials.email, password: credentials.password }),
+      body: JSON.stringify({
+        email: credentials.email,
+        password: credentials.password,
+        ...(credentials.companyId && { companyId: credentials.companyId }),
+      }),
       signal: controller.signal,
       credentials: 'include',
     });
@@ -132,8 +194,8 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
       throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
     }
 
-    // 그 외는 장애로 취급
-    if (!response.ok) {
+    // 그 외는 장애로 취급 (409는 회사 선택 필요 에러일 수 있으므로 제외)
+    if (!response.ok && response.status !== 409) {
       throw new Error('일시적인 장애가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
 
@@ -143,6 +205,11 @@ export async function login(credentials: LoginInput): Promise<{ user: User; acce
     }
 
     const result = (await response.json()) as ApiResponse<LoginResponseData>;
+
+    // 회사 선택 필요 응답 처리
+    if (isCompanySelectionRequired(result)) {
+      throw createCompanySelectionRequiredError(result.error.details.companies);
+    }
     if (!result.success || !result.data?.accessToken || !result.data?.user) {
       throw new Error('일시적인 장애가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }

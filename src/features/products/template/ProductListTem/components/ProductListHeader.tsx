@@ -4,6 +4,7 @@ import { clsx } from '@/utils/clsx';
 import Breadcrumb, { type BreadcrumbItem } from '@/components/molecules/Breadcrumb/Breadcrumb';
 import DropDown, { type Option } from '@/components/atoms/DropDown/DropDown';
 import { PRODUCT_LIST_STYLES } from '@/features/products/utils/constants';
+import Image from 'next/image';
 
 interface ProductListHeaderProps {
   breadcrumbItems: BreadcrumbItem[];
@@ -49,7 +50,7 @@ export const ProductListHeader = ({
             onSelect={onChangeSort}
           />
           <button type="button" className={buttonClass} onClick={onOpenModal}>
-            <img src="/icons/plus-white.svg" alt="" aria-hidden className="w-16 h-16" />
+            <Image src="/icons/plus-white.svg" alt="" aria-hidden width={16} height={16} />
             <span>상품 등록</span>
           </button>
         </div>
@@ -69,7 +70,7 @@ export const ProductListHeader = ({
             onSelect={onChangeSort}
           />
           <button type="button" className={buttonClass} onClick={onOpenModal}>
-            <img src="/icons/plus-white.svg" alt="" aria-hidden className="w-16 h-16" />
+            <Image src="/icons/plus-white.svg" alt="" aria-hidden width={16} height={16} />
             <span>상품 등록</span>
           </button>
         </div>

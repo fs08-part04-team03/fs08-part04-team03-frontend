@@ -103,7 +103,13 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
                   <div className="absolute right-0 top-full mt-0 bg-white border border-gray-100 rounded-md shadow-lg z-dropdown w-fit whitespace-nowrap">
                     <button
                       type="button"
-                      className="w-full px-16 py-12 text-left text-gray-950 text-16 font-normal tracking-tight hover:bg-gray-50"
+                      disabled={user.role === 'ADMIN'}
+                      className={`w-full px-16 py-12 text-left text-16 font-normal tracking-tight 
+                        ${
+                          user.role === 'ADMIN'
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-gray-950 hover:bg-gray-50'
+                        }`}
                       onClick={() => {
                         onRoleChange(user.id);
                         setOpenMenuId(null);
@@ -138,6 +144,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
               <div className="w-200 shrink-0 flex justify-center gap-8">
                 <Button
                   variant="secondary"
+                  inactive={user.role === 'ADMIN'}
                   className="!px-12 !py-8 !text-16 !font-normal !text-gray-900 !bg-white !border !border-gray-300 !rounded-default hover:!bg-gray-50 transition-colors whitespace-nowrap !h-auto"
                   onClick={() => onRoleChange(user.id)}
                 >
