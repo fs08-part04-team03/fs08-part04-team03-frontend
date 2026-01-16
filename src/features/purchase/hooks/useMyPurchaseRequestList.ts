@@ -66,25 +66,36 @@ export const useMyPurchaseRequestList = ({
   // 네비게이션
   const navigation = usePurchaseNavigation(companyId);
 
-  // 정렬 옵션 선택
+  // 정렬 옵션 선택 - paginationParams에서 직접 가져온 값 사용
+  const currentSort = sort ?? paginationParams.sort;
   const selectedSortOption =
-    sort && sort !== defaultSortKey
-      ? sortOptions.find((opt) => opt.key === sort)
+    currentSort && currentSort !== defaultSortKey
+      ? sortOptions.find((opt) => opt.key === currentSort)
       : sortOptions.find((opt) => opt.key === defaultSortKey);
 
-  // 상태 옵션 선택
+  // 상태 옵션 선택 - paginationParams에서 직접 가져온 값 사용
+  const currentStatus = status ?? paginationParams.status;
   const selectedStatusOption =
-    status && status !== 'ALL'
-      ? statusOptions.find((opt) => opt.key === status)
+    currentStatus && currentStatus !== 'ALL'
+      ? statusOptions.find((opt) => opt.key === currentStatus)
       : statusOptions.find((opt) => opt.key === 'ALL');
 
   // 취소 모달 핸들러
+  // purchaseList가 없어도 purchaseRequestId만으로 처리 가능하도록 수정
+  // 실제로는 컴포넌트 레벨에서 purchaseList를 전달받아 사용
   const handleCancelClick = useCallback(
     (purchaseRequestId: string) => {
-      if (!purchaseList) return;
-      const item = purchaseList.find((p) => p.id === purchaseRequestId);
-      if (item) {
-        setCancelTargetItem(item);
+      // purchaseList가 있으면 사용, 없으면 purchaseRequestId만으로 처리
+      if (purchaseList) {
+        const item = purchaseList.find((p) => p.id === purchaseRequestId);
+        if (item) {
+          setCancelTargetItem(item);
+          setCancelModalOpen(true);
+        }
+      } else {
+        // purchaseList가 없을 경우, purchaseRequestId만으로 처리
+        // 이 경우 실제 아이템 정보는 모달에서 별도로 조회해야 함
+        setCancelTargetItem({ id: purchaseRequestId } as PurchaseRequestItem);
         setCancelModalOpen(true);
       }
     },

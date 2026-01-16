@@ -21,16 +21,9 @@ import {
 import { cartApi } from '@/features/cart/api/cart.api';
 import { cartKeys } from '@/features/cart/queries/cart.keys';
 
-export type CartRole = 'user' | 'manager' | 'admin';
+import type { CartRole, OrderItem } from '@/features/cart/types/cart-summary.types';
 
-export interface OrderItem {
-  cartItemId: string;
-  productId: number;
-  name: string;
-  price: number;
-  quantity: number;
-  imageSrc?: string;
-}
+export type { CartRole, OrderItem };
 
 /**
  * 개선된 Props 인터페이스 - 그룹화된 타입 사용
@@ -46,7 +39,6 @@ interface CartSummaryBlockOrgProps {
     onDeleteSelected?: (cartItemIds: string[]) => void;
     onSubmit?: (cartItemIds: string[]) => void;
     onGoBudgetManage?: () => void;
-    onQuantityChange?: (cartItemId: string, quantity: number) => void;
     onContinueShopping?: () => void;
   };
 }
@@ -109,8 +101,10 @@ const CartSummaryBlockOrg = ({ dataState, actionHandlers }: CartSummaryBlockOrgP
   };
 
   const handleDeleteSelected = () => {
-    if (!loading && !isPurchasing) actionHandlers?.onDeleteSelected?.(checkedIds);
-    setCheckedIds([]);
+    if (!loading && !isPurchasing) {
+      actionHandlers?.onDeleteSelected?.(checkedIds);
+      setCheckedIds([]);
+    }
   };
 
   /** 관리자 즉시 구매 */

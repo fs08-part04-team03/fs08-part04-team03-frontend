@@ -195,7 +195,6 @@ const Template = ({
         isLoading: false,
       }}
       actionHandlers={{
-        onProductClick: () => {},
         onProductRegister: () => {},
       }}
     />

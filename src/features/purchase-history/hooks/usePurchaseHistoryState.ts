@@ -35,8 +35,13 @@ export const usePurchaseHistoryState = ({ companyId }: UsePurchaseHistoryStatePa
   const { handleNavigateToProducts, handleNavigateToDetail } =
     usePurchaseHistoryHandlers(companyId);
 
+  // 페이지 리셋 핸들러 (안정적인 콜백)
+  const resetPage = useCallback(() => {
+    setCurrentPage(1);
+  }, []);
+
   // 정렬 핸들러
-  const { handleSortChange } = useSortHandlers(setSelectedSort, () => setCurrentPage(1));
+  const { handleSortChange } = useSortHandlers(setSelectedSort, resetPage);
 
   // 페이지 변경 핸들러
   const handlePageChange = useCallback((page: number) => {

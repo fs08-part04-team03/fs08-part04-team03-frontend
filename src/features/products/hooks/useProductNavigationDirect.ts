@@ -13,5 +13,6 @@ import { useProductNavigation } from '../handlers/useProductNavigation';
  */
 export const useProductNavigationDirect = () => {
   const companyId = useCompanyId();
-  return useProductNavigation(companyId);
+  // companyId가 빈 문자열일 경우 undefined로 전달하여 유효하지 않은 경로 생성 방지
+  return useProductNavigation(companyId || undefined);
 };

@@ -27,12 +27,15 @@ export const CompanyProvider = ({ children }: { children: ReactNode }) => {
  * Props drilling 없이 어디서든 companyId에 접근 가능
  */
 export const useCompanyId = (): string => {
+  // React Hooks 규칙 준수: 항상 같은 순서로 호출
+  const params = useParams();
   const context = useContext(CompanyContext);
-  if (context === undefined) {
-    // Context가 없을 경우 fallback으로 useParams 사용
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const params = useParams();
-    return (params?.companyId as string) || '';
+
+  // Context가 있으면 Context의 companyId 사용
+  if (context !== undefined) {
+    return context.companyId;
   }
-  return context.companyId;
+
+  // Context가 없을 경우 fallback으로 useParams 사용
+  return (params?.companyId as string) || '';
 };

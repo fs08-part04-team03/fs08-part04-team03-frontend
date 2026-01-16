@@ -32,6 +32,7 @@ const MyPurchaseRequestListSection = () => {
   const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
 
   // 🎯 통합 훅 사용 - 모든 상태와 핸들러를 그룹화하여 관리
+  // 먼저 hook을 호출하여 paginationParams를 얻음
   const hookResult = useMyPurchaseRequestList({
     companyId,
     defaultSize: PURCHASE_DEFAULTS.DISPLAY_ITEM_COUNT,
@@ -39,9 +40,7 @@ const MyPurchaseRequestListSection = () => {
     triggerToast,
     sortOptions: COMMON_SORT_OPTIONS,
     statusOptions: PURCHASE_REQUEST_STATUS_OPTIONS,
-    purchaseList: undefined, // 나중에 설정
-    sort: undefined,
-    status: undefined,
+    purchaseList: undefined, // API 호출 후 업데이트됨
     successMessage: SUCCESS_MESSAGES.PURCHASE_CANCELLED,
     errorMessage: PURCHASE_ERROR_MESSAGES.CANCEL_FAILED,
   });
@@ -58,7 +57,7 @@ const MyPurchaseRequestListSection = () => {
 
   const { page, size, status, sort } = paginationParams;
 
-  // API 호출
+  // API 호출 - paginationParams를 사용
   const {
     data,
     isLoading,
@@ -78,7 +77,7 @@ const MyPurchaseRequestListSection = () => {
     );
   }
 
-  const displayList = data?.purchaseList.slice(0, PURCHASE_DEFAULTS.DISPLAY_ITEM_COUNT) || [];
+  const displayList = data?.purchaseList || [];
 
   // 🎯 그룹화된 Props 준비
   const updatedPaginationState = {
