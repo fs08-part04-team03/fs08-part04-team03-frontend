@@ -22,7 +22,6 @@ export interface WishlistItem {
 interface WishlistTemProps {
   items: WishlistItem[];
   onRemove?: (id: number) => void;
-  onProductClick?: (id: number) => void;
   onGoToProducts?: () => void;
 }
 
@@ -54,7 +53,7 @@ const useItemsPerPage = () => {
 /* =====================
  * Component
  ====================== */
-const WishlistTem = ({ items, onRemove, onProductClick, onGoToProducts }: WishlistTemProps) => {
+const WishlistTem = ({ items, onRemove, onGoToProducts }: WishlistTemProps) => {
   const [likedItems, setLikedItems] = useState(items);
   const [page, setPage] = useState(1);
 
@@ -156,7 +155,7 @@ const WishlistTem = ({ items, onRemove, onProductClick, onGoToProducts }: Wishli
                 price={item.price}
                 purchaseCount={item.purchaseCount}
                 imageUrl={item.imageUrl}
-                onClick={onProductClick ? () => onProductClick(item.id) : undefined}
+                productId={item.id}
                 onUnlike={() => handleRemove(item.id)}
               />
             </div>
