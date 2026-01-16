@@ -20,6 +20,7 @@ export type User = z.infer<typeof userSchema>;
 export const loginSchema = z.object({
   email: z.string().min(1, '이메일을 입력해주세요.').email('유효하지 않은 이메일입니다.'),
   password: z.string().min(1, '비밀번호를 입력해주세요.'),
+  companyId: z.string().optional(), // 여러 회사에 가입된 경우 회사 선택 시 사용
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
