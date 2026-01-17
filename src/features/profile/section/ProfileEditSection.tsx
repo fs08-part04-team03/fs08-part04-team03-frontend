@@ -35,7 +35,8 @@ const ProfileEditSection = () => {
   const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const { user, accessToken } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const { triggerToast } = useToast();
   const queryClient = useQueryClient();
 

@@ -29,7 +29,7 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
   const params = useParams();
   const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   // URL 쿼리 파라미터에서 id를 가져오거나 props로 전달된 id 사용
   const purchaseId = purchaseIdProp || searchParams.get('id') || undefined;

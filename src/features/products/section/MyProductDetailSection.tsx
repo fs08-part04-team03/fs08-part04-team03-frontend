@@ -26,7 +26,7 @@ const MyProductDetailSection = () => {
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : '';
   const productId = params?.productId ? String(params.productId) : '';
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   // 데이터 패칭
   const { data: product, isLoading, error } = useMyProduct(productId, { enabled: !!productId });
