@@ -7,44 +7,40 @@ import Button from '@/components/atoms/Button/Button';
 import type { ProfileEditInput } from '@/features/profile/schemas/profileSchema';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import Image from 'next/image';
+import type { ProfileEditTemplateGroupedProps } from '@/features/profile/types/profile-edit.types';
 
-/**
- * 프로필 수정 템플릿 Props
- */
-interface ProfileEditTemplateProps {
+interface ProfileEditTemplateLegacyProps {
   control: Control<ProfileEditInput>;
   handleSubmit: UseFormHandleSubmit<ProfileEditInput>;
   isValid: boolean;
-  // eslint-disable-next-line react/no-unused-prop-types
   serverError: string | null;
   onSubmit: (values: ProfileEditInput) => void | Promise<void>;
   showToast: boolean;
   toastMessage: string;
   setShowToast: (show: boolean) => void;
-  /** 관리자 여부 - true일 경우 기업명 필드 표시 */
   isAdmin: boolean;
   preview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageDelete?: () => void;
-  /** 이미지 업로드 진행 중 여부 */
   isUploading?: boolean;
 }
 
-/**
- * 프로필 수정 폼 Props
- */
+type ProfileEditTemplateProps = ProfileEditTemplateLegacyProps | ProfileEditTemplateGroupedProps;
+
+function isGroupedProps(props: ProfileEditTemplateProps): props is ProfileEditTemplateGroupedProps {
+  return 'formState' in props && 'toastState' in props && 'imageState' in props;
+}
+
 interface ProfileEditFormProps {
   control: Control<ProfileEditInput>;
   handleSubmit: UseFormHandleSubmit<ProfileEditInput>;
   isValid: boolean;
   onSubmit: (values: ProfileEditInput) => void | Promise<void>;
   className?: string;
-  /** 관리자 여부 - true일 경우 기업명 필드 표시 */
   isAdmin: boolean;
   preview: string | null;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageDelete?: () => void;
-  /** 이미지 업로드 진행 중 여부 */
   isUploading?: boolean;
 }
 
@@ -60,7 +56,6 @@ const ProfileEditForm = ({
   onImageDelete,
   isUploading = false,
 }: ProfileEditFormProps) => {
-  // 고유 ID 생성 (중복 ID 문제 해결)
   const imageUploadId = useId();
   const isDefaultUploadIcon = preview === '/icons/upload.svg';
   const hasImage = preview && !isDefaultUploadIcon;
@@ -95,7 +90,6 @@ const ProfileEditForm = ({
                   className="object-contain"
                   unoptimized
                   onError={() => {
-                    // 이미지 로드 실패 시 부모 컴포넌트에 알려서 기본 이미지로 대체
                     onImageDelete?.();
                   }}
                 />
@@ -151,7 +145,6 @@ const ProfileEditForm = ({
       </div>
 
       <div className="flex flex-col gap-20">
-        {/* 관리자만 기업명 변경 가능 */}
         {isAdmin && (
           <RHFFloatingLabelInput control={control} name="companyName" label="기업명" type="text" />
         )}
@@ -195,73 +188,92 @@ const ProfileEditForm = ({
   );
 };
 
-const ProfileEditTemplate = ({
-  control,
-  handleSubmit,
-  isValid,
-  serverError,
-  onSubmit,
-  showToast,
-  toastMessage,
-  setShowToast,
-  isAdmin,
-  preview,
-  onImageChange,
-  onImageDelete,
-  isUploading = false,
-}: ProfileEditTemplateProps) => (
-  <>
-    {/* Mobile Layout */}
-    <div className="flex flex-col px-24 py-45 tablet:hidden desktop:hidden">
-      {serverError && (
-        <div className="mb-20 p-16 bg-red-50 border border-red-200 rounded-default text-red-600 text-14">
-          {serverError}
-        </div>
-      )}
-      <ProfileEditForm
-        control={control}
-        isValid={isValid}
-        onSubmit={onSubmit}
-        handleSubmit={handleSubmit}
-        className="flex flex-col w-full"
-        isAdmin={isAdmin}
-        preview={preview}
-        onImageChange={onImageChange}
-        onImageDelete={onImageDelete}
-        isUploading={isUploading}
-      />
-    </div>
+const ProfileEditTemplate = (props: ProfileEditTemplateProps) => {
+  // Props 정규화
+  /* eslint-disable react/destructuring-assignment */
+  const {
+    control,
+    handleSubmit,
+    isValid,
+    serverError,
+    onSubmit,
+    showToast,
+    toastMessage,
+    onCloseToast,
+    isAdmin,
+    preview,
+    onImageChange,
+    onImageDelete,
+    isUploading,
+  } = isGroupedProps(props)
+    ? {
+        control: props.formState.control,
+        handleSubmit: props.formState.handleSubmit,
+        isValid: props.formState.isValid,
+        serverError: props.formState.serverError,
+        onSubmit: props.formState.onSubmit,
+        showToast: props.toastState.showToast,
+        toastMessage: props.toastState.toastMessage,
+        onCloseToast: props.toastState.onCloseToast,
+        isAdmin: props.isAdmin,
+        preview: props.imageState.preview,
+        onImageChange: props.imageState.onImageChange,
+        onImageDelete: props.imageState.onImageDelete,
+        isUploading: props.imageState.isUploading,
+      }
+    : {
+        ...props,
+        onCloseToast: () => props.setShowToast(false),
+        isUploading: props.isUploading ?? false,
+      };
+  /* eslint-enable react/destructuring-assignment */
 
-    {/* Tablet & Desktop Layout */}
-    <div className="hidden tablet:flex desktop:flex flex-col items-center pt-171 pb-261">
-      <div className="w-600 bg-white rounded-default shadow-[0px_0px_40px_0px_rgba(0,0,0,0.1)] px-60 py-40">
+  const formProps = {
+    control,
+    handleSubmit,
+    isValid,
+    onSubmit,
+    isAdmin,
+    preview,
+    onImageChange,
+    onImageDelete,
+    isUploading,
+  };
+
+  /* eslint-disable react/jsx-props-no-spreading */
+  return (
+    <>
+      {/* Mobile Layout */}
+      <div className="flex flex-col px-24 py-45 tablet:hidden desktop:hidden">
         {serverError && (
           <div className="mb-20 p-16 bg-red-50 border border-red-200 rounded-default text-red-600 text-14">
             {serverError}
           </div>
         )}
-        <ProfileEditForm
-          control={control}
-          isValid={isValid}
-          onSubmit={onSubmit}
-          handleSubmit={handleSubmit}
-          className="flex flex-col w-480"
-          isAdmin={isAdmin}
-          preview={preview}
-          onImageChange={onImageChange}
-          onImageDelete={onImageDelete}
-          isUploading={isUploading}
-        />
+        <ProfileEditForm {...formProps} className="flex flex-col w-full" />
       </div>
-    </div>
 
-    {/* Toast */}
-    {showToast && (
-      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
-        <Toast variant="custom" message={toastMessage} onClose={() => setShowToast(false)} />
+      {/* Tablet & Desktop Layout */}
+      <div className="hidden tablet:flex desktop:flex flex-col items-center pt-171 pb-261">
+        <div className="w-600 bg-white rounded-default shadow-[0px_0px_40px_0px_rgba(0,0,0,0.1)] px-60 py-40">
+          {serverError && (
+            <div className="mb-20 p-16 bg-red-50 border border-red-200 rounded-default text-red-600 text-14">
+              {serverError}
+            </div>
+          )}
+          <ProfileEditForm {...formProps} className="flex flex-col w-480" />
+        </div>
       </div>
-    )}
-  </>
-);
+
+      {/* Toast */}
+      {showToast && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
+          <Toast variant="custom" message={toastMessage} onClose={onCloseToast} />
+        </div>
+      )}
+    </>
+  );
+  /* eslint-enable react/jsx-props-no-spreading */
+};
 
 export default ProfileEditTemplate;

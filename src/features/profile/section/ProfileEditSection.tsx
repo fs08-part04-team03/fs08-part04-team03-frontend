@@ -17,6 +17,11 @@ import { useToast } from '@/hooks/useToast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { STALE_TIME } from '@/constants/staleTime';
 import { profileKeys } from '@/features/profile/queries/profile.keys';
+import type {
+  ProfileEditFormState,
+  ProfileEditToastState,
+  ProfileEditImageState,
+} from '@/features/profile/types/profile-edit.types';
 
 const getRoleDisplayName = (role?: string) => {
   switch (role) {
@@ -253,28 +258,40 @@ const ProfileEditSection = () => {
     }
   };
 
+  // 그룹화된 Props
+  const formState: ProfileEditFormState = {
+    control: form.control,
+    handleSubmit: form.handleSubmit,
+    isValid: form.formState.isValid,
+    onSubmit,
+    serverError,
+  };
+
+  const toastState: ProfileEditToastState = {
+    showToast,
+    toastMessage,
+    onCloseToast: () => setShowToast(false),
+  };
+
+  const imageState: ProfileEditImageState = {
+    preview,
+    onImageChange: handleImageChange,
+    onImageDelete: () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+      setPreview('/icons/upload.svg');
+      setSelectedFile(null);
+    },
+  };
+
   return (
     <ProfileEditTemplate
-      control={form.control}
-      handleSubmit={form.handleSubmit}
-      isValid={form.formState.isValid}
-      serverError={serverError}
-      onSubmit={onSubmit}
-      showToast={showToast}
-      toastMessage={toastMessage}
-      setShowToast={setShowToast}
+      formState={formState}
+      toastState={toastState}
+      imageState={imageState}
       isAdmin={user?.role === 'admin'}
-      preview={preview}
-      onImageChange={handleImageChange}
-      onImageDelete={() => {
-        // 이미지 삭제 핸들러
-        if (previewUrlRef.current) {
-          URL.revokeObjectURL(previewUrlRef.current);
-          previewUrlRef.current = null;
-        }
-        setPreview('/icons/upload.svg');
-        setSelectedFile(null);
-      }}
     />
   );
 };
