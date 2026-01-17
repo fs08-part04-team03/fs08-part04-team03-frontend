@@ -13,6 +13,11 @@ import { useProductResponsivePageSize } from '@/features/products/handlers/usePr
 import { useProductPaginationHandlers } from '@/features/products/handlers/useProductPaginationHandlers';
 import { useProductModalHandlers } from '@/features/products/handlers/useProductModalHandlers';
 import { PRODUCT_DEFAULTS } from '@/features/products/constants/defaults';
+import type {
+  RegisteredProductListState,
+  RegisteredProductSortState,
+  RegisteredProductPaginationState,
+} from '@/features/products/types/my-registered.types';
 
 const MyRegisteredSection = () => {
   const params = useParams();
@@ -55,8 +60,6 @@ const MyRegisteredSection = () => {
   // 페이지네이션 계산
   const totalPage = data ? data.totalPages : 1;
   const totalCount = data ? data.totalItems : 0;
-
-  // API에서 이미 정렬 및 페이지네이션된 데이터를 받음
   const pagedProducts = data ? data.products : [];
 
   // 정렬 변경 핸들러 (페이지 리셋 포함)
@@ -82,18 +85,31 @@ const MyRegisteredSection = () => {
     );
   }
 
+  // 그룹화된 Props
+  const listState: RegisteredProductListState = {
+    products: pagedProducts,
+    totalCount,
+    isLoading,
+  };
+
+  const sortState: RegisteredProductSortState = {
+    sortOptions: REGISTERED_PRODUCT_SORT_OPTIONS,
+    selectedSort,
+    onSortChange: handleSortChange,
+  };
+
+  const paginationState: RegisteredProductPaginationState = {
+    currentPage: pagination.currentPage,
+    totalPage,
+    onPageChange: pagination.setCurrentPage,
+  };
+
   return (
     <>
       <RegisteredProductTem
-        products={pagedProducts}
-        totalCount={totalCount}
-        isLoading={isLoading}
-        sortOptions={REGISTERED_PRODUCT_SORT_OPTIONS}
-        selectedSort={selectedSort}
-        onSortChange={handleSortChange}
-        currentPage={pagination.currentPage}
-        totalPage={totalPage}
-        onPageChange={pagination.setCurrentPage}
+        listState={listState}
+        sortState={sortState}
+        paginationState={paginationState}
         onRegisterClick={modalHandlers.handleOpenModal}
       />
       <ProductModal

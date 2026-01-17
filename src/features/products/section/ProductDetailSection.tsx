@@ -11,6 +11,13 @@ import { useProductCartActions } from '@/features/products/handlers/useProductCa
 import { useProductEditActions } from '@/features/products/handlers/useProductEditActions';
 import { useProductDetailPageProps } from '@/features/products/handlers/useProductDetailPageProps';
 import { logger } from '@/utils/logger';
+import type {
+  ProductDetailDataState,
+  ProductDetailCategoryState,
+  ProductDetailEditModalState,
+  ProductDetailDeleteModalState,
+  ProductDetailCartModalState,
+} from '@/features/products/types/product-detail.types';
 
 const ProductDetailSection = () => {
   const params = useParams();
@@ -52,41 +59,69 @@ const ProductDetailSection = () => {
     );
   }
 
+  // 그룹화된 Props
+  const data: ProductDetailDataState = {
+    isLoading,
+    hasProduct: pageProps.hasProduct,
+    detailPageProps: pageProps.detailPageProps,
+    productCategoryId: pageProps.productCategoryId,
+  };
+
+  const category: ProductDetailCategoryState = {
+    categorySections: pageProps.categorySections,
+    onChangeCategory: navigation.goToProductsByCategory,
+  };
+
+  const editModal: ProductDetailEditModalState | undefined = pageProps.canUseMenu
+    ? {
+        isOpen: modals.editModalOpen,
+        onClose: modals.handleCloseEditModal,
+        onSubmit: editActions.handleEditSubmit,
+        initialValues: {
+          name: pageProps.productName,
+          price: pageProps.productPrice,
+          link: pageProps.initialLink,
+          image: pageProps.editModalImageUrl,
+          imageKey: pageProps.initialImageKey,
+          category: pageProps.initialCategoryOption,
+          subCategory: pageProps.initialSubCategoryOption,
+        },
+      }
+    : undefined;
+
+  const deleteModal: ProductDetailDeleteModalState | undefined = pageProps.canUseMenu
+    ? {
+        isOpen: modals.deleteModalOpen,
+        onClose: modals.handleCloseDeleteModal,
+        onConfirm: editActions.handleDeleteConfirm,
+        productName: pageProps.productName,
+      }
+    : undefined;
+
+  const cartModal: ProductDetailCartModalState = {
+    addFailedOpen: modals.cartAddFailedModalOpen,
+    addSuccessOpen: modals.cartAddSuccessModalOpen,
+    onCloseAddFailed: modals.handleCloseCartAddFailedModal,
+    onCloseAddSuccess: modals.handleCloseCartAddSuccessModal,
+    onGoToCart: () => {
+      navigation.goToCart().catch((navError) => {
+        logger.error('Failed to navigate to cart', {
+          hasError: true,
+          errorType: navError instanceof Error ? navError.constructor.name : 'Unknown',
+        });
+      });
+    },
+    onGoToProducts: navigation.goToProducts,
+  };
+
   return (
     <ProductDetailTem
-      categorySections={pageProps.categorySections}
-      detailPageProps={pageProps.detailPageProps}
-      isLoading={isLoading}
-      hasProduct={pageProps.hasProduct}
-      productCategoryId={pageProps.productCategoryId}
+      data={data}
+      category={category}
+      editModal={editModal}
+      deleteModal={deleteModal}
+      cartModal={cartModal}
       canUseMenu={pageProps.canUseMenu}
-      editModalOpen={modals.editModalOpen}
-      deleteModalOpen={modals.deleteModalOpen}
-      onCloseEditModal={modals.handleCloseEditModal}
-      onCloseDeleteModal={modals.handleCloseDeleteModal}
-      onEditSubmit={editActions.handleEditSubmit}
-      onDeleteConfirm={editActions.handleDeleteConfirm}
-      initialCategoryOption={pageProps.initialCategoryOption}
-      initialSubCategoryOption={pageProps.initialSubCategoryOption}
-      initialLink={pageProps.initialLink}
-      initialImage={pageProps.editModalImageUrl}
-      initialImageKey={pageProps.initialImageKey}
-      productName={pageProps.productName}
-      productPrice={pageProps.productPrice}
-      cartAddFailedModalOpen={modals.cartAddFailedModalOpen}
-      cartAddSuccessModalOpen={modals.cartAddSuccessModalOpen}
-      onCloseCartAddFailedModal={modals.handleCloseCartAddFailedModal}
-      onCloseCartAddSuccessModal={modals.handleCloseCartAddSuccessModal}
-      onGoToCart={() => {
-        navigation.goToCart().catch((navError) => {
-          logger.error('Failed to navigate to cart', {
-            hasError: true,
-            errorType: navError instanceof Error ? navError.constructor.name : 'Unknown',
-          });
-        });
-      }}
-      onGoToProducts={navigation.goToProducts}
-      onChangeCategory={navigation.goToProductsByCategory}
     />
   );
 };
