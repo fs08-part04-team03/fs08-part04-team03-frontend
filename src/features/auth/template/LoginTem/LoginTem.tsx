@@ -43,41 +43,44 @@ const LoginTemContent = ({
   onSubmit,
   handleSubmit,
   className,
-}: LoginTemContentProps) => (
-  <form
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    onSubmit={handleSubmit(onSubmit)}
-    className={className}
-    noValidate
-  >
-    <header className="mb-4 text-center tablet:text-left">
-      <h1 className="text-20 font-bold text-black-400">로그인</h1>
-    </header>
+}: LoginTemContentProps) => {
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // eslint-disable-next-line no-void
+    void handleSubmit(onSubmit)(e);
+  };
 
-    {loginFields.map((field) => (
-      <RHFInputField
-        key={field.name}
-        control={control}
-        name={field.name}
-        label={field.label}
-        placeholder={field.placeholder}
-        type={field.type}
-        className="w-full"
-      />
-    ))}
+  return (
+    <form onSubmit={handleFormSubmit} className={className} noValidate>
+      <header className="mb-4 text-center tablet:text-left">
+        <h1 className="text-20 font-bold text-black-400">로그인</h1>
+      </header>
 
-    <Button
-      type="submit"
-      variant="primary"
-      size="md"
-      className="mt-8"
-      fullWidth
-      inactive={!isValid}
-    >
-      로그인
-    </Button>
-  </form>
-);
+      {loginFields.map((field) => (
+        <RHFInputField
+          key={field.name}
+          control={control}
+          name={field.name}
+          label={field.label}
+          placeholder={field.placeholder}
+          type={field.type}
+          className="w-full"
+        />
+      ))}
+
+      <Button
+        type="submit"
+        variant="primary"
+        size="md"
+        className="mt-8"
+        fullWidth
+        inactive={!isValid}
+      >
+        로그인
+      </Button>
+    </form>
+  );
+};
 
 const LoginTem = (props: LoginTemProps) => {
   // Props 정규화
