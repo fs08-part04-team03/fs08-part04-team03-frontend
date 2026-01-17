@@ -8,43 +8,52 @@ import OrderCompletedSummaryOrg, {
 } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import { clsx } from '@/utils/clsx';
 import { CART_USER_STEPS, CART_MANAGER_ADMIN_STEPS } from '@/features/cart/constants/steps';
+import type { OrderConfirmedTemGroupedProps } from '@/features/cart/types/order.types';
 
-interface OrderConfirmedTemProps {
+interface OrderConfirmedTemLegacyProps {
   cartRole: CartRole;
   userType?: UserType;
-
   items: OrderCompletedItem[];
   shippingFee: number;
   requestMessage?: string;
-
   onGoCart?: () => void;
   onGoOrderHistory?: () => void;
+}
+
+type OrderConfirmedTemProps = OrderConfirmedTemLegacyProps | OrderConfirmedTemGroupedProps;
+
+function isGroupedProps(props: OrderConfirmedTemProps): props is OrderConfirmedTemGroupedProps {
+  return 'dataState' in props && 'roleState' in props && 'navigationHandlers' in props;
 }
 
 /**
  * OrderConfirmedTem
  * - 순수 UI 조립 레이어
- * - header / list / row / footer 컴포지션만 담당
  * - props 기반 렌더링만 수행
  */
+const OrderConfirmedTem = (props: OrderConfirmedTemProps) => {
+  // Props 정규화
+  /* eslint-disable react/destructuring-assignment */
+  const { cartRole, userType, items, shippingFee, requestMessage, onGoCart, onGoOrderHistory } =
+    isGroupedProps(props)
+      ? {
+          cartRole: props.roleState.cartRole,
+          userType: props.roleState.userType,
+          items: props.dataState.items,
+          shippingFee: props.dataState.shippingFee,
+          requestMessage: props.dataState.requestMessage,
+          onGoCart: props.navigationHandlers.onGoCart,
+          onGoOrderHistory: props.navigationHandlers.onGoOrderHistory,
+        }
+      : {
+          ...props,
+          userType: props.userType ?? 'default',
+        };
+  /* eslint-enable react/destructuring-assignment */
 
-const OrderConfirmedTem = ({
-  cartRole,
-  userType = 'default',
-  items,
-  shippingFee,
-  requestMessage,
-  onGoCart,
-  onGoOrderHistory,
-}: OrderConfirmedTemProps) => {
   const isUser = cartRole === 'user';
-
-  /**
-   * 현재 페이지는 "Order Confirmed"
-   * - StepBreadcrumb은 1-based index
-   */
   const steps = isUser ? CART_USER_STEPS : CART_MANAGER_ADMIN_STEPS;
-  const currentStep = steps.length; // 항상 마지막 단계
+  const currentStep = steps.length;
 
   return (
     <div className="mx-auto">
@@ -57,7 +66,6 @@ const OrderConfirmedTem = ({
           desktop:w-1150
         "
       >
-        {/* ✅ StepBreadcrumb (모든 cartRole 노출, 여백은 Template에서만 제어) */}
         <div
           className={clsx(
             'flex justify-center',
@@ -67,7 +75,6 @@ const OrderConfirmedTem = ({
           <StepBreadcrumb steps={steps} currentStep={currentStep} />
         </div>
 
-        {/* ✅ Order Completed Summary */}
         <OrderCompletedSummaryOrg
           cartRole={cartRole}
           userType={userType}
