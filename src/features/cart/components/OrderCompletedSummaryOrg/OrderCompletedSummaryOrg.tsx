@@ -5,6 +5,7 @@ import OrderItemCard from '@/components/molecules/OrderItemCard/OrderItemCard';
 import Button from '@/components/atoms/Button/Button';
 import PriceText from '@/components/atoms/PriceText/PriceText';
 import { clsx } from '@/utils/clsx';
+import { sumTotal } from '@/utils/array';
 
 import type { CartRole } from '@/features/cart/types/cart-summary.types';
 
@@ -50,7 +51,7 @@ const OrderCompletedSummaryOrg = ({
   const [isUrgent, _setIsUrgent] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const orderPrice = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const orderPrice = sumTotal(items, 'unitPrice', 'quantity');
   const totalPrice = orderPrice + shippingFee;
 
   const isMessageValid = message.trim().length > 0;

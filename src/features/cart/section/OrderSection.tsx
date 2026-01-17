@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import type { OrderCompletedItem } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
+import { filterByIds } from '@/utils/array';
 import OrderTem from '../template/OrderTem/OrderTem';
 import { adaptCartItemToOrderItem } from '../utils/cart.utils';
 import { useOrderHandlers } from '../handlers/useOrderHandlers';
@@ -61,7 +62,7 @@ const OrderSection = () => {
   const selectedItems: OrderItem[] = useMemo(() => {
     if (!cartData?.data) return [];
     const items = cartData.data.map(adaptCartItemToOrderItem);
-    return items.filter((item) => cartItemIds.includes(String(item.cartItemId)));
+    return filterByIds(items, cartItemIds, 'cartItemId');
   }, [cartData, cartItemIds]);
 
   // OrderCompletedItem 형식으로 변환
