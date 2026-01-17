@@ -186,7 +186,7 @@ const ProductDetailHeader = ({
   className = '',
 }: ProductDetailHeaderProps) => {
   const [quantity, setQuantity] = useState(1);
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   // 매니저 이상급만 ItemMenu 사용 가능
   const canUseMenu = useMemo(() => {
