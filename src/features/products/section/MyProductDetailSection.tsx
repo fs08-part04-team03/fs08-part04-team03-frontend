@@ -197,7 +197,7 @@ const MyProductDetailSection = () => {
     initialCategoryOption,
     initialSubCategoryOption,
     initialLink,
-    initialImage: null,
+    initialImage: product.imageUrl || null,
     initialImageKey: product.imageUrl || null,
   };
 

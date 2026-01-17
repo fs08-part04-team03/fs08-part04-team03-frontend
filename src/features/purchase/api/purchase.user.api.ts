@@ -129,7 +129,7 @@ export async function getMyPurchases(
         status: item.status,
         requestMessage: item.requestMessage,
         rejectReason: item.rejectReason,
-        reason: item.reason, // 승인 사유 (백엔드에서 항상 string으로 보장)
+        reason: item.reason ?? '', // 승인 사유 (방어적 기본값 처리)
         // 하위 호환성을 위한 필드
         totalPrice: item.totalPrice ?? 0,
         purchaseItems: Array.isArray(item.purchaseItems)
@@ -285,7 +285,7 @@ export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<Pu
       finalTotalPrice: (result.data.totalPrice ?? 0) + (result.data.shippingFee ?? 0),
       status: result.data.status,
       requestMessage: result.data.requestMessage ?? '',
-      reason: result.data.reason, // 승인 사유 (백엔드에서 항상 string으로 보장)
+      reason: result.data.reason ?? '', // 승인 사유 (방어적 기본값 처리)
       rejectReason: result.data.rejectReason ?? '',
       // 하위 호환성을 위한 필드
       totalPrice: result.data.totalPrice ?? 0,
