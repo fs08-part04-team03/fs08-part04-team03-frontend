@@ -219,7 +219,7 @@ const ProfileEditTemplate = (props: ProfileEditTemplateProps) => {
         preview: props.imageState.preview,
         onImageChange: props.imageState.onImageChange,
         onImageDelete: props.imageState.onImageDelete,
-        isUploading: props.imageState.isUploading,
+        isUploading: props.imageState.isUploading ?? false,
       }
     : {
         ...props,

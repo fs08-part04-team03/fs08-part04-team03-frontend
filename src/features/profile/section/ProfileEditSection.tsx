@@ -284,6 +284,7 @@ const ProfileEditSection = () => {
       setPreview('/icons/upload.svg');
       setSelectedFile(null);
     },
+    isUploading: false,
   };
 
   return (
