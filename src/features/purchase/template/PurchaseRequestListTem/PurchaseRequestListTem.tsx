@@ -27,6 +27,7 @@ import {
   PURCHASE_LABELS,
   PURCHASE_EMPTY_MESSAGES,
 } from '@/features/purchase/constants';
+import type { PurchaseRequestListTemGroupedProps } from '@/features/purchase/types/purchase-request-list.types';
 
 const TABLE_CELL_BASE_STYLES = {
   header: PURCHASE_TABLE_STYLES.CELL_BASE.HEADER,
@@ -41,7 +42,7 @@ const COLUMN_WIDTHS = {
   actions: PURCHASE_TABLE_STYLES.COLUMN_WIDTHS.ACTIONS,
 } as const;
 
-export interface PurchaseRequestListTemProps {
+export interface PurchaseRequestListTemLegacyProps {
   purchaseList: PurchaseRequestItem[];
   companyId: string;
   className?: string;
@@ -50,8 +51,8 @@ export interface PurchaseRequestListTemProps {
   onRowClick?: (purchaseRequestId: string) => void;
   onNavigateToProducts?: () => void;
   selectedRequestId?: string | null;
-  selectedRequestDetail?: PurchaseRequestItem; // 모달용 상세 데이터
-  isModalDetailLoading?: boolean; // 모달 상세 데이터 로딩 중
+  selectedRequestDetail?: PurchaseRequestItem;
+  isModalDetailLoading?: boolean;
   approveModalOpen?: boolean;
   rejectModalOpen?: boolean;
   onApproveModalClose?: () => void;
@@ -66,6 +67,16 @@ export interface PurchaseRequestListTemProps {
   selectedSortOption?: Option;
   onSortChange?: (option: Option) => void;
   isLoading?: boolean;
+}
+
+export type PurchaseRequestListTemProps =
+  | PurchaseRequestListTemLegacyProps
+  | PurchaseRequestListTemGroupedProps;
+
+function isGroupedProps(
+  props: PurchaseRequestListTemProps
+): props is PurchaseRequestListTemGroupedProps {
+  return 'tableState' in props && 'sortState' in props && 'modalState' in props;
 }
 
 interface PurchaseRequestTableRowProps {
@@ -204,32 +215,71 @@ const PurchaseRequestTableRowDesktop = ({
   );
 };
 
-const PurchaseRequestListTem = ({
-  purchaseList,
-  companyId,
-  className,
-  onRejectClick,
-  onApproveClick,
-  onRowClick,
-  onNavigateToProducts,
-  selectedRequestId,
-  selectedRequestDetail,
-  isModalDetailLoading = false,
-  approveModalOpen = false,
-  rejectModalOpen = false,
-  onApproveModalClose,
-  onRejectModalClose,
-  onApproveSubmit,
-  onRejectSubmit,
-  budget = PURCHASE_DEFAULTS.BUDGET,
-  currentPage = 1,
-  totalPages,
-  onPageChange,
-  sortOptions,
-  selectedSortOption,
-  onSortChange,
-  isLoading = false,
-}: PurchaseRequestListTemProps) => {
+const PurchaseRequestListTem = (props: PurchaseRequestListTemProps) => {
+  // Props 정규화 (그룹화/레거시 모두 지원)
+  /* eslint-disable react/destructuring-assignment */
+  const {
+    purchaseList,
+    companyId,
+    className,
+    onRejectClick,
+    onApproveClick,
+    onRowClick,
+    onNavigateToProducts,
+    selectedRequestId,
+    selectedRequestDetail,
+    isModalDetailLoading,
+    approveModalOpen,
+    rejectModalOpen,
+    onApproveModalClose,
+    onRejectModalClose,
+    onApproveSubmit,
+    onRejectSubmit,
+    budget,
+    currentPage,
+    totalPages,
+    onPageChange,
+    sortOptions,
+    selectedSortOption,
+    onSortChange,
+    isLoading,
+  } = isGroupedProps(props)
+    ? {
+        purchaseList: props.tableState.purchaseList,
+        companyId: props.tableState.companyId,
+        className: props.className,
+        onRejectClick: props.rowHandlers.onRejectClick,
+        onApproveClick: props.rowHandlers.onApproveClick,
+        onRowClick: props.rowHandlers.onRowClick,
+        onNavigateToProducts: props.paginationHandlers.onNavigateToProducts,
+        selectedRequestId: props.modalState.selectedRequestId,
+        selectedRequestDetail: props.modalState.selectedRequestDetail,
+        isModalDetailLoading: props.modalState.isModalDetailLoading,
+        approveModalOpen: props.modalState.approveModalOpen,
+        rejectModalOpen: props.modalState.rejectModalOpen,
+        onApproveModalClose: props.modalHandlers.onApproveModalClose,
+        onRejectModalClose: props.modalHandlers.onRejectModalClose,
+        onApproveSubmit: props.modalHandlers.onApproveSubmit,
+        onRejectSubmit: props.modalHandlers.onRejectSubmit,
+        budget: props.modalState.budget,
+        currentPage: props.tableState.currentPage,
+        totalPages: props.tableState.totalPages,
+        onPageChange: props.paginationHandlers.onPageChange,
+        sortOptions: props.sortState.sortOptions,
+        selectedSortOption: props.sortState.selectedSortOption,
+        onSortChange: props.sortState.onSortChange,
+        isLoading: props.tableState.isLoading,
+      }
+    : {
+        ...props,
+        isModalDetailLoading: props.isModalDetailLoading ?? false,
+        approveModalOpen: props.approveModalOpen ?? false,
+        rejectModalOpen: props.rejectModalOpen ?? false,
+        budget: props.budget ?? PURCHASE_DEFAULTS.BUDGET,
+        currentPage: props.currentPage ?? 1,
+        isLoading: props.isLoading ?? false,
+      };
+  /* eslint-enable react/destructuring-assignment */
   const finalTotalPages = totalPages ?? 1;
 
   // 모달용 상세 데이터가 있으면 우선 사용, 없으면 목록에서 찾기

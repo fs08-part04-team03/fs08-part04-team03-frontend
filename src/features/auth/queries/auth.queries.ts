@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getInviteInfo,
   login,
@@ -37,7 +37,7 @@ export function useInviteInfo(inviteUrl: string, options?: { enabled?: boolean }
  * 로그인 mutation 훅
  */
 export function useLogin() {
-  const { setAuth } = useAuthStore();
+  const setAuth = useAuthStore((state) => state.setAuth);
   const { triggerToast } = useToast();
 
   return useMutation<{ user: User; accessToken: string }, Error, LoginInput>({
@@ -81,7 +81,7 @@ export function useLogin() {
  * 회원가입 mutation 훅
  */
 export function useSignup() {
-  const { setAuth } = useAuthStore();
+  const setAuth = useAuthStore((state) => state.setAuth);
   const { triggerToast } = useToast();
 
   return useMutation<
@@ -112,7 +112,7 @@ export function useSignup() {
  * 초대 회원가입 mutation 훅
  */
 export function useInviteSignup() {
-  const { setAuth } = useAuthStore();
+  const setAuth = useAuthStore((state) => state.setAuth);
   const { triggerToast } = useToast();
 
   return useMutation<
@@ -144,12 +144,18 @@ export function useInviteSignup() {
  * 로그아웃 mutation 훅
  */
 export function useLogout() {
-  const { clearAuth } = useAuthStore();
+  const queryClient = useQueryClient();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
   const { triggerToast } = useToast();
 
   return useMutation<void, Error, void>({
     mutationFn: () => logout(),
     onSuccess: () => {
+      // React Query 캐시 완전 초기화 (사용자 종속 데이터 제거)
+      queryClient.clear();
+      logger.info('[Logout] React Query 캐시 초기화 완료');
+
+      // 클라이언트 인증 상태 정리
       clearAuth();
       logger.info('[Logout] 로그아웃 성공');
     },
@@ -157,7 +163,9 @@ export function useLogout() {
       const message = err instanceof Error ? err.message : '로그아웃에 실패했습니다.';
       triggerToast('error', message);
       logger.error('[Logout] 로그아웃 실패:', err);
-      // 에러가 발생해도 클라이언트 상태는 정리
+
+      // 에러가 발생해도 캐시와 인증 상태는 정리
+      queryClient.clear();
       clearAuth();
     },
   });

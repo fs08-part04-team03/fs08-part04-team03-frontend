@@ -1,10 +1,7 @@
 'use client';
 
 import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
-import {
-  PURCHASE_REQUEST_STATUS_LABEL,
-  PURCHASE_RESULT_MESSAGES,
-} from '@/features/purchase/constants';
+import { PURCHASE_REQUEST_STATUS_LABEL } from '@/features/purchase/constants';
 import { PurchaseRequestDetailTopOrg } from '@/features/purchase/components/PurchaseRequestDetailTopOrg/PurchaseRequestDetailTopOrg';
 import PurchaseRequestDetailOrg from '@/features/purchase/components/PurchaseRequestDetailOrg/PurchaseRequestDetailOrg';
 import PurchaseRequestDetailActionsOrg from '../../components/PurchaseRequestDetailActionsOrg/PurchaseRequestDetailActionsOrg';
@@ -26,13 +23,12 @@ const MyPurchaseRequestDetailTem = ({
   companyId,
   onGoToList,
 }: MyPurchaseRequestDetailTemProps) => {
-  // ApprovedInfo 계산
+  // ApprovedInfo 계산 - 백엔드에서 항상 reason을 제공함
   let resultMessage = '-';
   if (purchaseRequest.status === 'REJECTED' && purchaseRequest.rejectReason) {
     resultMessage = purchaseRequest.rejectReason;
-  } else if (purchaseRequest.status === 'APPROVED') {
-    // reason이 있으면 사용, 없으면 기본 메시지
-    resultMessage = purchaseRequest.reason || PURCHASE_RESULT_MESSAGES.APPROVED;
+  } else if (purchaseRequest.status === 'APPROVED' && purchaseRequest.reason) {
+    resultMessage = purchaseRequest.reason;
   }
 
   const approvedInfo = {

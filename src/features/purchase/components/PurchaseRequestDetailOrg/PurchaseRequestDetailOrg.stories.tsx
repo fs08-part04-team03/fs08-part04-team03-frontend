@@ -59,6 +59,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
   },
   urgent: false,
   requestMessage: '회의용 음료가 필요합니다. 가능한 빨리 구매 부탁드립니다.',
+  reason: '',
 };
 
 export const Default: Story = {

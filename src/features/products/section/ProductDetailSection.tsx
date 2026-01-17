@@ -1,46 +1,28 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useMemo, useState, useEffect } from 'react';
 import ProductDetailTem from '@/features/products/template/ProductDetailTem/ProductDetailTem';
 import { useProduct } from '@/features/products/queries/product.queries';
-import {
-  CATEGORY_SECTIONS,
-  BREADCRUMB_ITEMS,
-  ERROR_MESSAGES,
-  PARENT_CATEGORY_OPTIONS,
-  getChildById,
-  getParentById,
-  buildProductBreadcrumb,
-} from '@/constants';
-import { useAuthStore } from '@/lib/store/authStore';
-import { ROLE_LEVEL } from '@/utils/auth';
-import LinkText from '@/components/atoms/LinkText/LinkText';
-import type { DetailPageLayoutProps } from '@/components/organisms/DetailPageLayout/DetailPageLayout';
-import type { Option } from '@/components/atoms/DropDown/DropDown';
-import type { BreadcrumbItem } from '@/components/molecules/Breadcrumb/Breadcrumb';
+import { ERROR_MESSAGES } from '@/constants';
 import { useProductNavigation } from '@/features/products/handlers/useProductNavigation';
 import { useProductModals } from '@/features/products/handlers/useProductModals';
 import { useProductWishlistActions } from '@/features/products/handlers/useProductWishlistActions';
 import { useProductCartActions } from '@/features/products/handlers/useProductCartActions';
 import { useProductEditActions } from '@/features/products/handlers/useProductEditActions';
-import { PRODUCT_LABELS } from '@/features/products/constants';
+import { useProductDetailPageProps } from '@/features/products/handlers/useProductDetailPageProps';
 import { logger } from '@/utils/logger';
+import type {
+  ProductDetailDataState,
+  ProductDetailCategoryState,
+  ProductDetailEditModalState,
+  ProductDetailDeleteModalState,
+  ProductDetailCartModalState,
+} from '@/features/products/types/product-detail.types';
 
 const ProductDetailSection = () => {
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : '';
   const productId = params?.productId ? String(params.productId) : '';
-
-  const { user } = useAuthStore();
-  const [editModalImageUrl, setEditModalImageUrl] = useState<string | null>(null);
-
-  // 메니저 이상급만 ItemMenu 사용 가능
-  const canUseMenu = useMemo(() => {
-    if (!user?.role) return false;
-    const userRole = user.role;
-    return ROLE_LEVEL[userRole] >= ROLE_LEVEL.manager;
-  }, [user?.role]);
 
   // 데이터 패칭
   const { data: product, isLoading, error } = useProduct(productId, { enabled: !!productId });
@@ -58,131 +40,15 @@ const ProductDetailSection = () => {
     modals.handleCloseEditModal();
   });
 
-  // 수정 모달용 이미지 URL 로드 (signed URL 필요)
-  useEffect(() => {
-    setEditModalImageUrl(product?.imageUrl ?? null);
-  }, [product?.imageUrl]);
-
-  const detailPageProps: DetailPageLayoutProps = useMemo(() => {
-    if (!product) {
-      return {
-        breadcrumbItems: [],
-        productDetailHeader: {
-          productName: '',
-          price: 0,
-          purchaseCount: 0,
-        },
-      };
-    }
-
-    // buildProductBreadcrumb를 사용하여 대분류와 소분류를 모두 포함한 breadcrumb 생성
-    // CategorySwitcher와 동일한 방식으로 대분류 클릭 시 첫 소분류로 이동
-    const categoryBreadcrumbItems = buildProductBreadcrumb({
-      categoryId: product.categoryId,
-      onParentCategoryClick: (parentKey) => {
-        // 대분류 변경 (CategorySwitcher와 동일한 로직)
-        const category = PARENT_CATEGORY_OPTIONS.find((c) => c.id === parentKey);
-        if (category) {
-          // category.parentId는 ParentCategoryId (숫자)
-          navigation.handleCategoryChange(category.parentId);
-        }
-      },
-      onSubCategoryClick: (subCategoryId) => {
-        // 소분류 변경 (CategorySwitcher와 동일한 로직)
-        navigation.goToProductsByCategory(subCategoryId);
-      },
-    });
-
-    const breadcrumbItems = [
-      {
-        label: BREADCRUMB_ITEMS.PRODUCTS.label,
-        href: BREADCRUMB_ITEMS.PRODUCTS.href(companyId),
-      },
-      // buildProductBreadcrumb에서 반환된 대분류와 소분류 추가
-      ...(categoryBreadcrumbItems as unknown as BreadcrumbItem[]),
-    ];
-
-    return {
-      breadcrumbItems,
-      productImage: {
-        src: product.imageUrl || '/icons/no-image.svg',
-        alt: product.name,
-      },
-      productImageKey: product.imageUrl || null,
-      productDetailHeader: {
-        productName: product.name,
-        price: product.price,
-        purchaseCount: product.salesCount || 0,
-        // type을 전달하지 않으면 ProductDetailHeader에서 역할에 따라 자동 결정
-        type: undefined,
-        onAddToCart: cartActions.handleAddToCart,
-        // manager 이상일 때만 onMenuClick 전달
-        onMenuClick: canUseMenu
-          ? (action) => {
-              if (action === 'edit') {
-                modals.handleOpenEditModal();
-              }
-              if (action === 'delete') {
-                modals.handleOpenDeleteModal();
-              }
-            }
-          : undefined,
-      },
-      accordionPanels: [
-        {
-          id: 'link',
-          label: PRODUCT_LABELS.ACCORDION.PRODUCT_LINK,
-          content: product.link ? (
-            <LinkText
-              url={product.link}
-              className="text-14 tracking--0.35 text-gray-600 tablet:text-16 tablet:tracking--0.4 desktop:text-16 desktop:tracking--0.4"
-              clickable
-            />
-          ) : (
-            PRODUCT_LABELS.ACCORDION.LINK_NONE
-          ),
-        },
-      ],
-      liked: Boolean(wishlistActions.isLiked),
-      onToggleLike: () => {
-        wishlistActions.handleToggleLike();
-      },
-    };
-  }, [
+  // 상세 페이지 Props 계산
+  const pageProps = useProductDetailPageProps({
     product,
     companyId,
     navigation,
     wishlistActions,
-    cartActions.handleAddToCart,
-    canUseMenu,
+    cartActions,
     modals,
-  ]);
-
-  // 카테고리 옵션 초기화 (수정 모달용)
-  const initialCategoryOption = useMemo((): Option | null => {
-    if (!product?.categoryId) return null;
-    // categoryId는 소분류 ID이므로, 소분류를 찾아서 대분류를 가져옴
-    const childCategory = getChildById(product.categoryId);
-    if (!childCategory) return null;
-
-    const parentCategory = getParentById(childCategory.parentId);
-    if (!parentCategory) return null;
-
-    // 대분류 ID를 문자열 key로 변환 (드롭다운에서 사용하는 형식)
-    return { key: String(parentCategory.id), label: parentCategory.name };
-  }, [product?.categoryId]);
-
-  const initialSubCategoryOption = useMemo((): Option | null => {
-    if (!product?.categoryId) return null;
-    // categoryId는 소분류 ID이므로, 소분류를 직접 찾음
-    const childCategory = getChildById(product.categoryId);
-    if (!childCategory) return null;
-
-    // 소분류 key와 name을 사용하여 Option 생성
-    return { key: childCategory.key, label: childCategory.name };
-  }, [product?.categoryId]);
-
-  const initialLink = useMemo(() => product?.link || '', [product?.link]);
+  });
 
   // 에러 상태 분기
   if (error) {
@@ -193,41 +59,69 @@ const ProductDetailSection = () => {
     );
   }
 
+  // 그룹화된 Props
+  const data: ProductDetailDataState = {
+    isLoading,
+    hasProduct: pageProps.hasProduct,
+    detailPageProps: pageProps.detailPageProps,
+    productCategoryId: pageProps.productCategoryId,
+  };
+
+  const category: ProductDetailCategoryState = {
+    categorySections: pageProps.categorySections,
+    onChangeCategory: navigation.goToProductsByCategory,
+  };
+
+  const editModal: ProductDetailEditModalState | undefined = pageProps.canUseMenu
+    ? {
+        isOpen: modals.editModalOpen,
+        onClose: modals.handleCloseEditModal,
+        onSubmit: editActions.handleEditSubmit,
+        initialValues: {
+          name: pageProps.productName,
+          price: pageProps.productPrice,
+          link: pageProps.initialLink,
+          image: pageProps.editModalImageUrl,
+          imageKey: pageProps.initialImageKey,
+          category: pageProps.initialCategoryOption,
+          subCategory: pageProps.initialSubCategoryOption,
+        },
+      }
+    : undefined;
+
+  const deleteModal: ProductDetailDeleteModalState | undefined = pageProps.canUseMenu
+    ? {
+        isOpen: modals.deleteModalOpen,
+        onClose: modals.handleCloseDeleteModal,
+        onConfirm: editActions.handleDeleteConfirm,
+        productName: pageProps.productName,
+      }
+    : undefined;
+
+  const cartModal: ProductDetailCartModalState = {
+    addFailedOpen: modals.cartAddFailedModalOpen,
+    addSuccessOpen: modals.cartAddSuccessModalOpen,
+    onCloseAddFailed: modals.handleCloseCartAddFailedModal,
+    onCloseAddSuccess: modals.handleCloseCartAddSuccessModal,
+    onGoToCart: () => {
+      navigation.goToCart().catch((navError) => {
+        logger.error('Failed to navigate to cart', {
+          hasError: true,
+          errorType: navError instanceof Error ? navError.constructor.name : 'Unknown',
+        });
+      });
+    },
+    onGoToProducts: navigation.goToProducts,
+  };
+
   return (
     <ProductDetailTem
-      categorySections={CATEGORY_SECTIONS}
-      detailPageProps={detailPageProps}
-      isLoading={isLoading}
-      hasProduct={!!product}
-      productCategoryId={product?.categoryId ?? null}
-      canUseMenu={canUseMenu}
-      editModalOpen={modals.editModalOpen}
-      deleteModalOpen={modals.deleteModalOpen}
-      onCloseEditModal={modals.handleCloseEditModal}
-      onCloseDeleteModal={modals.handleCloseDeleteModal}
-      onEditSubmit={editActions.handleEditSubmit}
-      onDeleteConfirm={editActions.handleDeleteConfirm}
-      initialCategoryOption={initialCategoryOption}
-      initialSubCategoryOption={initialSubCategoryOption}
-      initialLink={initialLink}
-      initialImage={editModalImageUrl}
-      initialImageKey={product?.imageUrl || null}
-      productName={product?.name || ''}
-      productPrice={product?.price ? String(product.price) : ''}
-      cartAddFailedModalOpen={modals.cartAddFailedModalOpen}
-      cartAddSuccessModalOpen={modals.cartAddSuccessModalOpen}
-      onCloseCartAddFailedModal={modals.handleCloseCartAddFailedModal}
-      onCloseCartAddSuccessModal={modals.handleCloseCartAddSuccessModal}
-      onGoToCart={() => {
-        navigation.goToCart().catch((navError) => {
-          logger.error('Failed to navigate to cart', {
-            hasError: true,
-            errorType: navError instanceof Error ? navError.constructor.name : 'Unknown',
-          });
-        });
-      }}
-      onGoToProducts={navigation.goToProducts}
-      onChangeCategory={navigation.goToProductsByCategory}
+      data={data}
+      category={category}
+      editModal={editModal}
+      deleteModal={deleteModal}
+      cartModal={cartModal}
+      canUseMenu={pageProps.canUseMenu}
     />
   );
 };

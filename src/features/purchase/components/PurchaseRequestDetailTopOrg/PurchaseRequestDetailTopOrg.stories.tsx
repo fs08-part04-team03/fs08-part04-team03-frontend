@@ -59,6 +59,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
     name: '홍길동',
     email: 'hong@example.com',
   },
+  reason: '승인되었습니다.',
 };
 
 export const Default: Story = {

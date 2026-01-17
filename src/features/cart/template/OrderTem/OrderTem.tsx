@@ -5,58 +5,70 @@ import OrderCompletedSummaryOrg, {
   OrderCompletedItem,
 } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import { CART_ORDER_STEPS } from '@/features/cart/constants/steps';
+import type { OrderTemGroupedProps } from '@/features/cart/types/order.types';
 
-interface OrderTemProps {
+interface OrderTemLegacyProps {
   items: OrderCompletedItem[];
   shippingFee: number;
-
   onGoCart?: () => void;
   onGoOrderHistory?: () => void;
   onPurchaseRequest?: (requestMessage: string, isUrgent?: boolean) => void;
 }
 
+type OrderTemProps = OrderTemLegacyProps | OrderTemGroupedProps;
+
+function isGroupedProps(props: OrderTemProps): props is OrderTemGroupedProps {
+  return 'dataState' in props && 'navigationHandlers' in props;
+}
+
 /**
  * OrderTem
  * - 순수 UI 조립 레이어
- * - header / list / row / footer 컴포지션만 담당
  * - props 기반 렌더링만 수행
  */
+const OrderTem = (props: OrderTemProps) => {
+  // Props 정규화
+  /* eslint-disable react/destructuring-assignment */
+  const { items, shippingFee, onGoCart, onGoOrderHistory, onPurchaseRequest } = isGroupedProps(
+    props
+  )
+    ? {
+        items: props.dataState.items,
+        shippingFee: props.dataState.shippingFee,
+        onGoCart: props.navigationHandlers.onGoCart,
+        onGoOrderHistory: props.navigationHandlers.onGoOrderHistory,
+        onPurchaseRequest: props.navigationHandlers.onPurchaseRequest,
+      }
+    : props;
+  /* eslint-enable react/destructuring-assignment */
 
-const OrderTem = ({
-  items,
-  shippingFee,
-  onGoCart,
-  onGoOrderHistory,
-  onPurchaseRequest,
-}: OrderTemProps) => (
-  <div className="mx-auto">
-    {/* ✅ 페이지 콘텐츠 컨테이너 */}
-    <div
-      className="
+  return (
+    <div className="mx-auto">
+      <div
+        className="
           mx-auto
           mt-60 tablet:mt-60 desktop:mt-80
           w-327
           tablet:w-696
           desktop:w-1200
         "
-    >
-      {/* ✅ StepBreadcrumb – 여백은 Template에서만 관리 */}
-      <div className="flex justify-center mb-40 tablet:mb-70 desktop:mb-70">
-        <StepBreadcrumb steps={CART_ORDER_STEPS} currentStep={2} />
-      </div>
+      >
+        <div className="flex justify-center mb-40 tablet:mb-70 desktop:mb-70">
+          <StepBreadcrumb steps={CART_ORDER_STEPS} currentStep={2} />
+        </div>
 
-      {/* ✅ User 구매 요청 전용 */}
-      <OrderCompletedSummaryOrg
-        cartRole="user"
-        userType="request"
-        items={items}
-        shippingFee={shippingFee}
-        onGoCart={onGoCart}
-        onGoOrderHistory={onGoOrderHistory}
-        onPurchaseRequest={onPurchaseRequest}
-      />
+        <OrderCompletedSummaryOrg
+          cartRole="user"
+          userType="request"
+          items={items}
+          shippingFee={shippingFee}
+          onGoCart={onGoCart}
+          onGoOrderHistory={onGoOrderHistory}
+          onPurchaseRequest={onPurchaseRequest}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default OrderTem;

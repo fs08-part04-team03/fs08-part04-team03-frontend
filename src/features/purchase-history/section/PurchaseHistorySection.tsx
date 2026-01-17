@@ -24,7 +24,7 @@ import { usePurchaseHistoryState } from '@/features/purchase-history/hooks/usePu
  * 통합 훅을 사용하여 Props Drilling 최소화
  */
 const PurchaseHistorySection = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const companyId = user?.companyId || '';
 
   // Toast
