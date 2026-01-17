@@ -55,7 +55,11 @@ export const GNBWrapper = () => {
         });
         // 에러가 발생해도 클라이언트 상태는 정리
       } finally {
-        // 클라이언트 상태 정리
+        // React Query 캐시 완전 초기화 (사용자 종속 데이터 제거)
+        queryClient.clear();
+        logger.info('[Logout] React Query 캐시 초기화 완료');
+
+        // 클라이언트 인증 상태 정리
         clearAuth();
         router.push(PATHNAME.LOGIN);
       }
