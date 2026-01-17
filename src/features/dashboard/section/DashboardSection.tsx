@@ -125,7 +125,8 @@ const transformDashboardData = (data: DashboardApiResponse) => {
 };
 
 const DashboardSection = ({ companyId }: DashboardSectionProps) => {
-  const { user, isHydrated } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const isHydrated = useAuthStore((state) => state.isHydrated);
   const [isLoading, setIsLoading] = useState(true);
   const [toastState, setToastState] = useState({
     isVisible: false,

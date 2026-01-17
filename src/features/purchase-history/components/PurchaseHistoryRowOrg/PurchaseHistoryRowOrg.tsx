@@ -6,6 +6,7 @@ import PriceText from '@/components/atoms/PriceText/PriceText';
 import DateText from '@/components/atoms/DateText/DateText';
 import StatusTag from '@/components/atoms/StatusTag/StatusTag';
 import { formatItemDescription } from '@/features/purchase/utils/purchase.utils';
+import { sumBy } from '@/utils/array';
 import { PURCHASE_HISTORY_LABELS } from '../../constants/labels';
 
 interface PurchaseHistoryRowOrgProps {
@@ -31,10 +32,7 @@ const usePurchaseItem = (
     [item.purchaseItems]
   );
 
-  const totalQuantity = useMemo(
-    () => item.purchaseItems.reduce((sum, purchaseItem) => sum + purchaseItem.quantity, 0),
-    [item.purchaseItems]
-  );
+  const totalQuantity = useMemo(() => sumBy(item.purchaseItems, 'quantity'), [item.purchaseItems]);
 
   const isUrgent = item.urgent === true;
 

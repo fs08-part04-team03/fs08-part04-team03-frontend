@@ -15,21 +15,21 @@ import { usePurchaseRequestModals } from '@/features/purchase/handlers/usePurcha
 import { usePurchaseRequestActions } from '@/features/purchase/handlers/usePurchaseActions';
 import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseNavigation';
 import { PURCHASE_LABELS, PURCHASE_MESSAGES } from '@/features/purchase/constants';
+import type {
+  PurchaseDetailBudgetState,
+  PurchaseDetailModalState,
+  PurchaseDetailModalHandlers,
+} from '@/features/purchase/types/purchase-request-detail.types';
 
 /**
  * PurchaseRequestDetailSection
  * 구매 요청 상세 데이터/상태 결정 레이어
- * - 구매 요청 상세 API 호출
- * - 예산 정보 API 호출
- * - loading / error 분기
- * - Template에 필요한 props를 만들고 내려주기
  */
 const PurchaseRequestDetailSection = () => {
   const params = useParams();
   const requestId = params?.requestId as string | undefined;
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
-  // useToast 훅 사용
   const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
 
   // 모달 상태 관리
@@ -86,7 +86,6 @@ const PurchaseRequestDetailSection = () => {
   }
 
   if (queryError) {
-    // 404 에러인 경우 더 명확한 메시지 표시
     const isNotFoundError =
       queryError instanceof Error && queryError.message.includes('찾을 수 없습니다');
 
@@ -117,7 +116,6 @@ const PurchaseRequestDetailSection = () => {
     return null;
   }
 
-  // 예산 로딩 실패 시 경고 로그 (승인 버튼은 비활성화됨)
   if (budgetError) {
     logger.warn('예산 정보를 불러오는 중 오류가 발생했습니다. 승인이 비활성화됩니다.', budgetError);
   }
@@ -130,31 +128,42 @@ const PurchaseRequestDetailSection = () => {
     );
   }
 
+  // 그룹화된 Props
+  const budgetState: PurchaseDetailBudgetState = {
+    budget: actions.budget,
+    monthlySpending: actions.monthlySpending,
+    remainingBudget: actions.remainingBudget,
+    isBudgetSufficient: actions.isBudgetSufficient,
+  };
+
+  const modalState: PurchaseDetailModalState = {
+    approveModalOpen: modals.approveModalOpen,
+    rejectModalOpen: modals.rejectModalOpen,
+  };
+
+  const modalHandlers: PurchaseDetailModalHandlers = {
+    onApproveClick: actions.handleApproveClick,
+    onRejectClick: actions.handleRejectClick,
+    onApproveModalClose: modals.closeApproveModal,
+    onRejectModalClose: modals.closeRejectModal,
+    onApproveSubmit: actions.handleApproveSubmit,
+    onRejectSubmit: actions.handleRejectSubmit,
+  };
+
   return (
     <div className="w-full">
       <PurchaseRequestDetailTem
         purchaseRequest={data}
         companyId={companyId}
-        budget={actions.budget}
-        monthlySpending={actions.monthlySpending}
-        remainingBudget={actions.remainingBudget}
-        approveModalOpen={modals.approveModalOpen}
-        rejectModalOpen={modals.rejectModalOpen}
-        onApproveClick={actions.handleApproveClick}
-        onRejectClick={actions.handleRejectClick}
-        onApproveModalClose={modals.closeApproveModal}
-        onRejectModalClose={modals.closeRejectModal}
-        onApproveSubmit={actions.handleApproveSubmit}
-        onRejectSubmit={actions.handleRejectSubmit}
-        isBudgetSufficient={actions.isBudgetSufficient}
+        budgetState={budgetState}
+        modalState={modalState}
+        modalHandlers={modalHandlers}
       />
-      {/* Toast */}
       {showToast && (
         <div className="fixed top-60 left-1/2 -translate-x-1/2 z-toast tablet:top-30">
           <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
         </div>
       )}
-      {/* Success Modal */}
       <CustomModal
         open={modals.successModalOpen}
         type={modals.successModalType}
@@ -166,7 +175,6 @@ const PurchaseRequestDetailSection = () => {
             : navigation.goToPurchaseRequests
         }
       />
-      {/* Budget Shortage Modal */}
       <CustomModal
         open={modals.budgetShortageModalOpen}
         type="budget-shortage"

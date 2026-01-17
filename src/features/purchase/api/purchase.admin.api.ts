@@ -151,6 +151,7 @@ export async function getPurchaseRequestDetail(
       status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
       requestMessage?: string;
       rejectReason?: string;
+      reason: string; // 승인 사유 (백엔드에서 항상 string으로 보장)
       purchaseItems: Array<{
         id: string;
         quantity: number;
@@ -187,6 +188,7 @@ export async function getPurchaseRequestDetail(
     // API 응답을 PurchaseRequestItem 타입으로 변환 (하위 호환성 유지)
     const purchaseRequestItem: PurchaseRequestItem = {
       ...result.data,
+      reason: result.data.reason ?? '', // 승인 사유 (방어적 기본값 처리)
       // itemsTotalPrice를 totalPrice로도 매핑 (기존 코드 호환성)
       totalPrice: result.data.itemsTotalPrice,
     };

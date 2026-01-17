@@ -6,6 +6,17 @@ import { useState } from 'react';
 import { inviteSignupSchema, type InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import InviteSignupTem from './InviteSignupTem';
 
+// Storybook에서 사용할 Legacy Props 타입 (일부 속성만 선택)
+type StoryArgs = Partial<{
+  name: string;
+  preview: string | null;
+  showToast: boolean;
+  toastMessage: string;
+  onSubmit: (values: InviteSignupInput) => void | Promise<void>;
+  setShowToast: (show: boolean) => void;
+  onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}>;
+
 // Mock function for Storybook (replaces @storybook/test fn)
 const fn = () => () => {};
 
@@ -40,10 +51,12 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof InviteSignupTem>;
+type Story = StoryObj<typeof InviteSignupTem> & {
+  args?: StoryArgs;
+};
 
 // Wrapper component to provide form context
-const InviteSignupTemWithForm = (args: Partial<Story['args']>) => {
+const InviteSignupTemWithForm = (args: StoryArgs) => {
   const form = useForm<InviteSignupInput>({
     resolver: zodResolver(inviteSignupSchema),
     mode: 'onTouched',
@@ -92,7 +105,7 @@ const InviteSignupTemWithForm = (args: Partial<Story['args']>) => {
  * 모든 필드가 초기 상태에서 시작합니다.
  */
 export const Default: Story = {
-  render: (args) => <InviteSignupTemWithForm {...args} />,
+  render: (args) => <InviteSignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     name: '홍길동',
     showToast: false,
@@ -111,7 +124,7 @@ export const Default: Story = {
  * 이미지 업로드는 선택 사항이며, 140x140px 크기로 표시됩니다.
  */
 export const WithImagePreview: Story = {
-  render: (args) => <InviteSignupTemWithForm {...args} />,
+  render: (args) => <InviteSignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     name: '김철수',
     showToast: false,
@@ -130,7 +143,7 @@ export const WithImagePreview: Story = {
  * 서버 통신 에러는 Toast로만 표시되며, 폼 상단에는 표시되지 않습니다.
  */
 export const WithServerError: Story = {
-  render: (args) => <InviteSignupTemWithForm {...args} />,
+  render: (args) => <InviteSignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     name: '이영희',
     showToast: true,
@@ -149,7 +162,7 @@ export const WithServerError: Story = {
  * Toast는 3초 후 자동으로 사라집니다.
  */
 export const WithToast: Story = {
-  render: (args) => <InviteSignupTemWithForm {...args} />,
+  render: (args) => <InviteSignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     name: '박민수',
     showToast: true,
@@ -168,7 +181,7 @@ export const WithToast: Story = {
  * 환영 메시지에 이름이 포함되므로 레이아웃이 깨지지 않는지 검증합니다.
  */
 export const WithLongName: Story = {
-  render: (args) => <InviteSignupTemWithForm {...args} />,
+  render: (args) => <InviteSignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     name: '알렉산더 막시밀리안 요한',
     showToast: false,
@@ -187,7 +200,7 @@ export const WithLongName: Story = {
  * 실제 사용 시 발생할 수 있는 상황을 시뮬레이션합니다.
  */
 export const ComplexState: Story = {
-  render: (args) => <InviteSignupTemWithForm {...args} />,
+  render: (args) => <InviteSignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     name: '정수현',
     showToast: true,
@@ -206,7 +219,7 @@ export const ComplexState: Story = {
  * 서버 에러는 Toast로만 표시됩니다.
  */
 export const NetworkError: Story = {
-  render: (args) => <InviteSignupTemWithForm {...args} />,
+  render: (args) => <InviteSignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     name: '최지훈',
     showToast: true,
