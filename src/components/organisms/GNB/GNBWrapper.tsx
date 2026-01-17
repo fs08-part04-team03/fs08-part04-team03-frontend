@@ -5,7 +5,6 @@ import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigat
 import { useAuthStore } from '@/lib/store/authStore';
 import { PATHNAME } from '@/constants';
 import { logout } from '@/features/auth/api/auth.api';
-import { getCompany } from '@/features/profile/api/company.api';
 import UserProfile from '@/components/molecules/UserProfile/UserProfile';
 import {
   PARENT_CATEGORY_OPTIONS,
@@ -14,14 +13,11 @@ import {
   type AppRouteKey,
 } from '@/constants';
 import { getChildById } from '@/constants/categories/categories.utils';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getProductById } from '@/features/products/api/products.api';
-import { cartApi } from '@/features/cart/api/cart.api';
-import { getMyProfile } from '@/features/profile/api/profile.api';
+import { useQueryClient } from '@tanstack/react-query';
 import { logger } from '@/utils/logger';
-import { STALE_TIME } from '@/constants/staleTime';
-import { profileKeys } from '@/features/profile/queries/profile.keys';
-import { cartKeys } from '@/features/cart/queries/cart.keys';
+import { useMyProfile, useCompany } from '@/features/profile/queries/profile.queries';
+import { useCart } from '@/features/cart/queries/cart.queries';
+import { useProduct } from '@/features/products/queries/product.queries';
 import GNB from './GNB';
 
 /**
@@ -33,27 +29,16 @@ import GNB from './GNB';
  * - Cart count, User profile 등 데이터 주입
  */
 export const GNBWrapper = () => {
-  const { user, accessToken, clearAuth } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
-  // 회사 정보 조회 (React Query로 관리)
-  const { data: companyData } = useQuery({
-    queryKey: profileKeys.company(),
-    queryFn: () => {
-      if (!accessToken) throw new Error('No access token');
-      return getCompany(accessToken);
-    },
-    enabled: !!accessToken,
-    staleTime: STALE_TIME.FIVE_MINUTES,
-    retry: 1,
-    // 에러 발생 시 기본값 사용
-    placeholderData: { id: '', name: 'SNACK' },
-  });
-
+  // 회사 정보 조회
+  const { data: companyData } = useCompany();
   const companyName = companyData?.name || 'SNACK';
 
   // 로그아웃 핸들러 (비동기 작업을 수행하지만 void를 반환)
@@ -82,25 +67,15 @@ export const GNBWrapper = () => {
   const companyId = (params?.companyId as string) || user?.companyId || '';
 
   // 장바구니 아이템 개수 조회
-  const { data: cartData } = useQuery({
-    queryKey: cartKeys.list(1, 1), // cartKeys를 사용하여 일관성 유지
-    queryFn: () => cartApi.getMyCart(1, 1), // 최소한의 데이터만 조회 (summary만 필요)
-    enabled: !!companyId && !!user, // companyId와 user가 있을 때만 조회
-    staleTime: STALE_TIME.NONE, // 캐시 없이 항상 최신 데이터 사용
-    refetchOnWindowFocus: true, // 창 포커스 시 자동 refetch
-    refetchOnMount: true, // 마운트 시 항상 refetch
+  const { data: cartData } = useCart({
+    page: 1,
+    pageSize: 1, // 최소한의 데이터만 조회 (summary만 필요)
+    enabled: !!companyId && !!user,
   });
-
   const cartCount = cartData?.summary?.totalItems || 0;
 
   // 사용자 프로필 정보 조회 (profileImage 포함)
-  const { data: myProfile } = useQuery({
-    queryKey: profileKeys.myProfile(),
-    queryFn: () => getMyProfile(),
-    enabled: !!user && !!accessToken,
-    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
-    refetchOnWindowFocus: false,
-  });
+  const { data: myProfile } = useMyProfile();
 
   // 프로필 이미지 URL 생성
   const avatarSrc = (() => {
@@ -145,11 +120,8 @@ export const GNBWrapper = () => {
   }, [isProductDetailPage, pathname]);
 
   // 상품 정보 조회 (디테일 페이지인 경우)
-  const { data: productData } = useQuery({
-    queryKey: ['product', productId],
-    queryFn: () => getProductById(productId!),
+  const { data: productData } = useProduct(productId ?? '', {
     enabled: !!productId && isProductDetailPage,
-    staleTime: STALE_TIME.FIVE_MINUTES,
   });
 
   // 상품의 대분류 ID (디테일 페이지용)
