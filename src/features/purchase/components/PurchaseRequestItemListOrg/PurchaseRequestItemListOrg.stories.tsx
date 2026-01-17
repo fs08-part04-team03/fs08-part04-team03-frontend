@@ -55,6 +55,7 @@ const createPurchaseItem = (
     email: 'hong@example.com',
   },
   urgent,
+  reason: '',
 });
 
 export const AllVariants: Story = {

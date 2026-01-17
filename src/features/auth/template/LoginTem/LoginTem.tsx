@@ -9,8 +9,8 @@ import type { LoginInput } from '@/features/auth/schemas/login.schema';
 import Logo from '@/components/atoms/Logo/Logo';
 import Link from 'next/link';
 import { PATHNAME } from '@/constants';
-import { Toast, type ToastVariant } from '@/components/molecules/Toast/Toast';
-import type { LoginTemGroupedProps } from '@/features/auth/types/auth-form.types';
+import { Toast } from '@/components/molecules/Toast/Toast';
+import type { LoginTemGroupedProps, ToastVariant } from '@/features/auth/types/auth-form.types';
 
 interface LoginTemLegacyProps {
   control: Control<LoginInput>;
@@ -155,7 +155,7 @@ const LoginTem = (props: LoginTemProps) => {
                 href={PATHNAME.SIGNUP}
                 className="underline font-bold text-gray-950 underline-offset-4"
               >
-                가입하기
+                회원가입
               </Link>
             </p>
           </div>

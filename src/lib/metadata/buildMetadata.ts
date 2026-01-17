@@ -11,7 +11,7 @@ export interface PageMetadataOptions {
   /** 페이지 경로 (예: '/products') */
   path?: string;
   /** SEO 키워드 배열 */
-  keywords?: string[];
+  keywords?: string[] | readonly string[];
   /** OG 이미지 URL (절대 경로 또는 /og/xxx.png 형식) */
   ogImage?: string;
   /** 검색 엔진 인덱싱 여부 (기본: true) */
@@ -66,7 +66,7 @@ export function buildPageMetadata(options: PageMetadataOptions): Metadata {
 
   // canonical URL 추가
   if (fullUrl) {
-    metadata.alternates = { canonical: path };
+    metadata.alternates = { canonical: fullUrl };
   }
 
   // OpenGraph 메타데이터

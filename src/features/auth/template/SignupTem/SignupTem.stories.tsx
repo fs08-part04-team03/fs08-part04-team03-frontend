@@ -39,10 +39,25 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof SignupTem>;
+// Storybook에서 사용할 Legacy Props 타입 (일부 속성만 선택)
+type StoryArgs = Partial<{
+  preview: string | null;
+  showToast: boolean;
+  toastMessage: string;
+  onSubmit: (values: SignupInput) => void | Promise<void>;
+  setShowToast: (show: boolean) => void;
+  onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  title?: string;
+  subtitle?: string;
+  submitButtonText?: string;
+}>;
+
+type Story = StoryObj<typeof SignupTem> & {
+  args?: StoryArgs;
+};
 
 // Wrapper component to provide form context
-const SignupTemWithForm = (args: Partial<Story['args']>) => {
+const SignupTemWithForm = (args: StoryArgs) => {
   const form = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),
     mode: 'onTouched',
@@ -95,7 +110,7 @@ const SignupTemWithForm = (args: Partial<Story['args']>) => {
  * 모든 필드가 비어있는 초기 상태에서 시작합니다.
  */
 export const Default: Story = {
-  render: (args) => <SignupTemWithForm {...args} />,
+  render: (args) => <SignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     showToast: false,
     toastMessage: '',
@@ -113,7 +128,7 @@ export const Default: Story = {
  * 이미지 업로드는 선택 사항이며, 140x140px 크기로 표시됩니다.
  */
 export const WithImagePreview: Story = {
-  render: (args) => <SignupTemWithForm {...args} />,
+  render: (args) => <SignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     showToast: false,
     toastMessage: '',
@@ -131,7 +146,7 @@ export const WithImagePreview: Story = {
  * 서버 통신 에러는 Toast로만 표시되며, 폼 상단에는 표시되지 않습니다.
  */
 export const WithServerError: Story = {
-  render: (args) => <SignupTemWithForm {...args} />,
+  render: (args) => <SignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     showToast: true,
     toastMessage: '이미 사용 중인 이메일입니다.',
@@ -149,7 +164,7 @@ export const WithServerError: Story = {
  * Toast는 3초 후 자동으로 사라집니다.
  */
 export const WithToast: Story = {
-  render: (args) => <SignupTemWithForm {...args} />,
+  render: (args) => <SignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     showToast: true,
     toastMessage: '이미지 업로드에 실패했습니다. 다시 시도해 주세요.',
@@ -167,7 +182,7 @@ export const WithToast: Story = {
  * 다른 용도로 재사용할 수 있습니다.
  */
 export const CustomContent: Story = {
-  render: (args) => <SignupTemWithForm {...args} />,
+  render: (args) => <SignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     showToast: false,
     toastMessage: '',
@@ -188,7 +203,7 @@ export const CustomContent: Story = {
  * 실제 사용 시 발생할 수 있는 상황을 시뮬레이션합니다.
  */
 export const ComplexState: Story = {
-  render: (args) => <SignupTemWithForm {...args} />,
+  render: (args) => <SignupTemWithForm {...(args as StoryArgs)} />,
   args: {
     showToast: true,
     toastMessage: '입력 정보를 확인해 주세요.',

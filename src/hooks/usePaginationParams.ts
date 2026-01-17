@@ -71,7 +71,8 @@ export const usePaginationParams = (
   // 페이지 변경 핸들러
   const handlePageChange = useCallback(
     (newPage: number) => {
-      const updatedParams = updateUrlParams(searchParams, { page: newPage });
+      const safePage = Math.max(1, newPage);
+      const updatedParams = updateUrlParams(searchParams, { page: safePage });
       router.push(buildUrl(pathname, updatedParams));
     },
     [searchParams, router, pathname]
