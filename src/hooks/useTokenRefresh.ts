@@ -13,7 +13,9 @@ import { logger } from '@/utils/logger';
  * - Rehydration 후 accessToken이 없으면 refresh 시도 (한 번만)
  */
 export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
-  const { accessToken, user, isHydrated } = useAuthStore();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const user = useAuthStore((state) => state.user);
+  const isHydrated = useAuthStore((state) => state.isHydrated);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const inFlightRef = useRef(false); // 중복 refresh 방지
   const mountedRef = useRef(false); // 언마운트 레이스 방지
