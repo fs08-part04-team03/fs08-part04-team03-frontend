@@ -15,7 +15,7 @@ export const useLoginForm = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const router = useRouter();
-  const { setAuth } = useAuthStore();
+  const setAuth = useAuthStore((state) => state.setAuth);
 
   // 토스트 자동 닫기 (3초 후)
   useEffect(() => {
