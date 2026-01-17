@@ -1,6 +1,7 @@
 'use client';
 
 import { clsx } from '@/utils/clsx';
+import { sumBy } from '@/utils/array';
 import ProgressBar from '@/components/atoms/ProgressBar/ProgressBar';
 import dynamic from 'next/dynamic';
 
@@ -124,7 +125,7 @@ const DashboardCardOrg = ({
 
   const isEmptyTable = tableUsers.length === 0;
 
-  const largeTotal = largeChartData.reduce((sum, item) => sum + item.value, 0);
+  const largeTotal = sumBy(largeChartData, 'value');
 
   return (
     <div

@@ -11,6 +11,7 @@ import { Toast } from '@/components/molecules/Toast/Toast';
 import { PATHNAME } from '@/constants';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
+import { filterByIds, sumPrices } from '@/utils/array';
 
 import {
   purchaseNow,
@@ -65,14 +66,11 @@ const CartSummaryBlockOrg = ({ dataState, actionHandlers }: CartSummaryBlockOrgP
   const allChecked = items.length > 0 && checkedIds.length === items.length;
 
   const selectedItems = useMemo(
-    () => items.filter((item) => checkedIds.includes(item.cartItemId)),
+    () => filterByIds(items, checkedIds, 'cartItemId'),
     [items, checkedIds]
   );
 
-  const totalProductPrice = useMemo(
-    () => selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [selectedItems]
-  );
+  const totalProductPrice = useMemo(() => sumPrices(selectedItems), [selectedItems]);
 
   const shippingFee = 0;
   const totalPrice = totalProductPrice + shippingFee;

@@ -6,6 +6,7 @@ import TextAreaField from '@/components/molecules/TextAreaField/TextAreaField';
 import Button from '@/components/atoms/Button/Button';
 import { clsx } from '@/utils/clsx';
 import Image from 'next/image';
+import { sumBy } from '@/utils/array';
 import type { ReactNode } from 'react';
 
 interface Item {
@@ -82,7 +83,7 @@ const ApprovalRequestModal = ({
     };
   });
 
-  const orderAmount = calculatedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+  const orderAmount = sumBy(calculatedItems, 'totalPrice');
   const totalAmount = orderAmount + deliveryFee;
   const remainBudget = budget - totalAmount;
 

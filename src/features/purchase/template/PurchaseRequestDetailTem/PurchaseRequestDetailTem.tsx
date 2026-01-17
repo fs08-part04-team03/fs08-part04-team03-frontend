@@ -5,9 +5,10 @@ import { PurchaseRequestDetailTopOrg } from '@/features/purchase/components/Purc
 import PurchaseRequestDetailOrg from '@/features/purchase/components/PurchaseRequestDetailOrg/PurchaseRequestDetailOrg';
 import ApprovalRequestModal from '@/components/molecules/ApprovalRequestModal/ApprovalRequestModal';
 import { logger } from '@/utils/logger';
+import type { PurchaseRequestDetailTemGroupedProps } from '@/features/purchase/types/purchase-request-detail.types';
 import PurchaseRequestDetailActionsOrg from '../../components/PurchaseRequestDetailActionsOrg/PurchaseRequestDetailActionsOrg';
 
-interface PurchaseRequestDetailTemProps {
+interface PurchaseRequestDetailTemLegacyProps {
   purchaseRequest: PurchaseRequestItem;
   companyId: string;
   budget: number;
@@ -24,22 +25,48 @@ interface PurchaseRequestDetailTemProps {
   isBudgetSufficient?: boolean;
 }
 
-const PurchaseRequestDetailTem = ({
-  purchaseRequest,
-  companyId,
-  budget,
-  monthlySpending,
-  remainingBudget,
-  approveModalOpen,
-  rejectModalOpen,
-  onApproveClick: _onApproveClick,
-  onRejectClick: _onRejectClick,
-  onApproveModalClose,
-  onRejectModalClose,
-  onApproveSubmit,
-  onRejectSubmit,
-  isBudgetSufficient: _isBudgetSufficient = true,
-}: PurchaseRequestDetailTemProps) => {
+type PurchaseRequestDetailTemProps =
+  | PurchaseRequestDetailTemLegacyProps
+  | PurchaseRequestDetailTemGroupedProps;
+
+function isGroupedProps(
+  props: PurchaseRequestDetailTemProps
+): props is PurchaseRequestDetailTemGroupedProps {
+  return 'budgetState' in props && 'modalState' in props && 'modalHandlers' in props;
+}
+
+const PurchaseRequestDetailTem = (props: PurchaseRequestDetailTemProps) => {
+  // Props 정규화
+  /* eslint-disable react/destructuring-assignment */
+  const {
+    purchaseRequest,
+    companyId,
+    budget,
+    monthlySpending,
+    remainingBudget,
+    approveModalOpen,
+    rejectModalOpen,
+    onApproveModalClose,
+    onRejectModalClose,
+    onApproveSubmit,
+    onRejectSubmit,
+  } = isGroupedProps(props)
+    ? {
+        purchaseRequest: props.purchaseRequest,
+        companyId: props.companyId,
+        budget: props.budgetState.budget,
+        monthlySpending: props.budgetState.monthlySpending,
+        remainingBudget: props.budgetState.remainingBudget,
+        approveModalOpen: props.modalState.approveModalOpen,
+        rejectModalOpen: props.modalState.rejectModalOpen,
+        onApproveModalClose: props.modalHandlers.onApproveModalClose,
+        onRejectModalClose: props.modalHandlers.onRejectModalClose,
+        onApproveSubmit: props.modalHandlers.onApproveSubmit,
+        onRejectSubmit: props.modalHandlers.onRejectSubmit,
+      }
+    : props;
+  /* eslint-enable react/destructuring-assignment */
+
   // BudgetInfo 계산
   const budgetInfo = {
     monthlySpending,

@@ -9,6 +9,12 @@ import { useInviteSignup } from '@/features/auth/queries/auth.queries';
 import { useImageUpload } from '@/features/auth/hooks/useImageUpload';
 import { useProfileImageUpdate } from '@/features/auth/hooks/useProfileImageUpdate';
 import { useAuthRedirect } from '@/features/auth/hooks/useAuthRedirect';
+import { logger } from '@/utils/logger';
+import type {
+  AuthFormState,
+  AuthToastState,
+  AuthImageState,
+} from '@/features/auth/types/auth-form.types';
 
 interface InviteSignupSectionProps {
   name: string;
@@ -21,7 +27,6 @@ interface InviteSignupSectionProps {
  * 초대 회원가입 비즈니스 로직을 담당하는 섹션 컴포넌트
  */
 const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) => {
-  // useToast 훅 사용
   const { showToast, toastMessage, closeToast } = useToast();
 
   const inviteSignupMutation = useInviteSignup();
@@ -50,15 +55,13 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
         onSuccess: (data) => {
           const { user, accessToken } = data;
 
-          // 이미지 파일이 있으면 회원가입 후 프로필 이미지 업데이트
           if (selectedFile) {
             updateProfileImage(selectedFile, accessToken)
               .then(() => {
                 redirectToProducts(user);
               })
               .catch((error) => {
-                // eslint-disable-next-line no-console
-                console.error('프로필 이미지 업로드 실패:', error);
+                logger.error('프로필 이미지 업로드 실패:', error);
                 redirectToProducts(user);
               });
             return;
@@ -70,20 +73,35 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
     );
   };
 
+  // 그룹화된 Props
+  const formState: AuthFormState<InviteSignupInput> = {
+    control: form.control,
+    handleSubmit: form.handleSubmit,
+    isValid: form.formState.isValid,
+    onSubmit,
+  };
+
+  const toastState: AuthToastState = {
+    showToast,
+    toastMessage,
+    onCloseToast: closeToast,
+  };
+
+  const imageState: AuthImageState = {
+    preview,
+    onImageChange: handleImageChange,
+    onImageDelete: handleImageDelete,
+    isUploading,
+  };
+
+  const inviteInfo = { name };
+
   return (
     <InviteSignupTem
-      control={form.control}
-      handleSubmit={form.handleSubmit}
-      isValid={form.formState.isValid}
-      onSubmit={onSubmit}
-      showToast={showToast}
-      toastMessage={toastMessage}
-      setShowToast={closeToast}
-      preview={preview}
-      onImageChange={handleImageChange}
-      onImageDelete={handleImageDelete}
-      isUploading={isUploading}
-      name={name}
+      formState={formState}
+      toastState={toastState}
+      imageState={imageState}
+      inviteInfo={inviteInfo}
     />
   );
 };

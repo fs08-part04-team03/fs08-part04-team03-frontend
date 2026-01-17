@@ -73,6 +73,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
     name: '관리자',
     email: 'admin@example.com',
   },
+  reason: '승인되었습니다.',
 };
 
 export const Approved: Story = {

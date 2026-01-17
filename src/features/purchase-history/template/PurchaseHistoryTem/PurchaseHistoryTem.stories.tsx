@@ -67,6 +67,7 @@ const createPurchaseItem = (
   },
   approver,
   urgent,
+  reason: '',
 });
 
 const approvers = {
