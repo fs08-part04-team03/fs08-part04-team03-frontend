@@ -13,6 +13,7 @@ import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
 import { useOrderConfirmedHandlers } from '../handlers/useOrderConfirmedHandlers';
 import { CART_ROUTES } from '../constants/routes';
 import OrderConfirmedTem from '../template/OrderConfirmedTem/OrderConfirmedTem';
+import type { OrderDataState, OrderRoleState, OrderNavigationHandlers } from '../types/order.types';
 
 interface OrderConfirmedSectionProps {
   id?: string;
@@ -29,7 +30,7 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
   const params = useParams();
   const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   // URL 쿼리 파라미터에서 id를 가져오거나 props로 전달된 id 사용
   const purchaseId = purchaseIdProp || searchParams.get('id') || undefined;
@@ -150,15 +151,28 @@ const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProp
     return null;
   }
 
+  // 그룹화된 Props
+  const dataState: OrderDataState = {
+    items,
+    shippingFee: purchaseData?.shippingFee || 0,
+    requestMessage,
+  };
+
+  const roleState: OrderRoleState = {
+    cartRole,
+    userType: 'default',
+  };
+
+  const navigationHandlers: OrderNavigationHandlers = {
+    onGoCart: handleGoCart,
+    onGoOrderHistory: handleGoOrderHistory,
+  };
+
   return (
     <OrderConfirmedTem
-      cartRole={cartRole}
-      userType="default"
-      items={items}
-      shippingFee={purchaseData?.shippingFee || 0}
-      requestMessage={requestMessage}
-      onGoCart={handleGoCart}
-      onGoOrderHistory={handleGoOrderHistory}
+      dataState={dataState}
+      roleState={roleState}
+      navigationHandlers={navigationHandlers}
     />
   );
 };

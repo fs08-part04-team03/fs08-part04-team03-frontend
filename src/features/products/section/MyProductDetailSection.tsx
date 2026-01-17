@@ -21,12 +21,19 @@ import { useProductNavigation } from '@/features/products/handlers/useProductNav
 import { useProductEditActions } from '@/features/products/handlers/useProductEditActions';
 import { useProductModals } from '@/features/products/handlers/useProductModals';
 import { PRODUCT_LABELS } from '@/features/products/constants';
+import type {
+  MyProductDetailDataState,
+  MyProductDetailCategoryState,
+  MyProductDetailModalState,
+  MyProductDetailModalHandlers,
+  MyProductDetailEditInitialValues,
+} from '@/features/products/types/my-product-detail.types';
 
 const MyProductDetailSection = () => {
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : '';
   const productId = params?.productId ? String(params.productId) : '';
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   // 데이터 패칭
   const { data: product, isLoading, error } = useMyProduct(productId, { enabled: !!productId });
@@ -54,7 +61,7 @@ const MyProductDetailSection = () => {
     return ROLE_LEVEL[userRole] >= ROLE_LEVEL.manager;
   }, [user?.role]);
 
-  // 카테고리 옵션 초기화 (수정 모달용) - hooks 규칙을 위해 early return 전에 선언
+  // 카테고리 옵션 초기화 (수정 모달용)
   const initialCategoryOption = useMemo(() => {
     if (!product?.categoryId) return null;
     const childCategory = getChildById(product.categoryId);
@@ -85,7 +92,6 @@ const MyProductDetailSection = () => {
       };
     }
 
-    // buildProductBreadcrumb를 사용하여 대분류와 소분류를 모두 포함한 breadcrumb 생성
     const categoryBreadcrumbItems = buildProductBreadcrumb({ categoryId: product.categoryId });
 
     const breadcrumbItems = [
@@ -93,7 +99,6 @@ const MyProductDetailSection = () => {
         label: PRODUCT_LABELS.BREADCRUMB.MY_PRODUCT_LIST,
         href: `/${companyId}/products/my`,
       },
-      // buildProductBreadcrumb에서 반환된 대분류와 소분류 추가
       ...categoryBreadcrumbItems.map((item) => ({
         label: item.label,
         href: item.href,
@@ -111,7 +116,6 @@ const MyProductDetailSection = () => {
         productName: product.name,
         price: product.price,
         purchaseCount: product.salesCount || 0,
-        // type을 전달하지 않으면 ProductDetailHeader에서 역할에 따라 자동 결정
         type: undefined,
       },
       accordionPanels: [
@@ -159,31 +163,52 @@ const MyProductDetailSection = () => {
     return null;
   }
 
+  // 그룹화된 Props
+  const dataState: MyProductDetailDataState = {
+    detailPageProps,
+    productCategoryId: product.categoryId ?? null,
+    productName: product.name,
+    productPrice: String(product.price),
+  };
+
+  const categoryState: MyProductDetailCategoryState = {
+    categorySections: CATEGORY_SECTIONS,
+    onChangeCategory: navigation.goToProductsByCategory,
+  };
+
+  const modalState: MyProductDetailModalState = {
+    editModalOpen: modals.editModalOpen,
+    deleteModalOpen: modals.deleteModalOpen,
+  };
+
+  const modalHandlers: MyProductDetailModalHandlers = {
+    onCloseEditModal: modals.handleCloseEditModal,
+    onCloseDeleteModal: modals.handleCloseDeleteModal,
+    onOpenEditModal: modals.handleOpenEditModal,
+    onOpenDeleteModal: modals.handleOpenDeleteModal,
+    onEditSubmit: editActions.handleEditSubmit,
+    onDeleteConfirm: editActions.handleDeleteConfirm,
+    onProductUpdated: () => {
+      // 이미지 리프레시는 editActions에서 처리됨
+    },
+  };
+
+  const editInitialValues: MyProductDetailEditInitialValues = {
+    initialCategoryOption,
+    initialSubCategoryOption,
+    initialLink,
+    initialImage: product.imageUrl || null,
+    initialImageKey: product.imageUrl || null,
+  };
+
   return (
     <MyProductDetailTem
-      categorySections={CATEGORY_SECTIONS}
-      detailPageProps={detailPageProps}
+      dataState={dataState}
+      categoryState={categoryState}
+      modalState={modalState}
+      modalHandlers={modalHandlers}
+      editInitialValues={editInitialValues}
       canUseMenu={canUseMenu}
-      productCategoryId={product.categoryId}
-      editModalOpen={modals.editModalOpen}
-      deleteModalOpen={modals.deleteModalOpen}
-      onCloseEditModal={modals.handleCloseEditModal}
-      onCloseDeleteModal={modals.handleCloseDeleteModal}
-      onOpenEditModal={modals.handleOpenEditModal}
-      onOpenDeleteModal={modals.handleOpenDeleteModal}
-      onEditSubmit={editActions.handleEditSubmit}
-      onDeleteConfirm={editActions.handleDeleteConfirm}
-      initialCategoryOption={initialCategoryOption}
-      initialSubCategoryOption={initialSubCategoryOption}
-      initialLink={initialLink}
-      initialImage={null}
-      initialImageKey={product.imageUrl || null}
-      productName={product.name}
-      productPrice={String(product.price)}
-      onProductUpdated={() => {
-        // 이미지 리프레시는 editActions에서 처리됨
-      }}
-      onChangeCategory={navigation.goToProductsByCategory}
     />
   );
 };

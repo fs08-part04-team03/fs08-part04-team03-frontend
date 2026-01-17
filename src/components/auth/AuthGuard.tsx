@@ -22,7 +22,10 @@ interface AuthGuardProps {
 export const AuthGuard = ({ children, companyId }: AuthGuardProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, accessToken, clearAuth, isHydrated } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const isHydrated = useAuthStore((state) => state.isHydrated);
   const refreshAttemptedRef = useRef(false);
 
   useEffect(() => {

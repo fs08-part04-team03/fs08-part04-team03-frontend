@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { updateUrlParams, getNumberParam, buildUrl } from '@/utils/urlParams';
 
 interface PaginationParams {
   page: number;
@@ -55,14 +56,8 @@ export const usePaginationParams = (
   const pathname = usePathname();
 
   // URL에서 파라미터 파싱
-  const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1);
-  const size = Math.max(
-    minSize,
-    Math.min(
-      maxSize,
-      Number.parseInt(searchParams.get('size') || String(defaultSize), 10) || defaultSize
-    )
-  );
+  const page = getNumberParam(searchParams, 'page', 1, { min: 1 });
+  const size = getNumberParam(searchParams, 'size', defaultSize, { min: minSize, max: maxSize });
   const status = searchParams.get('status') || undefined;
   const sort = searchParams.get('sort') || undefined;
 
@@ -76,9 +71,9 @@ export const usePaginationParams = (
   // 페이지 변경 핸들러
   const handlePageChange = useCallback(
     (newPage: number) => {
-      const urlParams = new URLSearchParams(searchParams.toString());
-      urlParams.set('page', newPage.toString());
-      router.push(`${pathname}?${urlParams.toString()}`);
+      const safePage = Math.max(1, newPage);
+      const updatedParams = updateUrlParams(searchParams, { page: safePage });
+      router.push(buildUrl(pathname, updatedParams));
     },
     [searchParams, router, pathname]
   );
@@ -86,14 +81,9 @@ export const usePaginationParams = (
   // 정렬 변경 핸들러
   const handleSortChange = useCallback(
     (newSort: string | undefined) => {
-      const urlParams = new URLSearchParams(searchParams.toString());
-      if (newSort && newSort !== defaultSortKey) {
-        urlParams.set('sort', newSort);
-      } else {
-        urlParams.delete('sort');
-      }
-      urlParams.set('page', '1');
-      router.push(`${pathname}?${urlParams.toString()}`);
+      const sortValue = newSort && newSort !== defaultSortKey ? newSort : null;
+      const updatedParams = updateUrlParams(searchParams, { sort: sortValue, page: 1 });
+      router.push(buildUrl(pathname, updatedParams));
     },
     [searchParams, router, pathname, defaultSortKey]
   );
@@ -101,14 +91,9 @@ export const usePaginationParams = (
   // 상태 변경 핸들러
   const handleStatusChange = useCallback(
     (newStatus: string | undefined) => {
-      const urlParams = new URLSearchParams(searchParams.toString());
-      if (newStatus && newStatus !== 'ALL') {
-        urlParams.set('status', newStatus);
-      } else {
-        urlParams.delete('status');
-      }
-      urlParams.set('page', '1');
-      router.push(`${pathname}?${urlParams.toString()}`);
+      const statusValue = newStatus && newStatus !== 'ALL' ? newStatus : null;
+      const updatedParams = updateUrlParams(searchParams, { status: statusValue, page: 1 });
+      router.push(buildUrl(pathname, updatedParams));
     },
     [searchParams, router, pathname]
   );

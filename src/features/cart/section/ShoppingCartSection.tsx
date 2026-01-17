@@ -25,7 +25,7 @@ import ShoppingCartTem from '../template/ShoppingCartTem/ShoppingCartTem';
 const ShoppingCartSection = () => {
   const params = useParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   // 사용자 역할에 따른 cartRole 결정
   const cartRole: CartRole = useMemo(() => {

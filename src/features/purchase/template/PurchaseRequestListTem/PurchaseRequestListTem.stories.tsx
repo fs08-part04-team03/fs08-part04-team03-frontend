@@ -30,7 +30,33 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof PurchaseRequestListTem>;
+// Storybook에서 사용할 Legacy Props 타입 (일부 속성만 선택)
+type StoryArgs = Partial<{
+  purchaseList: PurchaseRequestItem[];
+  companyId: string;
+  sortOptions: Option[];
+  selectedSortOption: Option;
+  currentPage: number;
+  totalPages: number;
+  budget: number;
+  selectedRequestId: string | null;
+  approveModalOpen: boolean;
+  rejectModalOpen: boolean;
+  onRejectClick: (purchaseRequestId: string) => void;
+  onApproveClick: (purchaseRequestId: string) => void;
+  onRowClick: (purchaseRequestId: string) => void;
+  onNavigateToProducts: () => void;
+  onApproveModalClose: () => void;
+  onRejectModalClose: () => void;
+  onApproveSubmit: (message: string) => void | Promise<void>;
+  onRejectSubmit: (message: string) => void | Promise<void>;
+  onPageChange: () => void;
+  onSortChange: () => void;
+}>;
+
+type Story = StoryObj<typeof PurchaseRequestListTem> & {
+  args?: StoryArgs;
+};
 
 const createPurchaseItem = (
   id: string,
@@ -69,6 +95,7 @@ const createPurchaseItem = (
       name: requesterName,
       email: 'hong@example.com',
     },
+    reason: '',
   };
 };
 
@@ -164,21 +191,22 @@ export const WithPagination: Story = {
 
 export const Interactive: Story = {
   render: (args) => {
+    const typedArgs = args as StoryArgs;
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [rejectModalOpen, setRejectModalOpen] = useState(false);
     const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
     return (
       <PurchaseRequestListTem
-        purchaseList={args.purchaseList}
-        companyId={args.companyId}
-        sortOptions={args.sortOptions}
-        selectedSortOption={args.selectedSortOption}
-        currentPage={args.currentPage}
-        totalPages={args.totalPages}
-        budget={args.budget}
-        onPageChange={args.onPageChange}
-        onSortChange={args.onSortChange}
+        purchaseList={typedArgs.purchaseList!}
+        companyId={typedArgs.companyId!}
+        sortOptions={typedArgs.sortOptions}
+        selectedSortOption={typedArgs.selectedSortOption}
+        currentPage={typedArgs.currentPage}
+        totalPages={typedArgs.totalPages}
+        budget={typedArgs.budget}
+        onPageChange={typedArgs.onPageChange}
+        onSortChange={typedArgs.onSortChange}
         selectedRequestId={selectedRequestId}
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}

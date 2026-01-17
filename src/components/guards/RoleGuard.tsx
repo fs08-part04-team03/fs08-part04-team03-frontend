@@ -18,7 +18,9 @@ interface RoleGuardProps {
 export const RoleGuard = ({ children, requiredRole, fallback }: RoleGuardProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, accessToken, isHydrated } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isHydrated = useAuthStore((state) => state.isHydrated);
 
   const isRoleKnown = (role: UserRole | undefined): role is UserRole =>
     !!role && role in ROLE_LEVEL;

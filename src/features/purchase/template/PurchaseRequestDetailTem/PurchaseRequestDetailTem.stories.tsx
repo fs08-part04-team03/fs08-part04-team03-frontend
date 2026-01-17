@@ -34,7 +34,27 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof PurchaseRequestDetailTem>;
+// Storybook에서 사용할 Legacy Props 타입 (일부 속성만 선택)
+type StoryArgs = Partial<{
+  purchaseRequest: PurchaseRequestItem;
+  companyId: string;
+  budget: number;
+  monthlySpending: number;
+  remainingBudget: number;
+  isBudgetSufficient: boolean;
+  approveModalOpen: boolean;
+  rejectModalOpen: boolean;
+  onApproveClick: () => void;
+  onRejectClick: () => void;
+  onApproveModalClose: () => void;
+  onRejectModalClose: () => void;
+  onApproveSubmit: (message: string) => void | Promise<void>;
+  onRejectSubmit: (message: string) => void | Promise<void>;
+}>;
+
+type Story = StoryObj<typeof PurchaseRequestDetailTem> & {
+  args?: StoryArgs;
+};
 
 /* =====================
  * Mock Data
@@ -82,6 +102,7 @@ const mockPurchaseRequest: PurchaseRequestItem = {
     name: '관리자',
     email: 'admin@example.com',
   },
+  reason: '승인되었습니다.',
 };
 
 /* =====================
@@ -162,6 +183,7 @@ export const WithRejectModal: Story = {
 
 export const Interactive: Story = {
   render: (args) => {
+    const typedArgs = args as StoryArgs;
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -169,12 +191,12 @@ export const Interactive: Story = {
 
     return (
       <PurchaseRequestDetailTem
-        purchaseRequest={args.purchaseRequest}
-        companyId={args.companyId}
-        budget={args.budget}
-        monthlySpending={args.monthlySpending}
-        remainingBudget={args.remainingBudget}
-        isBudgetSufficient={args.isBudgetSufficient}
+        purchaseRequest={typedArgs.purchaseRequest!}
+        companyId={typedArgs.companyId!}
+        budget={typedArgs.budget!}
+        monthlySpending={typedArgs.monthlySpending!}
+        remainingBudget={typedArgs.remainingBudget!}
+        isBudgetSufficient={typedArgs.isBudgetSufficient}
         approveModalOpen={approveModalOpen}
         rejectModalOpen={rejectModalOpen}
         onApproveClick={() => setApproveModalOpen(true)}
