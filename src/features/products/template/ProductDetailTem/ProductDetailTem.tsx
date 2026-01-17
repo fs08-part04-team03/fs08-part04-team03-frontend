@@ -118,7 +118,7 @@ const ProductDetailTem = (props: ProductDetailTemProps) => {
         initialLink: props.editModal?.initialValues.link ?? '',
         initialImage: props.editModal?.initialValues.image ?? null,
         initialImageKey: props.editModal?.initialValues.imageKey ?? null,
-        productName: props.deleteModal?.productName ?? '',
+        productName: props.editModal?.initialValues.name ?? props.deleteModal?.productName ?? '',
         productPrice: props.editModal?.initialValues.price ?? '',
         cartAddFailedModalOpen: props.cartModal.addFailedOpen,
         cartAddSuccessModalOpen: props.cartModal.addSuccessOpen,

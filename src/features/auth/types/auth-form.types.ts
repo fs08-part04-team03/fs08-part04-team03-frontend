@@ -5,7 +5,9 @@
 import type { Control, UseFormHandleSubmit } from 'react-hook-form';
 import type { SignupInput, InviteSignupInput } from '@/features/auth/schemas/signup.schema';
 import type { LoginInput } from '@/features/auth/schemas/login.schema';
-import type { ToastVariant } from '@/components/molecules/Toast/Toast';
+import type { ToastProps } from '@/components/molecules/Toast/Toast';
+
+export type ToastVariant = ToastProps['variant'];
 
 /**
  * Form 상태 (공통)

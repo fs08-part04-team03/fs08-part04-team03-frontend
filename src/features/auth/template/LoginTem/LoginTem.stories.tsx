@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@/features/auth/schemas/login.schema';
+import type { ToastVariant } from '@/features/auth/types/auth-form.types';
 import LoginTem from './LoginTem';
 
 // Mock function for Storybook (replaces @storybook/test fn)
@@ -38,10 +39,21 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof LoginTem>;
+// Storybook에서 사용할 Legacy Props 타입 (일부 속성만 선택)
+type StoryArgs = Partial<{
+  onSubmit: (values: LoginInput) => void | Promise<void>;
+  showToast: boolean;
+  toastVariant: ToastVariant;
+  toastMessage: string;
+  setShowToast: (show: boolean) => void;
+}>;
+
+type Story = StoryObj<typeof LoginTem> & {
+  args?: StoryArgs;
+};
 
 // Wrapper component to provide form context
-const LoginTemWithForm = (args: Partial<Story['args']>) => {
+const LoginTemWithForm = (args: StoryArgs) => {
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
@@ -72,7 +84,7 @@ const LoginTemWithForm = (args: Partial<Story['args']>) => {
  * 모든 필드가 비어있는 초기 상태에서 시작합니다.
  */
 export const Default: Story = {
-  render: (args) => <LoginTemWithForm {...args} />,
+  render: (args) => <LoginTemWithForm {...(args as StoryArgs)} />,
   args: {
     showToast: false,
     toastVariant: 'error',
@@ -89,7 +101,7 @@ export const Default: Story = {
  * Toast는 3초 후 자동으로 사라집니다.
  */
 export const WithErrorToast: Story = {
-  render: (args) => <LoginTemWithForm {...args} />,
+  render: (args) => <LoginTemWithForm {...(args as StoryArgs)} />,
   args: {
     showToast: true,
     toastVariant: 'error',
@@ -105,7 +117,7 @@ export const WithErrorToast: Story = {
  * 네트워크 오류 발생 시 Toast 알림이 표시됩니다.
  */
 export const WithNetworkErrorToast: Story = {
-  render: (args) => <LoginTemWithForm {...args} />,
+  render: (args) => <LoginTemWithForm {...(args as StoryArgs)} />,
   args: {
     showToast: true,
     toastVariant: 'error',

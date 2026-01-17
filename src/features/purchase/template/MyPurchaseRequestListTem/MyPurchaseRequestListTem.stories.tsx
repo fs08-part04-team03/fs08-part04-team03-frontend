@@ -86,6 +86,7 @@ const createPurchaseItem = (
     email: 'hong@example.com',
   },
   urgent,
+  reason: '',
 });
 
 /* =====================

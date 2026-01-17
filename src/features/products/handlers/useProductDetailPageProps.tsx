@@ -30,7 +30,7 @@ interface UseProductDetailPagePropsParams {
     handleToggleLike: () => void;
   };
   cartActions: {
-    handleAddToCart: () => void;
+    handleAddToCart: (qty: number) => void;
   };
   modals: {
     handleOpenEditModal: () => void;

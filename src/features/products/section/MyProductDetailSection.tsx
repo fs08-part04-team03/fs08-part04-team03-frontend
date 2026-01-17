@@ -166,7 +166,7 @@ const MyProductDetailSection = () => {
   // 그룹화된 Props
   const dataState: MyProductDetailDataState = {
     detailPageProps,
-    productCategoryId: product.categoryId,
+    productCategoryId: product.categoryId ?? null,
     productName: product.name,
     productPrice: String(product.price),
   };
