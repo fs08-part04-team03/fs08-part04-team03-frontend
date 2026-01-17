@@ -20,16 +20,17 @@ import { getChildById } from '@/constants/categories/categories.utils';
 import { PRODUCT_MESSAGES } from '@/features/products/constants/messages';
 import type { Option } from '@/components/atoms/DropDown/DropDown';
 import type { UpdateMyProductOptions } from '@/features/products/api/products.api';
+import type { ProductDetailTemGroupedProps } from '@/features/products/types/product-detail.types';
 
 /* =====================
- * Props
+ * Props (Legacy - 하위 호환용)
  * ====================== */
-interface ProductDetailTemProps {
+interface ProductDetailTemLegacyProps {
   categorySections: CategoryPanelSection[];
   detailPageProps: DetailPageLayoutProps;
   isLoading?: boolean;
   hasProduct?: boolean;
-  productCategoryId?: number | null; // 상품의 소분류 ID
+  productCategoryId?: number | null;
   canUseMenu?: boolean;
   editModalOpen?: boolean;
   deleteModalOpen?: boolean;
@@ -54,36 +55,99 @@ interface ProductDetailTemProps {
 }
 
 /* =====================
+ * Props (Grouped - 권장)
+ * ====================== */
+type ProductDetailTemProps = ProductDetailTemLegacyProps | ProductDetailTemGroupedProps;
+
+/**
+ * Props가 그룹화된 형식인지 확인
+ */
+function isGroupedProps(props: ProductDetailTemProps): props is ProductDetailTemGroupedProps {
+  return 'data' in props && 'category' in props && 'cartModal' in props;
+}
+
+/* =====================
  * ProductDetailTem
  * ====================== */
-const ProductDetailTem = ({
-  categorySections,
-  detailPageProps,
-  isLoading = false,
-  hasProduct = true,
-  productCategoryId = null,
-  canUseMenu = false,
-  editModalOpen = false,
-  deleteModalOpen = false,
-  onCloseEditModal,
-  onCloseDeleteModal,
-  onEditSubmit,
-  onDeleteConfirm,
-  initialCategoryOption = null,
-  initialSubCategoryOption = null,
-  initialLink = '',
-  initialImage = null,
-  initialImageKey = null,
-  productName = '',
-  productPrice = '',
-  cartAddFailedModalOpen = false,
-  cartAddSuccessModalOpen = false,
-  onCloseCartAddFailedModal,
-  onCloseCartAddSuccessModal,
-  onGoToCart,
-  onGoToProducts,
-  onChangeCategory,
-}: ProductDetailTemProps) => {
+const ProductDetailTem = (props: ProductDetailTemProps) => {
+  // 그룹화된 Props를 레거시 형식으로 변환
+  /* eslint-disable react/destructuring-assignment */
+  const {
+    categorySections,
+    detailPageProps,
+    isLoading,
+    hasProduct,
+    productCategoryId,
+    canUseMenu,
+    editModalOpen,
+    deleteModalOpen,
+    onCloseEditModal,
+    onCloseDeleteModal,
+    onEditSubmit,
+    onDeleteConfirm,
+    initialCategoryOption,
+    initialSubCategoryOption,
+    initialLink,
+    initialImage,
+    initialImageKey,
+    productName,
+    productPrice,
+    cartAddFailedModalOpen,
+    cartAddSuccessModalOpen,
+    onCloseCartAddFailedModal,
+    onCloseCartAddSuccessModal,
+    onGoToCart,
+    onGoToProducts,
+    onChangeCategory,
+  } = isGroupedProps(props)
+    ? {
+        categorySections: props.category.categorySections,
+        detailPageProps: props.data.detailPageProps,
+        isLoading: props.data.isLoading,
+        hasProduct: props.data.hasProduct,
+        productCategoryId: props.data.productCategoryId,
+        canUseMenu: props.canUseMenu,
+        editModalOpen: props.editModal?.isOpen ?? false,
+        deleteModalOpen: props.deleteModal?.isOpen ?? false,
+        onCloseEditModal: props.editModal?.onClose,
+        onCloseDeleteModal: props.deleteModal?.onClose,
+        onEditSubmit: props.editModal?.onSubmit,
+        onDeleteConfirm: props.deleteModal?.onConfirm,
+        initialCategoryOption: props.editModal?.initialValues.category ?? null,
+        initialSubCategoryOption: props.editModal?.initialValues.subCategory ?? null,
+        initialLink: props.editModal?.initialValues.link ?? '',
+        initialImage: props.editModal?.initialValues.image ?? null,
+        initialImageKey: props.editModal?.initialValues.imageKey ?? null,
+        productName: props.deleteModal?.productName ?? '',
+        productPrice: props.editModal?.initialValues.price ?? '',
+        cartAddFailedModalOpen: props.cartModal.addFailedOpen,
+        cartAddSuccessModalOpen: props.cartModal.addSuccessOpen,
+        onCloseCartAddFailedModal: props.cartModal.onCloseAddFailed,
+        onCloseCartAddSuccessModal: props.cartModal.onCloseAddSuccess,
+        onGoToCart: props.cartModal.onGoToCart,
+        onGoToProducts: props.cartModal.onGoToProducts,
+        onChangeCategory: props.category.onChangeCategory,
+      }
+    : {
+        ...props,
+        isLoading: props.isLoading ?? false,
+        hasProduct: props.hasProduct ?? true,
+        productCategoryId: props.productCategoryId ?? null,
+        canUseMenu: props.canUseMenu ?? false,
+        editModalOpen: props.editModalOpen ?? false,
+        deleteModalOpen: props.deleteModalOpen ?? false,
+        initialCategoryOption: props.initialCategoryOption ?? null,
+        initialSubCategoryOption: props.initialSubCategoryOption ?? null,
+        initialLink: props.initialLink ?? '',
+        initialImage: props.initialImage ?? null,
+        initialImageKey: props.initialImageKey ?? null,
+        productName: props.productName ?? '',
+        productPrice: props.productPrice ?? '',
+        cartAddFailedModalOpen: props.cartAddFailedModalOpen ?? false,
+        cartAddSuccessModalOpen: props.cartAddSuccessModalOpen ?? false,
+      };
+  /* eslint-enable react/destructuring-assignment */
+
   // 상품의 대분류 ID 찾기
   const activeSectionId = useMemo(() => {
     if (!productCategoryId) return null;
