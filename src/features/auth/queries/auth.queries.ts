@@ -37,7 +37,7 @@ export function useInviteInfo(inviteUrl: string, options?: { enabled?: boolean }
  * 로그인 mutation 훅
  */
 export function useLogin() {
-  const { setAuth } = useAuthStore();
+  const setAuth = useAuthStore((state) => state.setAuth);
   const { triggerToast } = useToast();
 
   return useMutation<{ user: User; accessToken: string }, Error, LoginInput>({
@@ -81,7 +81,7 @@ export function useLogin() {
  * 회원가입 mutation 훅
  */
 export function useSignup() {
-  const { setAuth } = useAuthStore();
+  const setAuth = useAuthStore((state) => state.setAuth);
   const { triggerToast } = useToast();
 
   return useMutation<
@@ -112,7 +112,7 @@ export function useSignup() {
  * 초대 회원가입 mutation 훅
  */
 export function useInviteSignup() {
-  const { setAuth } = useAuthStore();
+  const setAuth = useAuthStore((state) => state.setAuth);
   const { triggerToast } = useToast();
 
   return useMutation<
@@ -144,7 +144,7 @@ export function useInviteSignup() {
  * 로그아웃 mutation 훅
  */
 export function useLogout() {
-  const { clearAuth } = useAuthStore();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
   const { triggerToast } = useToast();
 
   return useMutation<void, Error, void>({

@@ -9,7 +9,7 @@ import {
   type GetWishlistResponse,
 } from '@/features/wishlist/api/wishlist.api';
 import { useToast } from '@/hooks/useToast';
-import { STALE_TIME } from '@/constants/staleTime';
+import { QUERY_DEFAULTS } from '@/lib/query/queryDefaults';
 import { wishlistKeys } from './wishlist.keys';
 
 /**
@@ -21,9 +21,9 @@ export function useWishlist(options?: { enabled?: boolean }) {
   const { enabled = true } = options || {};
 
   return useQuery<GetWishlistResponse>({
+    ...QUERY_DEFAULTS.list,
     queryKey: wishlistKeys.all(companyId),
     queryFn: () => getWishlist(),
-    staleTime: STALE_TIME.ONE_MINUTE, // 1분간 캐시 유지
     enabled: enabled && !!companyId,
   });
 }

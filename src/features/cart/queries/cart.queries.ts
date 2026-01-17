@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cartApi, type GetMyCartResponse } from '@/features/cart/api/cart.api';
 import { useToast } from '@/hooks/useToast';
 import { fetchWithAuth } from '@/utils/api';
-import { STALE_TIME } from '@/constants/staleTime';
+import { QUERY_DEFAULTS } from '@/lib/query/queryDefaults';
 import { ADMIN_BUDGET_API_PATHS } from '@/features/admin/budget/constants/api';
 import { cartKeys } from './cart.keys';
 
@@ -20,10 +20,9 @@ export function useCart(params?: {
   const { page = 1, pageSize = 10, cartItemIdsParam, enabled = true } = params || {};
 
   return useQuery<GetMyCartResponse>({
+    ...QUERY_DEFAULTS.short,
     queryKey: cartKeys.list(page, pageSize, cartItemIdsParam),
     queryFn: () => cartApi.getMyCart(page, pageSize),
-    staleTime: STALE_TIME.SHORT, // 30초간 캐시 유지 (이미지 업데이트 반영 + 성능 균형)
-    refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
     enabled,
   });
 }
@@ -35,6 +34,7 @@ export function useBudget(year: number, month: number, options?: { enabled?: boo
   const { enabled = true } = options || {};
 
   return useQuery<number>({
+    ...QUERY_DEFAULTS.cached,
     queryKey: cartKeys.budget(year, month),
     queryFn: async () => {
       const response = await fetchWithAuth(
@@ -58,7 +58,6 @@ export function useBudget(year: number, month: number, options?: { enabled?: boo
       return 0;
     },
     enabled,
-    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
   });
 }
 

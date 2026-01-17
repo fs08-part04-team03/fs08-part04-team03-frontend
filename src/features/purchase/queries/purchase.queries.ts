@@ -13,7 +13,7 @@ import {
   requestPurchase,
   urgentRequestPurchase,
 } from '@/features/purchase/api/purchase.api';
-import { STALE_TIME } from '@/constants/staleTime';
+import { QUERY_DEFAULTS } from '@/lib/query/queryDefaults';
 import { QUERY_STALE_TIME_BUDGET } from '@/constants/timing';
 import { useToast } from '@/hooks/useToast';
 import { logger } from '@/utils/logger';
@@ -46,6 +46,7 @@ export function usePurchaseRequests(params?: {
   const { page, size, status, sortBy, order, enabled = true } = params || {};
 
   return useQuery<ManagePurchaseRequestsResponse>({
+    ...QUERY_DEFAULTS.cached,
     queryKey: purchaseKeys.list(page, size, status, sortBy, order),
     queryFn: () =>
       managePurchaseRequests({
@@ -55,10 +56,7 @@ export function usePurchaseRequests(params?: {
         sortBy,
         order,
       }),
-    retry: false, // 401 에러 시 재시도 방지
-    refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
-    refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
-    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
+    refetchOnMount: true,
     enabled,
   });
 }
@@ -73,6 +71,7 @@ export function usePurchaseRequestDetail(
   const { enabled = true } = options || {};
 
   return useQuery<PurchaseRequestItem>({
+    ...QUERY_DEFAULTS.cached,
     queryKey: purchaseKeys.detail(requestId || ''),
     queryFn: async () => {
       if (!requestId) {
@@ -81,7 +80,6 @@ export function usePurchaseRequestDetail(
       return getPurchaseRequestDetail(requestId);
     },
     enabled: enabled && !!requestId,
-    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
     retry: false, // 404 에러는 재시도하지 않음
   });
 }
@@ -91,6 +89,7 @@ export function usePurchaseRequestDetail(
  */
 export function usePurchaseRequestDetailForModal(requestId: string | null, enabled: boolean) {
   return useQuery<PurchaseRequestItem>({
+    ...QUERY_DEFAULTS.detail,
     queryKey: purchaseKeys.detailForModal(requestId),
     queryFn: async () => {
       if (!requestId) {
@@ -99,7 +98,6 @@ export function usePurchaseRequestDetailForModal(requestId: string | null, enabl
       return getPurchaseRequestDetail(requestId);
     },
     enabled: enabled && !!requestId,
-    staleTime: STALE_TIME.NONE, // 모달용이므로 캐시 없이 항상 최신 데이터
     retry: false,
   });
 }
@@ -155,11 +153,8 @@ export function useMyPurchases(params?: {
         throw error;
       }
     },
+    ...QUERY_DEFAULTS.list,
     enabled,
-    staleTime: STALE_TIME.ONE_MINUTE, // 1분간 캐시 유지
-    refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
-    retry: false, // 401 에러 시 재시도 방지
-    refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지
   });
 }
 
@@ -184,10 +179,9 @@ export function useMyPurchaseDetail(
       }
       return getMyPurchaseDetail(requestId);
     },
+    ...QUERY_DEFAULTS.cached,
     enabled: enabled && !!requestId,
     retry: false, // 401 에러 시 재시도 방지
-    refetchOnWindowFocus: false, // 창 포커스 시 재요청 방지 (구매 요청 상세 데이터는 승인/거절 상태 변경 가능하므로 자동 갱신 비활성화)
-    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
   });
 }
 
