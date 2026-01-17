@@ -157,7 +157,10 @@ export const GNBUserActionsDesktop = ({
           alt=""
           width={24}
           height={24}
-          className={clsx('transition-transform duration-300 ease-out', isAnimating && 'scale-125')}
+          className={clsx(
+            'w-auto h-auto transition-transform duration-300 ease-out',
+            isAnimating && 'scale-125'
+          )}
           aria-hidden="true"
         />
       </Link>
