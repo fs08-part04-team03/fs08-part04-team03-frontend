@@ -20,7 +20,7 @@ import type {
   UpdateMyProductData,
   UpdateMyProductOptions,
 } from '@/features/products/api/products.api';
-import { STALE_TIME } from '@/constants/staleTime';
+import { QUERY_DEFAULTS } from '@/lib/query/queryDefaults';
 
 import { productKeys } from './product.keys';
 
@@ -33,10 +33,11 @@ export function useProducts(params?: {
   searchQuery?: string;
   enabled?: boolean;
 }) {
-  const { accessToken } = useAuthStore();
+  const accessToken = useAuthStore((state) => state.accessToken);
   const { categoryId, sort, searchQuery, enabled = true } = params || {};
 
   return useQuery<GetAllProductsResponse>({
+    ...QUERY_DEFAULTS.list,
     queryKey: productKeys.list(
       categoryId ?? null,
       sort ?? 'latest',
@@ -52,11 +53,7 @@ export function useProducts(params?: {
       });
       return result;
     },
-    staleTime: STALE_TIME.ONE_MINUTE, // 1분간 캐시 유지
     enabled,
-    refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
-    // 포커스 복귀 시 자동 refetch가 401/refresh 경로를 타며 "예상치 못한 로그아웃"처럼 보일 수 있어 비활성화
-    refetchOnWindowFocus: false,
   });
 }
 
@@ -65,12 +62,10 @@ export function useProducts(params?: {
  */
 export function useProduct(productId: string | number, options?: { enabled?: boolean }) {
   return useQuery<BackendProduct>({
+    ...QUERY_DEFAULTS.detail,
     queryKey: productKeys.detail(productId),
     queryFn: () => getProductById(productId),
     enabled: options?.enabled ?? !!productId,
-    staleTime: STALE_TIME.NONE, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
-    refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
-    refetchOnWindowFocus: false,
   });
 }
 
@@ -79,12 +74,10 @@ export function useProduct(productId: string | number, options?: { enabled?: boo
  */
 export function useMyProduct(productId: string | number, options?: { enabled?: boolean }) {
   return useQuery<BackendProduct>({
+    ...QUERY_DEFAULTS.detail,
     queryKey: productKeys.myDetail(productId),
     queryFn: () => getMyProductById(productId),
     enabled: options?.enabled ?? !!productId,
-    staleTime: STALE_TIME.NONE, // 캐시 없이 항상 최신 데이터 가져오기 (이미지 업데이트 반영)
-    refetchOnMount: true, // 페이지 마운트 시 항상 최신 데이터 가져오기
-    refetchOnWindowFocus: false,
   });
 }
 
@@ -103,6 +96,7 @@ export function useMyRegisteredProducts(
   const { enabled = true } = options || {};
 
   return useQuery<GetRegisteredProductsResponse>({
+    ...QUERY_DEFAULTS.list,
     queryKey: productKeys.myRegistered(page, pageSize, sort),
     queryFn: async () => {
       const sortParam = sort === 'all' ? undefined : (sort as 'latest' | 'lowprice' | 'highprice');
@@ -116,7 +110,6 @@ export function useMyRegisteredProducts(
       return response;
     },
     enabled,
-    staleTime: STALE_TIME.ONE_MINUTE, // 1분간 캐시 유지
   });
 }
 

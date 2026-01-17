@@ -9,7 +9,7 @@ import {
   type PurchaseRequestItem,
   type GetBudgetResponse,
 } from '@/features/purchase/api/purchase.api';
-import { STALE_TIME } from '@/constants/staleTime';
+import { QUERY_DEFAULTS } from '@/lib/query/queryDefaults';
 import { QUERY_STALE_TIME_BUDGET } from '@/constants';
 import { logger } from '@/utils/logger';
 import { PURCHASE_HISTORY_DEFAULTS } from '../constants/defaults';
@@ -27,6 +27,7 @@ export function usePurchaseHistory(params?: {
   const { sortBy, order, page = 1, enabled = true } = params || {};
 
   return useQuery({
+    ...QUERY_DEFAULTS.cached,
     queryKey: purchaseHistoryKeys.list(sortBy, order, page),
     queryFn: async () => {
       logger.info('[PurchaseHistory] 구매 내역 조회 시작:', {
@@ -54,7 +55,6 @@ export function usePurchaseHistory(params?: {
 
       return response;
     },
-    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
     enabled,
   });
 }
@@ -66,6 +66,7 @@ export function usePurchaseHistoryDetail(orderId: string, options?: { enabled?: 
   const { enabled = true } = options || {};
 
   return useQuery<PurchaseRequestItem>({
+    ...QUERY_DEFAULTS.cached,
     queryKey: purchaseHistoryKeys.detail(orderId),
     queryFn: async () => {
       logger.info('[PurchaseHistoryDetail] 구매 내역 상세 조회 시작:', { orderId });
@@ -80,7 +81,6 @@ export function usePurchaseHistoryDetail(orderId: string, options?: { enabled?: 
       return detail;
     },
     enabled: enabled && !!orderId,
-    staleTime: STALE_TIME.FIVE_MINUTES, // 5분간 캐시 유지
     retry: false, // 404 에러는 재시도하지 않음
   });
 }
