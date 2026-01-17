@@ -175,12 +175,12 @@ const PurchaseRequestListSection = () => {
     );
   }
 
+  // 백엔드에서 페이지네이션된 데이터를 그대로 사용
   const purchaseList = data?.purchaseRequests || [];
-  const displayList = purchaseList.slice(0, PURCHASE_DEFAULTS.DISPLAY_ITEM_COUNT);
 
   // 그룹화된 Props
   const tableState: PurchaseListTableState = {
-    purchaseList: displayList,
+    purchaseList,
     companyId,
     currentPage: data?.currentPage ?? 1,
     totalPages: data?.totalPages ?? 1,

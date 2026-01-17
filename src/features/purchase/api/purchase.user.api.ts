@@ -231,6 +231,7 @@ export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<Pu
       shippingFee: number;
       status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
       requestMessage: string;
+      reason: string; // 승인 사유
       rejectReason: string;
       purchaseItems: Array<{
         id: string;
@@ -282,6 +283,7 @@ export async function getMyPurchaseDetail(purchaseRequestId: string): Promise<Pu
       finalTotalPrice: (result.data.totalPrice ?? 0) + (result.data.shippingFee ?? 0),
       status: result.data.status,
       requestMessage: result.data.requestMessage ?? '',
+      reason: result.data.reason ?? '', // 승인 사유
       rejectReason: result.data.rejectReason ?? '',
       // 하위 호환성을 위한 필드
       totalPrice: result.data.totalPrice ?? 0,

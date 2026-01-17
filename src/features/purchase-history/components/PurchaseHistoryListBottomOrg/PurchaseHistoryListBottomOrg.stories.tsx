@@ -117,9 +117,7 @@ export const Default: Story = {
     ],
     currentPage: 1,
     totalPages: 1,
-    onPageChange: () => {
-      // eslint-disable-next-line no-console
-    },
+    onPageChange: () => {},
   },
   parameters: {
     docs: {
@@ -136,9 +134,7 @@ export const EmptyList: Story = {
     items: [],
     currentPage: 1,
     totalPages: 1,
-    onPageChange: () => {
-      // eslint-disable-next-line no-console
-    },
+    onPageChange: () => {},
   },
   parameters: {
     docs: {
@@ -188,9 +184,7 @@ export const UrgentRequest: Story = {
     ],
     currentPage: 1,
     totalPages: 1,
-    onPageChange: () => {
-      // eslint-disable-next-line no-console
-    },
+    onPageChange: () => {},
   },
   parameters: {
     docs: {
@@ -219,9 +213,7 @@ export const LongList: Story = {
     ),
     currentPage: 1,
     totalPages: 3,
-    onPageChange: () => {
-      // eslint-disable-next-line no-console
-    },
+    onPageChange: () => {},
   },
   parameters: {
     docs: {
