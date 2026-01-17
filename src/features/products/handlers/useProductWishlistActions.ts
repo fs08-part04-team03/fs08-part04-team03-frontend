@@ -55,11 +55,14 @@ export function useProductWishlistActions(productId?: string | number) {
     [isProductLiked, addWishlistMutation, removeWishlistMutation]
   );
 
-  return {
-    wishlistData,
-    isLiked,
-    handleToggleLike,
-    isProductLiked,
-    handleToggleProductLike,
-  };
+  return useMemo(
+    () => ({
+      wishlistData,
+      isLiked,
+      handleToggleLike,
+      isProductLiked,
+      handleToggleProductLike,
+    }),
+    [wishlistData, isLiked, handleToggleLike, isProductLiked, handleToggleProductLike]
+  );
 }
