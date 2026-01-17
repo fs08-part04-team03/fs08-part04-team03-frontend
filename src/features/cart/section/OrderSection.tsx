@@ -12,6 +12,7 @@ import { CART_PAGE_DEFAULTS } from '../constants/defaults';
 import { CART_ROUTES } from '../constants/routes';
 import { useCart } from '../queries/cart.queries';
 import type { OrderItem } from '../components/CartSummaryBlockOrg/CartSummaryBlockOrg';
+import type { OrderDataState, OrderNavigationHandlers } from '../types/order.types';
 
 /**
  * OrderSection
@@ -130,15 +131,21 @@ const OrderSection = () => {
     return null;
   }
 
+  // 그룹화된 Props
+  const dataState: OrderDataState = {
+    items: orderItems,
+    shippingFee: 0,
+  };
+
+  const navigationHandlers: OrderNavigationHandlers = {
+    onGoCart: handleGoCart,
+    onGoOrderHistory: handleGoOrderHistory,
+    onPurchaseRequest: handlePurchaseRequest,
+  };
+
   return (
     <>
-      <OrderTem
-        items={orderItems}
-        shippingFee={0}
-        onGoCart={handleGoCart}
-        onGoOrderHistory={handleGoOrderHistory}
-        onPurchaseRequest={handlePurchaseRequest}
-      />
+      <OrderTem dataState={dataState} navigationHandlers={navigationHandlers} />
       <CustomModal
         open={isErrorModalOpen}
         type="purchase-failed"
