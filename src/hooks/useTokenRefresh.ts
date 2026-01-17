@@ -70,8 +70,8 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
           inFlightRef.current = false;
         }
       };
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      attemptRefresh();
+      // eslint-disable-next-line no-void
+      void attemptRefresh();
       return () => {
         mountedRef.current = false;
       };
@@ -113,13 +113,13 @@ export function useTokenRefresh(refreshInterval: number = 4 * 60 * 1000) {
     };
 
     // 마운트 시 즉시 한 번 실행
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    refreshToken();
+    // eslint-disable-next-line no-void
+    void refreshToken();
 
     intervalRef.current = setInterval(() => {
       if (!mountedRef.current) return;
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      refreshToken();
+      // eslint-disable-next-line no-void
+      void refreshToken();
     }, refreshInterval);
 
     return () => {
