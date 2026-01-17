@@ -10,8 +10,8 @@ import { useLogin } from '@/features/auth/queries/auth.queries';
 import { useAuthRedirect } from '@/features/auth/hooks/useAuthRedirect';
 import { isCompanySelectionRequiredError } from '@/features/auth/api/auth.api';
 import CompanySelectionModal from '@/features/auth/components/CompanySelectionModal/CompanySelectionModal';
+import type { AuthFormState, AuthToastState } from '@/features/auth/types/auth-form.types';
 
-// 회사 정보
 interface Company {
   id: string;
   name: string;
@@ -20,15 +20,8 @@ interface Company {
 /**
  * LoginSection
  * 로그인 비즈니스 로직을 담당하는 섹션 컴포넌트
- * - form 상태 관리
- * - API 호출
- * - 인증 정보 저장
- * - Toast 관리
- * - 리다이렉트
- * - 회사 선택 모달 (여러 회사에 가입된 경우)
  */
 const LoginSection = () => {
-  // useToast 훅 사용
   const { showToast, toastVariant, toastMessage, closeToast } = useToast();
 
   const loginMutation = useLogin();
@@ -54,7 +47,6 @@ const LoginSection = () => {
         redirectToProducts(data.user);
       },
       onError: (err) => {
-        // 회사 선택이 필요한 경우 모달 표시
         if (isCompanySelectionRequiredError(err)) {
           setCompanies(err.companies);
           setPendingCredentials(values);
@@ -64,7 +56,6 @@ const LoginSection = () => {
     });
   };
 
-  // 회사 선택 후 로그인 처리
   const handleCompanySelect = (companyId: string) => {
     if (!pendingCredentials) return;
 
@@ -78,7 +69,6 @@ const LoginSection = () => {
           redirectToProducts(data.user);
         },
         onError: () => {
-          // 에러 시 모달 닫고 상태 초기화 (toast는 useLogin의 onError에서 처리)
           setShowCompanyModal(false);
           setPendingCredentials(null);
           setCompanies([]);
@@ -87,25 +77,30 @@ const LoginSection = () => {
     );
   };
 
-  // 모달 닫기
   const handleCloseCompanyModal = () => {
     setShowCompanyModal(false);
     setPendingCredentials(null);
     setCompanies([]);
   };
 
+  // 그룹화된 Props
+  const formState: AuthFormState<LoginInput> = {
+    control: form.control,
+    handleSubmit: form.handleSubmit,
+    isValid: form.formState.isValid,
+    onSubmit,
+  };
+
+  const toastState: AuthToastState = {
+    showToast,
+    toastMessage,
+    toastVariant,
+    onCloseToast: closeToast,
+  };
+
   return (
     <>
-      <LoginTem
-        control={form.control}
-        handleSubmit={form.handleSubmit}
-        isValid={form.formState.isValid}
-        onSubmit={onSubmit}
-        showToast={showToast}
-        toastVariant={toastVariant}
-        toastMessage={toastMessage}
-        setShowToast={closeToast}
-      />
+      <LoginTem formState={formState} toastState={toastState} />
       <CompanySelectionModal
         open={showCompanyModal}
         companies={companies}

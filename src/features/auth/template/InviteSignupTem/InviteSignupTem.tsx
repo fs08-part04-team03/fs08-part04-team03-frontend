@@ -11,8 +11,9 @@ import Link from 'next/link';
 import { PATHNAME } from '@/constants';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import Image from 'next/image';
+import type { InviteSignupTemGroupedProps } from '@/features/auth/types/auth-form.types';
 
-interface InviteSignupTemProps {
+interface InviteSignupTemLegacyProps {
   control: Control<InviteSignupInput>;
   handleSubmit: UseFormHandleSubmit<InviteSignupInput>;
   isValid: boolean;
@@ -27,12 +28,24 @@ interface InviteSignupTemProps {
   name: string;
 }
 
-type InviteSignupTemViewProps = Omit<
-  InviteSignupTemProps,
-  'showToast' | 'toastMessage' | 'setShowToast'
->;
+type InviteSignupTemProps = InviteSignupTemLegacyProps | InviteSignupTemGroupedProps;
 
-interface InviteSignupTemContentProps extends InviteSignupTemViewProps {
+function isGroupedProps(props: InviteSignupTemProps): props is InviteSignupTemGroupedProps {
+  return (
+    'formState' in props && 'toastState' in props && 'imageState' in props && 'inviteInfo' in props
+  );
+}
+
+interface InviteSignupTemContentProps {
+  control: Control<InviteSignupInput>;
+  handleSubmit: UseFormHandleSubmit<InviteSignupInput>;
+  isValid: boolean;
+  onSubmit: (values: InviteSignupInput) => void | Promise<void>;
+  preview: string | null;
+  onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageDelete?: () => void;
+  isUploading?: boolean;
+  name: string;
   className?: string;
   imageInputId: string;
 }
@@ -134,74 +147,71 @@ const InviteSignupTemContent = ({
   </form>
 );
 
-export const InviteSignupTemMobile = ({
-  control,
-  isValid,
-  onSubmit,
-  handleSubmit,
-  preview,
-  onImageChange,
-  onImageDelete,
-  isUploading,
-  name,
-}: InviteSignupTemViewProps) => (
-  <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
-    <div className="m-38">
-      <Logo size="lg" />
-    </div>
-    <InviteSignupTemContent
-      control={control}
-      isValid={isValid}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-      preview={preview}
-      onImageChange={onImageChange}
-      onImageDelete={onImageDelete}
-      isUploading={isUploading}
-      name={name}
-      imageInputId="invite-profile-image-upload-mobile"
-      className="flex w-327 flex-col tablet:hidden desktop:hidden"
-    />
-    <p className="mt-24 text-center text-14 text-gray-600">
-      이미 계정이 있으신가요?{' '}
-      <Link href={PATHNAME.LOGIN} className="underline font-bold text-gray-950 underline-offset-4">
-        로그인
-      </Link>
-    </p>
-  </div>
-);
+const InviteSignupTem = (props: InviteSignupTemProps) => {
+  // Props 정규화
+  /* eslint-disable react/destructuring-assignment */
+  const {
+    control,
+    handleSubmit,
+    isValid,
+    onSubmit,
+    showToast,
+    toastMessage,
+    onCloseToast,
+    preview,
+    onImageChange,
+    onImageDelete,
+    isUploading,
+    name,
+  } = isGroupedProps(props)
+    ? {
+        control: props.formState.control,
+        handleSubmit: props.formState.handleSubmit,
+        isValid: props.formState.isValid,
+        onSubmit: props.formState.onSubmit,
+        showToast: props.toastState.showToast,
+        toastMessage: props.toastState.toastMessage,
+        onCloseToast: props.toastState.onCloseToast,
+        preview: props.imageState.preview,
+        onImageChange: props.imageState.onImageChange,
+        onImageDelete: props.imageState.onImageDelete,
+        isUploading: props.imageState.isUploading,
+        name: props.inviteInfo.name,
+      }
+    : {
+        ...props,
+        onCloseToast: () => props.setShowToast(false),
+        isUploading: props.isUploading ?? false,
+      };
+  /* eslint-enable react/destructuring-assignment */
 
-export const InviteSignupTemDesktop = ({
-  control,
-  isValid,
-  onSubmit,
-  handleSubmit,
-  preview,
-  onImageChange,
-  onImageDelete,
-  isUploading,
-  name,
-}: InviteSignupTemViewProps) => (
-  <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
-    <div className="mt-120">
-      <Logo size="lg" />
-    </div>
-    <div className="w-600 relative">
-      <div className="flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
+  const contentProps = {
+    control,
+    handleSubmit,
+    isValid,
+    onSubmit,
+    preview,
+    onImageChange,
+    onImageDelete,
+    isUploading,
+    name,
+  };
+
+  /* eslint-disable react/jsx-props-no-spreading */
+  return (
+    <>
+      {/* Mobile */}
+      <div className="flex flex-col items-center justify-center tablet:hidden desktop:hidden">
+        <div className="m-38">
+          <Logo size="lg" />
+        </div>
+        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <InviteSignupTemContent
-          control={control}
-          isValid={isValid}
-          onSubmit={onSubmit}
-          handleSubmit={handleSubmit}
-          preview={preview}
-          onImageChange={onImageChange}
-          onImageDelete={onImageDelete}
-          isUploading={isUploading}
-          name={name}
-          imageInputId="invite-profile-image-upload-desktop"
-          className="flex flex-col w-full tablet:w-480 desktop:w-480"
+          {...contentProps}
+          imageInputId="invite-profile-image-upload-mobile"
+          className="flex w-327 flex-col tablet:hidden desktop:hidden"
         />
-        <p className="flex justify-center mt-24 text-14 text-gray-600 ">
+        <p className="mt-24 text-center text-14 text-gray-600">
           이미 계정이 있으신가요?{' '}
           <Link
             href={PATHNAME.LOGIN}
@@ -211,54 +221,42 @@ export const InviteSignupTemDesktop = ({
           </Link>
         </p>
       </div>
-    </div>
-  </div>
-);
 
-const InviteSignupTem = ({
-  control,
-  handleSubmit,
-  isValid,
-  onSubmit,
-  showToast,
-  toastMessage,
-  setShowToast,
-  preview,
-  onImageChange,
-  onImageDelete,
-  isUploading,
-  name,
-}: InviteSignupTemProps) => (
-  <>
-    <InviteSignupTemMobile
-      control={control}
-      isValid={isValid}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-      preview={preview}
-      onImageChange={onImageChange}
-      onImageDelete={onImageDelete}
-      isUploading={isUploading}
-      name={name}
-    />
-    <InviteSignupTemDesktop
-      control={control}
-      isValid={isValid}
-      onSubmit={onSubmit}
-      handleSubmit={handleSubmit}
-      preview={preview}
-      onImageChange={onImageChange}
-      onImageDelete={onImageDelete}
-      isUploading={isUploading}
-      name={name}
-    />
-    {/* Toast */}
-    {showToast && (
-      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
-        <Toast variant="custom" message={toastMessage} onClose={() => setShowToast(false)} />
+      {/* Desktop */}
+      <div className="hidden tablet:flex desktop:flex flex-col items-center justify-center">
+        <div className="mt-120">
+          <Logo size="lg" />
+        </div>
+        <div className="w-600 relative">
+          <div className="flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
+            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+            <InviteSignupTemContent
+              {...contentProps}
+              imageInputId="invite-profile-image-upload-desktop"
+              className="flex flex-col w-full tablet:w-480 desktop:w-480"
+            />
+            <p className="flex justify-center mt-24 text-14 text-gray-600 ">
+              이미 계정이 있으신가요?{' '}
+              <Link
+                href={PATHNAME.LOGIN}
+                className="underline font-bold text-gray-950 underline-offset-4"
+              >
+                로그인
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
-    )}
-  </>
-);
+
+      {/* Toast */}
+      {showToast && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
+          <Toast variant="custom" message={toastMessage} onClose={onCloseToast} />
+        </div>
+      )}
+    </>
+  );
+  /* eslint-enable react/jsx-props-no-spreading */
+};
 
 export default InviteSignupTem;

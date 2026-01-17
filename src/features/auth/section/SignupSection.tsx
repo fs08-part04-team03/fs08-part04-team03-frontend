@@ -9,6 +9,12 @@ import { useSignup } from '@/features/auth/queries/auth.queries';
 import { useImageUpload } from '@/features/auth/hooks/useImageUpload';
 import { useProfileImageUpdate } from '@/features/auth/hooks/useProfileImageUpdate';
 import { useAuthRedirect } from '@/features/auth/hooks/useAuthRedirect';
+import type {
+  AuthFormState,
+  AuthToastState,
+  AuthImageState,
+  AuthUIConfig,
+} from '@/features/auth/types/auth-form.types';
 
 interface SignupSectionProps {
   title?: string;
@@ -21,7 +27,6 @@ interface SignupSectionProps {
  * 회원가입 비즈니스 로직을 담당하는 섹션 컴포넌트
  */
 const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps) => {
-  // useToast 훅 사용
   const { showToast, toastMessage, closeToast } = useToast();
 
   const signupMutation = useSignup();
@@ -56,7 +61,6 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
         onSuccess: (data) => {
           const { user, accessToken } = data;
 
-          // 이미지 파일이 있으면 회원가입 후 프로필 이미지 업데이트
           if (selectedFile) {
             updateProfileImage(selectedFile, accessToken)
               .then(() => {
@@ -74,22 +78,39 @@ const SignupSection = ({ title, subtitle, submitButtonText }: SignupSectionProps
     );
   };
 
+  // 그룹화된 Props
+  const formState: AuthFormState<SignupInput> = {
+    control: form.control,
+    handleSubmit: form.handleSubmit,
+    isValid: form.formState.isValid,
+    onSubmit,
+  };
+
+  const toastState: AuthToastState = {
+    showToast,
+    toastMessage,
+    onCloseToast: closeToast,
+  };
+
+  const imageState: AuthImageState = {
+    preview,
+    onImageChange: handleImageChange,
+    onImageDelete: handleImageDelete,
+    isUploading,
+  };
+
+  const uiConfig: AuthUIConfig = {
+    title,
+    subtitle,
+    submitButtonText,
+  };
+
   return (
     <SignupTem
-      control={form.control}
-      handleSubmit={form.handleSubmit}
-      isValid={form.formState.isValid}
-      onSubmit={onSubmit}
-      showToast={showToast}
-      toastMessage={toastMessage}
-      setShowToast={closeToast}
-      preview={preview}
-      onImageChange={handleImageChange}
-      onImageDelete={handleImageDelete}
-      isUploading={isUploading}
-      title={title}
-      subtitle={subtitle}
-      submitButtonText={submitButtonText}
+      formState={formState}
+      toastState={toastState}
+      imageState={imageState}
+      uiConfig={uiConfig}
     />
   );
 };
