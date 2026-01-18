@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { AdminSidebar } from '@/components/molecules/AdminSideBar/AdminSideBar';
 import DashboardCard from '@/features/dashboard/components/DashboardCardOrg/DashboardCardOrg';
 import Button from '@/components/atoms/Button/Button';
@@ -10,6 +11,8 @@ import type {
   ChangedUser,
   LargeChartItem,
 } from '@/features/dashboard/components/DashboardCardOrg/DashboardCardOrg';
+import { useBroadcastNotification } from '@/features/notification/queries/notification.queries';
+import { EmergencyBroadcastModal } from './EmergencyBroadcastModal';
 
 interface User {
   name: string;
@@ -47,9 +50,17 @@ const DashboardTem = ({
   changedUsers,
   snackRank,
 }: DashboardTemProps) => {
+  const { mutate: broadcast } = useBroadcastNotification();
+  const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
+
   /** ================= Click Handlers ================= */
   const handleEmergencyClick = () => {
-    // TODO: 긴급 알림 기능 연결
+    setIsEmergencyModalOpen(true);
+  };
+
+  const handleBroadcastSend = (message: string) => {
+    broadcast(message);
+    setIsEmergencyModalOpen(false);
   };
 
   const handleExcelClick = () => {
@@ -236,6 +247,12 @@ const DashboardTem = ({
           <DashboardCard variant="medium" mediumMode="changed" monthlyChangedUsers={changedUsers} />
         </section>
       </main>
+
+      <EmergencyBroadcastModal
+        open={isEmergencyModalOpen}
+        onClose={() => setIsEmergencyModalOpen(false)}
+        onSend={handleBroadcastSend}
+      />
     </div>
   );
 };
