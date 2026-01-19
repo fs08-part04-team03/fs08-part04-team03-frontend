@@ -9,6 +9,7 @@ import { clsx } from '@/utils/clsx';
 import { PATHNAME } from '@/constants';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { CartButton } from '@/components/molecules/CartButton/CartButton';
+import { NotificationButton } from '@/components/molecules/NotificationButton/NotificationButton';
 
 /**
  * 공통 베이스 Props
@@ -20,12 +21,18 @@ interface GNBUserActionsBaseProps {
   /** 장바구니에 담긴 상품 개수 */
   cartCount?: number;
 
+  /** 읽지 않은 알림 수 */
+  notificationCount?: number;
+
+  /** 알림 버튼 클릭 시 호출되는 콜백 */
+  onNotificationClick?: () => void;
+
   className?: string;
 }
 
 /**
  * Mobile 전용 Props
- * - 장바구니, 햄버거 메뉴
+ * - 장바구니, 알림, 햄버거 메뉴
  */
 export interface GNBUserActionsMobileProps extends GNBUserActionsBaseProps {
   /** 햄버거 메뉴 클릭 시 호출되는 콜백 */
@@ -34,7 +41,7 @@ export interface GNBUserActionsMobileProps extends GNBUserActionsBaseProps {
 
 /**
  * Tablet 전용 Props
- * - 장바구니, 유저프로필, 햄버거 메뉴
+ * - 장바구니, 알림, 유저프로필, 햄버거 메뉴
  */
 export interface GNBUserActionsTabletProps extends GNBUserActionsBaseProps {
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
@@ -46,7 +53,7 @@ export interface GNBUserActionsTabletProps extends GNBUserActionsBaseProps {
 
 /**
  * Desktop 전용 Props
- * - 장바구니, 찜목록, 유저프로필, 구분선, 로그아웃
+ * - 장바구니, 알림, 찜목록, 유저프로필, 구분선, 로그아웃
  */
 export interface GNBUserActionsDesktopProps extends GNBUserActionsBaseProps {
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
@@ -60,12 +67,17 @@ export interface GNBUserActionsDesktopProps extends GNBUserActionsBaseProps {
 export const GNBUserActionsMobile = ({
   companyId,
   cartCount = 0,
+  notificationCount = 0,
+  onNotificationClick,
   onMenuClick,
   className,
 }: GNBUserActionsMobileProps) => (
   <div className={clsx('flex items-center gap-8', className)}>
     {/* 장바구니 */}
     <CartButton companyId={companyId} count={cartCount} />
+
+    {/* 알림 */}
+    <NotificationButton unreadCount={notificationCount} onClick={onNotificationClick} />
 
     {/* 햄버거 메뉴 */}
     {onMenuClick && (
@@ -87,12 +99,17 @@ export const GNBUserActionsTablet = ({
   companyId,
   userProfile,
   cartCount = 0,
+  notificationCount = 0,
+  onNotificationClick,
   onMenuClick,
   className,
 }: GNBUserActionsTabletProps) => (
   <div className={clsx('flex items-center gap-12', className)}>
     {/* 장바구니 */}
     <CartButton companyId={companyId} count={cartCount} />
+
+    {/* 알림 */}
+    <NotificationButton unreadCount={notificationCount} onClick={onNotificationClick} />
 
     {/* 유저 프로필 */}
     {userProfile && <div className="flex items-center">{userProfile}</div>}
@@ -117,6 +134,8 @@ export const GNBUserActionsDesktop = ({
   companyId,
   userProfile,
   cartCount = 0,
+  notificationCount = 0,
+  onNotificationClick,
   onLogout,
   className,
 }: GNBUserActionsDesktopProps) => {
@@ -138,6 +157,9 @@ export const GNBUserActionsDesktop = ({
     <div className={clsx('flex items-center gap-3', className)}>
       {/* 장바구니 */}
       <CartButton companyId={companyId} count={cartCount} />
+
+      {/* 알림 */}
+      <NotificationButton unreadCount={notificationCount} onClick={onNotificationClick} />
 
       {/* 찜목록 */}
       <Link
@@ -202,6 +224,12 @@ export interface GNBUserActionsProps {
   /** 장바구니에 담긴 상품 개수 */
   cartCount?: number;
 
+  /** 읽지 않은 알림 수 */
+  notificationCount?: number;
+
+  /** 알림 버튼 클릭 시 호출되는 콜백 */
+  onNotificationClick?: () => void;
+
   /** 로그아웃 클릭 시 호출되는 콜백 (데스크탑 Only) */
   onLogout?: () => void;
 
@@ -215,14 +243,16 @@ export interface GNBUserActionsProps {
  * GNBUserActions
  *
  * 반응형 사용자 액션 컴포넌트
- * - 모바일: 장바구니, 햄버거메뉴
- * - 태블릿: 장바구니, 유저프로필, 햄버거메뉴
- * - 데스크탑: 장바구니, 찜목록, 유저프로필, 구분선, 로그아웃
+ * - 모바일: 장바구니, 알림, 햄버거메뉴
+ * - 태블릿: 장바구니, 알림, 유저프로필, 햄버거메뉴
+ * - 데스크탑: 장바구니, 알림, 찜목록, 유저프로필, 구분선, 로그아웃
  */
 export const GNBUserActions = ({
   companyId,
   userProfile,
   cartCount = 0,
+  notificationCount = 0,
+  onNotificationClick,
   onLogout,
   onMenuClick,
   className,
@@ -230,7 +260,13 @@ export const GNBUserActions = ({
   <>
     {/* 모바일 */}
     <div className={clsx('tablet:hidden', className)}>
-      <GNBUserActionsMobile companyId={companyId} cartCount={cartCount} onMenuClick={onMenuClick} />
+      <GNBUserActionsMobile
+        companyId={companyId}
+        cartCount={cartCount}
+        notificationCount={notificationCount}
+        onNotificationClick={onNotificationClick}
+        onMenuClick={onMenuClick}
+      />
     </div>
 
     {/* 태블릿 (744px ~ 1199px) */}
@@ -238,6 +274,8 @@ export const GNBUserActions = ({
       <GNBUserActionsTablet
         companyId={companyId}
         cartCount={cartCount}
+        notificationCount={notificationCount}
+        onNotificationClick={onNotificationClick}
         userProfile={userProfile}
         onMenuClick={onMenuClick}
       />
@@ -248,6 +286,8 @@ export const GNBUserActions = ({
       <GNBUserActionsDesktop
         companyId={companyId}
         cartCount={cartCount}
+        notificationCount={notificationCount}
+        onNotificationClick={onNotificationClick}
         userProfile={userProfile}
         onLogout={onLogout}
       />

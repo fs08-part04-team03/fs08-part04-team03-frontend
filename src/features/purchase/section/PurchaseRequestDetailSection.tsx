@@ -15,6 +15,7 @@ import { usePurchaseRequestModals } from '@/features/purchase/handlers/usePurcha
 import { usePurchaseRequestActions } from '@/features/purchase/handlers/usePurchaseActions';
 import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseNavigation';
 import { PURCHASE_LABELS, PURCHASE_MESSAGES } from '@/features/purchase/constants';
+import { useAuthStore } from '@/lib/store/authStore';
 import type {
   PurchaseDetailBudgetState,
   PurchaseDetailModalState,
@@ -32,18 +33,22 @@ const PurchaseRequestDetailSection = () => {
 
   const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
 
+  // 사용자 권한 확인 (manager/admin만 예산 조회 가능)
+  const user = useAuthStore((state) => state.user);
+  const isManagerOrAdmin = user?.role === 'manager' || user?.role === 'admin';
+
   // 모달 상태 관리
   const modals = usePurchaseRequestModals();
 
   // 데이터 조회
   const { data, isLoading, error: queryError } = usePurchaseRequestDetail(requestId);
 
-  // 예산 조회
+  // 예산 조회 (관리자 권한이 있는 경우에만 호출)
   const {
     data: budgetData,
     isLoading: isBudgetLoading,
     error: budgetError,
-  } = usePurchaseBudget(companyId, { enabled: !!companyId });
+  } = usePurchaseBudget(companyId, { enabled: !!companyId && isManagerOrAdmin });
 
   // 네비게이션
   const navigation = usePurchaseNavigation(companyId);
