@@ -12,8 +12,7 @@ import type { CartButtonProps } from './CartButtonProps';
  * CartButton
  *
  * - 장바구니 아이콘 + 숫자 뱃지 Molecule
- * - 뷰포트 상관 없이(모바일/태블릿/데스크탑) 항상 노출
- * - 숫자 폰트: 9px, text-gray-950
+ * - NotificationButton과 동일한 숫자 뱃지 UI
  * - 아이콘 크기: 24px
  */
 export const CartButton = ({
@@ -63,19 +62,21 @@ export const CartButton = ({
           aria-hidden="true"
         />
 
-        {/* 숫자 뱃지: count가 0보다 클 때만 표시 */}
+        {/* 숫자 뱃지: NotificationButton과 동일 */}
         {displayCount > 0 && (
           <span
             className={clsx(
               'pointer-events-none',
               'absolute',
-              'top-9 left-5',
-              'min-w-14 h-14',
+              '-top-4 -right-6',
+              'min-w-16 h-16 px-4',
               'flex justify-center items-center',
-              'text-11 font-bold text-gray-950'
+              'bg-gray-200 text-black',
+              'text-10 font-bold',
+              'rounded-full'
             )}
           >
-            {displayCount > 99 ? '99' : displayCount}
+            {displayCount > 99 ? '99+' : displayCount}
           </span>
         )}
       </div>
