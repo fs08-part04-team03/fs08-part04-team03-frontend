@@ -93,7 +93,12 @@ const InviteSignup = ({ token }: InviteSignupProps) => {
           <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
         </div>
       )}
-      <InviteSignupSection name={inviteData.name} email={inviteData.email} token={token} />
+      <InviteSignupSection
+        name={inviteData.name}
+        email={inviteData.email}
+        token={token}
+        inviteUrl={inviteUrl}
+      />
     </>
   );
 };
