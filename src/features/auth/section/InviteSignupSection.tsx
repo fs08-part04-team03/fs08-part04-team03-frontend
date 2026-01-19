@@ -53,6 +53,8 @@ const InviteSignupSection = ({ name, email, inviteUrl }: InviteSignupSectionProp
       {
         email: values.email,
         password: values.password,
+        passwordConfirm: values.confirmPassword,
+        name,
         inviteUrl,
       },
       {
