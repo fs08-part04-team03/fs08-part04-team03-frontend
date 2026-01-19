@@ -191,7 +191,7 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
               <div className="flex items-start gap-12">
                 {/* 읽지 않음 표시 */}
                 {!notification.isRead && (
-                  <span className="mt-6 w-8 h-8 rounded-full bg-red-500 flex-shrink-0" />
+                  <span className="mt-10 w-8 h-8 rounded-full bg-red-500 flex-shrink-0" />
                 )}
                 {notification.isRead && <span className="w-8 flex-shrink-0" />}
 
@@ -241,7 +241,7 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
           'bg-white pointer-events-auto flex flex-col',
           'fixed inset-0 w-full h-full z-[var(--z-overlay-content)]',
           'tablet:static tablet:z-auto',
-          'tablet:w-full tablet:max-w-360 tablet:h-full tablet:max-h-[80vh]',
+          'tablet:w-full tablet:max-w-360 tablet:h-auto tablet:max-h-[500px]',
           'tablet:mt-56 tablet:mr-24',
           'tablet:rounded-12 tablet:shadow-xl tablet:border tablet:border-gray-200',
           'overflow-hidden'
