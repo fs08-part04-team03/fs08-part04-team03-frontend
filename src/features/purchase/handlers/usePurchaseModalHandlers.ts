@@ -61,8 +61,11 @@ export const usePurchaseModalHandlers = ({
             setSelectedRequestId(null);
             triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_REJECTED);
           },
-          onError: () => {
-            triggerToast('error', PURCHASE_ERROR_MESSAGES.REJECT_FAILED);
+          onError: (error: Error) => {
+            // 모달 닫고 서버 에러 메시지를 Toast로 표시 (custom variant로 예산 정보 미표시)
+            setRejectModalOpen(false);
+            setSelectedRequestId(null);
+            triggerToast('custom', error.message || PURCHASE_ERROR_MESSAGES.REJECT_FAILED);
           },
         }
       );
@@ -86,8 +89,11 @@ export const usePurchaseModalHandlers = ({
             setSelectedRequestId(null);
             triggerToast('custom', SUCCESS_MESSAGES.PURCHASE_APPROVED);
           },
-          onError: () => {
-            triggerToast('error', PURCHASE_ERROR_MESSAGES.APPROVE_FAILED);
+          onError: (error: Error) => {
+            // 모달 닫고 서버 에러 메시지를 Toast로 표시 (custom variant로 예산 정보 미표시)
+            setApproveModalOpen(false);
+            setSelectedRequestId(null);
+            triggerToast('custom', error.message || PURCHASE_ERROR_MESSAGES.APPROVE_FAILED);
           },
         }
       );
