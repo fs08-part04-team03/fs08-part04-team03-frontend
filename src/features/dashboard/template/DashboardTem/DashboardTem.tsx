@@ -12,6 +12,8 @@ import type {
   LargeChartItem,
 } from '@/features/dashboard/components/DashboardCardOrg/DashboardCardOrg';
 import { useBroadcastNotification } from '@/features/notification/queries/notification.queries';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/molecules/Toast/Toast';
 import { EmergencyBroadcastModal } from './EmergencyBroadcastModal';
 
 interface User {
@@ -53,13 +55,27 @@ const DashboardTem = ({
   const { mutate: broadcast } = useBroadcastNotification();
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
 
+  // Toast 상태
+  const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
+
   /** ================= Click Handlers ================= */
   const handleEmergencyClick = () => {
     setIsEmergencyModalOpen(true);
   };
 
   const handleBroadcastSend = (message: string) => {
-    broadcast(message);
+    broadcast(message, {
+      onSuccess: (data) => {
+        triggerToast(
+          'success',
+          `알림이 전송되었습니다. (생성: ${data.data.createdCount}, 발송: ${data.data.deliveredCount})`
+        );
+      },
+      onError: (err: unknown) => {
+        const errMessage = err instanceof Error ? err.message : '알림 전송에 실패했습니다.';
+        triggerToast('error', errMessage);
+      },
+    });
     setIsEmergencyModalOpen(false);
   };
 
@@ -253,6 +269,13 @@ const DashboardTem = ({
         onClose={() => setIsEmergencyModalOpen(false)}
         onSend={handleBroadcastSend}
       />
+
+      {/* Toast 렌더링 */}
+      {showToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[var(--z-toast)]">
+          <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
+        </div>
+      )}
     </div>
   );
 };
