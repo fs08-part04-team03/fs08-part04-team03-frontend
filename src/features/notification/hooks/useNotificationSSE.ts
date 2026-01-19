@@ -119,7 +119,7 @@ export function useNotificationSSE(options?: UseNotificationSSEOptions) {
           reconnectTimeoutRef.current = setTimeout(() => {
             const currentToken = useAuthStore.getState().accessToken;
             if (currentToken) {
-              logger.info('[SSE] Reconneting');
+              logger.info('[SSE] Reconnecting');
               connect();
             } else {
               logger.info('[SSE] No valid token, skipping reconnection');
