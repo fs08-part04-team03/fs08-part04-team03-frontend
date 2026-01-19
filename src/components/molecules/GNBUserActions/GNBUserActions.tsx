@@ -166,25 +166,21 @@ export const GNBUserActionsDesktop = ({
         href={wishlistHref}
         aria-label="찜목록"
         onClick={handleWishlistClick}
-        className={clsx(
-          'inline-flex items-center justify-center',
-          'w-32 h-32 rounded-full',
-          'bg-transparent text-gray-900 hover:bg-gray-100 active:bg-gray-200',
-          'transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary'
-        )}
+        className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-transparent text-gray-900 hover:bg-gray-100 active:bg-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
       >
-        <Image
-          src={wishlistIconSrc}
-          alt=""
-          width={24}
-          height={24}
-          className={clsx(
-            'w-auto h-auto transition-transform duration-300 ease-out',
-            isAnimating && 'scale-125'
-          )}
-          aria-hidden="true"
-        />
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          <Image
+            src={wishlistIconSrc}
+            alt=""
+            width={24}
+            height={24}
+            className={clsx(
+              'w-24 h-24 transition-transform duration-300 ease-out',
+              isAnimating && 'scale-125'
+            )}
+            aria-hidden="true"
+          />
+        </div>
       </Link>
 
       <span className="pl-2" />
