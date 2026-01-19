@@ -17,6 +17,7 @@ import { PURCHASE_ERROR_MESSAGES } from '@/constants';
 import { useToast } from '@/hooks/useToast';
 import { useCompanyId } from '@/lib/context/CompanyContext';
 import { usePurchaseRequestModals } from '@/features/purchase/handlers/usePurchaseModals';
+import { useAuthStore } from '@/lib/store/authStore';
 
 /**
  * 구매 요청 승인/반려를 직접 처리하는 훅
@@ -28,13 +29,17 @@ export const usePurchaseRequestActionsDirect = (requestId: string | undefined) =
   const { triggerToast } = useToast();
   const modals = usePurchaseRequestModals();
 
+  // 사용자 권한 확인 (manager/admin만 예산 조회 가능)
+  const user = useAuthStore((state) => state.user);
+  const isManagerOrAdmin = user?.role === 'manager' || user?.role === 'admin';
+
   // 데이터 조회
   const { data: purchaseRequest } = usePurchaseRequestDetail(requestId);
   const {
     data: budgetData,
     isLoading: isBudgetLoading,
     error: budgetError,
-  } = usePurchaseBudget(companyId, { enabled: !!companyId });
+  } = usePurchaseBudget(companyId, { enabled: !!companyId && !!requestId && isManagerOrAdmin });
 
   // Mutations
   const approveMutation = useApprovePurchaseRequest();
