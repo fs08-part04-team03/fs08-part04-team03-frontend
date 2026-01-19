@@ -7,14 +7,11 @@ import type { PurchaseRequestItem } from '@/features/purchase/api/purchase.api';
 import { PURCHASE_LABELS, PURCHASE_TIMERS, PURCHASE_MESSAGES } from '@/features/purchase/constants';
 import { usePurchaseCartActions } from '@/features/purchase/handlers/usePurchaseCartActions';
 import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseNavigation';
-import { usePurchaseRequestActionsDirect } from '@/features/purchase/hooks/usePurchaseRequestActionsDirect';
 
 export interface PurchaseRequestDetailActionsOrgProps {
   companyId?: string;
   actionType?: 'user' | 'admin';
-  /** Props Depth 1단계: 관리자용일 때 requestId를 받아서 직접 hook 사용 */
-  requestId?: string;
-  /** 하위 호환성을 위한 props (deprecated - requestId 사용 권장) */
+  /** 관리자용: 승인/반려 버튼 클릭 시 실행될 핸들러 (모달 오픈) */
   onApproveClick?: () => void;
   onRejectClick?: () => void;
   isBudgetSufficient?: boolean;
@@ -64,7 +61,8 @@ const ActionButtonGroup = ({
           {primaryLabel}
         </Button>
       </div>
-      {/* 데스크톱용: 일반 레이아웃 */}
+
+      {/* 데스크톱용 */}
       <div className="hidden desktop:flex justify-center items-center w-full gap-16 text-16 mt-24 tablet:mt-42 desktop:mt-70">
         <Button
           variant="secondary"
@@ -91,7 +89,6 @@ const ActionButtonGroup = ({
 const PurchaseRequestDetailActionsOrg = ({
   companyId,
   actionType = 'user',
-  requestId,
   onApproveClick,
   onRejectClick,
   isBudgetSufficient = true,
@@ -104,11 +101,6 @@ const PurchaseRequestDetailActionsOrg = ({
 
   const navigation = usePurchaseNavigation(companyId);
 
-  // Props Depth 1단계: 관리자용일 때 직접 hook 사용
-  const adminActions = usePurchaseRequestActionsDirect(
-    actionType === 'admin' ? requestId : undefined
-  );
-
   const { isAddingToCart, handleAddToCart } = usePurchaseCartActions({
     companyId,
     purchaseRequest,
@@ -116,7 +108,7 @@ const PurchaseRequestDetailActionsOrg = ({
       setToastVariant('success');
       setToastMessage(PURCHASE_MESSAGES.ADD_TO_CART_SUCCESS);
       setShowToast(true);
-      // 잠시 후 장바구니로 이동
+
       setTimeout(() => {
         navigation.goToCart();
       }, PURCHASE_TIMERS.CART_REDIRECT_DELAY);
@@ -146,25 +138,20 @@ const PurchaseRequestDetailActionsOrg = ({
     }
   };
 
-  // 관리자용 버튼 세트
+  // ✅ 관리자용 버튼 (모달만 트리거)
   if (actionType === 'admin') {
-    // Props Depth 1단계: requestId가 있으면 직접 hook 사용, 없으면 기존 props 사용 (하위 호환)
-    const handleApproveClick = requestId ? adminActions.handleApproveClick : onApproveClick;
-    const handleRejectClick = requestId ? adminActions.handleRejectClick : onRejectClick;
-    const budgetSufficient = requestId ? adminActions.isBudgetSufficient : isBudgetSufficient;
-
     return (
       <ActionButtonGroup
         primaryLabel={PURCHASE_LABELS.BUTTONS.APPROVE_ACTION}
         secondaryLabel={PURCHASE_LABELS.BUTTONS.REJECT_ACTION}
-        onPrimaryClick={handleApproveClick}
-        onSecondaryClick={handleRejectClick}
-        isPrimaryDisabled={!budgetSufficient}
+        onPrimaryClick={onApproveClick}
+        onSecondaryClick={onRejectClick}
+        isPrimaryDisabled={!isBudgetSufficient}
       />
     );
   }
 
-  // 사용자용 버튼 세트
+  // 사용자용 버튼
   const isDisabled = !companyId || isAddingToCart || !purchaseRequest;
 
   return (
