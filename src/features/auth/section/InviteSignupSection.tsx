@@ -19,14 +19,18 @@ import type {
 interface InviteSignupSectionProps {
   name: string;
   email: string;
-  token: string;
+  inviteUrl: string;
 }
 
 /**
  * InviteSignupSection
  * 초대 회원가입 비즈니스 로직을 담당하는 섹션 컴포넌트
  */
-const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) => {
+const InviteSignupSection = ({ name, email, inviteUrl }: InviteSignupSectionProps) => {
+  // inviteUrl이 없으면 에러 - 백엔드는 전체 URL 형식을 기대함
+  if (!inviteUrl) {
+    throw new Error('초대 URL이 필요합니다. 올바른 초대 링크를 통해 접속해주세요.');
+  }
   const { showToast, toastMessage, closeToast } = useToast();
 
   const inviteSignupMutation = useInviteSignup();
@@ -49,7 +53,7 @@ const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) =
       {
         email: values.email,
         password: values.password,
-        inviteToken: token,
+        inviteUrl,
       },
       {
         onSuccess: (data) => {
