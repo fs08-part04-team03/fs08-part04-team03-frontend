@@ -35,9 +35,10 @@ function isGroupedProps(
   return 'budgetState' in props && 'modalState' in props && 'modalHandlers' in props;
 }
 
-const PurchaseRequestDetailTem = (props: PurchaseRequestDetailTemProps) => {
-  // Props 정규화
-  /* eslint-disable react/destructuring-assignment */
+const PurchaseRequestDetailTem = ({ ...props }: PurchaseRequestDetailTemProps) => {
+  /* ============================
+   * Props 정규화 (🔥 핵심)
+   * ============================ */
   const {
     purchaseRequest,
     companyId,
@@ -50,6 +51,9 @@ const PurchaseRequestDetailTem = (props: PurchaseRequestDetailTemProps) => {
     onRejectModalClose,
     onApproveSubmit,
     onRejectSubmit,
+    onApproveClick,
+    onRejectClick,
+    isBudgetSufficient,
   } = isGroupedProps(props)
     ? {
         purchaseRequest: props.purchaseRequest,
@@ -63,11 +67,15 @@ const PurchaseRequestDetailTem = (props: PurchaseRequestDetailTemProps) => {
         onRejectModalClose: props.modalHandlers.onRejectModalClose,
         onApproveSubmit: props.modalHandlers.onApproveSubmit,
         onRejectSubmit: props.modalHandlers.onRejectSubmit,
+        onApproveClick: props.modalHandlers.onApproveClick,
+        onRejectClick: props.modalHandlers.onRejectClick,
+        isBudgetSufficient: props.budgetState.isBudgetSufficient,
       }
     : props;
-  /* eslint-enable react/destructuring-assignment */
 
-  // BudgetInfo 계산
+  /* ============================
+   * BudgetInfo
+   * ============================ */
   const budgetInfo = {
     monthlySpending,
     remainingBudget,
@@ -77,7 +85,9 @@ const PurchaseRequestDetailTem = (props: PurchaseRequestDetailTemProps) => {
         purchaseRequest.shippingFee),
   };
 
-  // ApprovedInfo 생성 (승인/반려된 경우만)
+  /* ============================
+   * ApprovedInfo
+   * ============================ */
   let approvedInfo:
     | {
         approverName: string;
@@ -88,16 +98,8 @@ const PurchaseRequestDetailTem = (props: PurchaseRequestDetailTemProps) => {
     | undefined;
 
   if (purchaseRequest.status === 'APPROVED' || purchaseRequest.status === 'REJECTED') {
-    let statusLabel = '-';
-    if (purchaseRequest.status === 'APPROVED') {
-      statusLabel = '승인';
-    } else if (purchaseRequest.status === 'REJECTED') {
-      statusLabel = '반려';
-    }
-
-    const reasonMessage = purchaseRequest.reason || '';
-    const rejectMessage = purchaseRequest.rejectReason || '';
-    const resultMessage = reasonMessage || rejectMessage || '-';
+    const statusLabel = purchaseRequest.status === 'APPROVED' ? '승인' : '반려';
+    const resultMessage = purchaseRequest.reason || purchaseRequest.rejectReason || '-';
 
     approvedInfo = {
       approverName: purchaseRequest.approver?.name || '-',
@@ -107,39 +109,38 @@ const PurchaseRequestDetailTem = (props: PurchaseRequestDetailTemProps) => {
     };
   }
 
-  // 모달 데이터 변환
+  /* ============================
+   * Modal Data
+   * ============================ */
   const modalData = {
     user: {
       name: purchaseRequest.requester.name,
       company: {
         name:
-          'company' in purchaseRequest.requester &&
-          purchaseRequest.requester.company &&
           typeof purchaseRequest.requester.company === 'string'
             ? purchaseRequest.requester.company
             : '',
       },
       avatarSrc:
-        'avatarSrc' in purchaseRequest.requester &&
-        purchaseRequest.requester.avatarSrc &&
         typeof purchaseRequest.requester.avatarSrc === 'string'
           ? purchaseRequest.requester.avatarSrc
           : undefined,
     },
     items: purchaseRequest.purchaseItems.map((item) => {
       const parsedId = Number.parseInt(item.id, 10);
+
       if (Number.isNaN(parsedId)) {
         logger.warn('Invalid item id in purchase request', {
           hasItemId: !!item.id,
         });
       }
-      const imageSrc = item.products.imageUrl ? item.products.imageUrl : '';
+
       return {
         id: Number.isNaN(parsedId) ? 0 : parsedId,
         title: item.products.name,
         price: item.priceSnapshot,
         quantity: item.quantity,
-        imageSrc,
+        imageSrc: item.products.imageUrl ?? '',
       };
     }),
     deliveryFee: purchaseRequest.shippingFee,
@@ -151,20 +152,23 @@ const PurchaseRequestDetailTem = (props: PurchaseRequestDetailTemProps) => {
       <div className="flex flex-col items-center gap-30 mt-30">
         <div className="tablet:mt-30 desktop:mt-60 mb-54 desktop:mb-254 tablet:mb-132">
           <PurchaseRequestDetailTopOrg purchaseRequest={purchaseRequest} />
+
           <PurchaseRequestDetailOrg
             purchaseRequest={purchaseRequest}
             budgetInfo={budgetInfo}
             approvedInfo={approvedInfo}
           />
+
           <PurchaseRequestDetailActionsOrg
             companyId={companyId}
             actionType="admin"
-            requestId={purchaseRequest.id}
+            onApproveClick={onApproveClick}
+            onRejectClick={onRejectClick}
+            isBudgetSufficient={isBudgetSufficient}
           />
         </div>
       </div>
 
-      {/* 승인 모달 */}
       <ApprovalRequestModal
         open={approveModalOpen}
         onClose={onApproveModalClose}
@@ -176,7 +180,6 @@ const PurchaseRequestDetailTem = (props: PurchaseRequestDetailTemProps) => {
         action="approve"
       />
 
-      {/* 반려 모달 */}
       <ApprovalRequestModal
         open={rejectModalOpen}
         onClose={onRejectModalClose}
