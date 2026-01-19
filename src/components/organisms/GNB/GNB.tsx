@@ -17,6 +17,9 @@ import GNBPrimaryNav, {
 import { GNBUserActions } from '@/components/molecules/GNBUserActions/GNBUserActions';
 import { GNBCategorySwitcher } from '@/components/molecules/GNBCategorySwitcher/GNBCategorySwitcher';
 import { SideBarMenu } from '@/components/organisms/SideBarMenu/SideBarMenu';
+import { NotificationModal } from '@/components/organisms/NotificationModal/NotificationModal';
+import { useUnreadNotificationCount } from '@/features/notification/queries/notification.queries';
+import { useNotificationSSE } from '@/features/notification/hooks/useNotificationSSE';
 import type {
   GNBBaseState,
   GNBHandlers,
@@ -44,6 +47,14 @@ const GNB = ({ baseState, handlers, navigationState, categoryState }: GNBProps) 
   const companyId = (params?.companyId as string) || '';
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+
+  // 알림 관련 hooks
+  const { data: unreadCountData } = useUnreadNotificationCount();
+  const unreadCount = unreadCountData?.data?.count ?? 0;
+
+  // SSE 실시간 알림 연결
+  useNotificationSSE({ enabled: true });
 
   const { role, userProfile, cartCount = 0, className } = baseState;
   const currentActivePath = navigationState?.activePath ?? pathname ?? '';
@@ -88,6 +99,14 @@ const GNB = ({ baseState, handlers, navigationState, categoryState }: GNBProps) 
   const handleSidebarLogout = () => {
     closeSidebar();
     handlers?.onLogout?.();
+  };
+
+  const handleNotificationClick = () => {
+    setIsNotificationModalOpen(true);
+  };
+
+  const handleNotificationModalClose = () => {
+    setIsNotificationModalOpen(false);
   };
 
   return (
@@ -137,6 +156,8 @@ const GNB = ({ baseState, handlers, navigationState, categoryState }: GNBProps) 
           companyId={companyId}
           userProfile={userProfile}
           cartCount={cartCount}
+          notificationCount={unreadCount}
+          onNotificationClick={handleNotificationClick}
           onLogout={handlers?.onLogout}
           onMenuClick={handleMenuClick}
         />
@@ -152,6 +173,9 @@ const GNB = ({ baseState, handlers, navigationState, categoryState }: GNBProps) 
           onLogout={handlers?.onLogout ? handleSidebarLogout : undefined}
         />
       </SideBarMenu>
+
+      {/* 알림 모달 */}
+      <NotificationModal open={isNotificationModalOpen} onClose={handleNotificationModalClose} />
     </div>
   );
 };
