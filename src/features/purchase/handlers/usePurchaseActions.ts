@@ -18,6 +18,8 @@ interface UsePurchaseRequestActionsParams {
   triggerToast: (variant: 'error' | 'success' | 'custom', message: string) => void;
   onApproveModalOpen: () => void;
   onRejectModalOpen: () => void;
+  onApproveModalClose: () => void;
+  onRejectModalClose: () => void;
   onApproveSuccess: () => void;
   onRejectSuccess: () => void;
   onBudgetInsufficient: () => void;
@@ -37,6 +39,8 @@ export const usePurchaseRequestActions = ({
   triggerToast,
   onApproveModalOpen,
   onRejectModalOpen,
+  onApproveModalClose,
+  onRejectModalClose,
   onApproveSuccess,
   onRejectSuccess,
   onBudgetInsufficient,
@@ -90,13 +94,23 @@ export const usePurchaseRequestActions = ({
             }
             onApproveSuccess();
           },
-          onError: () => {
-            triggerToast('error', PURCHASE_ERROR_MESSAGES.APPROVE_FAILED);
+          onError: (error: Error) => {
+            // 모달 닫고 서버 에러 메시지를 Toast로 표시 (custom variant로 예산 정보 미표시)
+            onApproveModalClose();
+            triggerToast('custom', error.message || PURCHASE_ERROR_MESSAGES.APPROVE_FAILED);
           },
         }
       );
     },
-    [requestId, companyId, approveMutation, queryClient, triggerToast, onApproveSuccess]
+    [
+      requestId,
+      companyId,
+      approveMutation,
+      queryClient,
+      triggerToast,
+      onApproveSuccess,
+      onApproveModalClose,
+    ]
   );
 
   const handleRejectSubmit = useCallback(
@@ -111,13 +125,15 @@ export const usePurchaseRequestActions = ({
             queryClient.removeQueries({ queryKey: purchaseKeys.all });
             onRejectSuccess();
           },
-          onError: () => {
-            triggerToast('error', PURCHASE_ERROR_MESSAGES.REJECT_FAILED);
+          onError: (error: Error) => {
+            // 모달 닫고 서버 에러 메시지를 Toast로 표시 (custom variant로 예산 정보 미표시)
+            onRejectModalClose();
+            triggerToast('custom', error.message || PURCHASE_ERROR_MESSAGES.REJECT_FAILED);
           },
         }
       );
     },
-    [requestId, rejectMutation, queryClient, triggerToast, onRejectSuccess]
+    [requestId, rejectMutation, queryClient, triggerToast, onRejectSuccess, onRejectModalClose]
   );
 
   return {
