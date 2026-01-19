@@ -155,7 +155,7 @@ const PurchaseRequestDetailTem = ({ ...props }: PurchaseRequestDetailTemProps) =
 
           <PurchaseRequestDetailOrg
             purchaseRequest={purchaseRequest}
-            budgetInfo={budgetInfo}
+            budgetInfo={approvedInfo ? undefined : budgetInfo}
             approvedInfo={approvedInfo}
           />
 
