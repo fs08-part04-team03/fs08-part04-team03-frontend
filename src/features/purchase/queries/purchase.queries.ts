@@ -51,7 +51,7 @@ export function usePurchaseRequests(params?: {
     queryFn: () =>
       managePurchaseRequests({
         page,
-        size,
+        limit: size,
         status,
         sortBy,
         order,
