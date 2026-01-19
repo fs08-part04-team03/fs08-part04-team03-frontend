@@ -15,6 +15,8 @@ import {
 } from '@/features/notification/utils/notificationUrl';
 import { NOTIFICATION_PAGINATION } from '@/constants/notification.constants';
 import type { NotificationItem } from '@/features/notification/api/notification.api';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/molecules/Toast/Toast';
 
 interface NotificationModalProps {
   open: boolean;
@@ -52,6 +54,9 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
 
   const { mutate: markAsRead } = useMarkNotificationAsRead();
 
+  // Toast 상태
+  const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
+
   // ESC 키로 모달 닫기
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -70,7 +75,12 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
     (notification: NotificationItem) => {
       // 읽지 않은 알림이면 읽음 처리
       if (!notification.isRead) {
-        markAsRead(notification.id);
+        markAsRead(notification.id, {
+          onError: (err: unknown) => {
+            const message = err instanceof Error ? err.message : '알림 읽음 처리에 실패했습니다.';
+            triggerToast('error', message);
+          },
+        });
       }
 
       // targetType에 따른 URL로 이동 (companyId가 없으면 URL 이동 불가 -> 긴급 알림/공지 등)
@@ -90,7 +100,7 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
         router.push(targetUrl);
       }
     },
-    [companyId, markAsRead, onClose, router]
+    [companyId, markAsRead, onClose, router, triggerToast]
   );
 
   // 시간 포맷
@@ -214,7 +224,7 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
     );
   };
 
-  return createPortal(
+  const modalContent = createPortal(
     <div
       className={clsx(
         'fixed inset-0 z-[var(--z-overlay)] flex items-start justify-end pointer-events-none'
@@ -256,6 +266,18 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
       </div>
     </div>,
     document.body
+  );
+
+  return (
+    <>
+      {modalContent}
+      {/* Toast 렌더링 */}
+      {showToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[var(--z-toast)]">
+          <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
+        </div>
+      )}
+    </>
   );
 };
 

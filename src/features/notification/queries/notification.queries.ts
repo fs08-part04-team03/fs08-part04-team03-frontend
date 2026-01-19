@@ -6,7 +6,6 @@ import {
   type NotificationListResponse,
   type NotificationUnreadCountResponse,
 } from '@/features/notification/api/notification.api';
-import { useToast } from '@/hooks/useToast';
 import { STALE_TIME } from '@/constants/staleTime';
 import { SSE_CONFIG, NOTIFICATION_PAGINATION } from '@/constants/notification.constants';
 
@@ -59,7 +58,6 @@ export function useUnreadNotificationCount(options?: { enabled?: boolean }) {
  */
 export function useMarkNotificationAsRead() {
   const queryClient = useQueryClient();
-  const { triggerToast } = useToast();
 
   return useMutation({
     mutationFn: (id: string) => notificationApi.markAsRead(id),
@@ -67,10 +65,7 @@ export function useMarkNotificationAsRead() {
       // 알림 관련 캐시 모두 무효화
       await queryClient.invalidateQueries({ queryKey: notificationKeys.all });
     },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : '알림 읽음 처리에 실패했습니다.';
-      triggerToast('error', message);
-    },
+    // onError는 컴포넌트 레벨에서 처리 (useToast 상태 연결을 위해)
   });
 }
 
@@ -79,21 +74,13 @@ export function useMarkNotificationAsRead() {
  */
 export function useBroadcastNotification() {
   const queryClient = useQueryClient();
-  const { triggerToast } = useToast();
 
   return useMutation({
     mutationFn: (content: string) => notificationApi.broadcastNotification(content),
-    onSuccess: async (data) => {
-      triggerToast(
-        'success',
-        `알림이 전송되었습니다. (생성: ${data.data.createdCount}, 발송: ${data.data.deliveredCount})`
-      );
+    onSuccess: async () => {
       // 자신이 받은 알림도 갱신될 수 있으므로 목록 query invalidate
       await queryClient.invalidateQueries({ queryKey: notificationKeys.all });
     },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : '알림 전송에 실패했습니다.';
-      triggerToast('error', message);
-    },
+    // onSuccess/onError 토스트는 컴포넌트 레벨에서 처리 (useToast 상태 연결을 위해)
   });
 }
