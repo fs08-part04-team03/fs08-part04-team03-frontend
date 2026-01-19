@@ -64,6 +64,8 @@ const PurchaseRequestDetailSection = () => {
     triggerToast,
     onApproveModalOpen: modals.openApproveModal,
     onRejectModalOpen: modals.openRejectModal,
+    onApproveModalClose: modals.closeApproveModal,
+    onRejectModalClose: modals.closeRejectModal,
     onApproveSuccess: () => {
       modals.closeApproveModal();
       modals.openSuccessModal('approved');
