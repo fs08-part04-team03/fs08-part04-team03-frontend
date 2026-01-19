@@ -39,7 +39,7 @@ export function usePurchaseHistory(params?: {
 
       const requestParams: ManagePurchaseRequestsParams = {
         page,
-        size: PURCHASE_HISTORY_DEFAULTS.PAGE_SIZE,
+        limit: PURCHASE_HISTORY_DEFAULTS.PAGE_SIZE,
         sortBy,
         order,
         status: 'APPROVED',
