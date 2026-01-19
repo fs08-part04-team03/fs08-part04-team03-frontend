@@ -40,14 +40,21 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 
-# Testing
+# Testing - Vitest
 coverage/
+.vitest/
+
+# Testing - Playwright
+playwright-report/
+test-results/
+.playwright/
+blob-report/
 
 # Mocks
 mocks/
 
 # Documentation
-docs/
+docs_personal/
 
 # Misc
 *.swp
