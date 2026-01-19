@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { sendChatMessage } from '@/features/chat/api/chat.api';
 
 interface ChatMessage {
   id: number;
@@ -14,10 +15,6 @@ type CreateChatBotMessage = (message: string | ReactNode) => ChatMessage;
 
 type SetState = (updater: (prev: ChatbotState) => ChatbotState) => void;
 
-interface ChatResponse {
-  reply: string;
-}
-
 class ActionProvider {
   private createChatBotMessage: CreateChatBotMessage;
 
@@ -29,20 +26,26 @@ class ActionProvider {
   }
 
   async sendToServer(message: string): Promise<void> {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
-    });
+    try {
+      // JWT 토큰에서 자동으로 회사 ID를 추출하여 멀티테넌시 적용
+      const reply = await sendChatMessage(message);
+      const botMessage = this.createChatBotMessage(reply);
 
-    const json = (await res.json()) as ChatResponse;
+      this.setState((prev) => ({
+        ...prev,
+        messages: [...prev.messages, botMessage],
+      }));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '메시지 전송에 실패했습니다.';
+      const botMessage = this.createChatBotMessage(
+        `죄송합니다. 오류가 발생했습니다: ${errorMessage}`
+      );
 
-    const botMessage = this.createChatBotMessage(json.reply);
-
-    this.setState((prev) => ({
-      ...prev,
-      messages: [...prev.messages, botMessage],
-    }));
+      this.setState((prev) => ({
+        ...prev,
+        messages: [...prev.messages, botMessage],
+      }));
+    }
   }
 }
 
