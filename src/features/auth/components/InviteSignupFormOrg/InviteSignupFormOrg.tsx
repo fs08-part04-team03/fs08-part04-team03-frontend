@@ -11,7 +11,11 @@ import { inviteSignup } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
 import { logger } from '@/utils/logger';
 
-export const useInviteSignupForm = (email: string, token: string) => {
+export const useInviteSignupForm = (email: string, inviteUrl: string) => {
+  // inviteUrl이 없으면 에러 - 백엔드는 전체 URL 형식을 기대함
+  if (!inviteUrl) {
+    throw new Error('초대 URL이 필요합니다. 올바른 초대 링크를 통해 접속해주세요.');
+  }
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const router = useRouter();
@@ -44,7 +48,7 @@ export const useInviteSignupForm = (email: string, token: string) => {
       const { user, accessToken } = await inviteSignup({
         email: values.email,
         password: values.password,
-        inviteToken: token,
+        inviteUrl,
       });
 
       logger.info('[InviteSignup] 초대 회원가입 API 성공', {

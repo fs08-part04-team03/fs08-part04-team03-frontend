@@ -16,7 +16,7 @@ interface InviteSignupProps {
   token: string;
 }
 
-const InviteSignup = ({ token }: InviteSignupProps) => {
+const InviteSignup = ({ token: _token }: InviteSignupProps) => {
   const router = useRouter();
   const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
 
@@ -93,7 +93,7 @@ const InviteSignup = ({ token }: InviteSignupProps) => {
           <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
         </div>
       )}
-      <InviteSignupSection name={inviteData.name} email={inviteData.email} token={token} />
+      <InviteSignupSection name={inviteData.name} email={inviteData.email} inviteUrl={inviteUrl} />
     </>
   );
 };
