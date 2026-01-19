@@ -204,7 +204,20 @@ export async function tryRefreshToken(): Promise<string | null> {
     }
 
     if (response.ok) {
-      const result = (await response.json()) as {
+      const rawResult: unknown = await response.json();
+
+      // 디버깅: 백엔드 응답 원본 확인
+      logger.info('[Token Refresh] 백엔드 응답 원본:', {
+        rawResult: JSON.stringify(rawResult),
+        hasSuccess: typeof rawResult === 'object' && rawResult !== null && 'success' in rawResult,
+        hasData: typeof rawResult === 'object' && rawResult !== null && 'data' in rawResult,
+        hasAccessToken: !!(rawResult as { data?: { accessToken?: string } })?.data?.accessToken,
+        // 다른 가능한 형식 확인
+        hasTopLevelAccessToken:
+          typeof rawResult === 'object' && rawResult !== null && 'accessToken' in rawResult,
+      });
+
+      const result = rawResult as {
         success: boolean;
         data?: {
           accessToken: string;
@@ -217,13 +230,19 @@ export async function tryRefreshToken(): Promise<string | null> {
             profileImage?: string;
           };
         };
+        // 백엔드가 다른 형식으로 반환할 경우를 위한 fallback
+        accessToken?: string;
       };
-      if (result.success && result.data?.accessToken) {
+
+      // 백엔드 응답 형식 호환성: data.accessToken 또는 accessToken 직접 확인
+      const accessToken = result.data?.accessToken || result.accessToken;
+
+      if ((result.success || accessToken) && accessToken) {
         // 새 accessToken을 store에 저장
         const { setAuth, user: existingUser } = useAuthStore.getState();
 
         // 백엔드에서 user 정보도 함께 반환하는 경우
-        if (result.data.user) {
+        if (result.data?.user) {
           // 백엔드 role을 클라이언트 role로 변환
           const normalizeRole = (role: string): 'user' | 'manager' | 'admin' => {
             const upperRole = role.toUpperCase();
@@ -240,18 +259,18 @@ export async function tryRefreshToken(): Promise<string | null> {
             companyId: result.data.user.companyId,
             image: result.data.user.profileImage, // profileImage를 image로 매핑
           };
-          setAuth({ user: newUser, accessToken: result.data.accessToken });
+          setAuth({ user: newUser, accessToken });
 
           logger.info('[Token Refresh] 토큰 갱신 성공 (user 정보 포함)');
-          return result.data.accessToken;
+          return accessToken;
         }
 
         // 백엔드에서 user 정보를 반환하지 않는 경우, 기존 user 정보 사용
         if (existingUser) {
-          setAuth({ user: existingUser, accessToken: result.data.accessToken });
+          setAuth({ user: existingUser, accessToken });
 
           logger.info('[Token Refresh] 토큰 갱신 성공 (기존 user 정보 사용)');
-          return result.data.accessToken;
+          return accessToken;
         }
 
         // user 정보가 없는 경우 (rehydration 후 첫 갱신)
@@ -263,8 +282,8 @@ export async function tryRefreshToken(): Promise<string | null> {
           logger.warn(
             '[Token Refresh] 토큰 갱신 성공했지만 백엔드 응답에 user 정보가 없음. 기존 user 정보 유지.'
           );
-          setAuth({ user: currentUser, accessToken: result.data.accessToken });
-          return result.data.accessToken;
+          setAuth({ user: currentUser, accessToken });
+          return accessToken;
         }
 
         // 기존 user 정보도 없는 경우 (로그인하지 않은 상태)
@@ -274,8 +293,8 @@ export async function tryRefreshToken(): Promise<string | null> {
         // accessToken만 저장 (user는 나중에 다른 API 호출로 가져올 수 있음)
         // user 정보가 없으면 쿠키 업데이트 불가 (role, companyId 필요)
         // 주의: 이 경우 useTokenRefresh의 주기적 갱신이 중단될 수 있음
-        setAuth({ user: null, accessToken: result.data.accessToken });
-        return result.data.accessToken;
+        setAuth({ user: null, accessToken });
+        return accessToken;
       }
       logger.warn('[Token Refresh] 응답 형식이 올바르지 않음', {
         success: result.success,

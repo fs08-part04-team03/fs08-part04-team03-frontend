@@ -59,6 +59,23 @@ export async function POST(req: NextRequest) {
     // 요청에서 쿠키 가져오기 (httpOnly 쿠키 포함)
     const cookieHeader = req.headers.get('cookie');
 
+    // 쿠키에서 refreshToken 존재 여부 확인 (디버깅용)
+    const hasRefreshToken = cookieHeader?.includes('refreshToken=');
+    const cookieNames = cookieHeader
+      ?.split(';')
+      .map((c) => c.trim().split('=')[0])
+      .filter(Boolean);
+
+    // eslint-disable-next-line no-console
+    console.log('[Refresh Token API Route] Request Debug:', {
+      backendUrl,
+      refreshUrl,
+      hasCookieHeader: !!cookieHeader,
+      hasRefreshToken,
+      cookieNames,
+      cookieHeaderLength: cookieHeader?.length || 0,
+    });
+
     // 백엔드로 프록시 요청
     const response = await fetch(refreshUrl, {
       method: 'POST',
@@ -71,6 +88,13 @@ export async function POST(req: NextRequest) {
 
     // 응답 데이터 가져오기
     const data: unknown = await response.json();
+
+    // eslint-disable-next-line no-console
+    console.log('[Refresh Token API Route] Backend Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      data,
+    });
 
     // 응답 헤더에서 Set-Cookie가 있으면 전달 (여러 개일 수 있음)
     const headers = new Headers();
