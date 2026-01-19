@@ -118,18 +118,10 @@ export function useInviteSignup() {
   return useMutation<
     { user: User; accessToken: string },
     Error,
-    Omit<InviteSignupInput, 'confirmPassword'> & {
-      name: string;
-      passwordConfirm: string;
-      inviteUrl: string;
-    }
+    Omit<InviteSignupInput, 'confirmPassword'> & { inviteToken: string }
   >({
     mutationFn: (
-      signupData: Omit<InviteSignupInput, 'confirmPassword'> & {
-        name: string;
-        passwordConfirm: string;
-        inviteUrl: string;
-      }
+      signupData: Omit<InviteSignupInput, 'confirmPassword'> & { inviteToken: string }
     ) => inviteSignup(signupData),
     onSuccess: (data) => {
       const { user, accessToken } = data;
