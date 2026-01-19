@@ -11,7 +11,11 @@ import { inviteSignup } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/lib/store/authStore';
 import { logger } from '@/utils/logger';
 
-export const useInviteSignupForm = (email: string, token: string) => {
+/**
+ * @deprecated 현재 초대 회원가입은 `InviteSignupSection`(+ React Query)을 사용합니다.
+ * 이 훅은 남겨두되, 백엔드 스펙(name/passwordConfirm/inviteUrl)과는 일치하도록 유지합니다.
+ */
+export const useInviteSignupForm = (name: string, email: string, inviteUrl: string) => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const router = useRouter();
@@ -42,9 +46,11 @@ export const useInviteSignupForm = (email: string, token: string) => {
     try {
       logger.info('[InviteSignup] 초대 회원가입 시도 시작');
       const { user, accessToken } = await inviteSignup({
+        name,
         email: values.email,
         password: values.password,
-        inviteToken: token,
+        passwordConfirm: values.confirmPassword,
+        inviteUrl,
       });
 
       logger.info('[InviteSignup] 초대 회원가입 API 성공', {

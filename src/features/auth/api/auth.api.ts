@@ -481,7 +481,9 @@ export async function getInviteInfo(inviteUrl: string): Promise<InviteInfoRespon
  * 초대 회원가입 API 요청 타입 (confirmPassword 제외)
  */
 type InviteSignupRequest = Omit<InviteSignupInput, 'confirmPassword'> & {
-  inviteToken: string; // 초대 토큰
+  name: string;
+  passwordConfirm: string;
+  inviteUrl: string; // 초대 URL (예: https://your-domain.com/invite?token=...)
   profileImage?: string; // 프로필 이미지 키 (S3 업로드 후 받은 키)
 };
 
@@ -521,9 +523,11 @@ export async function inviteSignup(
   try {
     // JSON으로 전송 (이미지는 S3에 업로드된 후 키를 받아서 전달)
     const requestBody = JSON.stringify({
+      name: signupData.name,
       email: signupData.email,
       password: signupData.password,
-      inviteUrl: signupData.inviteToken, // 백엔드 API는 inviteUrl 필드명 사용
+      passwordConfirm: signupData.passwordConfirm,
+      inviteUrl: signupData.inviteUrl,
       ...(signupData.profileImage && { profileImage: signupData.profileImage }), // 이미지 키 전달
     });
     const headers: HeadersInit = {
@@ -533,9 +537,11 @@ export async function inviteSignup(
     // 디버깅: 요청 내용 확인 (개발 환경에서만)
     if (process.env.NODE_ENV === 'development') {
       logger.info('[InviteSignup] 요청 내용 확인', {
+        name: signupData.name,
         email: signupData.email,
         password: signupData.password ? '***' : undefined,
-        inviteToken: signupData.inviteToken,
+        passwordConfirm: signupData.passwordConfirm ? '***' : undefined,
+        inviteUrl: signupData.inviteUrl,
         hasProfileImage: !!signupData.profileImage,
       });
     }
