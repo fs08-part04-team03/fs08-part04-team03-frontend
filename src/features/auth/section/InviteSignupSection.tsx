@@ -20,14 +20,13 @@ interface InviteSignupSectionProps {
   name: string;
   email: string;
   token: string;
-  inviteUrl: string;
 }
 
 /**
  * InviteSignupSection
  * 초대 회원가입 비즈니스 로직을 담당하는 섹션 컴포넌트
  */
-const InviteSignupSection = ({ name, email, token, inviteUrl }: InviteSignupSectionProps) => {
+const InviteSignupSection = ({ name, email, token }: InviteSignupSectionProps) => {
   const { showToast, toastMessage, closeToast } = useToast();
 
   const inviteSignupMutation = useInviteSignup();
@@ -48,13 +47,9 @@ const InviteSignupSection = ({ name, email, token, inviteUrl }: InviteSignupSect
   const onSubmit = (values: InviteSignupInput): void => {
     inviteSignupMutation.mutate(
       {
-        name,
         email: values.email,
         password: values.password,
-        passwordConfirm: values.confirmPassword,
-        // 백엔드가 inviteUrl(전체 URL)을 기준으로 검증하는 케이스가 많아
-        // 초대 정보 조회에 사용한 동일한 URL을 그대로 전달합니다.
-        inviteUrl: inviteUrl || token,
+        inviteToken: token,
       },
       {
         onSuccess: (data) => {
