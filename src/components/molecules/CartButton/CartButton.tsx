@@ -57,7 +57,7 @@ export const CartButton = ({
           width={24}
           height={24}
           className={clsx(
-            'w-26 h-26 transition-transform duration-300 ease-out',
+            'w-24 h-24 transition-transform duration-300 ease-out',
             isAnimating && 'scale-125'
           )}
           aria-hidden="true"
