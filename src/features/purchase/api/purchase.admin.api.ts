@@ -60,7 +60,7 @@ export async function purchaseNowMultiple(
  */
 export interface ManagePurchaseRequestsParams {
   page?: number;
-  size?: number;
+  limit?: number;
   status?: string;
   sortBy?: 'createdAt' | 'totalPrice'; // 백엔드 API 스펙에 맞게 수정
   order?: 'asc' | 'desc'; // 정렬 순서 (기본값: desc)
@@ -106,7 +106,7 @@ export async function managePurchaseRequests(
 ): Promise<ManagePurchaseRequestsResponse> {
   const queryParams = new URLSearchParams();
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
-  if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
   if (params?.status) queryParams.append('status', params.status);
   if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
   if (params?.order) queryParams.append('order', params.order); // 정렬 순서 (asc 또는 desc)

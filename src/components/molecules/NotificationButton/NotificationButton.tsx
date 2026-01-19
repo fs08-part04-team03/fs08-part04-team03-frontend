@@ -58,10 +58,10 @@ export const NotificationButton = ({
             className={clsx(
               'pointer-events-none',
               'absolute',
-              '-top-1 -right-1',
+              '-top-4 -right-3',
               'min-w-16 h-16 px-4',
               'flex justify-center items-center',
-              'bg-red-500 text-white',
+              'bg-gray-200 text-black',
               'text-10 font-bold',
               'rounded-full'
             )}
