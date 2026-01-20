@@ -19,6 +19,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 const baseClass = clsx(
   'inline-flex items-center justify-center',
   'font-bold',
+  'cursor-pointer',
   'transition-colors duration-150',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-500',
   'disabled:opacity-40 disabled:cursor-not-allowed'
