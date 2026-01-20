@@ -33,10 +33,10 @@ describe('formatBusinessNumber', () => {
     });
   });
 
-  describe('입력 길이 제한', () => {
-    it('10자리 초과는 10자리까지만 사용한다', () => {
-      expect(formatBusinessNumber('12345678901234')).toBe('123-45-67890');
-      expect(formatBusinessNumber('1234567890123456789')).toBe('123-45-67890');
+  describe('입력 길이 초과 처리', () => {
+    it('10자리 초과 시 그대로 포맷팅하여 유효성 검사에서 에러를 표시할 수 있게 한다', () => {
+      expect(formatBusinessNumber('12345678901234')).toBe('123-45-678901234');
+      expect(formatBusinessNumber('1234567890123456789')).toBe('123-45-67890123456789');
     });
   });
 

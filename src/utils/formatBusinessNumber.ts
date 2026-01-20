@@ -12,17 +12,15 @@ export const formatBusinessNumber = (value: string): string => {
   // 숫자만 추출
   const numbers = value.replace(/[^\d]/g, '');
 
-  // 최대 10자리까지만 허용
-  const limitedNumbers = numbers.slice(0, 10);
-
-  // 123-45-67890 형식으로 포맷팅
-  if (limitedNumbers.length <= 3) {
-    return limitedNumbers;
+  // 123-45-67890 형식으로 포맷팅 (10자리 초과 시에도 포맷팅하여 유효성 검사에서 에러 표시)
+  if (numbers.length <= 3) {
+    return numbers;
   }
-  if (limitedNumbers.length <= 5) {
-    return `${limitedNumbers.slice(0, 3)}-${limitedNumbers.slice(3)}`;
+  if (numbers.length <= 5) {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
   }
-  return `${limitedNumbers.slice(0, 3)}-${limitedNumbers.slice(3, 5)}-${limitedNumbers.slice(5)}`;
+  // 10자리 초과해도 그대로 표시 (유효성 검사에서 에러 처리)
+  return `${numbers.slice(0, 3)}-${numbers.slice(3, 5)}-${numbers.slice(5)}`;
 };
 
 /**
