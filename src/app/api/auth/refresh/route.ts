@@ -52,6 +52,8 @@ export function OPTIONS(req: NextRequest) {
  * 브라우저에서는 이 경로를 통해 쿠키 기반 갱신을 처리합니다.
  */
 export async function POST(req: NextRequest) {
+  const isDebug = process.env.NODE_ENV === 'development' || process.env.DEBUG_AUTH === 'true';
+
   try {
     const backendUrl = process.env.BACKEND_API_URL || DEFAULT_API_URL;
     const refreshUrl = `${backendUrl}/api/v1/auth/refresh`;
@@ -61,20 +63,14 @@ export async function POST(req: NextRequest) {
 
     // 쿠키에서 refreshToken 존재 여부 확인 (디버깅용)
     const hasRefreshToken = cookieHeader?.includes('refreshToken=');
-    const cookieNames = cookieHeader
-      ?.split(';')
-      .map((c) => c.trim().split('=')[0])
-      .filter(Boolean);
 
-    // eslint-disable-next-line no-console
-    console.log('[Refresh Token API Route] Request Debug:', {
-      backendUrl,
-      refreshUrl,
-      hasCookieHeader: !!cookieHeader,
-      hasRefreshToken,
-      cookieNames,
-      cookieHeaderLength: cookieHeader?.length || 0,
-    });
+    if (isDebug) {
+      // eslint-disable-next-line no-console
+      console.log('[Refresh Token API Route] Request Debug:', {
+        hasCookieHeader: !!cookieHeader,
+        hasRefreshToken,
+      });
+    }
 
     // 백엔드로 프록시 요청
     const response = await fetch(refreshUrl, {
@@ -89,12 +85,17 @@ export async function POST(req: NextRequest) {
     // 응답 데이터 가져오기
     const data: unknown = await response.json();
 
-    // eslint-disable-next-line no-console
-    console.log('[Refresh Token API Route] Backend Response:', {
-      status: response.status,
-      statusText: response.statusText,
-      data,
-    });
+    if (isDebug) {
+      // eslint-disable-next-line no-console
+      console.log('[Refresh Token API Route] Backend Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        success:
+          typeof data === 'object' && data !== null && 'success' in data
+            ? (data as { success: boolean }).success
+            : undefined,
+      });
+    }
 
     // 응답 헤더에서 Set-Cookie가 있으면 전달 (여러 개일 수 있음)
     const headers = new Headers();

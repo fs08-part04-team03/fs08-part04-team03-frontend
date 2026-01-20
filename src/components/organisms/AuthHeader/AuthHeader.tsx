@@ -12,7 +12,7 @@ const AuthHeader = ({ className }: AuthHeaderProps) => (
   <div
     className={clsx(
       'auth-header-container',
-      'sticky top-0 z-[45]',
+      'sticky top-0 z-header',
       'w-full h-56',
       'bg-white border-b border-gray-200',
       'flex items-center justify-between',

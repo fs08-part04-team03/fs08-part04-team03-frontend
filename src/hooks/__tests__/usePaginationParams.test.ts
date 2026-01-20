@@ -19,8 +19,8 @@ vi.mock('next/navigation', () => ({
 describe('usePaginationParams', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // URLSearchParams 초기화
-    mockSearchParams.forEach((_, key) => {
+    // URLSearchParams 초기화 (반복 중 삭제 문제 방지)
+    Array.from(mockSearchParams.keys()).forEach((key) => {
       mockSearchParams.delete(key);
     });
   });
