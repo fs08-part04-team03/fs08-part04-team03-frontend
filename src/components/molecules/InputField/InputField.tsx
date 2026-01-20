@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, useId, ChangeEvent } from 'react';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { clsx } from '@/utils/clsx';
 import { formatBusinessNumber } from '@/utils/formatBusinessNumber';
@@ -39,15 +39,15 @@ const InputField = ({
   const [visible, setVisible] = useState(false);
   const [touched, setTouched] = useState(false);
 
+  // React의 useId를 사용하여 고유한 ID 생성 (SSR 안전, 중복 방지)
+  // id prop이 제공되면 우선 사용 (RHFInputField에서 form field name 기반 id 전달)
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+
   // value prop 변경 시 internal 동기화
   useEffect(() => {
     setInternal(value);
   }, [value]);
-
-  // input과 label 연결을 위한 id
-  // RHFInputField에서는 항상 id가 제공되지만, 직접 사용하는 경우를 위해 fallback 제공
-  // 하이드레이션 불일치를 방지하기 위해 label 기반의 deterministic ID 생성
-  const inputId = id ?? `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     let v = e.target.value;
