@@ -49,6 +49,7 @@ export const PATHNAME = {
 
   //  최고관리자 (admin)
   ADMIN_ROOT: (companyId: string) => `/${companyId}/admin`,
+  ADMIN_DASHBOARD: (companyId: string) => `/${companyId}/admin/dashboard`,
   ADMIN_USERS: (companyId: string) => `/${companyId}/admin/users`,
   ADMIN_BUDGET: (companyId: string) => `/${companyId}/admin/budget`,
 } as const;

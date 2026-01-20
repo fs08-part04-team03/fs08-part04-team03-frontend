@@ -106,9 +106,11 @@ export const AdminSidebar = ({ companyId, userRole = 'user' }: AdminSidebarProps
     return null;
   }
 
+  const dashboardHref = PATHNAME.ADMIN_DASHBOARD(companyId);
   const usersHref = PATHNAME.ADMIN_USERS(companyId);
   const budgetHref = PATHNAME.ADMIN_BUDGET(companyId);
 
+  const isDashboardPage = pathname ? pathname.includes('/admin/dashboard') : false;
   const isUsersPage = pathname ? pathname.includes('/admin/users') : false;
   const isBudgetPage = pathname ? pathname.includes('/admin/budget') : false;
 
@@ -116,6 +118,12 @@ export const AdminSidebar = ({ companyId, userRole = 'user' }: AdminSidebarProps
     <>
       {/* 모바일 */}
       <aside className="flex flex-row gap-0 border-b border-gray-200 tablet:hidden">
+        <AdminSidebarMenuItemMobile
+          href={dashboardHref}
+          iconSrc="/icons/dashboard-chart.svg"
+          label="Dashboard"
+          active={isDashboardPage}
+        />
         <AdminSidebarMenuItemMobile
           href={usersHref}
           iconSrc={isUsersPage ? '/icons/user.svg' : '/icons/user-outline.svg'}
@@ -133,6 +141,12 @@ export const AdminSidebar = ({ companyId, userRole = 'user' }: AdminSidebarProps
       {/* 태블릿 */}
       <aside className="hidden tablet:flex desktop:hidden flex-row gap-0 border-b border-gray-200">
         <AdminSidebarMenuItemTablet
+          href={dashboardHref}
+          iconSrc="/icons/dashboard-chart.svg"
+          label="Dashboard"
+          active={isDashboardPage}
+        />
+        <AdminSidebarMenuItemTablet
           href={usersHref}
           iconSrc={isUsersPage ? '/icons/user.svg' : '/icons/user-outline.svg'}
           label="회원 관리"
@@ -148,6 +162,12 @@ export const AdminSidebar = ({ companyId, userRole = 'user' }: AdminSidebarProps
 
       {/* 데스크톱 */}
       <aside className="hidden desktop:flex flex-col gap-4">
+        <AdminSidebarMenuItemDesktop
+          href={dashboardHref}
+          iconSrc="/icons/dashboard-chart.svg"
+          label="Dashboard"
+          active={isDashboardPage}
+        />
         <AdminSidebarMenuItemDesktop
           href={usersHref}
           iconSrc={isUsersPage ? '/icons/user.svg' : '/icons/user-outline.svg'}
