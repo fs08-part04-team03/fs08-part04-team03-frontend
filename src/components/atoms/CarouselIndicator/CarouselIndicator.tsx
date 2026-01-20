@@ -28,7 +28,11 @@ export const CarouselIndicator = ({
   const dots = Array.from({ length: count }, (_, i) => i);
 
   return (
-    <div className={clsx('flex justify-center gap-6', className)} aria-hidden={!isClickable}>
+    <div
+      className={clsx('flex justify-center gap-6', className)}
+      role={isClickable ? undefined : 'status'}
+      aria-label={isClickable ? undefined : `${ariaLabelPrefix} ${activeIndex + 1} / ${count}`}
+    >
       {dots.map((dotIndex) => {
         const dotClassName = clsx(
           'h-6 w-6 rounded-full transition-colors',
