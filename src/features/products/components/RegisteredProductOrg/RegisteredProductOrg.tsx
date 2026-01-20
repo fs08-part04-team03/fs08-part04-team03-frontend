@@ -247,7 +247,7 @@ const RegisteredProductOrg = ({
                         <div className={clsx('flex-1 flex items-center gap-20')}>
                           <div
                             className={clsx(
-                              'flex items-center justify-center w-40 h-40 bg-gray-50 shrink-0'
+                              'flex items-center justify-center w-48 h-48 bg-gray-50 shrink-0'
                             )}
                           >
                             {(() => {
@@ -256,8 +256,8 @@ const RegisteredProductOrg = ({
                                   <Image
                                     src="/icons/no-image-small.svg"
                                     alt="이미지 없음"
-                                    width={16}
-                                    height={27}
+                                    width={19}
+                                    height={32}
                                     unoptimized
                                   />
                                 );
@@ -266,8 +266,8 @@ const RegisteredProductOrg = ({
                                 <Image
                                   src={product.imageSrc}
                                   alt={product.name}
-                                  width={16}
-                                  height={27}
+                                  width={19}
+                                  height={32}
                                   onError={() => handleImageError(product.id)}
                                   className="object-contain"
                                 />
