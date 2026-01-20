@@ -119,11 +119,15 @@ export const ExcelExportModal = ({
       className="fixed inset-0 z-[var(--z-overlay-content)] flex items-center justify-center bg-black/50 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="excel-export-title"
+      aria-describedby="excel-export-desc"
     >
       <div className="bg-white rounded-16 p-24 w-full max-w-400 shadow-xl m-16">
-        <h2 className="text-18 font-bold text-gray-900 mb-16">엑셀 리포트 다운로드</h2>
+        <h2 id="excel-export-title" className="text-18 font-bold text-gray-900 mb-16">
+          엑셀 리포트 다운로드
+        </h2>
 
-        <p className="text-14 text-gray-600 mb-20">
+        <p id="excel-export-desc" className="text-14 text-gray-600 mb-20">
           구매 요청 승인/거절 내역을 엑셀 파일로 다운로드합니다.
         </p>
 
