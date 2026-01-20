@@ -64,9 +64,18 @@ const BudgetFormOrg = ({
       errorSetter(validateBudget(numericValue));
     };
 
+  // 변경 사항이 있는지 확인
+  const isChanged =
+    Number(thisMonthBudget) !== initialThisMonthBudget ||
+    Number(monthlyStartBudget) !== initialMonthlyStartBudget;
+
   // 제출 가능 여부 확인
   const isSubmitDisabled =
-    !!thisMonthError || !!monthlyStartError || !thisMonthBudget || !monthlyStartBudget;
+    !!thisMonthError ||
+    !!monthlyStartError ||
+    !thisMonthBudget ||
+    !monthlyStartBudget ||
+    !isChanged;
 
   const handleSubmit = () => {
     if (onSubmit) {
