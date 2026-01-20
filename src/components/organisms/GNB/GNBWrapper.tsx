@@ -79,7 +79,7 @@ export const GNBWrapper = () => {
   const cartCount = cartData?.summary?.totalItems || 0;
 
   // 사용자 프로필 정보 조회 (profileImage 포함)
-  const { data: myProfile } = useMyProfile();
+  const { data: myProfile, isLoading: isLoadingProfile } = useMyProfile();
 
   // 프로필 이미지 URL 생성
   const avatarSrc = (() => {
@@ -224,9 +224,10 @@ export const GNBWrapper = () => {
   return (
     <GNB
       baseState={{
-        role: user?.role || 'user',
+        role: user?.role ?? 'user',
         userProfile,
         cartCount,
+        isLoadingProfile: isLoadingProfile && !!user,
       }}
       handlers={{
         onLogout: handleLogout,
