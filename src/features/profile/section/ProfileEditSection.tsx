@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileEditSchema, type ProfileEditInput } from '@/features/profile/schemas/profileSchema';
@@ -37,6 +38,7 @@ const getRoleDisplayName = (role?: string) => {
 };
 
 const ProfileEditSection = () => {
+  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -246,6 +248,11 @@ const ProfileEditSection = () => {
         previewUrlRef.current = null;
       }
       // 성공 후 myProfile에서 최신 이미지 가져오기 (useEffect에서 자동 처리됨)
+
+      // 프로필 수정 완료 후 이전 페이지로 이동
+      setTimeout(() => {
+        router.back();
+      }, 1000);
     } catch (error) {
       logger.error('Profile update failed', {
         hasError: true,
