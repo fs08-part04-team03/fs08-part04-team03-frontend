@@ -41,14 +41,14 @@ const getLocalDateString = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-// 기본 시작일: 이번 달 1일 00:00
+// 기본 시작일: 이번 달 1일
 const getDefaultFromDate = (): string => {
   const now = new Date();
   const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
   return getLocalDateString(firstDay);
 };
 
-// 기본 종료일: 현재 시간
+// 기본 종료일: 현재 날짜
 const getDefaultToDate = (): string => getLocalDateString(new Date());
 
 export const ExcelExportModal = ({
