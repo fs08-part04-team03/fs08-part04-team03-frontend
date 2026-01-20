@@ -205,7 +205,7 @@ const DashboardCardOrg = ({
 
           <div className="w-full flex-1 overflow-y-auto scrollbar-none">
             <table className="w-full table-fixed text-12 text-gray-700">
-              <thead className="sticky top-0 bg-gray-50 z-10">
+              <thead className="sticky top-0 bg-gray-50 z-20 shadow-sm">
                 <tr className="border-b border-gray-200">
                   <th className="w-1/4 text-left py-6">이름</th>
                   <th className="w-2/4 text-left py-6">이메일</th>
