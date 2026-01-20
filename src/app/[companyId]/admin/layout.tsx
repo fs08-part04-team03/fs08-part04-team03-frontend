@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const AdminLayout = ({ children }: { children: ReactNode }) => (
   // admin role guard
   <RoleGuard requiredRole="admin">
-    <div>{children}</div>
+    <div className="flex justify-center mx-24">{children}</div>
   </RoleGuard>
 );
 
