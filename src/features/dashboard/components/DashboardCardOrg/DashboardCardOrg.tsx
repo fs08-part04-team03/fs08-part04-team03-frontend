@@ -12,7 +12,12 @@ const ResponsiveContainer = dynamic(() => import('recharts').then((m) => m.Respo
   ssr: false,
 });
 
-export type DashboardCardVariant = 'default' | 'medium' | 'large';
+export type DashboardCardVariant =
+  | 'default'
+  | 'medium'
+  | 'large'
+  | 'longMedium'
+  | 'mediumExtraLong';
 export type DefaultCardType = 'summary' | 'yearlyBar';
 
 /** ================= 회원 타입 ================= */
@@ -77,17 +82,29 @@ const variantStyles: Record<DashboardCardVariant, string> = {
   default: `
     w-327 h-132 gap-12 justify-start
     tablet:w-696 tablet:h-190 tablet:gap-20
-    desktop:w-570 desktop:h-190 desktop:gap-20
+    desktop:flex-1 desktop:h-190 desktop:gap-20
   `,
   medium: `
     w-327 h-132 gap-8 justify-start
     tablet:w-333 tablet:h-250
-    desktop:w-570 desktop:h-255
+    desktop:w-full desktop:h-255
+  `,
+  // 모바일에서만 medium보다 살짝 더 긴 카드
+  longMedium: `
+    w-327 h-190 gap-8 justify-start
+    tablet:w-333 tablet:h-250
+    desktop:w-full desktop:h-255
   `,
   large: `
     w-327 h-132 gap-8 justify-center
     tablet:w-696 tablet:h-190
-    desktop:w-570 desktop:h-534
+    desktop:w-full desktop:h-534
+  `,
+  // 모바일에서 "이번 달 요청한 간식 순위"를 담기 위한 더 긴 카드
+  mediumExtraLong: `
+    w-327 h-390 gap-12 justify-start
+    tablet:w-696 tablet:h-320
+    desktop:w-full desktop:h-534
   `,
 };
 
@@ -131,7 +148,7 @@ const DashboardCardOrg = ({
     <div
       className={clsx(
         `
-        flex flex-col items-start flex-shrink-0
+        flex flex-col items-start shrink-0
         rounded-4 bg-gray-50
         px-15 py-20 tablet:p-30 desktop:p-30
         `,
@@ -196,7 +213,7 @@ const DashboardCardOrg = ({
       )}
 
       {/* ================= Medium ================= */}
-      {variant === 'medium' && (
+      {(variant === 'medium' || variant === 'longMedium') && (
         <div className="w-full flex flex-col gap-8 h-full">
           <span className="text-14 font-medium text-gray-900 shrink-0">
             {isChangedUserMode ? '이번 달 탈퇴 / 권한 변경' : '이번 달 신규 회원 리스트'}
@@ -272,8 +289,8 @@ const DashboardCardOrg = ({
         <div className="w-full h-full flex flex-col gap-12">
           <span className="text-14 font-medium text-gray-900">이번 달 요청한 간식 순위</span>
 
-          <div className="flex items-start flex-1 gap-24 overflow-hidden">
-            <div className="flex-shrink-0 w-260 h-260">
+          <div className="flex items-start flex-1 gap-20 overflow-hidden">
+            <div className="shrink-0 w-200 h-200">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -301,6 +318,52 @@ const DashboardCardOrg = ({
                   <span className="text-gray-400 w-12">{index + 1}.</span>
                   <span className="w-8 h-8 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="flex-1 truncate">{item.label}</span>
+                  <span className="text-gray-500">
+                    {item.value}회 ·{' '}
+                    {largeTotal === 0 ? '0.0' : ((item.value / largeTotal) * 100).toFixed(1)}%
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* ================= Medium Extra Long (Mobile-friendly Snack Rank) ================= */}
+      {variant === 'mediumExtraLong' && (
+        <div className="w-full h-full flex flex-col gap-12">
+          <span className="text-14 font-medium text-gray-900">이번 달 요청한 간식 순위</span>
+
+          {/* 모바일: 차트 위, 리스트 아래 / 태블릿+: 좌우 배치 */}
+          <div className="flex flex-col tablet:flex-row items-start flex-1 gap-16 tablet:gap-20 overflow-hidden">
+            <div className="self-center tablet:self-auto shrink-0 w-220 h-220 tablet:w-240 tablet:h-240">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={largeChartData}
+                    dataKey="value"
+                    nameKey="label"
+                    innerRadius="50%"
+                    outerRadius="80%"
+                    paddingAngle={2}
+                  >
+                    {largeChartData.map((item) => (
+                      <Cell key={item.label} fill={item.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value?: number, name?: string) => [`${value ?? 0}회`, name]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <ul className="w-full tablet:flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none">
+              {largeChartData.slice(0, 5).map((item, index) => (
+                <li key={item.label} className="flex items-center gap-8">
+                  <span className="text-gray-400 w-12">{index + 1}.</span>
+                  <span className="w-8 h-8 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="flex-1 min-w-0 truncate">{item.label}</span>
                   <span className="text-gray-500">
                     {item.value}회 ·{' '}
                     {largeTotal === 0 ? '0.0' : ((item.value / largeTotal) * 100).toFixed(1)}%
