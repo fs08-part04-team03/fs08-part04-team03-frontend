@@ -14,7 +14,9 @@ import type {
 import { useBroadcastNotification } from '@/features/notification/queries/notification.queries';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/molecules/Toast/Toast';
+import { exportPurchaseRequests, downloadBlob } from '@/features/dashboard/api/report.api';
 import { EmergencyBroadcastModal } from './EmergencyBroadcastModal';
+import { ExcelExportModal, type ExcelExportParams } from './ExcelExportModal';
 
 interface User {
   name: string;
@@ -54,6 +56,8 @@ const DashboardTem = ({
 }: DashboardTemProps) => {
   const { mutate: broadcast } = useBroadcastNotification();
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+  const [isExcelExporting, setIsExcelExporting] = useState(false);
 
   // Toast 상태
   const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
@@ -80,7 +84,23 @@ const DashboardTem = ({
   };
 
   const handleExcelClick = () => {
-    // TODO: Excel 다운로드 기능 연결
+    setIsExcelModalOpen(true);
+  };
+
+  const handleExcelExport = async (params: ExcelExportParams) => {
+    setIsExcelExporting(true);
+    try {
+      const blob = await exportPurchaseRequests(params);
+      const filename = `purchase_requests_${params.from.slice(0, 10)}_${params.to.slice(0, 10)}.xlsx`;
+      downloadBlob(blob, filename);
+      triggerToast('success', '엑셀 파일 다운로드가 완료되었습니다.');
+      setIsExcelModalOpen(false);
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : '엑셀 다운로드에 실패했습니다.';
+      triggerToast('error', errMessage);
+    } finally {
+      setIsExcelExporting(false);
+    }
   };
 
   return (
@@ -268,6 +288,13 @@ const DashboardTem = ({
         open={isEmergencyModalOpen}
         onClose={() => setIsEmergencyModalOpen(false)}
         onSend={handleBroadcastSend}
+      />
+
+      <ExcelExportModal
+        open={isExcelModalOpen}
+        onClose={() => setIsExcelModalOpen(false)}
+        onExport={handleExcelExport}
+        isLoading={isExcelExporting}
       />
 
       {/* Toast 렌더링 */}
