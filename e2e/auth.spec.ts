@@ -141,21 +141,19 @@ test.describe('로그인 후 페이지 접근', () => {
     // 현재 URL에서 companyId 추출
     const currentUrl = page.url();
     const match = currentUrl.match(/\/(\d+)\/products/);
-    if (match) {
-      const companyId = match[1];
-      await page.goto(`/${companyId}/cart`);
-      await expect(page).toHaveURL(new RegExp(`/${companyId}/cart`));
-    }
+    expect(match).not.toBeNull();
+    const companyId = match![1];
+    await page.goto(`/${companyId}/cart`);
+    await expect(page).toHaveURL(`/${companyId}/cart`);
   });
 
   test('로그인 후 찜목록 페이지에 접근할 수 있다', async ({ page }) => {
     const currentUrl = page.url();
     const match = currentUrl.match(/\/(\d+)\/products/);
-    if (match) {
-      const companyId = match[1];
-      await page.goto(`/${companyId}/wishlist`);
-      await expect(page).toHaveURL(new RegExp(`/${companyId}/wishlist`));
-    }
+    expect(match).not.toBeNull();
+    const companyId = match![1];
+    await page.goto(`/${companyId}/wishlist`);
+    await expect(page).toHaveURL(`/${companyId}/wishlist`);
   });
 });
 

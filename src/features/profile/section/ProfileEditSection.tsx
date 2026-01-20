@@ -50,6 +50,7 @@ const ProfileEditSection = () => {
   // 이미지 미리보기 및 파일 관리
   const [preview, setPreview] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const form = useForm<ProfileEditInput>({
     resolver: zodResolver(profileEditSchema),
@@ -152,12 +153,15 @@ const ProfileEditSection = () => {
     setPreview(previewUrl);
   };
 
-  // 컴포넌트 언마운트 시 URL 정리
+  // 컴포넌트 언마운트 시 URL 및 타이머 정리
   useEffect(
     () => () => {
       if (previewUrlRef.current) {
         URL.revokeObjectURL(previewUrlRef.current);
         previewUrlRef.current = null;
+      }
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
       }
     },
     []
@@ -250,7 +254,7 @@ const ProfileEditSection = () => {
       // 성공 후 myProfile에서 최신 이미지 가져오기 (useEffect에서 자동 처리됨)
 
       // 프로필 수정 완료 후 이전 페이지로 이동
-      setTimeout(() => {
+      navigationTimeoutRef.current = setTimeout(() => {
         router.back();
       }, 1000);
     } catch (error) {

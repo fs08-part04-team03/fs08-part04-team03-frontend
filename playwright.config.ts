@@ -11,10 +11,10 @@ export default defineConfig({
   // 모든 테스트가 독립적으로 실행되도록 설정
   fullyParallel: true,
 
-  // CI 환경에서만 테스트 실패 시 재시도하지 않음
+  // CI 환경에서 test.only() 사용 시 빌드 실패
   forbidOnly: !!process.env.CI,
 
-  // 재시도 횟수 (로컬에서는 0)
+  // 재시도 횟수 (로컬 및 CI 모두 비활성화)
   retries: 0,
 
   // CI 환경에서는 단일 워커 사용

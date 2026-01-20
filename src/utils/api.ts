@@ -206,16 +206,16 @@ export async function tryRefreshToken(): Promise<string | null> {
     if (response.ok) {
       const rawResult: unknown = await response.json();
 
-      // 디버깅: 백엔드 응답 원본 확인
-      logger.info('[Token Refresh] 백엔드 응답 원본:', {
-        rawResult: JSON.stringify(rawResult),
-        hasSuccess: typeof rawResult === 'object' && rawResult !== null && 'success' in rawResult,
-        hasData: typeof rawResult === 'object' && rawResult !== null && 'data' in rawResult,
-        hasAccessToken: !!(rawResult as { data?: { accessToken?: string } })?.data?.accessToken,
-        // 다른 가능한 형식 확인
-        hasTopLevelAccessToken:
-          typeof rawResult === 'object' && rawResult !== null && 'accessToken' in rawResult,
-      });
+      // 토큰 값은 로그에 포함하지 않음
+      if (process.env.NODE_ENV === 'development') {
+        logger.info('[Token Refresh] 백엔드 응답 구조:', {
+          hasSuccess: typeof rawResult === 'object' && rawResult !== null && 'success' in rawResult,
+          hasData: typeof rawResult === 'object' && rawResult !== null && 'data' in rawResult,
+          hasAccessToken: !!(rawResult as { data?: { accessToken?: string } })?.data?.accessToken,
+          hasTopLevelAccessToken:
+            typeof rawResult === 'object' && rawResult !== null && 'accessToken' in rawResult,
+        });
+      }
 
       const result = rawResult as {
         success: boolean;
@@ -237,7 +237,7 @@ export async function tryRefreshToken(): Promise<string | null> {
       // 백엔드 응답 형식 호환성: data.accessToken 또는 accessToken 직접 확인
       const accessToken = result.data?.accessToken || result.accessToken;
 
-      if ((result.success || accessToken) && accessToken) {
+      if (accessToken) {
         // 새 accessToken을 store에 저장
         const { setAuth, user: existingUser } = useAuthStore.getState();
 
