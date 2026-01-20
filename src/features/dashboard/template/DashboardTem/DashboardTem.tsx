@@ -13,6 +13,7 @@ import type {
   ChangedUser,
   LargeChartItem,
 } from '@/features/dashboard/components/DashboardCardOrg/DashboardCardOrg';
+import { LAYOUT_SPACING } from '@/constants/layout';
 import { useBroadcastNotification } from '@/features/notification/queries/notification.queries';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/molecules/Toast/Toast';
@@ -166,7 +167,7 @@ const DashboardTem = ({
 
   return (
     <div
-      className="
+      className={`
         mx-auto
         flex
         flex-col
@@ -175,10 +176,11 @@ const DashboardTem = ({
         desktop:flex-row
         desktop:w-full
         desktop:max-w-1400
-        desktop:mt-80
         desktop:pl-70
         desktop:pr-100
-      "
+        ${LAYOUT_SPACING.section.marginTop}
+        ${LAYOUT_SPACING.section.marginBottom}
+      `}
     >
       {/* ===== Mobile / Tablet Title ===== */}
       <div

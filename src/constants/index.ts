@@ -152,3 +152,12 @@ export {
   FILE_ERROR_MESSAGES,
   VALIDATION_MESSAGES,
 } from './messages';
+
+// 레이아웃 스페이싱 토큰 re-export
+export {
+  LAYOUT_SPACING,
+  SECTION_MARGIN_TOP,
+  SECTION_MARGIN_BOTTOM,
+  PAGE_PADDING_TOP,
+  PAGE_PADDING_BOTTOM,
+} from './layout';
