@@ -31,7 +31,7 @@ export const signupSchema = z
       return hasLowerCase && hasNumber && hasSpecialChar;
     },
     {
-      message: '유효하지 않은 비밀번호입니다.',
+      message: '비밀번호는 소문자, 숫자, 특수문자를 포함해야 합니다.',
       path: ['password'],
     }
   )
