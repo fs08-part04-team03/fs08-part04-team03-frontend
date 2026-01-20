@@ -35,21 +35,15 @@ const AdminUsersTemplate = ({
   return (
     <div className="flex flex-col desktop:flex-row w-full min-h-screen bg-white">
       {/* 어드민 sidebar */}
-      <div className="flex-shrink-0 border-gray-100 desktop:border-r">
+      <div className="shrink-0 desktop:border-r border-gray-100">
         <div className="desktop:p-24 desktop:w-260 desktop:sticky desktop:top-0 h-full">
           <AdminSidebar companyId={companyId} userRole="admin" />
         </div>
       </div>
 
       {/* 메인 컨텐츠 영역 */}
-      <main
-        className="flex-1 flex flex-col items-center
-                    desktop:block
-                    p-24 tablet:p-40 desktop:py-60 desktop:pr-60 desktop:pl-80 
-                    xl:pl-140
-                    overflow-x-hidden"
-      >
-        <div className="w-full max-w-full tablet:max-w-full desktop:max-w-960">
+      <main className="flex-1 p-24 tablet:p-40 overflow-x-hidden">
+        <div className="max-w-600 w-full">
           <div className="flex flex-col w-full bg-white">
             {/* 헤더 */}
             <div className="flex justify-between items-center mb-24 desktop:mb-55">
@@ -60,7 +54,7 @@ const AdminUsersTemplate = ({
               <div className="hidden tablet:block">
                 <Button
                   variant="primary"
-                  className="!w-[150px] !h-44 !py-12 !px-16 !rounded-default !bg-gray-950 !text-white !text-16 !font-bold tracking-tight"
+                  className="!w-150 !h-44 !py-12 !px-16 !rounded-default !bg-gray-950 !text-white !text-16 !font-bold tracking-tight"
                   onClick={onInvite}
                 >
                   회원 초대하기
