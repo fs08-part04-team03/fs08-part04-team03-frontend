@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Chatbot from 'react-chatbot-kit';
 import 'react-chatbot-kit/build/main.css';
 import Image from 'next/image';
@@ -37,6 +37,13 @@ const chatBotWrapperStyle: React.CSSProperties = {
 const ChatBot = (): JSX.Element | null => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, isHydrated } = useAuthStore();
+
+  // 로그아웃 시 챗봇 닫기
+  useEffect(() => {
+    if (!user) {
+      setIsOpen(false);
+    }
+  }, [user]);
 
   // hydration이 완료될 때까지 대기
   if (!isHydrated) {
