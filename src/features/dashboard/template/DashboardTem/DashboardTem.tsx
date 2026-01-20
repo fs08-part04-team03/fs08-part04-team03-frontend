@@ -112,8 +112,11 @@ const DashboardTem = ({
         w-327
         tablet:w-696
         desktop:flex-row
-        desktop:w-1400
+        desktop:w-full
+        desktop:max-w-1400
         desktop:mt-80
+        desktop:pl-70
+        desktop:pr-100
       "
     >
       {/* ===== Mobile / Tablet Title ===== */}
@@ -125,6 +128,7 @@ const DashboardTem = ({
           items-center
           justify-between
           desktop:hidden
+          w-full
         "
       >
         <h1
@@ -157,7 +161,7 @@ const DashboardTem = ({
       {/* ===== AdminSidebar ===== */}
       <div
         className="
-          flex-shrink-0
+          shrink-0
           mb-10
           tablet:mb-20
           desktop:mb-0
@@ -167,7 +171,7 @@ const DashboardTem = ({
       </div>
 
       {/* ===== Dashboard Content ===== */}
-      <main className="flex flex-col desktop:ml-50 w-full">
+      <main className="flex flex-col desktop:ml-50 flex-1 min-w-0">
         {/* ===== Desktop Title ===== */}
         <div
           className="
@@ -176,6 +180,7 @@ const DashboardTem = ({
             items-center
             justify-between
             mb-30
+            w-full
           "
         >
           <h1
@@ -249,9 +254,13 @@ const DashboardTem = ({
             desktop:hidden
           "
         >
-          <DashboardCard variant="medium" mediumMode="new" monthlyNewUsers={newUsers} />
+          <DashboardCard variant="longMedium" mediumMode="new" monthlyNewUsers={newUsers} />
 
-          <DashboardCard variant="medium" mediumMode="changed" monthlyChangedUsers={changedUsers} />
+          <DashboardCard
+            variant="longMedium"
+            mediumMode="changed"
+            monthlyChangedUsers={changedUsers}
+          />
         </section>
 
         {/* ===== large (mobile / tablet) ===== */}
@@ -262,7 +271,7 @@ const DashboardTem = ({
             desktop:hidden
           "
         >
-          <DashboardCard variant="large" largeChartData={snackRank} />
+          <DashboardCard variant="mediumExtraLong" largeChartData={snackRank} />
         </section>
 
         {/* ===== desktop grid ===== */}
@@ -299,7 +308,7 @@ const DashboardTem = ({
 
       {/* Toast 렌더링 */}
       {showToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[var(--z-toast)]">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-(--z-toast)">
           <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
         </div>
       )}
