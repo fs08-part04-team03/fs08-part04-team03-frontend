@@ -14,7 +14,7 @@ const LandingTem = ({ marqueeItems }: LandingTemProps) => (
     {/* 반응형 이미지 (mobile, tablet, desktop에 따라 다른 이미지 사용) */}
     <div className="w-full flex justify-center px-4 pb-20">
       <Image
-        src="/images/landing-mobile.svg"
+        src="/images/landing-full-mobile.svg"
         alt="Snack App Interface"
         className="
               w-full 
@@ -25,7 +25,7 @@ const LandingTem = ({ marqueeItems }: LandingTemProps) => (
         height={100}
       />
       <Image
-        src="/images/landing-tablet.svg"
+        src="/images/landing-full-tablet.svg"
         alt="Snack App Interface"
         className="
               w-full 
@@ -36,7 +36,7 @@ const LandingTem = ({ marqueeItems }: LandingTemProps) => (
         height={100}
       />
       <Image
-        src="/images/landing-desktop.svg"
+        src="/images/landing-full-desktop.svg"
         alt="Snack App Interface"
         className="
               w-full 
