@@ -72,8 +72,9 @@ const ProductCard = ({
     pressed && 'scale-[0.97]',
     'cursor-pointer',
     (variant === 'product' || variant === 'order') &&
-      'w-155 h-241 tablet:w-156 tablet:h-252 desktop:w-367 desktop:h-439',
-    variant === 'wishlist' && 'w-155 h-251 tablet:w-219 tablet:h-315 desktop:w-373 desktop:h-445',
+      'w-full aspect-[155/241] tablet:aspect-[156/252] desktop:aspect-[367/439]',
+    variant === 'wishlist' &&
+      'w-full aspect-[155/251] tablet:aspect-[219/315] desktop:aspect-[373/445]',
     className
   );
 
@@ -182,10 +183,8 @@ const ProductCard = ({
       <div
         className={clsx(
           'relative rounded-default bg-gray-50 overflow-hidden',
-          (variant === 'product' || variant === 'order') &&
-            'w-155 h-241 tablet:w-156 tablet:h-252 desktop:w-367 desktop:h-439',
-          variant === 'wishlist' &&
-            'w-155 h-155 tablet:w-219 tablet:h-219 desktop:w-373 desktop:h-373'
+          (variant === 'product' || variant === 'order') && 'w-full aspect-square',
+          variant === 'wishlist' && 'w-full aspect-square'
         )}
       >
         <div className="absolute inset-0 flex items-center justify-center">{imageContent}</div>
