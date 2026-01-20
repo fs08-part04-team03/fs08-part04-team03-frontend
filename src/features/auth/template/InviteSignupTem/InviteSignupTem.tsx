@@ -261,7 +261,7 @@ const InviteSignupTem = (props: InviteSignupTemProps) => {
 
       {/* Toast */}
       {showToast && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
+        <div className="fixed top-60 left-1/2 transform -translate-x-1/2 z-toast">
           <Toast variant="custom" message={toastMessage} onClose={onCloseToast} />
         </div>
       )}
