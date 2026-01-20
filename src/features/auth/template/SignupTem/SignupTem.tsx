@@ -85,7 +85,7 @@ const SignupTemContent = ({
     <div className="mb-24">
       <div className="block mb-8 text-14 font-medium text-gray-700">프로필 이미지 (선택)</div>
       <div className="flex justify-center">
-        <div className="relative">
+        <div className="relative z-0">
           <label htmlFor={imageInputId} className="cursor-pointer">
             <div className="w-140 h-140 rounded-8 flex items-center justify-center overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
               {preview && preview.startsWith('blob:') ? (
@@ -123,7 +123,7 @@ const SignupTemContent = ({
                 e.stopPropagation();
                 onImageDelete();
               }}
-              className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full z-50 shadow-sm"
+              className="absolute top-0 right-0 w-24 h-24 flex items-center justify-center bg-white rounded-full shadow-sm"
               aria-label="이미지 삭제"
             >
               <Image src="/icons/close-circle.svg" alt="삭제" width={24} height={24} unoptimized />
@@ -252,7 +252,7 @@ const SignupTem = (props: SignupTemProps) => {
           <Logo size="lg" />
         </div>
         <div className="w-600 mx-auto">
-          <div className="flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl relative">
+          <div className="flex flex-col items-center justify-center py-40 bg-white rounded-16 shadow-2xl">
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <SignupTemContent
               {...contentProps}
