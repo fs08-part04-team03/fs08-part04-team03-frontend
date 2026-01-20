@@ -75,7 +75,7 @@ const InviteSignup = ({ token: _token }: InviteSignupProps) => {
   // 에러 상태일 때는 토스트만 표시
   if (error || (!inviteData && inviteUrl)) {
     return (
-      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
+      <div className="fixed top-60 left-1/2 transform -translate-x-1/2 z-toast">
         {showToast && <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />}
       </div>
     );
@@ -89,7 +89,7 @@ const InviteSignup = ({ token: _token }: InviteSignupProps) => {
   return (
     <>
       {showToast && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="fixed top-60 left-1/2 transform -translate-x-1/2 z-toast">
           <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
         </div>
       )}

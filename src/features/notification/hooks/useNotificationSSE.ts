@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/store/authStore';
-import { getApiUrl } from '@/utils/api';
+import { getApiUrl, tryRefreshToken } from '@/utils/api';
 import { logger } from '@/utils/logger';
 import { DEFAULT_API_URL } from '@/features/auth/utils/constants';
 import { NOTIFICATION_API, SSE_CONFIG } from '@/constants/notification.constants';
@@ -114,16 +114,55 @@ export function useNotificationSSE(options?: UseNotificationSSEOptions) {
         sseRef.current?.close();
         sseRef.current = null;
 
-        // 재연결 예약 (토큰이 여전히 유효할 경우에만)
+        // 재연결 예약 (토큰 갱신 후 재시도)
         if (enabled) {
           reconnectTimeoutRef.current = setTimeout(() => {
-            const currentToken = useAuthStore.getState().accessToken;
-            if (currentToken) {
-              logger.info('[SSE] Reconnecting');
-              connect();
-            } else {
-              logger.info('[SSE] No valid token, skipping reconnection');
-            }
+            const reconnectWithTokenRefresh = async () => {
+              try {
+                // 먼저 토큰 갱신 시도 (401 에러가 원인일 수 있음)
+                logger.info('[SSE] Attempting token refresh before reconnection');
+                const newToken = await tryRefreshToken();
+
+                if (newToken) {
+                  logger.info('[SSE] Token refreshed successfully, reconnecting');
+                  // 새 토큰으로 재연결 (useEffect의 accessToken dependency로 자동 재연결됨)
+                  connect();
+                } else {
+                  // 토큰 갱신 실패 - refresh token이 만료되었을 가능성
+                  const currentToken = useAuthStore.getState().accessToken;
+                  if (currentToken) {
+                    logger.info(
+                      '[SSE] Token refresh returned null, but access token exists. Reconnecting with current token'
+                    );
+                    connect();
+                  } else {
+                    logger.info(
+                      '[SSE] No valid token after refresh attempt, skipping reconnection'
+                    );
+                  }
+                }
+              } catch (refreshError) {
+                logger.warn('[SSE] Token refresh failed, trying to reconnect with existing token', {
+                  error:
+                    refreshError instanceof Error ? refreshError.message : String(refreshError),
+                });
+
+                // 토큰 갱신 중 에러 발생 - 기존 토큰으로 재연결 시도
+                const currentToken = useAuthStore.getState().accessToken;
+                if (currentToken) {
+                  logger.info('[SSE] Reconnecting with existing token');
+                  connect();
+                } else {
+                  logger.info('[SSE] No valid token, skipping reconnection');
+                }
+              }
+            };
+
+            reconnectWithTokenRefresh().catch((error: unknown) => {
+              logger.error('[SSE] Reconnection failed', {
+                error: error instanceof Error ? error.message : String(error),
+              });
+            });
           }, SSE_CONFIG.RECONNECT_DELAY);
         }
       };

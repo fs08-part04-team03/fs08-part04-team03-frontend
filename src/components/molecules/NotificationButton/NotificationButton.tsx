@@ -50,6 +50,7 @@ export const NotificationButton = ({
           width={24}
           height={24}
           aria-hidden="true"
+          className="cursor-pointer"
         />
 
         {/* 빨간 점 뱃지: unreadCount가 0보다 클 때만 표시 */}

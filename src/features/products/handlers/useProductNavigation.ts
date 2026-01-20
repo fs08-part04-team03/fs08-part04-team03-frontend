@@ -2,7 +2,7 @@
  * Products 도메인 네비게이션 핸들러
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { PATHNAME } from '@/constants';
@@ -115,13 +115,24 @@ export function useProductNavigation(companyId: string) {
     }
   }, [companyId, router, queryClient]);
 
-  return {
-    handleCategoryChange,
-    handleSearch,
-    goToProductDetail,
-    goToProductsByCategory,
-    goToProducts,
-    goToMyProducts,
-    goToCart,
-  };
+  return useMemo(
+    () => ({
+      handleCategoryChange,
+      handleSearch,
+      goToProductDetail,
+      goToProductsByCategory,
+      goToProducts,
+      goToMyProducts,
+      goToCart,
+    }),
+    [
+      handleCategoryChange,
+      handleSearch,
+      goToProductDetail,
+      goToProductsByCategory,
+      goToProducts,
+      goToMyProducts,
+      goToCart,
+    ]
+  );
 }
