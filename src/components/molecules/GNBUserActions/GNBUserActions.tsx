@@ -199,7 +199,8 @@ export const GNBUserActionsDesktop = ({
           className={clsx(
             'inline-flex',
             'text-16 text-gray-700 hover:text-gray-900',
-            'px-8 py-4 rounded-999 hover:bg-gray-50 transition-colors'
+            'px-8 py-4 rounded-999 hover:bg-gray-50 transition-colors',
+            'cursor-pointer'
           )}
         >
           로그아웃
