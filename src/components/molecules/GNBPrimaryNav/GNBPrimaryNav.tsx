@@ -245,7 +245,8 @@ export const GNBPrimaryNavSidebar = ({
           className={clsx(
             'flex items-center justify-center',
             'text-16 leading-22 transition-colors',
-            'text-gray-500 hover:text-black'
+            'text-gray-500 hover:text-black',
+            'cursor-pointer'
           )}
         >
           로그아웃

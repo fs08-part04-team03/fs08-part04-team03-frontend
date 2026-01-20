@@ -185,7 +185,7 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
                 'w-full text-left px-16 py-12',
                 'border-b border-gray-100',
                 'transition-colors hover:bg-gray-50 cursor-pointer',
-                !notification.isRead && 'bg-blue-50'
+                !notification.isRead && 'bg-gray-60'
               )}
             >
               <div className="flex items-start gap-12">
@@ -241,7 +241,7 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
           'bg-white pointer-events-auto flex flex-col',
           'fixed inset-0 w-full h-full z-[var(--z-overlay-content)]',
           'tablet:static tablet:z-auto',
-          'tablet:w-full tablet:max-w-360 tablet:h-auto tablet:max-h-[500px]',
+          'tablet:w-full tablet:max-w-300 tablet:h-auto tablet:max-h-[500px]',
           'tablet:mt-56 tablet:mr-24',
           'tablet:rounded-12 tablet:shadow-xl tablet:border tablet:border-gray-200',
           'overflow-hidden'
@@ -257,12 +257,19 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
             className="p-4 hover:bg-gray-100 rounded-full transition-colors"
             aria-label="닫기"
           >
-            <Image src="/icons/close-white.svg" alt="" width={20} height={20} aria-hidden="true" />
+            <Image
+              src="/icons/close-white.svg"
+              alt=""
+              width={20}
+              height={20}
+              aria-hidden="true"
+              className="cursor-pointer"
+            />
           </button>
         </div>
 
         {/* 알림 목록 */}
-        <div className="flex-1 overflow-y-auto">{renderContent()}</div>
+        <div className="flex-1 overflow-y-auto scrollbar-none">{renderContent()}</div>
       </div>
     </div>,
     document.body
