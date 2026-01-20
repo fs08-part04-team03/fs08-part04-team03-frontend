@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Chatbot from 'react-chatbot-kit';
+import type { IMessage } from 'react-chatbot-kit/build/src/interfaces/IMessages';
 import 'react-chatbot-kit/build/main.css';
 import Image from 'next/image';
 import { useAuthStore } from '@/lib/store/authStore';
@@ -39,24 +40,25 @@ const chatBotWrapperStyle: React.CSSProperties = {
 const ChatBot = (): JSX.Element | null => {
   const [isOpen, setIsOpen] = useState(false);
   const [chatKey, setChatKey] = useState(0);
-  const [previousUserId, setPreviousUserId] = useState<number | null>(null);
+  const [previousUserId, setPreviousUserId] = useState<string | null>(null);
   const { user, isHydrated } = useAuthStore();
 
   // 사용자 role에 따라 동적으로 config 생성
   const config = useMemo(() => {
-    const isAdmin = user?.role === 'ADMIN';
+    const isAdmin = user?.role === 'admin';
     return createChatbotConfig(isAdmin);
   }, [user?.role]);
 
   // 세션 스토리지에서 메시지 로드
-  const loadMessages = () => {
+  const loadMessages = (): IMessage[] | undefined => {
     if (typeof window === 'undefined' || !user) return undefined;
 
     try {
       const storageKey = `${CHATBOT_STORAGE_KEY}_${user.id}`;
       const stored = sessionStorage.getItem(storageKey);
       if (stored) {
-        const parsed = JSON.parse(stored) as unknown[];
+        const parsed = JSON.parse(stored) as IMessage[];
+        // eslint-disable-next-line no-console
         console.log('[Chatbot] Loaded messages from storage:', parsed.length);
         return parsed;
       }
@@ -67,12 +69,13 @@ const ChatBot = (): JSX.Element | null => {
   };
 
   // 세션 스토리지에 메시지 저장 (react-chatbot-kit이 자동으로 호출)
-  const saveMessages = (messages: unknown[]) => {
+  const saveMessages = (messages: IMessage[]) => {
     if (typeof window === 'undefined' || !user) return;
 
     try {
       const storageKey = `${CHATBOT_STORAGE_KEY}_${user.id}`;
       sessionStorage.setItem(storageKey, JSON.stringify(messages));
+      // eslint-disable-next-line no-console
       console.log('[Chatbot] saveMessages called:', messages.length, 'messages');
     } catch (error) {
       console.error('[Chatbot] Failed to save messages to session storage:', error);
@@ -90,6 +93,7 @@ const ChatBot = (): JSX.Element | null => {
         Object.keys(sessionStorage).forEach((key) => {
           if (key.startsWith(CHATBOT_STORAGE_KEY)) {
             sessionStorage.removeItem(key);
+            // eslint-disable-next-line no-console
             console.log('[Chatbot] Cleared session storage:', key);
           }
         });
@@ -98,12 +102,14 @@ const ChatBot = (): JSX.Element | null => {
       setPreviousUserId(null);
     } else if (previousUserId !== user.id) {
       // 사용자가 변경되었을 때 (다른 계정으로 로그인)
+      // eslint-disable-next-line no-console
       console.log('[Chatbot] User changed from', previousUserId, 'to', user.id);
 
       // 이전 사용자의 세션 스토리지 클리어 (있다면)
       if (previousUserId !== null && typeof window !== 'undefined') {
         const oldStorageKey = `${CHATBOT_STORAGE_KEY}_${previousUserId}`;
         sessionStorage.removeItem(oldStorageKey);
+        // eslint-disable-next-line no-console
         console.log('[Chatbot] Cleared previous user storage:', oldStorageKey);
       }
 
