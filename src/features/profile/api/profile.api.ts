@@ -265,7 +265,8 @@ export async function updateAdminProfile(
       formData.append('companyName', data.companyName!);
     }
     if (hasPassword) {
-      formData.append('password', data.password!);
+      formData.append('newPassword', data.password!);
+      formData.append('newPasswordConfirm', data.password!);
     }
     if (hasImage && data.imageFile) {
       // 이미지 파일을 전송 (API 스펙에 따르면 image 필드는 파일을 받음)
