@@ -82,7 +82,7 @@ const variantStyles: Record<DashboardCardVariant, string> = {
   default: `
     w-327 h-132 gap-12 justify-start
     tablet:w-696 tablet:h-190 tablet:gap-20
-    desktop:flex-1 desktop:h-190 desktop:gap-20
+    desktop:w-full desktop:h-190 desktop:gap-20
   `,
   medium: `
     w-327 h-132 gap-8 justify-start
@@ -136,7 +136,8 @@ const DashboardCardOrg = ({
   }));
 
   /** 🔥 핵심 수정 */
-  const isChangedUserMode = variant === 'medium' && mediumMode === 'changed';
+  const isChangedUserMode =
+    (variant === 'medium' || variant === 'longMedium') && mediumMode === 'changed';
 
   const tableUsers = isChangedUserMode ? monthlyChangedUsers : monthlyNewUsers;
 
@@ -289,8 +290,8 @@ const DashboardCardOrg = ({
         <div className="w-full h-full flex flex-col gap-12">
           <span className="text-14 font-medium text-gray-900">이번 달 요청한 간식 순위</span>
 
-          <div className="flex items-start flex-1 gap-20 overflow-hidden">
-            <div className="shrink-0 w-200 h-200">
+          <div className="flex flex-col tablet:flex-row desktop:flex-col items-start flex-1 gap-16 overflow-hidden">
+            <div className="shrink-0 w-200 h-200 desktop:w-208 desktop:h-208 desktop:self-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -312,7 +313,7 @@ const DashboardCardOrg = ({
               </ResponsiveContainer>
             </div>
 
-            <ul className="flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none">
+            <ul className="w-full tablet:flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none">
               {largeChartData.map((item, index) => (
                 <li key={item.label} className="flex items-center gap-8">
                   <span className="text-gray-400 w-12">{index + 1}.</span>
@@ -336,7 +337,7 @@ const DashboardCardOrg = ({
 
           {/* 모바일: 차트 위, 리스트 아래 / 태블릿+: 좌우 배치 */}
           <div className="flex flex-col tablet:flex-row items-start flex-1 gap-16 tablet:gap-20 overflow-hidden">
-            <div className="self-center tablet:self-auto shrink-0 w-220 h-220 tablet:w-240 tablet:h-240">
+            <div className="self-center tablet:self-auto shrink-0 w-180 h-180 tablet:w-220 tablet:h-220 desktop:w-180 desktop:h-180">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -358,12 +359,14 @@ const DashboardCardOrg = ({
               </ResponsiveContainer>
             </div>
 
-            <ul className="w-full tablet:flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none">
-              {largeChartData.slice(0, 5).map((item, index) => (
+            <ul className="w-full tablet:flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none max-h-160 tablet:max-h-none">
+              {largeChartData.map((item, index) => (
                 <li key={item.label} className="flex items-center gap-8">
                   <span className="text-gray-400 w-12">{index + 1}.</span>
                   <span className="w-8 h-8 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="flex-1 min-w-0 truncate">{item.label}</span>
+                  <span className="flex-1 min-w-0 whitespace-normal wrap-break-word">
+                    {item.label}
+                  </span>
                   <span className="text-gray-500">
                     {item.value}회 ·{' '}
                     {largeTotal === 0 ? '0.0' : ((item.value / largeTotal) * 100).toFixed(1)}%
