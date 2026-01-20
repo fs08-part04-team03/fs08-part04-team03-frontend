@@ -1,4 +1,6 @@
-import { useState, useEffect, useId, ChangeEvent } from 'react';
+'use client';
+
+import { useState, useEffect, ChangeEvent } from 'react';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
 import { clsx } from '@/utils/clsx';
 import { formatBusinessNumber } from '@/utils/formatBusinessNumber';
@@ -44,9 +46,8 @@ const InputField = ({
 
   // input과 label 연결을 위한 id
   // RHFInputField에서는 항상 id가 제공되지만, 직접 사용하는 경우를 위해 fallback 제공
-  // 단, 하이드레이션 불일치를 방지하기 위해 가능한 한 외부에서 id를 제공받는 것이 좋음
-  const fallbackId = useId();
-  const inputId = id ?? fallbackId;
+  // 하이드레이션 불일치를 방지하기 위해 label 기반의 deterministic ID 생성
+  const inputId = id ?? `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     let v = e.target.value;
