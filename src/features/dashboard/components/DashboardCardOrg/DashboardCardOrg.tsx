@@ -85,8 +85,8 @@ const variantStyles: Record<DashboardCardVariant, string> = {
     desktop:w-570 desktop:h-255
   `,
   large: `
-    w-327 h-132 gap-8 justify-center
-    tablet:w-696 tablet:h-190
+    w-327 h-360 gap-8 justify-start
+    tablet:w-696 tablet:h-380
     desktop:w-570 desktop:h-534
   `,
 };
@@ -131,7 +131,7 @@ const DashboardCardOrg = ({
     <div
       className={clsx(
         `
-        flex flex-col items-start flex-shrink-0
+        flex flex-col items-start shrink-0
         rounded-4 bg-gray-50
         px-15 py-20 tablet:p-30 desktop:p-30
         `,
@@ -172,7 +172,7 @@ const DashboardCardOrg = ({
         <div className="w-full flex flex-col gap-8 tablet:gap-16">
           <span className="text-14 font-medium text-gray-900">월별 지출 현황</span>
 
-          <div className="w-full h-80 tablet:h-100 desktop:h-100">
+          <div className="w-full h-60 tablet:h-100 desktop:h-100">
             <ResponsiveContainer>
               <BarChart data={chartData}>
                 <XAxis
@@ -181,7 +181,8 @@ const DashboardCardOrg = ({
                   axisLine={false}
                   interval={0}
                   minTickGap={0}
-                  tick={{ fontSize: 10, fill: '#6B7280' }}
+                  tick={{ fontSize: 9, fill: '#6B7280' }}
+                  className="tablet:text-10"
                 />
                 <YAxis hide domain={[0, maxValue]} />
                 <Tooltip
@@ -272,8 +273,9 @@ const DashboardCardOrg = ({
         <div className="w-full h-full flex flex-col gap-12">
           <span className="text-14 font-medium text-gray-900">이번 달 요청한 간식 순위</span>
 
-          <div className="flex items-start flex-1 gap-24 overflow-hidden">
-            <div className="flex-shrink-0 w-260 h-260">
+          <div className="flex flex-col tablet:flex-row items-start flex-1 gap-16 tablet:gap-24 overflow-hidden">
+            {/* 차트 영역 */}
+            <div className="shrink-0 w-full h-200 tablet:w-280 tablet:h-280 desktop:w-260 desktop:h-260">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -295,7 +297,8 @@ const DashboardCardOrg = ({
               </ResponsiveContainer>
             </div>
 
-            <ul className="flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none">
+            {/* 순위 리스트 */}
+            <ul className="flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none w-full">
               {largeChartData.map((item, index) => (
                 <li key={item.label} className="flex items-center gap-8">
                   <span className="text-gray-400 w-12">{index + 1}.</span>
