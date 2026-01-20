@@ -43,12 +43,14 @@ test.describe('페이지 네비게이션', () => {
 
   test.describe('페이지 로딩 성능', () => {
     test('로그인 페이지가 5초 내에 로드된다', async ({ page }) => {
-      const startTime = Date.now();
-      await page.goto('/login');
+      // 네비게이션 타임아웃을 5초로 설정하여 성능 검증
+      await page.goto('/login', { timeout: 5000 });
       await page.waitForLoadState('domcontentloaded');
-      const loadTime = Date.now() - startTime;
 
-      expect(loadTime).toBeLessThan(5000);
+      // 로그인 폼이 표시되는지 확인 (UI가 안정적으로 로드됨)
+      await expect(page.getByRole('heading', { name: '로그인' }).first()).toBeVisible({
+        timeout: 5000,
+      });
     });
   });
 });

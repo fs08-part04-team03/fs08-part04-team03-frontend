@@ -52,7 +52,10 @@ export function OPTIONS(req: NextRequest) {
  * 브라우저에서는 이 경로를 통해 쿠키 기반 갱신을 처리합니다.
  */
 export async function POST(req: NextRequest) {
-  const isDebug = process.env.NODE_ENV === 'development' || process.env.DEBUG_AUTH === 'true';
+  // 프로덕션에서는 DEBUG_AUTH를 무시하여 민감한 정보 노출 방지
+  const isDebug =
+    process.env.NODE_ENV === 'development' &&
+    (process.env.DEBUG_AUTH === 'true' || process.env.DEBUG_AUTH === undefined);
 
   try {
     const backendUrl = process.env.BACKEND_API_URL || DEFAULT_API_URL;
