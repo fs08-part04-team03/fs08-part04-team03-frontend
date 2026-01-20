@@ -22,7 +22,7 @@ interface Company {
  * 로그인 비즈니스 로직을 담당하는 섹션 컴포넌트
  */
 const LoginSection = () => {
-  const { showToast, toastVariant, toastMessage, closeToast } = useToast();
+  const { showToast, toastVariant, toastMessage, closeToast, triggerToast } = useToast();
 
   const loginMutation = useLogin();
   const { redirectToProducts } = useAuthRedirect();
@@ -51,6 +51,10 @@ const LoginSection = () => {
           setCompanies(err.companies);
           setPendingCredentials(values);
           setShowCompanyModal(true);
+        } else {
+          const errorMessage =
+            err instanceof Error ? err.message : '이메일 또는 비밀번호가 올바르지 않습니다.';
+          triggerToast('custom', errorMessage);
         }
       },
     });

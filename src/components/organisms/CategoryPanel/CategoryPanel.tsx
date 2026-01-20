@@ -109,7 +109,8 @@ const CategoryPanelMobile = ({
                   'text-14 transition-colors duration-150',
                   isActive
                     ? 'text-gray-950 font-bold'
-                    : 'text-gray-500 font-normal hover:text-gray-700'
+                    : 'text-gray-500 font-normal hover:text-gray-700',
+                  'cursor-pointer'
                 )}
                 aria-pressed={isActive}
               >
@@ -198,7 +199,8 @@ const CategoryPanelTablet = ({
                 'w-full p-14',
                 'flex items-center justify-between',
                 'transition-colors duration-150',
-                'text-left'
+                'text-left',
+                'cursor-pointer'
               )}
             >
               <span className={clsx('text-16 text-gray-900', isOpen ? 'font-bold' : 'font-normal')}>
@@ -245,7 +247,8 @@ const CategoryPanelTablet = ({
                             'text-16 transition-colors duration-150',
                             isActive
                               ? 'text-gray-950 font-normal'
-                              : 'text-gray-500 font-normal hover:text-gray-700'
+                              : 'text-gray-500 font-normal hover:text-gray-700',
+                            'cursor-pointer'
                           )}
                           aria-pressed={isActive}
                         >
@@ -335,7 +338,8 @@ const CategoryPanelDesktop = ({
                 'w-full p-14',
                 'flex items-center justify-between',
                 'transition-colors duration-150',
-                'text-left'
+                'text-left',
+                'cursor-pointer'
               )}
             >
               <span className={clsx('text-16 text-gray-900', isOpen ? 'font-bold' : 'font-normal')}>
@@ -382,7 +386,8 @@ const CategoryPanelDesktop = ({
                             'text-16 transition-colors duration-150',
                             isActive
                               ? 'text-gray-950 font-normal'
-                              : 'text-gray-500 font-normal hover:text-gray-700'
+                              : 'text-gray-500 font-normal hover:text-gray-700',
+                            'cursor-pointer'
                           )}
                           aria-pressed={isActive}
                         >

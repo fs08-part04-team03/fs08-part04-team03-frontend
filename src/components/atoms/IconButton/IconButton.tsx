@@ -11,7 +11,7 @@ export type IconButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'typ
 };
 
 const baseClass =
-  'inline-flex items-center justify-center rounded-full transition-colors ' +
+  'inline-flex items-center justify-center rounded-full cursor-pointer transition-colors ' +
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary ' +
   'disabled:opacity-40 disabled:cursor-not-allowed';
 

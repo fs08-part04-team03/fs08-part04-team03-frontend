@@ -151,6 +151,7 @@ const CompanySelectionModal = ({
                 'w-full p-16 rounded-default text-left transition-all duration-200',
                 'text-14 tablet:text-16 desktop:text-16',
                 'border-2',
+                'cursor-pointer',
                 selectedCompanyId === company.id
                   ? 'border-primary-500 bg-primary-50 text-primary-700 font-semibold'
                   : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50',
