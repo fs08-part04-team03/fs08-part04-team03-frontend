@@ -135,6 +135,7 @@ export const GNBCategorySwitcher = ({
           'absolute left-0 right-0 top-56 w-full',
           'bg-white/95 backdrop-blur-sm',
           'py-24',
+          'shadow-lg',
           'transform transition-transform duration-200 ease-out',
           isOpen ? 'translate-y-0' : '-translate-y-full'
         )}
@@ -160,7 +161,8 @@ export const GNBCategorySwitcher = ({
                       'transition-colors',
                       isActive
                         ? 'font-semibold text-gray-950'
-                        : 'font-normal text-gray-400 hover:text-gray-800'
+                        : 'font-normal text-gray-400 hover:text-gray-800',
+                      'cursor-pointer'
                     )}
                     role="option"
                     aria-selected={isActive}
@@ -191,7 +193,8 @@ export const GNBCategorySwitcher = ({
             'flex justify-end items-center gap-10',
             'px-8 py-4 rounded-999',
             'text-16 font-medium text-gray-950',
-            'active:scale-[0.97] transition-transform'
+            'active:scale-[0.97] transition-transform',
+            'cursor-pointer'
           )}
           onClick={handleToggle}
           aria-haspopup="dialog"

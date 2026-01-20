@@ -2,7 +2,7 @@
  * Products 도메인 모달 상태 관리 핸들러
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 /**
  * 상품 관련 모달 상태 관리 훅
@@ -54,21 +54,40 @@ export function useProductModals() {
     setProductRegisterModalOpen(false);
   }, []);
 
-  return {
-    cartAddFailedModalOpen,
-    cartAddSuccessModalOpen,
-    editModalOpen,
-    deleteModalOpen,
-    productRegisterModalOpen,
-    handleOpenCartAddFailedModal,
-    handleCloseCartAddFailedModal,
-    handleOpenCartAddSuccessModal,
-    handleCloseCartAddSuccessModal,
-    handleOpenEditModal,
-    handleCloseEditModal,
-    handleOpenDeleteModal,
-    handleCloseDeleteModal,
-    handleOpenProductRegisterModal,
-    handleCloseProductRegisterModal,
-  };
+  return useMemo(
+    () => ({
+      cartAddFailedModalOpen,
+      cartAddSuccessModalOpen,
+      editModalOpen,
+      deleteModalOpen,
+      productRegisterModalOpen,
+      handleOpenCartAddFailedModal,
+      handleCloseCartAddFailedModal,
+      handleOpenCartAddSuccessModal,
+      handleCloseCartAddSuccessModal,
+      handleOpenEditModal,
+      handleCloseEditModal,
+      handleOpenDeleteModal,
+      handleCloseDeleteModal,
+      handleOpenProductRegisterModal,
+      handleCloseProductRegisterModal,
+    }),
+    [
+      cartAddFailedModalOpen,
+      cartAddSuccessModalOpen,
+      editModalOpen,
+      deleteModalOpen,
+      productRegisterModalOpen,
+      handleOpenCartAddFailedModal,
+      handleCloseCartAddFailedModal,
+      handleOpenCartAddSuccessModal,
+      handleCloseCartAddSuccessModal,
+      handleOpenEditModal,
+      handleCloseEditModal,
+      handleOpenDeleteModal,
+      handleCloseDeleteModal,
+      handleOpenProductRegisterModal,
+      handleCloseProductRegisterModal,
+    ]
+  );
 }

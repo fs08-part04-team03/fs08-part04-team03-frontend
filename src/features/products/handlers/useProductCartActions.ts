@@ -2,7 +2,7 @@
  * Products 도메인 장바구니 액션 핸들러
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useAddToCart } from '@/features/cart/queries/cart.queries';
 import { useToast } from '@/hooks/useToast';
 import { PRODUCT_MESSAGES } from '@/features/products/constants/messages';
@@ -41,8 +41,11 @@ export function useProductCartActions(
     [productId, addToCartMutation, triggerToast, onSuccess, onError]
   );
 
-  return {
-    handleAddToCart,
-    isLoading: addToCartMutation.isPending,
-  };
+  return useMemo(
+    () => ({
+      handleAddToCart,
+      isLoading: addToCartMutation.isPending,
+    }),
+    [handleAddToCart, addToCartMutation.isPending]
+  );
 }

@@ -164,7 +164,7 @@ const LoginTem = (props: LoginTemProps) => {
 
       {/* Toast */}
       {showToast && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-toast">
+        <div className="fixed top-60 left-1/2 transform -translate-x-1/2 z-toast">
           <Toast variant={toastVariant} message={toastMessage} onClose={onCloseToast} />
         </div>
       )}
