@@ -56,7 +56,7 @@ const GNB = ({ baseState, handlers, navigationState, categoryState }: GNBProps) 
   // SSE 실시간 알림 연결
   useNotificationSSE({ enabled: true });
 
-  const { role, userProfile, cartCount = 0, className } = baseState;
+  const { role, userProfile, cartCount = 0, className, isLoadingProfile } = baseState;
   const currentActivePath = navigationState?.activePath ?? pathname ?? '';
   const categories = categoryState?.categories ?? [];
 
@@ -157,6 +157,7 @@ const GNB = ({ baseState, handlers, navigationState, categoryState }: GNBProps) 
           userProfile={userProfile}
           cartCount={cartCount}
           notificationCount={unreadCount}
+          isLoadingProfile={isLoadingProfile}
           onNotificationClick={handleNotificationClick}
           onLogout={handlers?.onLogout}
           onMenuClick={handleMenuClick}

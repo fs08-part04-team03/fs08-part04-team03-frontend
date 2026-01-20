@@ -14,6 +14,7 @@ export interface GNBBaseState {
   userProfile?: ReactNode;
   cartCount?: number;
   className?: string;
+  isLoadingProfile?: boolean;
 }
 
 /**
