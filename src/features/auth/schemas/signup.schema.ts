@@ -21,7 +21,8 @@ export const signupSchema = z
     businessNumber: z
       .string()
       .min(1, '사업자 번호를 입력해주세요.')
-      .regex(/^\d{3}-\d{2}-\d{5}$/, '유효하지 않은 사업자 번호입니다. (예: 123-45-67890)'),
+      .max(12, '사업자 번호는 10자리입니다. (예: 123-45-67890)')
+      .regex(/^\d{3}-\d{2}-\d{5}$/, '올바른 형식이 아닙니다. (예: 123-45-67890)'),
   })
   .refine(
     (data) => {
@@ -31,7 +32,7 @@ export const signupSchema = z
       return hasLowerCase && hasNumber && hasSpecialChar;
     },
     {
-      message: '유효하지 않은 비밀번호입니다.',
+      message: '비밀번호는 소문자, 숫자, 특수문자를 포함해야 합니다.',
       path: ['password'],
     }
   )
