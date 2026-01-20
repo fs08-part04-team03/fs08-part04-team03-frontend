@@ -25,7 +25,7 @@ const STATUS_OPTIONS = [
 ] as const;
 
 const ROLE_OPTIONS = [
-  { value: '', label: '전체' },
+  { value: 'ALL', label: '전체' },
   { value: 'USER', label: '일반 사용자' },
   { value: 'MANAGER', label: '매니저' },
   { value: 'ADMIN', label: '관리자' },
