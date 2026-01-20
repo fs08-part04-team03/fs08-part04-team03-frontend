@@ -35,8 +35,8 @@ export const AdminSidebarMenuItemMobile = ({
       className
     )}
   >
-    <div className="w-25 h-25 flex items-center justify-center">
-      <Image src={iconSrc} alt="" width={20} height={20} aria-hidden="true" />
+    <div className="w-15 h-15 flex items-center justify-center">
+      <Image src={iconSrc} alt="" width={15} height={15} aria-hidden="true" />
     </div>
     <span className="text-14 font-medium">{label}</span>
   </Link>
@@ -121,7 +121,7 @@ export const AdminSidebar = ({ companyId, userRole = 'user' }: AdminSidebarProps
         <AdminSidebarMenuItemMobile
           href={dashboardHref}
           iconSrc="/icons/dashboard-chart.svg"
-          label="Dashboard"
+          label="대시보드"
           active={isDashboardPage}
         />
         <AdminSidebarMenuItemMobile
