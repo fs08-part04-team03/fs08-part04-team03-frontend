@@ -9,9 +9,7 @@ export const metadata: Metadata = {
 
 const AdminLayout = ({ children }: { children: ReactNode }) => (
   // admin role guard
-  <RoleGuard requiredRole="admin">
-    <div>{children}</div>
-  </RoleGuard>
+  <RoleGuard requiredRole="admin">{children}</RoleGuard>
 );
 
 export default AdminLayout;

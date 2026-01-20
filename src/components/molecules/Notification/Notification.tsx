@@ -192,7 +192,7 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
                   return (
                     <div key={item.id} className="group">
                       <div
-                        className="px-24 py-16 h-105 flex flex-col justify-between cursor-pointer"
+                        className="px-24 py-16 flex flex-col justify-between cursor-pointer"
                         role="button"
                         tabIndex={0}
                         onClick={() => handleRead(item.id)}
@@ -205,7 +205,7 @@ export const Notification = ({ size = 32, className, notifications = [] }: Notif
                       >
                         <p
                           className={clsx(
-                            'text-16 line-clamp-2 [&>*]:inline',
+                            'text-16 [&>*]:inline',
                             isUnread ? 'text-gray-950 font-medium' : 'text-gray-500'
                           )}
                         >
