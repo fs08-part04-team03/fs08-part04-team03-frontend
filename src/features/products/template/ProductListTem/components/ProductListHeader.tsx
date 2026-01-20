@@ -40,7 +40,7 @@ export const ProductListHeader = ({
   return (
     <div className="flex flex-col pb-20">
       {/* Desktop/Tablet Header */}
-      <div className="hidden tablet:flex items-center justify-between desktop:mt-80">
+      <div className="hidden tablet:flex items-center justify-between">
         <Breadcrumb items={breadcrumbItems} />
         <div className="flex items-center gap-30">
           <DropDown
@@ -58,7 +58,7 @@ export const ProductListHeader = ({
 
       {/* Mobile Header */}
       <div className="flex flex-col tablet:hidden">
-        <div className="pt-14 pb-10">
+        <div className="pt-0 pb-10">
           <Breadcrumb items={breadcrumbItems} />
         </div>
 
