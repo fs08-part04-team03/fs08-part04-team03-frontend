@@ -432,7 +432,7 @@ const DashboardTem = ({
 
       {/* Toast 렌더링 */}
       {showToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-(--z-toast)">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-toast">
           <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
         </div>
       )}
