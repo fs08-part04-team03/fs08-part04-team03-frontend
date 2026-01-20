@@ -60,7 +60,7 @@ export const ExcelExportModal = ({
   const [fromDate, setFromDate] = useState(getDefaultFromDate);
   const [toDate, setToDate] = useState(getDefaultToDate);
   const [status, setStatus] = useState('');
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState('ALL');
 
   // 모달이 열릴 때 날짜 초기화
   useEffect(() => {
@@ -68,7 +68,7 @@ export const ExcelExportModal = ({
       setFromDate(getDefaultFromDate());
       setToDate(getDefaultToDate());
       setStatus('');
-      setRole('');
+      setRole('ALL');
     }
   }, [open]);
 
