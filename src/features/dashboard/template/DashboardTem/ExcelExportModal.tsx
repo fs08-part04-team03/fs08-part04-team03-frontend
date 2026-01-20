@@ -88,10 +88,10 @@ export const ExcelExportModal = ({
   const handleExport = () => {
     if (!isValid || isLoading) return;
 
-    // date(YYYY-MM-DD) -> ISO 8601 변환 (시작일: 00:00:00, 종료일: 23:59:59)
+    // date(YYYY-MM-DD) -> ISO 8601 변환 (날짜만)
     const params: ExcelExportParams = {
-      from: new Date(`${fromDate}T00:00:00`).toISOString(),
-      to: new Date(`${toDate}T23:59:59`).toISOString(),
+      from: fromDate,
+      to: toDate,
     };
 
     if (status) {
