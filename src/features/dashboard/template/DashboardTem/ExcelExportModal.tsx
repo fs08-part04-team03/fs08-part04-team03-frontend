@@ -218,7 +218,7 @@ export const ExcelExportModal = ({
           </Button>
           <Button
             variant="primary"
-            className="w-100 h-40 text-14"
+            className="w-120 h-40 text-14 whitespace-nowrap"
             onClick={handleExport}
             inactive={!isValid || isLoading}
           >
