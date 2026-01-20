@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { clsx } from '@/utils/clsx';
 import { IconButton } from '@/components/atoms/IconButton/IconButton';
@@ -9,10 +10,11 @@ export interface ToastProps {
   variant: 'error' | 'success' | 'custom';
   message?: string;
   onClose?: () => void;
+  duration?: number; // 자동 소멸 시간(ms), 기본 4000ms
 }
 
 /* --------------------------------
- * CloseButton 컴포넌트 (Toast 외부로 이동)
+ * CloseButton 컴포넌트
  * -------------------------------- */
 const CloseButton = ({ onClose }: { onClose?: () => void }) => {
   if (!onClose) return null;
@@ -110,9 +112,26 @@ const MobileMessage = ({
 };
 
 /* =======================================================================
- * Toast 컴포넌트
+ * Toast 컴포넌트 (자동 소멸 기능 추가)
  * ======================================================================= */
-export const Toast = ({ amount = '0', variant, message, onClose }: ToastProps) => {
+export const Toast = ({
+  amount = '0',
+  variant,
+  message,
+  onClose,
+  duration = 2000, // 기본 2초
+}: ToastProps) => {
+  /* 자동 소멸 useEffect */
+  useEffect(() => {
+    if (!onClose) return () => {};
+
+    const timer = setTimeout(() => {
+      onClose();
+    }, duration);
+
+    return () => clearTimeout(timer);
+  }, [onClose, duration]);
+
   /* variant별 아이콘/메시지 */
   let iconSrc = '';
   let defaultMessage = '';

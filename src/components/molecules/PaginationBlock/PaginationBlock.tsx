@@ -46,7 +46,7 @@ const PaginationBlock = ({ current, total, onPrev, onNext }: PaginationBlockProp
 
   return (
     <div
-      className="flex items-center justify-between h-40 w-327 tablet:w-696 desktop:w-1400"
+      className="flex items-center justify-between h-40 w-327 tablet:w-696 desktop:w-1400 mb-140"
       role="navigation"
       aria-label="페이지네이션"
     >
