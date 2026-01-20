@@ -55,7 +55,7 @@ const SearchBar = ({
   return (
     <form onSubmit={handleSubmit} className={clsx('relative w-full', className)}>
       <div className="relative flex items-center">
-        <div className="absolute left-1 bottom-10 z-10">
+        <div className="absolute left-1 bottom-10 z-20 drop-shadow-sm">
           <IconButton variant="default" size="md" aria-label="검색" onClick={() => handleSubmit()}>
             <Image src="/icons/search-icon.svg" alt="Search" width={24} height={24} unoptimized />
           </IconButton>
