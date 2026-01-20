@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Chatbot from 'react-chatbot-kit';
 import 'react-chatbot-kit/build/main.css';
 import Image from 'next/image';
 import { useAuthStore } from '@/lib/store/authStore';
-import config from './config';
+import { createChatbotConfig } from './config';
 import MessageParser from './MessageParser';
 import ActionProvider from './ActionProvider';
 
@@ -41,6 +41,12 @@ const ChatBot = (): JSX.Element | null => {
   const [chatKey, setChatKey] = useState(0);
   const [previousUserId, setPreviousUserId] = useState<number | null>(null);
   const { user, isHydrated } = useAuthStore();
+
+  // 사용자 role에 따라 동적으로 config 생성
+  const config = useMemo(() => {
+    const isAdmin = user?.role === 'ADMIN';
+    return createChatbotConfig(isAdmin);
+  }, [user?.role]);
 
   // 세션 스토리지에서 메시지 로드
   const loadMessages = () => {
