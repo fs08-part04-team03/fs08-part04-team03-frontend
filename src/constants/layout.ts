@@ -7,13 +7,13 @@
 export const SECTION_MARGIN_TOP = 'mt-30 tablet:mt-40 desktop:mt-80';
 
 /** 섹션 하단 마진 (mb) */
-export const SECTION_MARGIN_BOTTOM = 'mb-20 tablet:mb-20 desktop:mb-20';
+export const SECTION_MARGIN_BOTTOM = 'mb-20';
 
 /** 페이지 상단 패딩 (pt) */
 export const PAGE_PADDING_TOP = 'pt-30 tablet:pt-40 desktop:pt-80';
 
 /** 페이지 하단 패딩 (pb) */
-export const PAGE_PADDING_BOTTOM = 'pb-30 tablet:pb-20 desktop:pb-20';
+export const PAGE_PADDING_BOTTOM = 'pb-20';
 
 /**
  * 레이아웃 스페이싱 객체

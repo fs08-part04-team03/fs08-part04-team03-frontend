@@ -72,6 +72,9 @@ export const Static: Story = {
 export const Clickable: Story = {
   render: (args) => {
     const [activeIndex, setActiveIndex] = React.useState(args.activeIndex);
+    React.useEffect(() => {
+      setActiveIndex(args.activeIndex);
+    }, [args.activeIndex]);
     return (
       <div className="p-16">
         <CarouselIndicator

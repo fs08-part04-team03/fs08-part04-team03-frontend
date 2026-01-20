@@ -364,9 +364,7 @@ const DashboardCardOrg = ({
                 <li key={item.label} className="flex items-center gap-8">
                   <span className="text-gray-400 w-12">{index + 1}.</span>
                   <span className="w-8 h-8 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="flex-1 min-w-0 whitespace-normal wrap-break-word">
-                    {item.label}
-                  </span>
+                  <span className="flex-1 min-w-0 whitespace-normal break-words">{item.label}</span>
                   <span className="text-gray-500">
                     {item.value}회 ·{' '}
                     {largeTotal === 0 ? '0.0' : ((item.value / largeTotal) * 100).toFixed(1)}%
