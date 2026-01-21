@@ -7,10 +7,25 @@ import { test, expect } from '@playwright/test';
  */
 
 // 테스트 계정 정보
-// - CI/로컬에서 계정이 다를 수 있으므로 env로 주입 가능하게 한다.
+// - 계정/비밀번호는 절대 코드에 하드코딩하지 않고 env로만 주입한다.
 // - 예) E2E_EMAIL="..." E2E_PASSWORD="..." npm run test:e2e
-const TEST_EMAIL = process.env.E2E_EMAIL ?? 'test003@test001.com';
-const TEST_PASSWORD = process.env.E2E_PASSWORD ?? '!Q2w3e4r';
+const HAS_E2E_CREDENTIALS = Boolean(process.env.E2E_EMAIL && process.env.E2E_PASSWORD);
+
+function getE2ECredentials(): { email: string; password: string } {
+  const email = process.env.E2E_EMAIL;
+  const password = process.env.E2E_PASSWORD;
+  if (!email || !password) {
+    throw new Error(
+      'E2E_EMAIL/E2E_PASSWORD 환경변수가 필요합니다. ' +
+        '로그인 관련 E2E는 민감정보를 코드에 넣지 않고 env로만 주입합니다.'
+    );
+  }
+  return { email, password };
+}
+
+// NOTE:
+// - 로컬/CI 환경 구분이 애매한 경우가 있어(예: CI=1이 로컬에 설정된 경우),
+//   여기서는 "미설정이면 스킵"으로만 처리합니다. (각 CI에서 필요한 경우 secrets로 주입)
 
 function getLoginEmailInput(page: import('@playwright/test').Page) {
   // label 연결(접근성)을 기준으로 찾는다 (mobile/desktop 중복 렌더링에도 안전)
@@ -22,9 +37,10 @@ function getLoginPasswordInput(page: import('@playwright/test').Page) {
 }
 
 async function loginAndGetCompanyId(page: import('@playwright/test').Page): Promise<string> {
+  const { email, password } = getE2ECredentials();
   await page.goto('/login');
-  await getLoginEmailInput(page).fill(TEST_EMAIL);
-  await getLoginPasswordInput(page).fill(TEST_PASSWORD);
+  await getLoginEmailInput(page).fill(email);
+  await getLoginPasswordInput(page).fill(password);
   await page.getByRole('button', { name: '로그인' }).first().click();
 
   // 로그인 응답을 먼저 기다려서 "회사 선택 필요(409)" 케이스를 안정적으로 처리
@@ -118,6 +134,8 @@ test.describe('로그인 페이지', () => {
   });
 
   test.describe('실제 로그인 테스트', () => {
+    test.skip(!HAS_E2E_CREDENTIALS, 'E2E_EMAIL/E2E_PASSWORD 미설정: 로그인 관련 테스트 스킵');
+
     test('유효한 자격 증명으로 로그인 성공 후 리다이렉트된다', async ({ page }) => {
       await loginAndGetCompanyId(page);
       await expect(page).toHaveURL(/\/products/, { timeout: 30000 });
@@ -131,7 +149,8 @@ test.describe('로그인 페이지', () => {
     });
 
     test('잘못된 비밀번호로 로그인 실패 시 로그인 페이지에 머무른다', async ({ page }) => {
-      await getLoginEmailInput(page).fill(TEST_EMAIL);
+      const { email } = getE2ECredentials();
+      await getLoginEmailInput(page).fill(email);
       await getLoginPasswordInput(page).fill('wrongpassword');
       await page.getByRole('button', { name: '로그인' }).first().click();
 
@@ -179,6 +198,8 @@ test.describe('회원가입 페이지', () => {
 });
 
 test.describe('로그인 후 페이지 접근', () => {
+  test.skip(!HAS_E2E_CREDENTIALS, 'E2E_EMAIL/E2E_PASSWORD 미설정: 로그인 관련 테스트 스킵');
+
   let companyId: string;
 
   test.beforeEach(async ({ page }) => {
@@ -201,6 +222,8 @@ test.describe('로그인 후 페이지 접근', () => {
 });
 
 test.describe('토큰 저장 방식 마이그레이션 (메모리 기반) QA', () => {
+  test.skip(!HAS_E2E_CREDENTIALS, 'E2E_EMAIL/E2E_PASSWORD 미설정: 로그인 관련 테스트 스킵');
+
   test('로그인 후 새로고침해도 인증이 유지된다 (refresh로 복원)', async ({ page }) => {
     await loginAndGetCompanyId(page);
 
