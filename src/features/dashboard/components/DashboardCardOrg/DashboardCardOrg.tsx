@@ -190,7 +190,7 @@ const DashboardCardOrg = ({
         <div className="w-full flex flex-col gap-8 tablet:gap-16">
           <span className="text-14 font-medium text-gray-900">월별 지출 현황</span>
 
-          <div className="w-full h-80 tablet:h-100 desktop:h-100">
+          <div className="w-full h-60 tablet:h-100 desktop:h-100">
             <ResponsiveContainer>
               <BarChart data={chartData}>
                 <XAxis
@@ -199,7 +199,8 @@ const DashboardCardOrg = ({
                   axisLine={false}
                   interval={0}
                   minTickGap={0}
-                  tick={{ fontSize: 10, fill: '#6B7280' }}
+                  tick={{ fontSize: 9, fill: '#6B7280' }}
+                  className="tablet:text-10"
                 />
                 <YAxis hide domain={[0, maxValue]} />
                 <Tooltip
@@ -222,7 +223,7 @@ const DashboardCardOrg = ({
 
           <div className="w-full flex-1 overflow-y-auto scrollbar-none">
             <table className="w-full table-fixed text-12 text-gray-700">
-              <thead className="sticky top-0 bg-gray-50 z-10">
+              <thead className="sticky top-0 bg-gray-50 z-20 shadow-sm">
                 <tr className="border-b border-gray-200">
                   <th className="w-1/4 text-left py-6">이름</th>
                   <th className="w-2/4 text-left py-6">이메일</th>

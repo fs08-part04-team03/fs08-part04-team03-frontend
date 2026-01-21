@@ -72,6 +72,7 @@ export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuP
           'fixed top-0 right-0 z-menu',
           'w-225 h-full bg-white shadow-lg',
           'transform transition-transform duration-250 ease-out',
+          'overflow-y-auto overflow-x-hidden',
           open ? 'translate-x-0' : 'translate-x-full',
           className
         )}
@@ -80,7 +81,7 @@ export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuP
         aria-label="사이드바 메뉴"
       >
         {/* 닫기 버튼 */}
-        <div className="flex justify-end items-center p-12">
+        <div className="flex justify-end items-center p-12 sticky top-0 bg-white z-10">
           <IconButton
             aria-label="메뉴 닫기"
             size="md"
@@ -93,7 +94,7 @@ export const SideBarMenu = ({ open, onClose, children, className }: SideBarMenuP
         </div>
 
         {/* 컨텐츠 */}
-        <div className="flex flex-col justify-center gap-8 my-16 mx-24">{children}</div>
+        <div className="flex flex-col justify-center gap-8 my-16 mx-24 pb-24">{children}</div>
       </aside>
     </>
   );

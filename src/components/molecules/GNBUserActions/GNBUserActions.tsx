@@ -47,6 +47,9 @@ export interface GNBUserActionsTabletProps extends GNBUserActionsBaseProps {
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
   userProfile?: ReactNode;
 
+  /** 프로필 로딩 중 여부 */
+  isLoadingProfile?: boolean;
+
   /** 햄버거 메뉴 클릭 시 호출되는 콜백 */
   onMenuClick?: () => void;
 }
@@ -58,6 +61,9 @@ export interface GNBUserActionsTabletProps extends GNBUserActionsBaseProps {
 export interface GNBUserActionsDesktopProps extends GNBUserActionsBaseProps {
   /** GNB 우측에 표시할 유저 프로필 컴포넌트 */
   userProfile?: ReactNode;
+
+  /** 프로필 로딩 중 여부 */
+  isLoadingProfile?: boolean;
 
   /** 로그아웃 클릭 시 호출되는 콜백 */
   onLogout?: () => void;
@@ -100,6 +106,7 @@ export const GNBUserActionsTablet = ({
   userProfile,
   cartCount = 0,
   notificationCount = 0,
+  isLoadingProfile = false,
   onNotificationClick,
   onMenuClick,
   className,
@@ -111,8 +118,15 @@ export const GNBUserActionsTablet = ({
     {/* 알림 */}
     <NotificationButton unreadCount={notificationCount} onClick={onNotificationClick} />
 
-    {/* 유저 프로필 */}
-    {userProfile && <div className="flex items-center">{userProfile}</div>}
+    {/* 유저 프로필 또는 로딩 skeleton */}
+    {isLoadingProfile ? (
+      <div className="flex items-center gap-8">
+        <div className="w-32 h-32 bg-gray-200 rounded-full animate-pulse" />
+        <div className="w-60 h-16 bg-gray-200 rounded animate-pulse" />
+      </div>
+    ) : (
+      userProfile && <div className="flex items-center">{userProfile}</div>
+    )}
 
     {/* 햄버거 메뉴 */}
     {onMenuClick && (
@@ -135,6 +149,7 @@ export const GNBUserActionsDesktop = ({
   userProfile,
   cartCount = 0,
   notificationCount = 0,
+  isLoadingProfile = false,
   onNotificationClick,
   onLogout,
   className,
@@ -184,12 +199,19 @@ export const GNBUserActionsDesktop = ({
       </Link>
 
       <span className="pl-2" />
-      {/* 유저 프로필 */}
-      {userProfile && <div className="flex items-center">{userProfile}</div>}
+      {/* 유저 프로필 또는 로딩 skeleton */}
+      {isLoadingProfile ? (
+        <div className="flex items-center gap-8">
+          <div className="w-32 h-32 bg-gray-200 rounded-full animate-pulse" />
+          <div className="w-60 h-16 bg-gray-200 rounded animate-pulse" />
+        </div>
+      ) : (
+        userProfile && <div className="flex items-center">{userProfile}</div>
+      )}
 
       <span className="pl-2" />
       {/* 구분선 */}
-      {userProfile && <div className="w-px h-20 bg-gray-200" />}
+      {(userProfile || isLoadingProfile) && <div className="w-px h-20 bg-gray-200" />}
 
       {/* 로그아웃 버튼 */}
       {onLogout && (
@@ -224,6 +246,9 @@ export interface GNBUserActionsProps {
   /** 읽지 않은 알림 수 */
   notificationCount?: number;
 
+  /** 프로필 로딩 중 여부 */
+  isLoadingProfile?: boolean;
+
   /** 알림 버튼 클릭 시 호출되는 콜백 */
   onNotificationClick?: () => void;
 
@@ -249,6 +274,7 @@ export const GNBUserActions = ({
   userProfile,
   cartCount = 0,
   notificationCount = 0,
+  isLoadingProfile = false,
   onNotificationClick,
   onLogout,
   onMenuClick,
@@ -274,6 +300,7 @@ export const GNBUserActions = ({
         notificationCount={notificationCount}
         onNotificationClick={onNotificationClick}
         userProfile={userProfile}
+        isLoadingProfile={isLoadingProfile}
         onMenuClick={onMenuClick}
       />
     </div>
@@ -286,6 +313,7 @@ export const GNBUserActions = ({
         notificationCount={notificationCount}
         onNotificationClick={onNotificationClick}
         userProfile={userProfile}
+        isLoadingProfile={isLoadingProfile}
         onLogout={onLogout}
       />
     </div>
