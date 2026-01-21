@@ -223,7 +223,7 @@ const DashboardCardOrg = ({
 
           <div className="w-full flex-1 overflow-y-auto scrollbar-none">
             <table className="w-full table-fixed text-12 text-gray-700">
-              <thead className="sticky top-0 bg-gray-50 z-20 shadow-sm">
+              <thead className="sticky top-0 bg-gray-50 shadow-sm">
                 <tr className="border-b border-gray-200">
                   <th className="w-1/4 text-left py-6">이름</th>
                   <th className="w-2/4 text-left py-6">이메일</th>
@@ -291,8 +291,8 @@ const DashboardCardOrg = ({
         <div className="w-full h-full flex flex-col gap-12">
           <span className="text-14 font-medium text-gray-900">이번 달 요청한 간식 순위</span>
 
-          <div className="flex flex-col tablet:flex-row desktop:flex-col items-start flex-1 gap-16 overflow-hidden">
-            <div className="shrink-0 w-200 h-200 desktop:w-208 desktop:h-208 desktop:self-center">
+          <div className="flex flex-col tablet:flex-row desktop:flex-col items-start flex-1 gap-16 overflow-hidden tablet:h-320">
+            <div className="shrink-0 w-200 h-200 tablet:w-110 tablet:h-110 desktop:w-208 desktop:h-208 desktop:self-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -314,7 +314,7 @@ const DashboardCardOrg = ({
               </ResponsiveContainer>
             </div>
 
-            <ul className="w-full tablet:flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none">
+            <ul className="w-full tablet:flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none tablet:max-h-full">
               {largeChartData.map((item, index) => (
                 <li key={item.label} className="flex items-center gap-8">
                   <span className="text-gray-400 w-12">{index + 1}.</span>
@@ -337,7 +337,7 @@ const DashboardCardOrg = ({
           <span className="text-14 font-medium text-gray-900">이번 달 요청한 간식 순위</span>
 
           {/* 모바일: 차트 위, 리스트 아래 / 태블릿+: 좌우 배치 */}
-          <div className="flex flex-col tablet:flex-row items-start flex-1 gap-16 tablet:gap-20 overflow-hidden">
+          <div className="flex flex-col tablet:flex-row items-start flex-1 gap-16 tablet:gap-20 overflow-hidden tablet:h-320">
             <div className="self-center tablet:self-auto shrink-0 w-180 h-180 tablet:w-220 tablet:h-220 desktop:w-180 desktop:h-180">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -360,7 +360,7 @@ const DashboardCardOrg = ({
               </ResponsiveContainer>
             </div>
 
-            <ul className="w-full tablet:flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none max-h-160 tablet:max-h-none">
+            <ul className="w-full tablet:flex-1 flex flex-col gap-8 text-12 text-gray-700 overflow-y-auto scrollbar-none max-h-160 tablet:max-h-full">
               {largeChartData.map((item, index) => (
                 <li key={item.label} className="flex items-center gap-8">
                   <span className="text-gray-400 w-12">{index + 1}.</span>
