@@ -29,7 +29,7 @@ interface MockUser {
 let mockStoreState = {
   user: null as MockUser | null,
   accessToken: null as string | null,
-  isHydrated: false,
+  isInitialized: false,
 };
 
 vi.mock('@/lib/store/authStore', () => ({
@@ -46,7 +46,7 @@ describe('useTokenRefresh', () => {
     mockStoreState = {
       user: null,
       accessToken: null,
-      isHydrated: false,
+      isInitialized: false,
     };
 
     mockTryRefreshToken.mockReset();
@@ -57,9 +57,9 @@ describe('useTokenRefresh', () => {
     vi.useRealTimers();
   });
 
-  describe('하이드레이션 전', () => {
-    it('isHydrated가 false면 아무 동작도 하지 않는다', async () => {
-      mockStoreState.isHydrated = false;
+  describe('초기화 전', () => {
+    it('isInitialized가 false면 아무 동작도 하지 않는다', async () => {
+      mockStoreState.isInitialized = false;
 
       const { useTokenRefresh } = await import('../useTokenRefresh');
       renderHook(() => useTokenRefresh());
@@ -73,9 +73,9 @@ describe('useTokenRefresh', () => {
     });
   });
 
-  describe('하이드레이션 후 - user와 accessToken이 없는 경우', () => {
+  describe('초기화 후 - user와 accessToken이 없는 경우', () => {
     it('user도 accessToken도 없으면 refresh를 시도하지 않는다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.user = null;
       mockStoreState.accessToken = null;
 
@@ -90,9 +90,9 @@ describe('useTokenRefresh', () => {
     });
   });
 
-  describe('하이드레이션 후 - user는 있지만 accessToken이 없는 경우', () => {
-    it('user가 있고 accessToken이 없으면 refresh를 시도한다', async () => {
-      mockStoreState.isHydrated = true;
+  describe('초기화 후 - user는 있지만 accessToken이 없는 경우', () => {
+    it('accessToken이 없으면 주기적 refresh를 시도하지 않는다 (초기화는 useAuthInitializer가 담당)', async () => {
+      mockStoreState.isInitialized = true;
       mockStoreState.user = {
         id: 'user-1',
         email: 'test@example.com',
@@ -101,44 +101,21 @@ describe('useTokenRefresh', () => {
         companyId: 'company-1',
       };
       mockStoreState.accessToken = null;
-
-      mockTryRefreshToken.mockResolvedValueOnce('new-token');
 
       const { useTokenRefresh } = await import('../useTokenRefresh');
       renderHook(() => useTokenRefresh());
 
       await act(() => vi.advanceTimersByTimeAsync(100));
 
-      expect(mockTryRefreshToken).toHaveBeenCalledTimes(1);
-    });
-
-    it('refresh 실패해도 에러를 throw하지 않는다', async () => {
-      mockStoreState.isHydrated = true;
-      mockStoreState.user = {
-        id: 'user-1',
-        email: 'test@example.com',
-        name: 'Test User',
-        role: 'user',
-        companyId: 'company-1',
-      };
-      mockStoreState.accessToken = null;
-
-      mockTryRefreshToken.mockRejectedValueOnce(new Error('Network error'));
-
-      const { useTokenRefresh } = await import('../useTokenRefresh');
-
-      // 에러가 발생해도 훅은 정상 동작해야 함
-      expect(() => {
-        renderHook(() => useTokenRefresh());
-      }).not.toThrow();
-
-      await act(() => vi.advanceTimersByTimeAsync(100));
+      // 마이그레이션 후: accessToken이 없으면 주기적 갱신 중단
+      // 초기화는 useAuthInitializer에서 처리됨
+      expect(mockTryRefreshToken).not.toHaveBeenCalled();
     });
   });
 
   describe('주기적 토큰 갱신', () => {
     it('user와 accessToken이 있으면 즉시 refresh를 실행한다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.user = {
         id: 'user-1',
         email: 'test@example.com',
@@ -159,7 +136,7 @@ describe('useTokenRefresh', () => {
     });
 
     it('refreshInterval마다 refresh를 실행한다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.user = {
         id: 'user-1',
         email: 'test@example.com',
@@ -189,7 +166,7 @@ describe('useTokenRefresh', () => {
     });
 
     it('언마운트 시 interval이 정리된다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.user = {
         id: 'user-1',
         email: 'test@example.com',
@@ -220,7 +197,7 @@ describe('useTokenRefresh', () => {
 
   describe('중복 호출 방지', () => {
     it('동시에 여러 refresh가 진행되지 않는다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.user = {
         id: 'user-1',
         email: 'test@example.com',
@@ -261,13 +238,9 @@ describe('useTokenRefresh', () => {
     });
   });
 
-  describe('마이그레이션 후 동작 (isInitialized)', () => {
-    // 마이그레이션 후 isHydrated → isInitialized로 변경됨
-    // 이 테스트는 마이그레이션 후에도 동일하게 동작해야 함
+  describe('초기화 상태에 따른 동작', () => {
     it('초기화 상태에 따라 동작이 제어된다', async () => {
-      // 현재: isHydrated 사용
-      // 마이그레이션 후: isInitialized 사용
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.user = {
         id: 'user-1',
         email: 'test@example.com',
