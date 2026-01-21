@@ -175,8 +175,9 @@ const DashboardTem = ({
         desktop:flex-row
         desktop:w-full
         desktop:max-w-1400
-        desktop:pl-70
+        desktop:pl-25
         desktop:pr-100
+        desktop:mt-104
       "
     >
       {/* ===== Mobile / Tablet Title ===== */}
@@ -231,7 +232,7 @@ const DashboardTem = ({
       </div>
 
       {/* ===== Dashboard Content ===== */}
-      <main className="flex flex-col desktop:ml-50 flex-1 min-w-0">
+      <main className="flex flex-col desktop:ml-90 flex-1 min-w-0">
         {/* ===== Desktop Title ===== */}
         <div
           className="

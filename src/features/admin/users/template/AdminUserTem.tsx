@@ -35,7 +35,7 @@ const AdminUsersTemplate = ({
   return (
     <div className="flex flex-col desktop:flex-row w-full min-h-screen bg-white">
       {/* 어드민 sidebar */}
-      <div className="shrink-0 desktop:border-r border-gray-100">
+      <div className="shrink-0">
         <div className="desktop:p-24 desktop:w-260 desktop:sticky desktop:top-0 h-full">
           <AdminSidebar companyId={companyId} userRole="admin" />
         </div>

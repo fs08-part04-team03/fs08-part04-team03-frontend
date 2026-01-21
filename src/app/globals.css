@@ -211,6 +211,7 @@ body {
   --spacing-97: 97px;
   --spacing-99: 99px;
   --spacing-100: 100px;
+  --spacing-104: 104px;
   --spacing-105: 105px;
   --spacing-110: 110px;
   --spacing-120: 120px;
@@ -367,8 +368,8 @@ body {
   @media (min-width: 1024px) {
     .gnb-container,
     .auth-header-container {
-      padding-left: 100px !important;
-      padding-right: 100px !important;
+      padding-left: 70px !important;
+      padding-right: 70px !important;
     }
   }
 
