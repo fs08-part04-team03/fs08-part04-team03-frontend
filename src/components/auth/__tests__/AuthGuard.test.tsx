@@ -61,14 +61,14 @@ interface MockUser {
 interface MockStoreState {
   user: MockUser | null;
   accessToken: string | null;
-  isHydrated: boolean;
+  isInitialized: boolean;
   clearAuth: () => void;
 }
 
 let mockStoreState: MockStoreState = {
   user: null,
   accessToken: null,
-  isHydrated: false,
+  isInitialized: false,
   clearAuth: vi.fn(),
 };
 
@@ -94,7 +94,7 @@ describe('AuthGuard', () => {
     mockStoreState = {
       user: null,
       accessToken: null,
-      isHydrated: false,
+      isInitialized: false,
       clearAuth: vi.fn(),
     };
   });
@@ -103,9 +103,9 @@ describe('AuthGuard', () => {
     vi.clearAllMocks();
   });
 
-  describe('하이드레이션 전', () => {
-    it('isHydrated가 false면 null을 렌더링한다', async () => {
-      mockStoreState.isHydrated = false;
+  describe('초기화 전', () => {
+    it('isInitialized가 false면 null을 렌더링한다', async () => {
+      mockStoreState.isInitialized = false;
 
       const { AuthGuard } = await import('../AuthGuard');
       const { container } = render(
@@ -119,13 +119,11 @@ describe('AuthGuard', () => {
     });
   });
 
-  describe('하이드레이션 후 - 인증되지 않은 경우', () => {
-    it('accessToken이 없으면 refresh를 시도한다', async () => {
-      mockStoreState.isHydrated = true;
+  describe('초기화 후 - 인증되지 않은 경우', () => {
+    it('accessToken이 없으면 로그인 페이지로 리다이렉트한다 (초기화는 providers.tsx에서 처리)', async () => {
+      mockStoreState.isInitialized = true;
       mockStoreState.accessToken = null;
       mockStoreState.user = null;
-
-      mockTryRefreshToken.mockResolvedValueOnce(null);
 
       const { AuthGuard } = await import('../AuthGuard');
       render(
@@ -135,31 +133,13 @@ describe('AuthGuard', () => {
       );
 
       await waitFor(() => {
-        expect(mockTryRefreshToken).toHaveBeenCalled();
-      });
-    });
-
-    it('refresh 실패 시 로그인 페이지로 리다이렉트한다', async () => {
-      mockStoreState.isHydrated = true;
-      mockStoreState.accessToken = null;
-      mockStoreState.user = null;
-
-      mockTryRefreshToken.mockResolvedValueOnce(null);
-
-      const { AuthGuard } = await import('../AuthGuard');
-      render(
-        <AuthGuard companyId="company-1">
-          <TestChild />
-        </AuthGuard>
-      );
-
-      await waitFor(() => {
+        // 마이그레이션 후: AuthGuard는 refresh를 시도하지 않고 바로 로그인으로 리다이렉트
         expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('/login?redirect='));
       });
     });
 
     it('user가 없으면 로그인 페이지로 리다이렉트한다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.accessToken = 'valid-token';
       mockStoreState.user = null;
 
@@ -176,9 +156,9 @@ describe('AuthGuard', () => {
     });
   });
 
-  describe('하이드레이션 후 - 인증된 경우', () => {
+  describe('초기화 후 - 인증된 경우', () => {
     it('올바른 companyId와 권한이 있으면 children을 렌더링한다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.accessToken = 'valid-token';
       mockStoreState.user = {
         id: 'user-1',
@@ -201,7 +181,7 @@ describe('AuthGuard', () => {
     });
 
     it('다른 companyId면 올바른 회사 페이지로 리다이렉트한다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.accessToken = 'valid-token';
       mockStoreState.user = {
         id: 'user-1',
@@ -224,7 +204,7 @@ describe('AuthGuard', () => {
     });
 
     it('권한이 없으면 products 페이지로 리다이렉트한다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.accessToken = 'valid-token';
       mockStoreState.user = {
         id: 'user-1',
@@ -252,7 +232,7 @@ describe('AuthGuard', () => {
   describe('redirect 파라미터', () => {
     it('로그인 리다이렉트 시 현재 경로를 redirect 파라미터로 포함한다', async () => {
       mockPathname = '/company-1/admin/users';
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.accessToken = null;
       mockStoreState.user = null;
 
@@ -275,7 +255,7 @@ describe('AuthGuard', () => {
 
   describe('토큰 갱신 중복 방지', () => {
     it('refresh 시도는 한 번만 수행된다', async () => {
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.accessToken = null;
       mockStoreState.user = null;
 
@@ -308,13 +288,9 @@ describe('AuthGuard', () => {
     });
   });
 
-  describe('마이그레이션 후 동작 (isInitialized)', () => {
-    // 마이그레이션 후 isHydrated → isInitialized로 변경됨
-    // providers.tsx에서 이미 초기화를 담당하므로 AuthGuard는 단순화될 예정
+  describe('초기화 상태에 따른 렌더링', () => {
     it('초기화 상태에 따라 렌더링이 제어된다', async () => {
-      // 현재: isHydrated 사용
-      // 마이그레이션 후: isInitialized 사용, 초기화 로직은 providers.tsx로 이동
-      mockStoreState.isHydrated = true;
+      mockStoreState.isInitialized = true;
       mockStoreState.accessToken = 'token';
       mockStoreState.user = {
         id: 'user-1',

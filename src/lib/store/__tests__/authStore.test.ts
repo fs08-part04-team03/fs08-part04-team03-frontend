@@ -191,17 +191,15 @@ describe('authStore', () => {
     });
   });
 
-  describe('isHydrated/isInitialized 상태', () => {
-    it('setHydrated로 isHydrated를 true로 설정한다', async () => {
+  describe('isInitialized 상태', () => {
+    it('setInitialized로 isInitialized를 true로 설정한다', async () => {
       const { useAuthStore } = await import('../authStore');
 
-      // 현재 구현은 isHydrated 사용
-      // 마이그레이션 후에는 isInitialized로 변경될 예정
       act(() => {
-        useAuthStore.getState().setHydrated();
+        useAuthStore.getState().setInitialized();
       });
 
-      expect(useAuthStore.getState().isHydrated).toBe(true);
+      expect(useAuthStore.getState().isInitialized).toBe(true);
     });
   });
 
