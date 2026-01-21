@@ -208,7 +208,7 @@ describe('useTokenRefresh', () => {
       mockStoreState.accessToken = 'existing-token';
 
       // 느린 응답 시뮬레이션
-      let resolveFirst: ((value: string) => void) | null = null;
+      let resolveFirst!: (value: string | PromiseLike<string>) => void;
       mockTryRefreshToken.mockImplementation(
         () =>
           new Promise<string>((resolve) => {
@@ -232,9 +232,7 @@ describe('useTokenRefresh', () => {
       expect(mockTryRefreshToken).toHaveBeenCalledTimes(1);
 
       // 첫 번째 완료
-      if (resolveFirst) {
-        resolveFirst('new-token');
-      }
+      resolveFirst('new-token');
     });
   });
 
