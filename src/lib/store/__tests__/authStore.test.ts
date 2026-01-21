@@ -55,6 +55,7 @@ describe('authStore', () => {
       expect(state.user).toBeNull();
       expect(state.accessToken).toBeNull();
       expect(state.isLoading).toBe(false);
+      expect(state.isInitialized).toBe(false);
     });
   });
 
@@ -205,8 +206,6 @@ describe('authStore', () => {
 
   describe('마이그레이션 후 동작 (localStorage 비사용)', () => {
     it('마이그레이션 후 localStorage에 토큰이 저장되지 않아야 한다', async () => {
-      // 이 테스트는 마이그레이션 완료 후 통과해야 함
-      // 현재는 persist 사용 중이므로 skip 또는 조건부 실행
       const { useAuthStore } = await import('../authStore');
 
       act(() => {
@@ -222,12 +221,9 @@ describe('authStore', () => {
         });
       });
 
-      // 마이그레이션 후: localStorage에 auth-storage가 없어야 함
-      // 현재: persist 사용 중이므로 이 테스트는 실패할 수 있음
-      // 마이그레이션 완료 후 이 테스트가 통과해야 함
-
-      // TODO: 마이그레이션 후 아래 주석 해제
-      // expect(localStorageMock.getItem('auth-storage')).toBeNull();
+      // 마이그레이션 완료: authStore는 persist를 사용하지 않으므로 localStorage에 아무 것도 저장하지 않아야 함
+      expect(localStorageMock.getItem('auth-storage')).toBeNull();
+      expect(localStorageMock.setItem).not.toHaveBeenCalled();
     });
   });
 
