@@ -110,9 +110,12 @@ export const AdminSidebar = ({ companyId, userRole = 'user' }: AdminSidebarProps
   const usersHref = PATHNAME.ADMIN_USERS(companyId);
   const budgetHref = PATHNAME.ADMIN_BUDGET(companyId);
 
-  const isDashboardPage = pathname ? pathname.includes('/admin/dashboard') : false;
   const isUsersPage = pathname ? pathname.includes('/admin/users') : false;
   const isBudgetPage = pathname ? pathname.includes('/admin/budget') : false;
+
+  const isDashboardPage = pathname
+    ? pathname.includes('/admin/dashboard') || (!isUsersPage && !isBudgetPage)
+    : true;
 
   return (
     <>
