@@ -24,6 +24,17 @@ export function useAuthInitializer() {
 
     const initialize = async () => {
       try {
+        // 레거시(localStorage persist) 데이터 정리
+        // - 마이그레이션 이전에 저장된 auth-storage가 남아있을 수 있음
+        // - 현재는 메모리 저장만 사용하므로 안전하게 제거
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.removeItem('auth-storage');
+          } catch {
+            // localStorage 접근 불가(브라우저 정책/사파리 프라이빗 등)인 경우 무시
+          }
+        }
+
         logger.info('[AuthInitializer] 앱 초기화 시작 - refreshToken으로 인증 복원 시도');
 
         // refreshToken으로 accessToken + user 정보 발급
