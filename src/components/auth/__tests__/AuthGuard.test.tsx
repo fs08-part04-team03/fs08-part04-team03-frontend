@@ -253,13 +253,11 @@ describe('AuthGuard', () => {
     });
   });
 
-  describe('토큰 갱신 중복 방지', () => {
-    it('refresh 시도는 한 번만 수행된다', async () => {
+  describe('리렌더링 안정성', () => {
+    it('리렌더링해도 정상 동작한다', async () => {
       mockStoreState.isInitialized = true;
       mockStoreState.accessToken = null;
       mockStoreState.user = null;
-
-      mockTryRefreshToken.mockResolvedValue(null);
 
       const { AuthGuard } = await import('../AuthGuard');
       const { rerender } = render(
@@ -281,9 +279,9 @@ describe('AuthGuard', () => {
         </AuthGuard>
       );
 
+      // 마이그레이션 후: AuthGuard는 refresh를 시도하지 않고 로그인으로 리다이렉트
       await waitFor(() => {
-        // refreshAttemptedRef로 인해 한 번만 호출
-        expect(mockTryRefreshToken).toHaveBeenCalledTimes(1);
+        expect(mockPush).toHaveBeenCalled();
       });
     });
   });
