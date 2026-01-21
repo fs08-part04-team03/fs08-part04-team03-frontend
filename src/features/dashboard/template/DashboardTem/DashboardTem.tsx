@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { Dispatch, RefObject, SetStateAction } from 'react';
 import { AdminSidebar } from '@/components/molecules/AdminSideBar/AdminSideBar';
 import DashboardCard from '@/features/dashboard/components/DashboardCardOrg/DashboardCardOrg';
 import Button from '@/components/atoms/Button/Button';
+import { CarouselIndicator } from '@/components/atoms/CarouselIndicator/CarouselIndicator';
 
 import type {
   UserRole,
@@ -59,8 +61,67 @@ const DashboardTem = ({
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
   const [isExcelExporting, setIsExcelExporting] = useState(false);
 
+  // Mobile carousel indicators
+  const defaultCarouselRef = useRef<HTMLElement | null>(null);
+  const usersCarouselRef = useRef<HTMLElement | null>(null);
+  const [defaultCarouselIndex, setDefaultCarouselIndex] = useState(0);
+  const [usersCarouselIndex, setUsersCarouselIndex] = useState(0);
+
   // Toast 상태
   const { showToast, toastVariant, toastMessage, triggerToast, closeToast } = useToast();
+
+  const scrollToCarouselIndex = (ref: RefObject<HTMLElement | null>, index: number) => {
+    const el = ref.current;
+    if (!el) return;
+    const items = Array.from(el.querySelectorAll<HTMLElement>('[data-carousel-item="true"]'));
+    const target = items[index];
+    if (!target) return;
+    el.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const attach = (
+      ref: RefObject<HTMLElement | null>,
+      setIndex: Dispatch<SetStateAction<number>>
+    ) => {
+      const el = ref.current;
+      if (!el) return () => {};
+
+      let raf = 0;
+      const onScroll = () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          const items = Array.from(el.querySelectorAll<HTMLElement>('[data-carousel-item="true"]'));
+          if (items.length === 0) return;
+          const left = el.scrollLeft;
+          let bestIdx = 0;
+          let bestDist = Math.abs((items[0]?.offsetLeft ?? 0) - left);
+          for (let i = 1; i < items.length; i += 1) {
+            const dist = Math.abs((items[i]?.offsetLeft ?? 0) - left);
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestIdx = i;
+            }
+          }
+          setIndex(bestIdx);
+        });
+      };
+
+      onScroll(); // initial
+      el.addEventListener('scroll', onScroll, { passive: true });
+      return () => {
+        cancelAnimationFrame(raf);
+        el.removeEventListener('scroll', onScroll);
+      };
+    };
+
+    const detachDefault = attach(defaultCarouselRef, setDefaultCarouselIndex);
+    const detachUsers = attach(usersCarouselRef, setUsersCarouselIndex);
+    return () => {
+      detachDefault();
+      detachUsers();
+    };
+  }, []);
 
   /** ================= Click Handlers ================= */
   const handleEmergencyClick = () => {
@@ -112,8 +173,10 @@ const DashboardTem = ({
         w-327
         tablet:w-696
         desktop:flex-row
-        desktop:w-1400
-        desktop:mt-80
+        desktop:w-full
+        desktop:max-w-1400
+        desktop:pl-70
+        desktop:pr-100
       "
     >
       {/* ===== Mobile / Tablet Title ===== */}
@@ -125,6 +188,7 @@ const DashboardTem = ({
           items-center
           justify-between
           desktop:hidden
+          w-full
         "
       >
         <h1
@@ -157,7 +221,7 @@ const DashboardTem = ({
       {/* ===== AdminSidebar ===== */}
       <div
         className="
-          flex-shrink-0
+          shrink-0
           mb-10
           tablet:mb-20
           desktop:mb-0
@@ -167,7 +231,7 @@ const DashboardTem = ({
       </div>
 
       {/* ===== Dashboard Content ===== */}
-      <main className="flex flex-col desktop:ml-50 w-full">
+      <main className="flex flex-col desktop:ml-50 flex-1 min-w-0">
         {/* ===== Desktop Title ===== */}
         <div
           className="
@@ -176,6 +240,7 @@ const DashboardTem = ({
             items-center
             justify-between
             mb-30
+            w-full
           "
         >
           <h1
@@ -202,45 +267,113 @@ const DashboardTem = ({
 
         {/* ===== default 카드 ===== */}
         <section
+          ref={defaultCarouselRef}
           className="
             flex
-            flex-col
+            flex-row
+            flex-nowrap
             gap-10
             mb-10
+            overflow-x-auto
+            snap-x
+            snap-mandatory
+            scrollbar-none
 
             tablet:gap-20
             tablet:mb-20
+            tablet:flex-col
+            tablet:overflow-visible
             desktop:flex-row
             desktop:gap-30
             desktop:mb-30
+            desktop:overflow-visible
+            desktop:snap-none
           "
         >
-          <DashboardCard
-            variant="default"
-            defaultType="summary"
-            monthlyExpense={monthlyExpense}
-            yearlyExpense={yearlyExpense}
-            showProgressBar
-            progressValue={progressValue}
-            currentBudget={currentBudget}
-            lastBudget={lastBudget}
-          />
+          <div
+            className="shrink-0 snap-start tablet:shrink desktop:shrink desktop:flex-1 desktop:min-w-0"
+            data-carousel-item="true"
+          >
+            <DashboardCard
+              variant="default"
+              defaultType="summary"
+              monthlyExpense={monthlyExpense}
+              yearlyExpense={yearlyExpense}
+              showProgressBar
+              progressValue={progressValue}
+              currentBudget={currentBudget}
+              lastBudget={lastBudget}
+            />
+          </div>
 
-          <DashboardCard
-            variant="default"
-            defaultType="yearlyBar"
-            monthlyExpensesByYear={monthlyExpenses}
-          />
+          <div
+            className="shrink-0 snap-start tablet:shrink desktop:shrink desktop:flex-1 desktop:min-w-0"
+            data-carousel-item="true"
+          >
+            <DashboardCard
+              variant="default"
+              defaultType="yearlyBar"
+              monthlyExpensesByYear={monthlyExpenses}
+            />
+          </div>
         </section>
+        <CarouselIndicator
+          count={2}
+          activeIndex={defaultCarouselIndex}
+          onSelect={(idx) => scrollToCarouselIndex(defaultCarouselRef, idx)}
+          className="my-6 tablet:hidden"
+        />
 
-        {/* ===== medium (mobile / tablet) ===== */}
+        {/* ===== mobile swipe (new/changed) ===== */}
         <section
+          ref={usersCarouselRef}
           className="
             flex
-            flex-col
+            flex-row
+            flex-nowrap
             gap-10
             mb-10
+            overflow-x-auto
+            snap-x
+            snap-mandatory
+            scrollbar-none
 
+            tablet:hidden
+          "
+        >
+          <div className="shrink-0 snap-start" data-carousel-item="true">
+            <DashboardCard variant="longMedium" mediumMode="new" monthlyNewUsers={newUsers} />
+          </div>
+
+          <div className="shrink-0 snap-start" data-carousel-item="true">
+            <DashboardCard
+              variant="longMedium"
+              mediumMode="changed"
+              monthlyChangedUsers={changedUsers}
+            />
+          </div>
+        </section>
+        <CarouselIndicator
+          count={2}
+          activeIndex={usersCarouselIndex}
+          onSelect={(idx) => scrollToCarouselIndex(usersCarouselRef, idx)}
+          className="my-6 tablet:hidden"
+        />
+
+        {/* ===== snack rank (mobile only) ===== */}
+        <section
+          className="
+            mb-10
+            tablet:hidden
+          "
+        >
+          <DashboardCard variant="mediumExtraLong" largeChartData={snackRank} />
+        </section>
+
+        {/* ===== medium (tablet only) ===== */}
+        <section
+          className="
+            hidden
             tablet:grid
             tablet:grid-cols-2
             tablet:gap-30
@@ -250,14 +383,14 @@ const DashboardTem = ({
           "
         >
           <DashboardCard variant="medium" mediumMode="new" monthlyNewUsers={newUsers} />
-
           <DashboardCard variant="medium" mediumMode="changed" monthlyChangedUsers={changedUsers} />
         </section>
 
-        {/* ===== large (mobile / tablet) ===== */}
+        {/* ===== snack rank (tablet only) ===== */}
         <section
           className="
-            mb-10
+            hidden
+            tablet:block
             tablet:mb-20
             desktop:hidden
           "
@@ -299,7 +432,7 @@ const DashboardTem = ({
 
       {/* Toast 렌더링 */}
       {showToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[var(--z-toast)]">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-toast">
           <Toast variant={toastVariant} message={toastMessage} onClose={closeToast} />
         </div>
       )}

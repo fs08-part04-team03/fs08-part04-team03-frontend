@@ -14,7 +14,6 @@ import StatusNotice from '@/components/molecules/StatusNotice/StatusNotice';
 import SearchBar from '@/components/molecules/SearchBar/SearchBar';
 import {
   PRODUCT_LIST_STYLES,
-  PRODUCT_LIST_LAYOUT,
   PRODUCT_LIST_EMPTY,
   PRODUCT_LIST_SEARCH,
   PRODUCT_LIST_EMPTY_HEIGHT,
@@ -54,14 +53,7 @@ export const ProductListContent = ({
       <Divider className="mb-20 tablet:mb-30" />
 
       <div className="pb-20">
-        <div
-          className={clsx(
-            PRODUCT_LIST_LAYOUT.SEARCH_MOBILE,
-            PRODUCT_LIST_LAYOUT.SEARCH_TABLET,
-            PRODUCT_LIST_LAYOUT.SEARCH_DESKTOP,
-            'mr-auto'
-          )}
-        >
+        <div className={clsx('w-full tablet:w-xs desktop:w-366', 'mr-auto')}>
           <SearchBar
             placeholder={PRODUCT_LIST_SEARCH.PLACEHOLDER}
             defaultValue={searchState?.searchQuery}
@@ -98,7 +90,8 @@ export const ProductListContent = ({
             PRODUCT_LIST_STYLES.GRID.BASE,
             PRODUCT_LIST_STYLES.GRID.COLUMNS,
             PRODUCT_LIST_STYLES.GRID.GAP_X,
-            PRODUCT_LIST_STYLES.GRID.GAP_Y
+            PRODUCT_LIST_STYLES.GRID.GAP_Y,
+            'w-full'
           )}
         >
           {products.map((product, index) => {

@@ -54,11 +54,13 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full desktop:max-w-960">
       {/* Desktop/tablet용 헤더 */}
       <div className="hidden tablet:flex items-center w-full px-20 border-b border-gray-100 py-20 gap-20 desktop:gap-32">
-        <div className="w-150 shrink-0 text-16 font-bold text-gray-500">이름</div>
-        <div className="flex-1 text-16 font-bold text-gray-500">메일</div>
+        <div className="w-150 desktop:w-100 text-center shrink-0 text-16 font-bold text-gray-500">
+          이름
+        </div>
+        <div className="flex-1 text-center text-16 font-bold text-gray-500">메일</div>
         <div className="w-72 text-center text-16 font-bold text-gray-500">권한</div>
         <div className="w-200 text-center text-16 font-bold text-gray-500">비고</div>
       </div>
@@ -125,7 +127,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
             {/* Desktop/Tablet View */}
             <div className="hidden tablet:flex items-center w-full h-100 px-20 border-b border-[#E6E6E6] bg-white gap-20 desktop:gap-32">
               {/* 이름/아바타 */}
-              <div className="flex items-center gap-12 w-150 shrink-0">
+              <div className="flex items-center gap-12 w-150 desktop:w-100 shrink-0">
                 <Avatar size={32} alt={user.name} src={user.avatarUrl} />
                 <span className="font-normal text-gray-950 text-16 truncate">{user.name}</span>
               </div>

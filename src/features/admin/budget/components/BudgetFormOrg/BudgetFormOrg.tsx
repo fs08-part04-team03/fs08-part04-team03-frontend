@@ -5,6 +5,10 @@ import Button from '@/components/atoms/Button/Button';
 import Input from '@/components/atoms/Input/Input';
 import { formatNumberToKorean } from '@/features/admin/budget/utils/format';
 
+// 예산 최댓값
+const MAX_BUDGET = 1_500_000_000;
+const MIN_BUDGET = 0;
+
 // 예산 설정 폼
 interface BudgetFormOrgProps {
   initialThisMonthBudget?: number;
@@ -22,6 +26,8 @@ const BudgetFormOrg = ({
 }: BudgetFormOrgProps) => {
   const [thisMonthBudget, setThisMonthBudget] = useState<string>('');
   const [monthlyStartBudget, setMonthlyStartBudget] = useState<string>('');
+  const [thisMonthError, setThisMonthError] = useState<string>('');
+  const [monthlyStartError, setMonthlyStartError] = useState<string>('');
 
   // 초기값 설정
   useEffect(() => {
@@ -30,22 +36,46 @@ const BudgetFormOrg = ({
       setMonthlyStartBudget(initialMonthlyStartBudget.toString());
   }, [initialThisMonthBudget, initialMonthlyStartBudget]);
 
+  // 예산 유효성 검증
+  const validateBudget = (value: string): string => {
+    if (!value) return '';
+    const numValue = Number(value);
+    if (numValue < MIN_BUDGET) return `최소 ${MIN_BUDGET.toLocaleString()}원 이상이어야 합니다.`;
+    if (numValue > MAX_BUDGET) return `최대 ${MAX_BUDGET.toLocaleString()}원까지 입력 가능합니다.`;
+    return '';
+  };
+
   // 입력값이 변경될 때마다 호출 (실시간으로 입력값을 state에 저장)
   const handleBudgetChange =
-    (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (setter: (value: string) => void, errorSetter: (value: string) => void) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = e.target;
 
       // 숫자만 입력 가능하도록 처리
       const numericValue = value.replace(/[^0-9]/g, '');
 
-      // 안전한 정수 범위 검증
-      if (numericValue && Number(numericValue) > Number.MAX_SAFE_INTEGER) {
-        // 범위를 초과하는 입력은 무시
+      // 예산 최댓값 검증 - 초과 시 입력 차단
+      if (numericValue && Number(numericValue) > MAX_BUDGET) {
+        errorSetter(`최대 ${MAX_BUDGET.toLocaleString()}원까지 입력 가능합니다.`);
         return;
       }
 
       setter(numericValue);
+      errorSetter(validateBudget(numericValue));
     };
+
+  // 변경 사항이 있는지 확인
+  const isChanged =
+    Number(thisMonthBudget) !== initialThisMonthBudget ||
+    Number(monthlyStartBudget) !== initialMonthlyStartBudget;
+
+  // 제출 가능 여부 확인
+  const isSubmitDisabled =
+    !!thisMonthError ||
+    !!monthlyStartError ||
+    !thisMonthBudget ||
+    !monthlyStartBudget ||
+    !isChanged;
 
   const handleSubmit = () => {
     if (onSubmit) {
@@ -107,7 +137,7 @@ const BudgetFormOrg = ({
             <Input
               id="this-month-budget"
               value={thisMonthBudget ? Number(thisMonthBudget).toLocaleString() : ''}
-              onChange={handleBudgetChange(setThisMonthBudget)}
+              onChange={handleBudgetChange(setThisMonthBudget, setThisMonthError)}
               placeholder="예산을 입력해주세요"
               className="
                 pr-50 border-none focus:border-none p-0 h-auto
@@ -137,6 +167,7 @@ const BudgetFormOrg = ({
           >
             {formatNumberToKorean(Number(thisMonthBudget))}
           </span>
+          {thisMonthError && <span className="text-12 text-red-500 mt-4">{thisMonthError}</span>}
         </div>
 
         {/* 매달 시작 예산 */}
@@ -155,7 +186,7 @@ const BudgetFormOrg = ({
             <Input
               id="monthly-start-budget"
               value={monthlyStartBudget ? Number(monthlyStartBudget).toLocaleString() : ''}
-              onChange={handleBudgetChange(setMonthlyStartBudget)}
+              onChange={handleBudgetChange(setMonthlyStartBudget, setMonthlyStartError)}
               placeholder="예산을 입력해주세요"
               className="
                 pr-50 border-none focus:border-none p-0 h-auto
@@ -185,10 +216,28 @@ const BudgetFormOrg = ({
           >
             {formatNumberToKorean(Number(monthlyStartBudget))}
           </span>
+          {monthlyStartError && (
+            <span className="text-12 text-red-500 mt-4">{monthlyStartError}</span>
+          )}
         </div>
       </div>
 
-      <Button fullWidth size="lg" variant="primary" onClick={handleSubmit}>
+      {/* 입력 가능 한도 안내 */}
+      <p
+        className="
+          text-12 tablet:text-14 text-gray-400 mb-16
+          tracking--0.3 tablet:tracking--0.35"
+      >
+        입력 가능 범위: {MIN_BUDGET.toLocaleString()}원 ~ {MAX_BUDGET.toLocaleString()}원
+      </p>
+
+      <Button
+        fullWidth
+        size="lg"
+        variant="primary"
+        onClick={handleSubmit}
+        inactive={isSubmitDisabled}
+      >
         수정하기
       </Button>
     </div>

@@ -113,7 +113,6 @@ const GNB = ({ baseState, handlers, navigationState, categoryState }: GNBProps) 
     <div
       className={clsx(
         'gnb-container',
-        'sticky top-0 z-header',
         'w-full h-56',
         'bg-white border-b border-gray-200',
         'flex items-center justify-between',

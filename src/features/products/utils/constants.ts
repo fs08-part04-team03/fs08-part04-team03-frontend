@@ -39,11 +39,9 @@ export const PRODUCT_LIST_STYLES = {
 
 // 레이아웃 너비
 export const PRODUCT_LIST_LAYOUT = {
-  MOBILE_WIDTH: 'mobile:w-325',
   TABLET_WIDTH: 'tablet:w-180',
-  CONTENT_MOBILE: 'mobile:w-325',
-  CONTENT_TABLET: 'tablet:w-496',
-  CONTENT_DESKTOP: 'desktop:w-1180',
+  CONTENT_TABLET: 'tablet:w-full tablet:max-w-[496px]',
+  CONTENT_DESKTOP: 'desktop:w-full desktop:max-w-[1180px]',
   SEARCH_MOBILE: 'w-full',
   SEARCH_TABLET: 'tablet:w-320',
   SEARCH_DESKTOP: 'desktop:w-366',

@@ -49,6 +49,7 @@ export const PATHNAME = {
 
   //  최고관리자 (admin)
   ADMIN_ROOT: (companyId: string) => `/${companyId}/admin`,
+  ADMIN_DASHBOARD: (companyId: string) => `/${companyId}/admin/dashboard`,
   ADMIN_USERS: (companyId: string) => `/${companyId}/admin/users`,
   ADMIN_BUDGET: (companyId: string) => `/${companyId}/admin/budget`,
 } as const;
@@ -151,3 +152,12 @@ export {
   FILE_ERROR_MESSAGES,
   VALIDATION_MESSAGES,
 } from './messages';
+
+// 레이아웃 스페이싱 토큰 re-export
+export {
+  LAYOUT_SPACING,
+  SECTION_MARGIN_TOP,
+  SECTION_MARGIN_BOTTOM,
+  PAGE_PADDING_TOP,
+  PAGE_PADDING_BOTTOM,
+} from './layout';

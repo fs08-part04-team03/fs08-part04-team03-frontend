@@ -204,7 +204,7 @@ export const NotificationModal = ({ open, onClose }: NotificationModalProps) => 
                   {/* 알림 내용 */}
                   <p
                     className={clsx(
-                      'text-14 mt-2 line-clamp-2',
+                      'text-14 mt-2',
                       notification.isRead ? 'text-gray-600' : 'text-gray-900 font-medium'
                     )}
                   >

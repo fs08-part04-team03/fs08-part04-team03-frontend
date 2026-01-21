@@ -70,15 +70,14 @@ const ProductListTem = ({
   );
 
   return (
-    <div className="w-full flex justify-center">
-      <div className="flex mobile:flex-col tablet:flex-row desktop:gap-40 tablet:gap-20 mobile:gap-0">
+    <div className="w-full flex justify-center px-14 tablet:px-24 desktop:px-24">
+      <div className="flex mobile:flex-col tablet:flex-row desktop:gap-40 tablet:gap-20 mobile:gap-0 w-full desktop:max-w-[1400px]">
         {/* Category */}
-        <div className="mobile:mt-0 tablet:mt-10 desktop:mt-80">
+        <div className="mobile:mt-0 tablet:mt-10 desktop:mt-80 desktop:w-180 desktop:flex-shrink-0">
           <div className="mobile:overflow-x-auto mobile:scrollbar-none tablet:overflow-visible">
             <div
               className={clsx(
-                'mobile:flex mobile:flex-nowrap tablet:flex-col',
-                PRODUCT_LIST_LAYOUT.MOBILE_WIDTH,
+                'mobile:flex mobile:flex-nowrap tablet:flex-col mobile:gap-8',
                 PRODUCT_LIST_LAYOUT.TABLET_WIDTH
               )}
             >
@@ -95,10 +94,10 @@ const ProductListTem = ({
         {/* Content */}
         <div
           className={clsx(
-            'flex flex-col w-full mx-auto',
-            PRODUCT_LIST_LAYOUT.CONTENT_MOBILE,
-            PRODUCT_LIST_LAYOUT.CONTENT_TABLET,
-            PRODUCT_LIST_LAYOUT.CONTENT_DESKTOP
+            'flex flex-col',
+            'mobile:mt-20 mobile:w-full',
+            'tablet:max-w-[496px]',
+            'desktop:flex-1 desktop:min-w-0 desktop:max-w-[1180px]'
           )}
         >
           <ProductListHeader
