@@ -49,14 +49,6 @@ export function useLogin() {
       const { user, accessToken } = data;
       setAuth({ user, accessToken });
 
-      // localStorage에 저장되었는지 확인 (개발 환경에서만)
-      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-        const stored = localStorage.getItem('auth-storage');
-        logger.info('[Login] localStorage 저장 확인:', {
-          hasStored: !!stored,
-        });
-      }
-
       logger.info('[Login] 인증 정보 저장 완료:', {
         hasUserId: !!user.id,
         role: user.role,
