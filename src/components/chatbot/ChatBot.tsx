@@ -41,7 +41,7 @@ const ChatBot = (): JSX.Element | null => {
   const [isOpen, setIsOpen] = useState(false);
   const [chatKey, setChatKey] = useState(0);
   const [previousUserId, setPreviousUserId] = useState<string | null>(null);
-  const { user, isHydrated } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
 
   // 사용자 role에 따라 동적으로 config 생성
   const config = useMemo(() => {
@@ -118,8 +118,8 @@ const ChatBot = (): JSX.Element | null => {
     }
   }, [user, previousUserId]);
 
-  // hydration이 완료될 때까지 대기
-  if (!isHydrated) {
+  // 초기화가 완료될 때까지 대기 (providers.tsx에서 로딩 표시 중)
+  if (!isInitialized) {
     return null;
   }
 

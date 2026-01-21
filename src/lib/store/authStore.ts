@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import type { UserRole } from '@/constants/roles';
 import { logger } from '@/utils/logger';
 
@@ -22,128 +21,55 @@ interface AuthState {
   user: User | null;
   accessToken: string | null;
   isLoading: boolean;
-  isHydrated: boolean;
+  isInitialized: boolean; // 앱 초기화 완료 여부 (구: isHydrated)
 
   setAuth: (payload: { user: User | null; accessToken: string | null }) => void;
   setUser: (user: User | null) => void;
   startLoading: () => void;
   finishLoading: () => void;
   clearAuth: () => void;
-  setHydrated: () => void;
+  setInitialized: () => void;
 }
 
 /**
  * 클라이언트 전역 인증 상태(Zustand)
- * - localStorage에 영구 저장 (페이지 새로고침 시에도 유지)
- * - accessToken 저장
+ * - 메모리에만 저장 (localStorage 사용 안 함)
+ * - 페이지 새로고침 시 refreshToken(httpOnly 쿠키)으로 복원
+ * - accessToken은 메모리에만 저장하여 XSS 피해 범위 축소
  * - refreshToken은 httpOnly 쿠키로 브라우저가 관리
  */
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      accessToken: null,
-      isLoading: false,
-      isHydrated: false,
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  accessToken: null,
+  isLoading: false,
+  isInitialized: false,
 
-      setAuth: ({ user, accessToken }) => {
-        logger.info('[AuthStore] setAuth 호출:', {
-          hasUser: !!user,
-          hasAccessToken: !!accessToken,
-          userId: user?.id,
-          userEmail: user?.email,
-        });
-        set({ user, accessToken });
-        // Zustand persist는 동기적으로 localStorage에 저장하므로 즉시 확인 가능
-        if (typeof window !== 'undefined') {
-          const stored = localStorage.getItem('auth-storage');
-          try {
-            const parsedData = stored ? (JSON.parse(stored) as unknown) : null;
-            logger.info('[AuthStore] setAuth 후 localStorage 확인:', {
-              hasStored: !!stored,
-              storedData: parsedData,
-            });
-          } catch (parseError) {
-            logger.error('[AuthStore] localStorage 파싱 실패:', parseError);
-          }
-        }
-      },
-      setUser: (user) => set({ user }),
+  setAuth: ({ user, accessToken }) => {
+    logger.info('[AuthStore] setAuth 호출:', {
+      hasUser: !!user,
+      hasAccessToken: !!accessToken,
+    });
+    set({ user, accessToken });
+  },
 
-      startLoading: () => set({ isLoading: true }),
-      finishLoading: () => set({ isLoading: false }),
+  setUser: (user) => set({ user }),
 
-      clearAuth: () => {
-        set({ user: null, accessToken: null });
-        // localStorage에서 완전히 제거하여 다음 로드 시 null 상태가 복원되지 않도록 함
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth-storage');
-          logger.info('[AuthStore] clearAuth - localStorage 제거 완료');
-        }
-      },
-      setHydrated: () => set({ isHydrated: true }),
-    }),
-    {
-      name: 'auth-storage', // localStorage key
-      storage: createJSONStorage(() => localStorage),
-      // isLoading, isHydrated은 저장하지 않음 (페이지 로드 시마다 초기화)
-      partialize: (state) => ({
-        user: state.user,
-        accessToken: state.accessToken,
-      }),
-      onRehydrateStorage: () => {
-        // rehydration 시작 시 localStorage 확인
-        if (typeof window !== 'undefined') {
-          const stored = localStorage.getItem('auth-storage');
-          try {
-            const parsedData = stored ? (JSON.parse(stored) as unknown) : null;
-            logger.info('[AuthStore] Rehydration 시작 - localStorage 확인:', {
-              hasStored: !!stored,
-              storedData: parsedData,
-            });
-          } catch (parseError) {
-            logger.error('[AuthStore] Rehydration 시작 시 localStorage 파싱 실패:', parseError);
-          }
-        }
-        return (state, error) => {
-          if (error) {
-            // Rehydration 실패 시에도 isHydrated를 true로 설정하여 무한 대기 방지
-            const errorMessage = error instanceof Error ? error.message : 'Rehydration 실패';
-            logger.error('[AuthStore] Rehydration 실패:', errorMessage);
-            // 에러 발생 시에도 isHydrated 설정
-            if (state) {
-              state.setHydrated();
-            }
-            return;
-          }
-          // 성공 시: rehydration이 완료된 직후 isHydrated를 true로 설정
-          // 저장된 데이터 유무와 관계없이 localStorage를 건드리지 않고 상태만 표시
-          if (state) {
-            if (typeof window !== 'undefined') {
-              const stored = localStorage.getItem('auth-storage');
-              try {
-                const parsedData = stored ? (JSON.parse(stored) as unknown) : null;
-                logger.info('[AuthStore] Rehydration 후 localStorage 재확인:', {
-                  hasStored: !!stored,
-                  storedData: parsedData,
-                });
-              } catch (parseError) {
-                logger.error('[AuthStore] Rehydration 후 localStorage 파싱 실패:', parseError);
-              }
-            }
+  startLoading: () => set({ isLoading: true }),
+  finishLoading: () => set({ isLoading: false }),
 
-            state.setHydrated();
-            logger.info('[AuthStore] Rehydration 완료:', {
-              hasUser: !!state.user,
-              hasAccessToken: !!state.accessToken,
-              userId: state.user?.id,
-              userEmail: state.user?.email,
-            });
-          } else {
-            logger.warn('[AuthStore] Rehydration 완료되었지만 state가 null입니다.');
-          }
-        };
-      },
-    }
-  )
-);
+  clearAuth: () => {
+    logger.info('[AuthStore] clearAuth - 메모리에서 인증 정보 제거');
+    set({ user: null, accessToken: null });
+  },
+
+  setInitialized: () => {
+    logger.info('[AuthStore] setInitialized - 앱 초기화 완료');
+    set({ isInitialized: true });
+  },
+}));
+
+/**
+ * @deprecated isHydrated 대신 isInitialized 사용
+ * 하위 호환성을 위해 유지 (마이그레이션 완료 후 제거 예정)
+ */
+export const useIsHydrated = () => useAuthStore((state) => state.isInitialized);

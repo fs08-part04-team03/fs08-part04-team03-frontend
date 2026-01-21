@@ -20,7 +20,7 @@ export const RoleGuard = ({ children, requiredRole, fallback }: RoleGuardProps) 
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
-  const isHydrated = useAuthStore((state) => state.isHydrated);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
 
   const isRoleKnown = (role: UserRole | undefined): role is UserRole =>
     !!role && role in ROLE_LEVEL;
@@ -47,8 +47,8 @@ export const RoleGuard = ({ children, requiredRole, fallback }: RoleGuardProps) 
   }, [user?.role, pathname]);
 
   useEffect(() => {
-    // 하이드레이션이 완료되지 않았으면 리다이렉트하지 않음
-    if (!isHydrated) return;
+    // 초기화 완료 전에는 리다이렉트하지 않음 (providers.tsx에서 로딩 표시 중)
+    if (!isInitialized) return;
 
     if (!accessToken || !user) {
       router.replace(PATHNAME.LOGIN);
@@ -66,7 +66,7 @@ export const RoleGuard = ({ children, requiredRole, fallback }: RoleGuardProps) 
       redirectToSafePage();
     }
   }, [
-    isHydrated,
+    isInitialized,
     user,
     accessToken,
     router,
@@ -75,20 +75,9 @@ export const RoleGuard = ({ children, requiredRole, fallback }: RoleGuardProps) 
     redirectToSafePage,
   ]);
 
-  // 하이드레이션 완료 전까지는 로딩 상태 표시
-  if (!isHydrated) {
-    return (
-      <div
-        className="flex items-center justify-center min-h-screen"
-        aria-busy="true"
-        aria-live="polite"
-        role="status"
-        aria-label="인증 정보 확인 중"
-      >
-        <div className="w-24 h-24 border-2 border-gray-200 border-t-secondary-500 rounded-full animate-spin" />
-        <span className="sr-only">인증 정보 확인 중</span>
-      </div>
-    );
+  // 초기화 완료 전에는 null 반환 (providers.tsx에서 로딩 표시 중)
+  if (!isInitialized) {
+    return null;
   }
 
   if (!accessToken || !user) return null;

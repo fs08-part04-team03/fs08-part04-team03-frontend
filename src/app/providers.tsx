@@ -4,9 +4,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 import { useTokenRefresh } from '@/hooks/useTokenRefresh';
+import { useAuthInitializer } from '@/hooks/useAuthInitializer';
+import { useAuthStore } from '@/lib/store/authStore';
 import { STALE_TIME } from '@/constants/staleTime';
 
 export const Providers = ({ children }: { children: React.ReactNode }) => {
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -32,11 +36,30 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
       })
   );
 
-  // Access token 자동 갱신
+  // 앱 초기화: refreshToken으로 인증 상태 복원
+  useAuthInitializer();
+
+  // Access token 자동 갱신 (초기화 완료 후에만 동작)
   // - Refresh interval: 4분 (accessToken 5분 만료 전에 갱신)
   // - Refresh token 만료: 백엔드 .env의 JWT_REFRESH_EXPIRY 설정값 (기본값: 1h)
-  // - Refresh token 만료 시 자동 로그아웃 처리
+  // - Refresh token 만료 시 다음 사용자 액션에서 로그인 유도
   useTokenRefresh();
+
+  // 초기화 완료 전 로딩 표시
+  if (!isInitialized) {
+    return (
+      <div
+        className="flex items-center justify-center min-h-screen"
+        aria-busy="true"
+        aria-live="polite"
+        role="status"
+        aria-label="앱 초기화 중"
+      >
+        <div className="w-24 h-24 border-2 border-gray-200 border-t-secondary-500 rounded-full animate-spin" />
+        <span className="sr-only">앱 초기화 중</span>
+      </div>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
