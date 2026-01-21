@@ -48,8 +48,6 @@ export const useAuthStore = create<AuthState>()((set) => ({
     logger.info('[AuthStore] setAuth 호출:', {
       hasUser: !!user,
       hasAccessToken: !!accessToken,
-      userId: user?.id,
-      userEmail: user?.email,
     });
     set({ user, accessToken });
   },
