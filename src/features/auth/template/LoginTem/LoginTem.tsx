@@ -35,6 +35,7 @@ interface LoginTemContentProps {
   isValid: boolean;
   onSubmit: (values: LoginInput) => void | Promise<void>;
   className?: string;
+  idPrefix: string;
 }
 
 const LoginTemContent = ({
@@ -43,6 +44,7 @@ const LoginTemContent = ({
   onSubmit,
   handleSubmit,
   className,
+  idPrefix,
 }: LoginTemContentProps) => {
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -64,6 +66,9 @@ const LoginTemContent = ({
           label={field.label}
           placeholder={field.placeholder}
           type={field.type}
+          // mobile/desktop 템플릿을 동시에 렌더링하므로(반응형),
+          // 동일한 id(input-email 등)가 중복되면 label 연결이 깨질 수 있어 고유 id를 부여합니다.
+          id={`${idPrefix}-${field.name}`}
           className="w-full"
         />
       ))}
@@ -124,6 +129,7 @@ const LoginTem = (props: LoginTemProps) => {
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <LoginTemContent
           {...contentProps}
+          idPrefix="login-mobile"
           className="flex w-327 flex-col tablet:hidden desktop:hidden"
         />
         <p className="mt-24 text-center text-14 text-gray-600">
@@ -147,6 +153,7 @@ const LoginTem = (props: LoginTemProps) => {
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <LoginTemContent
               {...contentProps}
+              idPrefix="login-desktop"
               className="flex flex-col w-full tablet:w-480 desktop:w-480"
             />
             <p className="flex justify-center mt-24 text-14 text-gray-600 gap-5">
