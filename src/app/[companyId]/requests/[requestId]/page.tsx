@@ -6,6 +6,10 @@ import PurchaseRequestDetailSection from '@/features/purchase/section/PurchaseRe
 
 export const metadata: Metadata = {
   title: '구매 요청 상세',
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 const PurchaseRequestDetailPage = () => (
