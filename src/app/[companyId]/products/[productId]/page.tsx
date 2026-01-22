@@ -3,6 +3,10 @@ import ProductDetailSection from '@/features/products/section/ProductDetailSecti
 
 export const metadata: Metadata = {
   title: '상품 상세',
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 const ProductDetailPage = () => <ProductDetailSection />;
