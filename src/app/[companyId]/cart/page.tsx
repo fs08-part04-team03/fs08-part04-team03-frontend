@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: '장바구니를 확인하고 구매 요청을 진행하세요.',
   robots: {
     index: false,
-    nofollow: true,
+    follow: false,
   },
   openGraph: {
     title: 'SNACK | 장바구니',
