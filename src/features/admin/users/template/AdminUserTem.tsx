@@ -42,8 +42,8 @@ const AdminUsersTemplate = ({
       </div>
 
       {/* 메인 컨텐츠 영역 */}
-      <main className="flex-1 p-24 tablet:p-40 overflow-x-hidden">
-        <div className="max-w-600 w-full">
+      <main className="flex-1 pt-24 desktop:p-40 overflow-x-hidden">
+        <div className="max-w-768 w-full">
           <div className="flex flex-col w-full bg-white">
             {/* 헤더 */}
             <div className="flex justify-between items-center mb-24 desktop:mb-55">
@@ -54,7 +54,7 @@ const AdminUsersTemplate = ({
               <div className="hidden tablet:block">
                 <Button
                   variant="primary"
-                  className="!w-150 !h-44 !py-12 !px-16 !rounded-default !bg-gray-950 !text-white !text-16 !font-bold tracking-tight"
+                  className="!w-150 !h-44 !py-12 !px-16 !rounded-default !bg-gray-950 !text-white !text-16 !font-bold tracking-tight cursor-pointer"
                   onClick={onInvite}
                 >
                   회원 초대하기
