@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_API_URL } from '@/features/auth/utils/constants';
+import { logger } from '@/utils/logger';
 
 const DEFAULT_ALLOWED_HEADERS = 'Content-Type, Authorization';
 const DEFAULT_ALLOWED_METHODS = 'POST, OPTIONS';
@@ -68,8 +69,7 @@ export async function POST(req: NextRequest) {
     const hasRefreshToken = cookieHeader?.includes('refreshToken=');
 
     if (isDebug) {
-      // eslint-disable-next-line no-console
-      console.log('[Refresh Token API Route] Request Debug:', {
+      logger.info('[Refresh Token API Route] Request Debug:', {
         hasCookieHeader: !!cookieHeader,
         hasRefreshToken,
       });
@@ -89,8 +89,7 @@ export async function POST(req: NextRequest) {
     const data: unknown = await response.json();
 
     if (isDebug) {
-      // eslint-disable-next-line no-console
-      console.log('[Refresh Token API Route] Backend Response:', {
+      logger.info('[Refresh Token API Route] Backend Response:', {
         status: response.status,
         statusText: response.statusText,
         success:
@@ -117,8 +116,7 @@ export async function POST(req: NextRequest) {
       headers,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[Refresh Token API Route] Error:', error);
+    logger.error('[Refresh Token API Route] Error:', error);
     const headers = new Headers();
     applyCorsHeaders(headers, req);
     return NextResponse.json(

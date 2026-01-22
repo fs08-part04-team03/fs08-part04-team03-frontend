@@ -1,6 +1,7 @@
 'use client';
 
 import { fetchWithAuth } from '@/utils/api';
+import { logger } from '@/utils/logger';
 import { CHAT_API_PATHS } from '@/features/chat/constants/api';
 
 /**
@@ -43,7 +44,7 @@ export async function sendChatMessage(message: string): Promise<string> {
     } catch {
       // JSON 파싱 실패 시 기본 메시지 사용
     }
-    console.error('[Chat API Error]', {
+    logger.error('[Chat API Error]', {
       status: response.status,
       statusText: response.statusText,
       errorText: errorText.substring(0, 500),

@@ -1,5 +1,6 @@
 /* eslint-disable */
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import { logger } from '@/utils/logger';
 import { ExcelExportModal } from './ExcelExportModal';
 
 const meta: Meta<typeof ExcelExportModal> = {
@@ -29,8 +30,8 @@ const meta: Meta<typeof ExcelExportModal> = {
     },
   },
   args: {
-    onClose: () => console.log('닫기 버튼'),
-    onExport: (data) => console.log('내보내기 버튼', data),
+    onClose: () => logger.info('닫기 버튼'),
+    onExport: (data) => logger.info('내보내기 버튼', data),
   },
 };
 

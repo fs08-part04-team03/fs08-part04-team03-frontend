@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { sendChatMessage } from '@/features/chat/api/chat.api';
 import { useAuthStore } from '@/lib/store/authStore';
+import { logger } from '@/utils/logger';
 
 interface ChatMessage {
   id: number;
@@ -28,9 +29,9 @@ const saveMessagesToStorage = (messages: ChatMessage[]) => {
   try {
     const storageKey = `${CHATBOT_STORAGE_KEY}_${user.id}`;
     sessionStorage.setItem(storageKey, JSON.stringify(messages));
-    console.log('[Chatbot] Messages saved to session storage:', messages.length);
+    logger.info('[Chatbot] Messages saved to session storage:', messages.length);
   } catch (error) {
-    console.error('[Chatbot] Failed to save messages to session storage:', error);
+    logger.error('[Chatbot] Failed to save messages to session storage:', error);
   }
 };
 
