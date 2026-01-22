@@ -23,7 +23,7 @@ const ProductListRowSkeleton = ({ rows = 6, className }: ProductListRowSkeletonP
           'flex flex-col overflow-hidden',
           'rounded-default bg-white text-left',
           'shadow-card',
-          // ProductCard와 동일한 반응형 aspect-ratio 사용
+          // ProductCard와 동일한 반응형 aspect-ratio
           'w-full aspect-[155/241] tablet:aspect-[156/252] desktop:aspect-[367/439]'
         )}
       >
