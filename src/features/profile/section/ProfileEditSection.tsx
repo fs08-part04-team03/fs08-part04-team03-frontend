@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/useToast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { STALE_TIME } from '@/constants/staleTime';
 import { profileKeys } from '@/features/profile/queries/profile.keys';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import type {
   ProfileEditFormState,
   ProfileEditToastState,
@@ -38,6 +39,7 @@ const getRoleDisplayName = (role?: string) => {
 };
 
 const ProfileEditSection = () => {
+  usePageTitle('내 프로필');
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);

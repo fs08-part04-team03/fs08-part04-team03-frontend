@@ -11,6 +11,7 @@ import {
   PURCHASE_HISTORY_MESSAGES,
   PURCHASE_HISTORY_LABELS,
 } from '@/features/purchase-history/constants';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 interface PurchaseHistoryDetailSectionProps {
   orderId: string;
@@ -24,6 +25,7 @@ interface PurchaseHistoryDetailSectionProps {
  * - Template에 필요한 props를 만들고 내려주기
  */
 const PurchaseHistoryDetailSection = ({ orderId }: PurchaseHistoryDetailSectionProps) => {
+  usePageTitle('구매 내역 상세');
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : '';
 

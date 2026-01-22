@@ -10,9 +10,11 @@ import {
 } from '@/features/admin/budget/api/adminBudget.api';
 import { Toast } from '@/components/molecules/Toast/Toast';
 import { logger } from '@/utils/logger';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 // 어드민 예산 관리 섹션
 const AdminBudgetSection = () => {
+  usePageTitle('예산 관리');
   // toast 상태 관리
   const [toastState, setToastState] = useState<{
     isVisible: boolean;

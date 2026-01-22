@@ -14,6 +14,7 @@ import type {
 import { Toast } from '@/components/molecules/Toast/Toast';
 import { logger } from '@/utils/logger';
 import { useAuthStore } from '@/lib/store/authStore';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 interface DashboardSectionProps {
   companyId: string;
@@ -125,6 +126,7 @@ const transformDashboardData = (data: DashboardApiResponse) => {
 };
 
 const DashboardSection = ({ companyId }: DashboardSectionProps) => {
+  usePageTitle('Dashboard');
   const user = useAuthStore((state) => state.user);
   const isInitialized = useAuthStore((state) => state.isInitialized);
   const [isLoading, setIsLoading] = useState(true);

@@ -21,6 +21,7 @@ import {
   getSortParams,
 } from '@/features/purchase/handlers/usePurchaseSortHandlers';
 import { usePurchaseModalHandlers } from '@/features/purchase/handlers/usePurchaseModalHandlers';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import type {
   PurchaseListTableState,
   PurchaseListSortState,
@@ -35,6 +36,7 @@ import type {
  * 구매 요청 목록 데이터/상태 결정 레이어
  */
 const PurchaseRequestListSection = () => {
+  usePageTitle('구매 요청 관리');
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 
