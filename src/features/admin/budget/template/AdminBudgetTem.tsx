@@ -34,7 +34,7 @@ const AdminBudgetTemplate = ({
 
       {/* 주요 컨텐츠 영역 (예산 설정 form) */}
       <main className="flex-1 pt-24 desktop:p-40 overflow-x-hidden">
-        <div className="desktop:max-w-728 w-full">
+        <div className="desktop:max-w-758 w-full">
           <BudgetFormOrg
             initialThisMonthBudget={initialThisMonthBudget}
             initialMonthlyStartBudget={initialMonthlyStartBudget}
