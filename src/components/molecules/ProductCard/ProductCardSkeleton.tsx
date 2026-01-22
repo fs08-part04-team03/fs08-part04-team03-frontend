@@ -11,41 +11,40 @@ interface ProductCardSkeletonProps {
 const ProductCardSkeleton = ({ variant = 'product', className }: ProductCardSkeletonProps) => {
   const rootClasses = clsx(
     'flex flex-col overflow-hidden',
-    'rounded-default bg-white text-left',
+    'rounded-8 bg-white text-left rounded-default',
     'shadow-card',
 
-    // Product / Order - 이미지 + 텍스트를 수용할 수 있도록 h-auto 사용
-    (variant === 'product' || variant === 'order') && 'w-155 h-auto tablet:w-156 desktop:w-367',
+    // ProductCard와 동일한 반응형 aspect-ratio 사용
+    (variant === 'product' || variant === 'order') &&
+      'w-full aspect-[155/241] tablet:aspect-[156/252] desktop:aspect-[367/439]',
 
     // Wishlist
-    variant === 'wishlist' && 'w-155 h-251 tablet:w-219 tablet:h-315 desktop:w-373 desktop:h-445',
+    variant === 'wishlist' &&
+      'w-full aspect-[155/251] tablet:aspect-[219/315] desktop:aspect-[373/445]',
 
     className
   );
 
   return (
     <div className={rootClasses}>
-      {/* Image */}
+      {/* 이미지 영역 - ProductCard와 동일하게 정사각형 */}
       <div
         className={clsx(
           'relative rounded-default bg-gray-50 flex items-center justify-center overflow-hidden',
-          (variant === 'product' || variant === 'order') &&
-            'w-155 h-155 tablet:w-156 tablet:h-156 desktop:w-367 desktop:h-280',
-          variant === 'wishlist' &&
-            'w-155 h-155 tablet:w-219 tablet:h-219 desktop:w-373 desktop:h-373'
+          'w-full aspect-square'
         )}
       >
         <div className="relative w-full h-full">
           <SkeletonUI className="absolute inset-0 w-full h-full" />
         </div>
 
-        {/* Heart 버튼 */}
+        {/* 하트 버튼 */}
         <div className="absolute bottom-10 right-10 w-17 h-17 desktop:bottom-20 desktop:right-20 desktop:w-25 desktop:h-25">
           <SkeletonUI className="w-full h-full rounded-full" />
         </div>
       </div>
 
-      {/* Text */}
+      {/* 텍스트 영역 */}
       <div className="flex flex-col flex-1 min-w-0 px-8 pt-8 pb-12 gap-2">
         {/* ProductTile Skeleton */}
         {variant === 'product' || variant === 'wishlist' ? (
