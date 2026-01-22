@@ -23,6 +23,10 @@ export function generateMetadata(): Metadata {
     },
     description:
       '간식 구매 내역을 한 곳에서 통합 관리하세요. 구매 기록, 예산, 카테고리별 상품 데이터를 손쉽게 확인할 수 있습니다.',
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
