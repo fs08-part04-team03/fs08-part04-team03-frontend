@@ -5,8 +5,8 @@ import OrderConfirmedSection from '@/features/cart/section/OrderConfirmedSection
 export const metadata: Metadata = {
   title: '구매 요청 완료',
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
   },
 };
 
