@@ -15,8 +15,12 @@ import {
 import { useProducts } from '@/features/products/queries/product.queries';
 import { useWishlist } from '@/features/wishlist/queries/wishlist.queries';
 import { useProductListState } from '@/features/products/hooks/useProductListState';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const ProductListSection = ({ companyId }: { companyId: string }) => {
+  // 페이지 제목 설정
+  usePageTitle('상품 목록');
+
   // 🎯 통합 훅 사용 - 모든 상태와 핸들러를 그룹화하여 관리
   const {
     selectedCategoryId,

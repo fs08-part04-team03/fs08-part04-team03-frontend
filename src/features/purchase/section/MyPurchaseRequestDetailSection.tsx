@@ -5,6 +5,7 @@ import MyPurchaseRequestDetailTem from '@/features/purchase/template/MyPurchaseR
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import { useMyPurchaseDetail } from '@/features/purchase/queries/purchase.queries';
 import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseNavigation';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * MyPurchaseRequestDetailSection
@@ -14,6 +15,7 @@ import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseN
  * - Template에 필요한 props를 만들고 내려주기
  */
 const MyPurchaseRequestDetailSection = () => {
+  usePageTitle('구매 요청 상세', { includeUserName: true });
   const params = useParams();
   const requestId = params?.requestId as string | undefined;
   const companyId = params?.companyId ? String(params.companyId) : undefined;

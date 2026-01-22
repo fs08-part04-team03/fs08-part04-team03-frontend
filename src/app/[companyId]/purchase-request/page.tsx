@@ -5,6 +5,10 @@ import { RoleGuard } from '@/components/guards/RoleGuard';
 
 export const metadata: Metadata = {
   title: '구매 요청',
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 const PurchaseRequestFormPage = () => (

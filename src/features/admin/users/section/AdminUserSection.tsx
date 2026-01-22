@@ -17,8 +17,10 @@ import {
 } from '@/features/admin/users/api/adminUser.api';
 import { Option } from '@/components/atoms/DropDown/DropDown';
 import { logger } from '@/utils/logger';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const UserListSection = () => {
+  usePageTitle('회원 관리');
   const params = useParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
   const [searchQuery, setSearchQuery] = useState('');

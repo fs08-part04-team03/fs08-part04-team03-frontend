@@ -1,12 +1,20 @@
-import AdminBudgetSection from '@/features/admin/budget/section/AdminBudgetSection';
-import { buildPageMetadata, PAGE_KEYWORDS } from '@/lib/metadata';
+import type { Metadata } from 'next';
 
-export const metadata = buildPageMetadata({
+import AdminBudgetSection from '@/features/admin/budget/section/AdminBudgetSection';
+import { PAGE_KEYWORDS } from '@/lib/metadata';
+
+export const metadata: Metadata = {
   title: '예산 관리',
-  description: '회사 간식 예산 현황을 파악하고 효율적으로 예산을 관리하세요.',
-  path: '/admin/budget',
-  keywords: PAGE_KEYWORDS.dashboard,
-});
+  description: '간식 예산 현황을 파악하고 효율적으로 예산을 관리하세요.',
+  keywords: PAGE_KEYWORDS.budget.join(', '),
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: 'SNACK | 예산 관리',
+    description: '간식 예산 현황을 파악하고 효율적으로 예산을 관리하세요.',
+    type: 'website',
+    siteName: 'SNACK',
+  },
+};
 
 // 어드민 - 예산 관리 페이지
 const BudgetManagementPage = () => (

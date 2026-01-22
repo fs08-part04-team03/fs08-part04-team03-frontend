@@ -19,12 +19,14 @@ import { useToast } from '@/hooks/useToast';
 import { useMyPurchases } from '@/features/purchase/queries/purchase.queries';
 import { PURCHASE_DEFAULTS } from '@/features/purchase/constants/defaults';
 import { useMyPurchaseRequestList } from '@/features/purchase/hooks/useMyPurchaseRequestList';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * MyPurchaseRequestListSection - 개선된 버전
  * 통합 훅을 사용하여 Props Drilling 최소화
  */
 const MyPurchaseRequestListSection = () => {
+  usePageTitle('구매 요청', { includeUserName: true });
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 

@@ -21,6 +21,7 @@ import { useProductNavigation } from '@/features/products/handlers/useProductNav
 import { useProductEditActions } from '@/features/products/handlers/useProductEditActions';
 import { useProductModals } from '@/features/products/handlers/useProductModals';
 import { PRODUCT_LABELS } from '@/features/products/constants';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import type {
   MyProductDetailDataState,
   MyProductDetailCategoryState,
@@ -37,6 +38,9 @@ const MyProductDetailSection = () => {
 
   // 데이터 패칭
   const { data: product, isLoading, error } = useMyProduct(productId, { enabled: !!productId });
+
+  // 페이지 제목 설정 (상품 이름으로 동적 설정)
+  usePageTitle(product?.name || '상품 상세');
 
   // 핸들러 훅 사용
   const navigation = useProductNavigation(companyId);
