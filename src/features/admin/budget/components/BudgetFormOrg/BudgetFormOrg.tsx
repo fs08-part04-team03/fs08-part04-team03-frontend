@@ -98,7 +98,7 @@ const BudgetFormOrg = ({
         <h2
           className="
             font-bold text-black leading-normal
-            text-18 tablet:text-24 desktop:text-24
+            text-18
             tracking--0.45 tablet:tracking--0.6 desktop:tracking--0.6"
         >
           예산 관리
@@ -106,7 +106,7 @@ const BudgetFormOrg = ({
         <p
           className="
             font-normal text-gray-500 leading-normal
-            text-14 tablet:text-16 desktop:text-16
+            text-14
             tracking--0.35 tablet:tracking--0.4 desktop:tracking--0.4"
         >
           이번 달 예산을 정해서 지출을 관리해보세요
