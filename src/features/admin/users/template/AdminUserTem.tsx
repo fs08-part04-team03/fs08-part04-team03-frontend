@@ -42,14 +42,14 @@ const AdminUsersTemplate = ({
       </div>
 
       {/* 메인 컨텐츠 영역 */}
-      <main className="flex-1 pt-24 desktop:p-40 overflow-x-hidden">
+      <main className="flex-1 pt-24 desktop:p-40 desktop:pt-24 overflow-x-hidden">
         <div className="max-w-758 w-full">
           <div className="flex flex-col w-full bg-white">
             {/* 헤더 */}
             <div className="flex justify-between items-center mb-24 desktop:mb-55">
-              <h1 className="flex-1 text-black text-18 font-bold tracking-0.45 tablet:text-24 tablet:tracking-0.6 tablet:flex-none">
+              <div className="flex-1 text-black text-18 font-bold tracking-0.45 tablet:tracking-0.6 tablet:flex-none">
                 회원 관리
-              </h1>
+              </div>
               {/* Desktop/Tablet 초대 버튼 */}
               <div className="hidden tablet:block">
                 <Button
