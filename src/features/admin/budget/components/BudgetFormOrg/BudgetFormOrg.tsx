@@ -88,7 +88,7 @@ const BudgetFormOrg = ({
   };
 
   return (
-    <div className="w-full max-w-960 bg-white p-24">
+    <div className="w-full max-w-960 bg-white">
       {/* 헤더 */}
       <div
         className="
