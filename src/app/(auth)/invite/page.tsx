@@ -6,6 +6,10 @@ import { PATHNAME } from '@/constants';
 
 export const metadata: Metadata = {
   title: '초대 가입',
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 interface InvitePageProps {
