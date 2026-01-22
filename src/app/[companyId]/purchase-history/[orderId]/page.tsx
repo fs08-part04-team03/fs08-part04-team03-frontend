@@ -5,6 +5,10 @@ import PurchaseHistoryDetailSection from '@/features/purchase-history/section/Pu
 
 export const metadata: Metadata = {
   title: '구매 내역 상세',
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 interface PurchaseHistoryDetailPageProps {
