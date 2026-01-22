@@ -70,7 +70,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
         {users.map((user) => (
           <div key={user.id} className="contents">
             {/* Mobile View */}
-            <div className="flex tablet:hidden w-full max-w-327 py-16 gap-12 border-b border-gray-100 relative">
+            <div className="flex tablet:hidden w-full py-16 gap-12 border-b border-gray-100 relative px-16">
               {/* Avatar */}
               <div className="flex justify-center items-center w-48 h-48 shrink-0 rounded-100 bg-gray-50">
                 <Avatar size={32} alt={user.name} src={user.avatarUrl} />
@@ -97,6 +97,7 @@ const UserList = ({ users, onRoleChange, onDelete }: UserListProps) => {
                     alt="more"
                     width={24}
                     height={24}
+                    className="cursor-pointer"
                     unoptimized
                   />
                 </button>
