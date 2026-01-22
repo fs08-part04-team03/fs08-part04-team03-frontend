@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger';
+
 interface MessageParserActionProvider {
   sendToServer: (message: string) => Promise<void>;
 }
@@ -11,7 +13,7 @@ class MessageParser {
 
   parse(message: string): void {
     this.actionProvider.sendToServer(message).catch((error) => {
-      console.error('sendToServer failed', error);
+      logger.error('sendToServer failed', error);
     });
   }
 }

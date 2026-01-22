@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_API_URL } from '@/features/auth/utils/constants';
+import { logger } from '@/utils/logger';
 
 const DEFAULT_ALLOWED_HEADERS = 'Content-Type, Authorization';
 const DEFAULT_ALLOWED_METHODS = 'POST, OPTIONS';
@@ -90,8 +91,7 @@ export async function POST(req: NextRequest) {
       headers,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[Refresh Token API Route] Error:', error);
+    logger.error('[Refresh Token API Route] Error:', error);
     const headers = new Headers();
     applyCorsHeaders(headers, req);
     return NextResponse.json(
