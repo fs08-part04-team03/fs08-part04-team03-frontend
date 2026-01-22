@@ -9,6 +9,7 @@ import type {
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import { useAuthStore } from '@/lib/store/authStore';
 import { ROLE_LEVEL } from '@/utils/auth';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { adaptCartItemToOrderItem } from '../utils/cart.utils';
 import { useShoppingCartHandlers } from '../handlers/useShoppingCartHandlers';
 import { CART_PAGE_DEFAULTS } from '../constants/defaults';
@@ -23,6 +24,7 @@ import ShoppingCartTem from '../template/ShoppingCartTem/ShoppingCartTem';
  * - Template에 필요한 props를 만들고 내려주기
  */
 const ShoppingCartSection = () => {
+  usePageTitle('장바구니');
   const params = useParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
   const user = useAuthStore((state) => state.user);

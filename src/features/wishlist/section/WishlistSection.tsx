@@ -6,8 +6,10 @@ import WishlistTem, {
 } from '@/features/wishlist/template/WishlistTem/WishlistTem';
 import { LOADING_MESSAGES, ERROR_MESSAGES, PATHNAME } from '@/constants';
 import { useWishlist, useRemoveWishlist } from '@/features/wishlist/queries/wishlist.queries';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 const WishlistSection = () => {
+  usePageTitle('내 위시리스트');
   const router = useRouter();
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : '';

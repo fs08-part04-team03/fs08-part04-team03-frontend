@@ -13,6 +13,7 @@ import { useProductResponsivePageSize } from '@/features/products/handlers/usePr
 import { useProductPaginationHandlers } from '@/features/products/handlers/useProductPaginationHandlers';
 import { useProductModalHandlers } from '@/features/products/handlers/useProductModalHandlers';
 import { PRODUCT_DEFAULTS } from '@/features/products/constants/defaults';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import type {
   RegisteredProductListState,
   RegisteredProductSortState,
@@ -20,6 +21,7 @@ import type {
 } from '@/features/products/types/my-registered.types';
 
 const MyRegisteredSection = () => {
+  usePageTitle('등록한 상품', { includeUserName: true });
   const params = useParams();
   const companyId = params?.companyId ? String(params.companyId) : undefined;
 

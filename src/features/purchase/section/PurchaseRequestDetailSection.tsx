@@ -16,6 +16,7 @@ import { usePurchaseRequestActions } from '@/features/purchase/handlers/usePurch
 import { usePurchaseNavigation } from '@/features/purchase/handlers/usePurchaseNavigation';
 import { PURCHASE_LABELS, PURCHASE_MESSAGES } from '@/features/purchase/constants';
 import { useAuthStore } from '@/lib/store/authStore';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import type {
   PurchaseDetailBudgetState,
   PurchaseDetailModalState,
@@ -27,6 +28,7 @@ import type {
  * 구매 요청 상세 데이터/상태 결정 레이어
  */
 const PurchaseRequestDetailSection = () => {
+  usePageTitle('구매 요청 상세');
   const params = useParams();
   const requestId = params?.requestId as string | undefined;
   const companyId = params?.companyId ? String(params.companyId) : undefined;
