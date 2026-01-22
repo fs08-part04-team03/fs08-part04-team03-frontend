@@ -120,7 +120,7 @@ const DropDown = ({
     large: 'text-gray-950',
   };
 
-  const fontClasses = 'font-sans font-normal text-14 tracking--0.4';
+  const fontClasses = 'font-sans font-normal text-13 tracking--0.4';
 
   const optionHeightClasses = {
     small: 'h-44',
