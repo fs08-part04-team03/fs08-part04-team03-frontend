@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 
-const DEFAULT_API_URL = process.env.BACKEND_API_URL || 'https://fs08-team03-api.fly.dev';
+import { DEFAULT_API_URL } from '@/features/auth/utils/constants';
 
 /**
  * 서버 컴포넌트에서 메타데이터(title/description)를 만들 때 사용하는 헬퍼들입니다.

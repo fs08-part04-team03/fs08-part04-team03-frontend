@@ -22,6 +22,10 @@ export function usePageTitle(pageName: string, options?: UsePageTitleOptions) {
   const includeUserName = options?.includeUserName ?? false;
 
   useEffect(() => {
+    // AbortController로 이전 요청 취소
+    const controller = new AbortController();
+    let isActive = true;
+
     // user가 있고 accessToken이 있으면 회사 정보 조회
     const updateTitle = async () => {
       if (user?.companyId && accessToken) {
@@ -31,13 +35,14 @@ export function usePageTitle(pageName: string, options?: UsePageTitleOptions) {
               Authorization: `Bearer ${accessToken}`,
             },
             credentials: 'include',
+            signal: controller.signal,
           });
 
-          if (response.ok) {
+          if (response.ok && isActive) {
             const data = (await response.json()) as { data?: { name?: string } };
             const companyName = data.data?.name;
 
-            if (companyName) {
+            if (companyName && isActive) {
               if (includeUserName && user.name) {
                 document.title = `${companyName} - ${user.name} ${pageName}`;
               } else {
@@ -46,21 +51,36 @@ export function usePageTitle(pageName: string, options?: UsePageTitleOptions) {
               return;
             }
           }
-        } catch {
-          // 에러 시 기본 제목 사용
+        } catch (error) {
+          // AbortError는 무시 (요청이 취소된 경우)
+          if (error instanceof Error && error.name === 'AbortError') {
+            return;
+          }
+          // 에러 시 기본 제목 사용 (요청이 활성 상태일 때만)
+          if (!isActive) {
+            return;
+          }
         }
       }
 
-      // 회사 정보가 없으면 기본 제목
-      if (includeUserName && user?.name) {
-        document.title = `${user.name} ${pageName}`;
-      } else {
-        document.title = pageName;
+      // 회사 정보가 없으면 기본 제목 (요청이 활성 상태일 때만)
+      if (isActive) {
+        if (includeUserName && user?.name) {
+          document.title = `${user.name} ${pageName}`;
+        } else {
+          document.title = pageName;
+        }
       }
     };
 
     updateTitle().catch(() => {
       // 에러 무시
     });
+
+    // cleanup: 이전 요청 취소 및 플래그 비활성화
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
   }, [user, accessToken, pageName, includeUserName]);
 }
