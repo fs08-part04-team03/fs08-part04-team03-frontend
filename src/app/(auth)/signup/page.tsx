@@ -1,4 +1,10 @@
+import { Metadata } from 'next';
+
 import SignupSection from '@/features/auth/section/SignupSection';
+
+export const metadata: Metadata = {
+  title: '회원가입',
+};
 
 const SignupPage = () => <SignupSection />;
 
