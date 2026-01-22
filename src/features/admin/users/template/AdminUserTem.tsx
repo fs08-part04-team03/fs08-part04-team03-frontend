@@ -43,7 +43,7 @@ const AdminUsersTemplate = ({
 
       {/* 메인 컨텐츠 영역 */}
       <main className="flex-1 pt-24 desktop:p-40 overflow-x-hidden">
-        <div className="max-w-768 w-full">
+        <div className="max-w-758 w-full">
           <div className="flex flex-col w-full bg-white">
             {/* 헤더 */}
             <div className="flex justify-between items-center mb-24 desktop:mb-55">
