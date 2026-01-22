@@ -11,7 +11,7 @@ interface ProductCardSkeletonProps {
 const ProductCardSkeleton = ({ variant = 'product', className }: ProductCardSkeletonProps) => {
   const rootClasses = clsx(
     'flex flex-col overflow-hidden',
-    'rounded-8 bg-white text-left rounded-default',
+    'rounded-default bg-white text-left',
     'shadow-card',
 
     // ProductCard와 동일한 반응형 aspect-ratio 사용

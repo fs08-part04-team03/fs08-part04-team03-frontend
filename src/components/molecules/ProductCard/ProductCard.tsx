@@ -65,7 +65,7 @@ const ProductCard = ({
 
   const rootClasses = clsx(
     'flex flex-col overflow-hidden',
-    'rounded-8 bg-white text-left rounded-default',
+    'rounded-default bg-white text-left',
     'shadow-card',
     'transition-[transform,box-shadow,border] duration-300 ease-out',
     'hover:animate-border-shimmer hover:-translate-y-2',
