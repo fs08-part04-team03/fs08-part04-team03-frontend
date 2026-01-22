@@ -18,12 +18,14 @@ import {
 import { getSortParams } from '@/features/purchase-history/handlers/useSortHandlers';
 import { PURCHASE_HISTORY_MESSAGES } from '@/features/purchase-history/constants/messages';
 import { usePurchaseHistoryState } from '@/features/purchase-history/hooks/usePurchaseHistoryState';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * PurchaseHistorySection - 개선된 버전
  * 통합 훅을 사용하여 Props Drilling 최소화
  */
 const PurchaseHistorySection = () => {
+  usePageTitle('구매 내역');
   const user = useAuthStore((state) => state.user);
   const companyId = user?.companyId || '';
 

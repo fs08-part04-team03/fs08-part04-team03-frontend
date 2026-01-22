@@ -10,6 +10,7 @@ import { ROLE_LEVEL } from '@/utils/auth';
 import type { CartRole } from '@/features/cart/types/cart-summary.types';
 import type { OrderCompletedItem } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import { getMyPurchaseDetail } from '@/features/purchase/api/purchase.api';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useOrderConfirmedHandlers } from '../handlers/useOrderConfirmedHandlers';
 import { CART_ROUTES } from '../constants/routes';
 import OrderConfirmedTem from '../template/OrderConfirmedTem/OrderConfirmedTem';
@@ -27,6 +28,7 @@ interface OrderConfirmedSectionProps {
  * - Template에 필요한 props를 만들고 내려주기
  */
 const OrderConfirmedSection = ({ id: purchaseIdProp }: OrderConfirmedSectionProps) => {
+  usePageTitle('주문 완료');
   const params = useParams();
   const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';

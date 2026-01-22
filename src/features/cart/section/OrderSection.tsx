@@ -6,6 +6,7 @@ import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/constants';
 import CustomModal from '@/components/molecules/CustomModal/CustomModal';
 import type { OrderCompletedItem } from '@/features/cart/components/OrderCompletedSummaryOrg/OrderCompletedSummaryOrg';
 import { filterByIds } from '@/utils/array';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import OrderTem from '../template/OrderTem/OrderTem';
 import { adaptCartItemToOrderItem } from '../utils/cart.utils';
 import { useOrderHandlers } from '../handlers/useOrderHandlers';
@@ -23,6 +24,7 @@ import type { OrderDataState, OrderNavigationHandlers } from '../types/order.typ
  * - Template에 필요한 props를 만들고 내려주기
  */
 const OrderSection = () => {
+  usePageTitle('주문 확인');
   const params = useParams();
   const searchParams = useSearchParams();
   const companyId = typeof params?.companyId === 'string' ? params.companyId : '';
