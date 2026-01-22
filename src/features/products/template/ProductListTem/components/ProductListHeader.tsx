@@ -50,8 +50,8 @@ export const ProductListHeader = ({
             onSelect={onChangeSort}
           />
           <button type="button" className={buttonClass} onClick={onOpenModal}>
-            <Image src="/icons/plus-white.svg" alt="" aria-hidden width={16} height={16} />
-            <span>상품 등록</span>
+            <Image src="/icons/plus-white.svg" alt="" aria-hidden width={14} height={14} />
+            <div className="text-13">상품 등록</div>
           </button>
         </div>
       </div>
@@ -70,8 +70,8 @@ export const ProductListHeader = ({
             onSelect={onChangeSort}
           />
           <button type="button" className={buttonClass} onClick={onOpenModal}>
-            <Image src="/icons/plus-white.svg" alt="" aria-hidden width={16} height={16} />
-            <span>상품 등록</span>
+            <Image src="/icons/plus-white.svg" alt="" aria-hidden width={14} height={14} />
+            <div className="text-13">상품 등록</div>
           </button>
         </div>
       </div>
