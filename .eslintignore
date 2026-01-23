@@ -10,3 +10,4 @@ build
 # 기타
 coverage
 *.log
+public/storybook
