@@ -140,7 +140,7 @@ npm run storybook
 npm run build-storybook
 ```
 
-Storybook은 `http://localhost:6006`에서 실행됩니다.
+Storybook은 `storybook/` 또는 `https://6972d324a8b7842fba2fb28a-lvcjnvzxyj.chromatic.com/?path=/docs/atoms-floatinglabelinput--docs` 에서 실행됩니다.
 
 ### 코드 품질
 
