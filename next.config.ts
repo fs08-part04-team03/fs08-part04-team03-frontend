@@ -72,6 +72,12 @@ const nextConfig: NextConfig = {
     const backendUrl = process.env.BACKEND_API_URL || 'https://snock.tplinkdns.com:4000';
 
     return [
+      // Storybook index rewrite
+      {
+        source: '/storybook',
+        destination: '/storybook/index.html',
+      },
+      // API proxy
       {
         source: '/api/:path*',
         destination: `${backendUrl}/api/:path*`,
