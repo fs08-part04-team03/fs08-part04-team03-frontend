@@ -73,6 +73,10 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        source: '/storybook/:path',
+        destination: '/storybook/:path',
+      },
+      {
         source: '/api/:path*',
         destination: `${backendUrl}/api/:path*`,
       },
